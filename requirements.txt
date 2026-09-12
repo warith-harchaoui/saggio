@@ -1,0 +1,6 @@
+# Runtime dependencies. Installing the package with pip reads pyproject.toml,
+# which is the source of truth; this file exists for the environments that still
+# expect one, and is kept in step by hand.
+os-helper>=2.0.0,<3
+PyYAML>=6.0
+platformdirs>=4.0

@@ -1,0 +1,141 @@
+# Packaging and tooling for running-code-cost-helper.
+#
+# The package layout is flat, like the rest of this author's helper suite
+# (os-helper, audio-helper, vocal-helper): the importable package sits at the
+# repository root rather than under src/.
+#
+# Runtime dependencies are deliberately three. os-helper owns every
+# per-operating-system question (what CPU is this, what GPU, how much memory,
+# which platform, where are the temporary files, how do I time a block), PyYAML
+# parses the models and the catalogues, and platformdirs finds the per-user
+# config directory portably. Everything else the package does, it does itself.
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "running-code-cost-helper"
+version = "1.0.0"
+description = "What it costs to run your code, per unit of work, with every number saying how far it can be trusted: money, time, energy, carbon, water, and any dimension you register."
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+license = { text = "BSD-3-Clause" }
+authors = [{ name = "Warith HARCHAOUI", email = "warith.harchaoui@sev7n.io" }]
+keywords = [
+    "cost of running",
+    "green software",
+    "carbon footprint",
+    "energy measurement",
+    "sustainability",
+    "FinOps",
+    "Green Algorithms",
+    "provenance",
+    "reproducibility",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: System :: Benchmark",
+]
+dependencies = [
+    # os-helper answers every question about the machine and the operating
+    # system, on macOS, Linux and Windows alike: CPU model and core count,
+    # installed memory, discrete GPUs, platform detection, temporary files,
+    # timers, logging. This package asks rather than re-implementing.
+    "os-helper>=2.0.0,<3",
+    "PyYAML>=6.0",
+    "platformdirs>=4.0",
+]
+
+[project.optional-dependencies]
+# Word and PDF output shells out to md2star, which wraps Pandoc. Large, and
+# needed by nobody who is reading Markdown or HTML, so it stays out of the
+# default install.
+office = ["md2star>=1.0"]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "pillow>=10.0",
+]
+
+[project.scripts]
+running-code-cost-helper = "running_code_cost_helper.cli.app:run"
+# A short alias, because the full name is a mouthful to type twice.
+rcch = "running_code_cost_helper.cli.app:run"
+
+[project.urls]
+Homepage = "https://github.com/warith-harchaoui/running-code-cost-helper"
+Source = "https://github.com/warith-harchaoui/running-code-cost-helper"
+Issues = "https://github.com/warith-harchaoui/running-code-cost-helper/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["running_code_cost_helper*"]
+
+[tool.setuptools.package-data]
+# The catalogues, the templates, and the report's own assets all ship inside the
+# wheel and are read through importlib.resources, so a checkout and an installed
+# copy behave identically.
+"running_code_cost_helper.data" = ["*.yaml", "templates/*.yaml", "report/*"]
+
+# --- Linting and formatting -------------------------------------------------
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+# pycodestyle, pyflakes, import order, NumPy docstrings, bugbear, comprehensions,
+# pyupgrade, and the security checks that matter for a tool that runs subprocesses.
+select = ["E", "W", "F", "I", "D", "B", "C4", "UP", "S", "RUF"]
+ignore = [
+    # D203 and D213 contradict the NumPy convention that D itself enforces.
+    "D203",
+    "D213",
+    # __all__ is grouped by layer with a comment per group, which is how a reader
+    # meets the public surface. Alphabetical order would scatter the groups.
+    "RUF022",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests say what they check in their names; a docstring rule on every assertion
+# helper adds noise rather than clarity. assert is what a test is made of.
+"tests/*" = [
+    "D100",
+    "D103",
+    # A test's docstring names what is being checked; "An empty catalogue overlay"
+    # is the right sentence for a fixture and is not an instruction.
+    "D401",
+    # assert is what a test is made of.
+    "S101",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.isort]
+known-first-party = ["running_code_cost_helper"]
+
+# --- Tests ------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+# The doctests are part of the suite on purpose: every example in every docstring
+# is executed, so the documentation cannot drift away from the code.
+testpaths = ["tests", "running_code_cost_helper"]
+addopts = "-q --doctest-modules"
+filterwarnings = ["error::DeprecationWarning"]
+markers = [
+    "slow: exercises a real subprocess and takes seconds rather than milliseconds",
+]

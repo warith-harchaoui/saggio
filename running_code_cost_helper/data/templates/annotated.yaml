@@ -1,0 +1,173 @@
+# A worked cost model, annotated.
+# ------------------------------------------------------------------------------
+# This is a real arithmetic chain for a real machine, filled in so you can see
+# what a finished model looks like and what each field is for. The numbers
+# describe one inference on a workstation with a single RTX 4090, running in
+# France, and they are all `estimated`: nothing here was measured on your
+# machine, so nothing here claims to have been.
+#
+# Replace the deployment with yours, run `running-code-cost-helper measure` on
+# your real command, and the runtime and power become `measured`. The derived
+# costs then rise to `measured` on their own, because each one names its inputs
+# in `derived_from` and the validator recomputes the weakest link from there.
+
+schema_version: "2.0"
+
+date_updated: "2026-09-12"
+
+project:
+  name: "example-service"
+  repository: "https://github.com/example/example-service"
+
+unit_of_work:
+  name: "one inference on a median-sized request"
+  description: >-
+    A single forward pass over one request of median size, from the moment the
+    handler receives it to the moment it returns. Batching is assumed off; a
+    batched deployment divides the fixed cost across the batch and needs its own
+    scenario.
+  status: "estimated"
+  out_of_scope:
+    - "Training and fine-tuning the model."
+    - "Rendering the result in the client."
+    - "Idle time between requests, which a separate scenario should cover."
+
+deployment:
+  provider: "on-prem"
+  instance_type: "workstation-rtx-4090"
+  country: "FR"
+  region: "eu-west"
+  country_provenance: "Stated by the maintainer."
+
+# Extra dimensions beyond the canonical five are declared here and then used as
+# ordinary cost keys. The validator, the report, and the drift gate all pick them
+# up from this declaration; nothing in the package needs to change.
+dimensions:
+  - key: "egress"
+    label: "Network egress"
+    unit: "GB"
+    description: "Bytes leaving the datacenter to answer one request."
+
+assumptions:
+  power_draw:
+    value: 600
+    unit: "W"
+    status: "estimated"
+    source_url: "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/"
+    retrieved_date: "2026-09-12"
+    notes: "450 W board plus a 150 W allowance for host CPU, memory and chassis. A nameplate sum, not a measurement."
+  pue:
+    value: 1.5
+    unit: "ratio"
+    status: "estimated"
+    source_url: "https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024"
+    retrieved_date: "2026-09-12"
+    notes: "Industry-average overhead for a self-run room. Measure your own if you have a meter on the rack."
+  electricity_price:
+    value: 0.24
+    unit: "USD/kWh"
+    currency: "USD"
+    status: "estimated"
+    source_url: "https://ember-energy.org/data/electricity-data-explorer/"
+    retrieved_date: "2026-09-12"
+    notes: "Indicative French tariff. Use your own bill if you have it."
+  grid_carbon_intensity:
+    value: 56
+    unit: "gCO2e/kWh"
+    status: "estimated"
+    source_url: "https://ember-energy.org/data/electricity-data-explorer/"
+    retrieved_date: "2026-09-12"
+    notes: "Annual average for the French grid. An hourly figure would be better and moves by a factor of three."
+  machine_energy:
+    value: 1.66667e-05
+    unit: "kWh"
+    status: "estimated"
+    derived_from: ["scenarios[0].runtime", "assumptions.power_draw"]
+    notes: >-
+      What the machine itself draws for one unit: runtime in hours x 600 W / 1000.
+      Water is computed from this rather than from the facility figure below,
+      because water usage effectiveness is defined per kilowatt-hour of IT load
+      and using the facility figure would count the cooling twice.
+  water_usage_effectiveness:
+    value: null
+    unit: "L/kWh"
+    status: "TODO"
+    notes: >-
+      A self-run room publishes no water usage effectiveness. This stays open
+      rather than being filled with a plausible figure, because an invented water
+      number in a sustainability report is the worst kind of number there is.
+
+external_services:
+  - key: "openai"
+    name: "OpenAI API"
+    detected_at: "app/handlers.py:14"
+    evidence: "from openai import OpenAI"
+    pricing_source_url: "https://openai.com/api/pricing/"
+    price:
+      value: null
+      unit: "USD"
+      currency: "USD"
+      status: "TODO"
+      notes: "Read the current price per million tokens from the page above, then multiply by the tokens one request uses."
+    calls_per_unit:
+      value: 1
+      unit: "calls"
+      status: "estimated"
+      notes: "One completion per request, from reading the handler."
+
+scenarios:
+  - name: "default"
+    description: "One request, model already loaded, no batching."
+    runtime:
+      value: 0.1
+      unit: "s"
+      status: "estimated"
+      notes: "Replace with a measured figure from `running-code-cost-helper measure`."
+    costs:
+      time:
+        value: 0.1
+        unit: "s"
+        status: "estimated"
+        derived_from: ["scenarios[0].runtime"]
+      energy:
+        value: 2.5e-05
+        unit: "kWh"
+        status: "estimated"
+        derived_from: ["assumptions.machine_energy", "assumptions.pue"]
+        notes: "What the building draws: machine energy x 1.5."
+      money:
+        value: 6.0e-06
+        unit: "USD"
+        currency: "USD"
+        status: "estimated"
+        derived_from: ["scenarios[0].costs.energy", "assumptions.electricity_price"]
+        notes: "Electricity only. The OpenAI call above is a TODO and is not in this total."
+      carbon:
+        value: 0.0014
+        unit: "gCO2e"
+        status: "estimated"
+        derived_from: ["scenarios[0].costs.energy", "assumptions.grid_carbon_intensity"]
+        notes: "Operating emissions of the grid. Making the hardware is excluded."
+      water:
+        value: null
+        unit: "L"
+        status: "TODO"
+        derived_from: ["assumptions.machine_energy", "assumptions.water_usage_effectiveness"]
+        notes: "Open until the site publishes a water usage effectiveness."
+      egress:
+        value: null
+        unit: "GB"
+        status: "TODO"
+        notes: "Measure the response size, or leave it open."
+
+exclusions:
+  - "Making the hardware. Manufacturing carbon is real and large, and is not counted here; a model that amortised it would need a lifetime and a utilisation figure, both of which are guesses."
+  - "The people. Salaries, offices, and travel dwarf the electricity and belong in a different model."
+  - "Storage at rest, and the network beyond the egress dimension above."
+  - "Idle capacity. This is the cost of one unit of work, not the cost of being ready to do it."
+
+provenance_rules:
+  - "Every sourced value carries source_url and retrieved_date."
+  - "A derived value names its inputs in derived_from and never outranks the weakest of them."
+  - "The country is stated by a human, never inferred from a developer's locale."
+  - "A number that is not known stays TODO. It never becomes zero."

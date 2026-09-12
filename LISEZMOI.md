@@ -1,0 +1,278 @@
+<p align="center">
+  <img src="assets/logo-180.png" alt="running-code-cost-helper" width="120">
+</p>
+
+# running-code-cost-helper
+
+🇫🇷 Français · [🇬🇧 README.md](README.md)
+
+**Combien coûte l'exécution de votre code ?** L'argent, le temps, l'énergie, le
+carbone, l'eau, et toute autre dimension que vous décidez de suivre, par unité de
+travail, chaque chiffre disant jusqu'où on peut lui faire confiance.
+
+La réponse est un fichier YAML que vous versionnez à côté du code, et des rapports
+qui en sont tirés. Le fichier se relit dans une pull request, les rapports se
+lisent par des gens qui n'ouvriront jamais un terminal, et ni l'un ni l'autre n'a
+le droit d'avancer un chiffre sans dire d'où il vient.
+
+```bash
+pip install running-code-cost-helper
+
+running-code-cost-helper audit . --country FR --run -o cost_of_running.yaml
+running-code-cost-helper render cost_of_running.yaml -f html -o cost_of_running.html
+```
+
+## L'idée
+
+Chaque chiffre porte un **statut** :
+
+| Statut | Ce que ça veut dire |
+|---|---|
+| `measured` | Un compteur de la machine l'a dit. |
+| `estimated` | Une formule sourcée ou un chiffre publié l'a dit. |
+| `placeholder` | Le champ est tenu ouvert. Ce n'est pas un nombre. |
+| `TODO` | Quelqu'un doit le remplir avant qu'on puisse faire confiance au modèle. |
+
+Et chaque chiffre dérivé nomme les chiffres dont il vient :
+
+```yaml
+costs:
+  carbon:
+    value: 0.0014
+    unit: "gCO2e"
+    status: "estimated"
+    derived_from: ["scenarios[0].costs.energy", "assumptions.grid_carbon_intensity"]
+```
+
+De là découle la **règle du maillon faible**, et le validateur la fait respecter :
+une valeur dérivée ne peut jamais prétendre être mieux fondée que la pire de ses
+entrées. Mesurez la durée et l'énergie devient mesurée toute seule. Laissez le pays
+non renseigné et le chiffre carbone reste ouvert, parce que personne ne le connaît
+encore.
+
+Trois propriétés en découlent, et ce sont elles qui justifient le dessin :
+
+- **Rien ne peut se cacher.** Le validateur parcourt tout le fichier. Un nombre
+  hors d'une quantité est une erreur, où qu'il soit et dans quel bloc que ce soit,
+  donc un bloc supplémentaire ne peut pas faire passer un chiffre sous la règle.
+- **La règle est générale.** Puisque la dérivation est une donnée et non du code,
+  une dimension que vous avez inventée ce matin est vérifiée aussi soigneusement
+  que le carbone.
+- **Rien n'est inventé.** Un pays non résolu donne un `TODO`, pas un zéro. Un
+  hébergeur qui ne publie aucun chiffre d'eau donne un `TODO`, pas un chiffre
+  plausible. Une exécution qui a échoué ne se projette sur rien du tout.
+
+## Ce que l'outil fait
+
+**Il lit votre dépôt.** Langages, forme de la charge de travail, frameworks,
+quantité de travail d'une exécution complète, quelles API payantes vous appelez et
+à quelle ligne. Tout est déterministe, tout cite sa preuve.
+
+**Il en exécute une tranche, si vous l'autorisez.** Avec `--run`, et après votre
+accord donné une fois, il lance une tranche plafonnée de votre vrai point
+d'entrée, la chronomètre, lit le compteur de puissance de la machine quand le
+système d'exploitation en offre un, et profile où le temps est passé. La part du
+travail que couvre la tranche est lue dans votre propre configuration : projeter
+sur une exécution complète relève donc de l'arithmétique, pas de la devinette.
+
+**Il cherche plutôt que de supposer.** Ce que consomme un GPU, ce qu'émet un
+kilowattheure en Pologne, ce qu'ajoute un datacenter, où une API publie ses tarifs :
+des catalogues YAML sourcés, chaque ligne portant l'URL d'où elle vient et la date
+à laquelle quelqu'un l'a lue, chacune périmant selon un délai adapté à la vitesse
+à laquelle ce genre de fait bouge vraiment.
+
+**Il projette, et il dit ce qu'il a supposé.** D'une tranche mesurée à une
+exécution complète. D'un accélérateur à un autre, par rapport de débit crête, en
+refusant quand la précision de la charge n'est pas une de celles dont le catalogue
+sait parler, et en disant laquelle.
+
+**Il écrit des rapports qui se lisent.** Du Markdown pour une pull request. Une
+page HTML autonome pour tous les autres : hors ligne, clair et sombre, anglais et
+français, avec un panneau qui recalcule le modèle pour un autre pays dans le
+navigateur. Word et PDF via `md2star` quand c'est un document qu'on attend.
+
+**Il fait échouer votre build quand un coût dérive.** `diff` compare deux modèles
+et échoue sur un coût qui a empiré au-delà d'un seuil, sur un statut qui s'est
+affaibli, et sur une quantité qui a discrètement disparu.
+
+## Installation
+
+```bash
+pip install running-code-cost-helper
+```
+
+Trois dépendances d'exécution, et c'est voulu.
+[`os-helper`](https://pypi.org/project/os-helper/) répond à toutes les questions
+sur la machine et le système, sous macOS, Linux et Windows indifféremment. PyYAML
+lit les modèles et les catalogues. `platformdirs` trouve le répertoire de
+configuration de l'utilisateur. Tout le reste, ce paquet le fait lui-même.
+
+Word et PDF demandent une chose de plus, et seulement si vous les voulez :
+
+```bash
+pip install "running-code-cost-helper[office]"
+```
+
+Pour conda :
+
+```bash
+conda env create -f environment.yaml
+conda activate env-for-running-code-cost-helper
+```
+
+## S'en servir
+
+```bash
+# Partir d'un exemple travaillé, ou d'un squelette où tout est laissé ouvert.
+running-code-cost-helper init --template annotated -o cost_of_running.yaml
+
+# Le vérifier contre le schéma et les règles d'honnêteté.
+running-code-cost-helper validate cost_of_running.yaml
+
+# Lire un dépôt et en écrire le modèle.
+running-code-cost-helper audit . --country FR -o cost_of_running.yaml
+
+# Le lire, et exécuter une tranche plafonnée pour mesurer ce qu'il coûte vraiment.
+running-code-cost-helper audit . --country FR --run -o cost_of_running.yaml
+
+# Ça coûterait quoi sur un H100, à partir d'une mesure prise sur un 4090 ?
+running-code-cost-helper audit . --country FR --run \
+    --source-accelerator RTX-4090 --target-accelerator H100
+
+# Mesurer une commande à vous.
+running-code-cost-helper measure -- python train.py --steps 100
+
+# Transformer le modèle en quelque chose qui se lit.
+running-code-cost-helper render cost_of_running.yaml -f html -o report.html
+
+# Faire échouer le build quand un coût a dérivé.
+running-code-cost-helper diff main.yaml branche.yaml --threshold 10
+```
+
+`rcch` est installé comme alias plus court de la même commande.
+
+La bibliothèque fait la même chose sans l'affichage :
+
+```python
+import running_code_cost_helper as rcch
+
+resultat = rcch.audit(".", options=rcch.AuditOptions(country="FR"))
+print(resultat.report.summary())
+print(rcch.render_markdown(resultat.model))
+```
+
+[`EXEMPLES.md`](EXEMPLES.md) est le livre de recettes.
+
+## Exécuter votre code, et ce que ça implique
+
+Mesurer ce que coûte l'exécution d'un code, c'est l'exécuter. Il n'y a pas de bac
+à sable ici et on n'en fait pas semblant : le dépôt étudié s'exécute sous votre
+identité, avec vos permissions et votre accès réseau.
+
+L'accord est donc explicite, demandé une seule fois, et enregistré là où vous
+pouvez le retrouver et le révoquer :
+
+```bash
+running-code-cost-helper consent grant
+running-code-cost-helper consent revoke
+```
+
+Sans lui, `--run` ne fait rien et l'audit se poursuit sur la seule lecture. Une
+session sans terminal est refusée plutôt que traitée par défaut : un serveur
+d'intégration ne peut jamais accepter à votre place.
+
+## Ce que l'outil ne fait jamais
+
+Il ne met jamais dans un fichier un chiffre que personne n'a choisi. Le pays est
+indiqué par une personne, ou déduit du fuseau horaire de la machine et étiqueté
+comme déduction ; il n'est jamais lu dans une locale puis écrit comme un fait.
+
+Il ne recopie jamais un tarif d'API dans votre modèle. Les tarifs bougent, et un
+tarif périmé livré comme s'il faisait autorité est exactement la malhonnêteté que
+ce paquet existe pour empêcher. Il note quel service vous appelez, la ligne de code
+qui le prouve, et la page où vit le tarif du jour.
+
+Il ne laisse jamais un modèle de langue fournir un chiffre. Un modèle local, quand
+vous en avez un qui tourne, se voit demander quelle forme de travail fait votre
+dépôt, et rien d'autre. Sa réponse est étiquetée du nom du modèle et marquée de
+confiance faible. Chaque chiffre vient d'un fichier qu'on peut ouvrir ou d'un
+compteur qu'on peut lire.
+
+Et il ne compte jamais ce qu'il ne peut pas compter. La fabrication du matériel,
+les gens, les bureaux, la capacité inutilisée : tout cela est listé comme exclu
+dans le rapport, parce qu'une empreinte qui laisse discrètement de côté le plus
+gros terme est pire qu'aucune empreinte.
+
+## D'où viennent les chiffres
+
+La méthode est celle de [Green Algorithms](https://doi.org/10.1002/advs.202100707)
+(Lannelongue, Grealey et Inouye, 2021) : la puissance multipliée par le temps
+donne l'énergie, l'énergie multipliée par une intensité carbone donne le carbone,
+l'énergie multipliée par un tarif donne l'argent, l'énergie multipliée par un
+rendement d'usage de l'eau donne l'eau.
+
+Une distinction est tenue, et elle se perd facilement. La machine consomme une
+quantité ; le bâtiment consomme cette quantité multipliée par son rendement
+énergétique. Le carbone et l'argent suivent le bâtiment, parce que c'est ce que
+compte le compteur. L'eau suit la machine, parce que le rendement d'usage de l'eau
+se définit par kilowattheure de charge informatique et qu'utiliser le chiffre du
+bâtiment compterait le refroidissement deux fois.
+
+Consommations matérielles, intensités carbone, tarifs et rendements de datacenter
+vivent dans [`running_code_cost_helper/data/`](running_code_cost_helper/data/),
+une ligne chacun avec sa source et sa date. Une ligne manquante est une issue
+normale, et l'outil vous dit laquelle par son nom :
+
+```bash
+running-code-cost-helper catalog list gpu
+running-code-cost-helper catalog add gpu H300 \
+    --source-url https://www.nvidia.com/... --retrieved-date 2026-09-12 \
+    --field tdp_w=800 --field peak_bf16_tflops=2400
+running-code-cost-helper catalog freshness   # sort en 1 quand un chiffre a vieilli
+```
+
+Une ligne ne peut pas être ajoutée sans source ni date. C'est cette règle qui rend
+les catalogues dignes de confiance.
+
+## Comment c'est agencé
+
+```
+model/      Ce qu'un modèle de coût veut dire : la taxonomie, la quantité, les
+            dimensions, le schéma, la validation. Aucune E/S, aucun réseau,
+            aucun sous-processus.
+catalog/    Des faits sourcés sur le monde, et la règle qu'une ligne sans
+            provenance n'entre pas.
+estimate/   Des faits et des mesures vers des chiffres : la machine, le
+            déploiement, la chaîne Green Algorithms, les projections.
+analyze/    Ce qu'est un dépôt : le lire, en exécuter une tranche, et interroger
+            un modèle local sur sa forme (jamais sur ses chiffres).
+auditor.py  Tout le travail, dans une fonction.
+report/     Markdown, HTML, Word, PDF.
+cli/        L'analyse des arguments et l'affichage. Rien d'autre.
+```
+
+Les dépendances ne pointent que dans un sens, si bien que la ligne de commande ne
+peut rien faire qu'un appelant de la bibliothèque ne puisse faire.
+
+## Contribuer
+
+[`CONTRIBUTING.md`](CONTRIBUTING.md) donne les détails. En bref : ajoutez une
+ligne de catalogue avec sa source et sa date, ou un test qui fige un comportement
+qui compte pour vous. [`CODING.md`](CODING.md) décrit le style de ce dépôt.
+
+```bash
+pip install -e ".[dev]"
+pytest          # plus de 1000 vérifications, dont chaque exemple de chaque docstring
+ruff check .
+ruff format --check .
+```
+
+## Travaux voisins
+
+[`PAYSAGE.md`](PAYSAGE.md) situe cet outil à côté de CodeCarbon, Green Algorithms,
+Scaphandre, PowerAPI, Cloud Carbon Footprint et le reste du domaine, et dit
+honnêtement là où chacun d'eux est le meilleur choix.
+
+## Licence
+
+[BSD 3-Clause](LICENSE). Warith Harchaoui, Ph.D.

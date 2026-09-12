@@ -1,0 +1,74 @@
+# Where the code runs: datacenter overhead, water, and what a kilowatt-hour costs.
+# ------------------------------------------------------------------------------
+# PUE (power usage effectiveness) is the multiplier between the energy a server
+# draws and the energy the building draws to keep it running: 1.0 would be a
+# datacenter with no cooling, lighting, or conversion loss, which does not exist.
+# WUE (water usage effectiveness) is litres of water per kilowatt-hour of IT
+# load, on-site only; it excludes the water used to generate the electricity.
+#
+# `price_usd_per_kwh: null` means the provider does not sell electricity by the
+# kilowatt-hour at all: on a cloud instance you buy hours of a machine, and the
+# electricity is inside that price. When it is null, a money cost computed from
+# energy is a TODO, not a zero.
+
+schema_version: "2.0"
+
+providers:
+  - key: on-prem
+    name: "On-premises"
+    pue: 1.5
+    wue_l_per_kwh: null
+    price_usd_per_kwh: null
+    source_url: "https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024"
+    retrieved_date: "2026-09-12"
+    notes: "Industry-average PUE for a self-run room; measure your own if you can. Price comes from the country tariff."
+  - key: aws
+    name: "Amazon Web Services"
+    pue: 1.15
+    wue_l_per_kwh: 0.18
+    price_usd_per_kwh: null
+    source_url: "https://sustainability.aboutamazon.com/products-services/aws-cloud"
+    retrieved_date: "2026-09-12"
+  - key: gcp
+    name: "Google Cloud"
+    pue: 1.09
+    wue_l_per_kwh: 0.99
+    price_usd_per_kwh: null
+    source_url: "https://www.google.com/about/datacenters/efficiency/"
+    retrieved_date: "2026-09-12"
+  - key: azure
+    name: "Microsoft Azure"
+    pue: 1.18
+    wue_l_per_kwh: 0.30
+    price_usd_per_kwh: null
+    source_url: "https://datacenters.microsoft.com/sustainability/efficiency/"
+    retrieved_date: "2026-09-12"
+  - key: oci
+    name: "Oracle Cloud Infrastructure"
+    pue: 1.15
+    wue_l_per_kwh: null
+    price_usd_per_kwh: null
+    source_url: "https://www.oracle.com/sustainability/"
+    retrieved_date: "2026-09-12"
+  - key: lambda
+    name: "Lambda Labs"
+    pue: 1.2
+    wue_l_per_kwh: null
+    price_usd_per_kwh: null
+    source_url: "https://lambda.ai/service/gpu-cloud"
+    retrieved_date: "2026-09-12"
+  - key: paperspace
+    name: "Paperspace (DigitalOcean)"
+    pue: 1.2
+    wue_l_per_kwh: null
+    price_usd_per_kwh: null
+    source_url: "https://www.digitalocean.com/products/paperspace"
+    retrieved_date: "2026-09-12"
+  - key: laptop
+    name: "Laptop or workstation"
+    pue: 1.0
+    wue_l_per_kwh: 0.0
+    price_usd_per_kwh: null
+    source_url: "internal-default"
+    retrieved_date: "2026-09-12"
+    notes: "No datacenter overhead and no cooling water: the machine is the whole facility. Price comes from the country tariff."

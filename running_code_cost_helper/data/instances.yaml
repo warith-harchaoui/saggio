@@ -1,0 +1,119 @@
+# Machine shapes a cost model can name, and what they draw under load.
+# ------------------------------------------------------------------------------
+# `sustained_power_w` is the whole-node figure a report uses when nothing has
+# been measured: accelerator TDP plus a working allowance for host CPU, memory,
+# and the rest of the chassis. It is a nameplate-derived estimate, never a
+# measurement, and a report says so. Measure with `... measure` and the number
+# is replaced by one that says `measured` instead.
+
+schema_version: "2.0"
+
+instances:
+  - key: laptop-apple-silicon
+    name: "Apple Silicon laptop"
+    gpu_key: null
+    accelerators: 0
+    sustained_power_w: 35
+    source_url: "https://support.apple.com/en-us/102030"
+    retrieved_date: "2026-09-12"
+    notes: "Whole-package draw under sustained load on an M-series laptop."
+  - key: workstation-rtx-4090
+    name: "Workstation, 1x RTX 4090"
+    gpu_key: RTX-4090
+    accelerators: 1
+    sustained_power_w: 600
+    source_url: "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/"
+    retrieved_date: "2026-09-12"
+    notes: "450 W board plus a 150 W allowance for host CPU, memory and chassis."
+  - key: workstation-rtx-3090
+    name: "Workstation, 1x RTX 3090"
+    gpu_key: RTX-3090
+    accelerators: 1
+    sustained_power_w: 500
+    source_url: "https://www.nvidia.com/en-us/geforce/graphics-cards/30-series/rtx-3090-3090ti/"
+    retrieved_date: "2026-09-12"
+  - key: cpu-node
+    name: "CPU-only server node"
+    gpu_key: null
+    accelerators: 0
+    sustained_power_w: 250
+    source_url: "internal-default"
+    retrieved_date: "2026-09-12"
+    notes: "Dual-socket server with no accelerator."
+  - key: node-1x-t4
+    name: "Node, 1x T4"
+    gpu_key: T4
+    accelerators: 1
+    sustained_power_w: 220
+    source_url: "https://www.nvidia.com/en-us/data-center/tesla-t4/"
+    retrieved_date: "2026-09-12"
+  - key: node-1x-l4
+    name: "Node, 1x L4"
+    gpu_key: L4
+    accelerators: 1
+    sustained_power_w: 230
+    source_url: "https://www.nvidia.com/en-us/data-center/l4/"
+    retrieved_date: "2026-09-12"
+  - key: node-1x-a10g
+    name: "Node, 1x A10G"
+    gpu_key: A10G
+    accelerators: 1
+    sustained_power_w: 400
+    source_url: "https://www.nvidia.com/en-us/data-center/products/a10-gpu/"
+    retrieved_date: "2026-09-12"
+  - key: node-1x-v100
+    name: "Node, 1x V100"
+    gpu_key: V100
+    accelerators: 1
+    sustained_power_w: 450
+    source_url: "https://www.nvidia.com/en-us/data-center/v100/"
+    retrieved_date: "2026-09-12"
+  - key: node-1x-a100
+    name: "Node, 1x A100"
+    gpu_key: A100
+    accelerators: 1
+    sustained_power_w: 550
+    source_url: "https://www.nvidia.com/en-us/data-center/a100/"
+    retrieved_date: "2026-09-12"
+  - key: node-8x-a100
+    name: "Node, 8x A100 (DGX-class)"
+    gpu_key: A100
+    accelerators: 8
+    sustained_power_w: 6500
+    source_url: "https://www.nvidia.com/en-us/data-center/dgx-a100/"
+    retrieved_date: "2026-09-12"
+  - key: node-1x-h100
+    name: "Node, 1x H100"
+    gpu_key: H100
+    accelerators: 1
+    sustained_power_w: 900
+    source_url: "https://www.nvidia.com/en-us/data-center/h100/"
+    retrieved_date: "2026-09-12"
+  - key: node-8x-h100
+    name: "Node, 8x H100 (DGX-class)"
+    gpu_key: H100
+    accelerators: 8
+    sustained_power_w: 10200
+    source_url: "https://www.nvidia.com/en-us/data-center/dgx-h100/"
+    retrieved_date: "2026-09-12"
+  - key: node-8x-h200
+    name: "Node, 8x H200"
+    gpu_key: H200
+    accelerators: 8
+    sustained_power_w: 10200
+    source_url: "https://www.nvidia.com/en-us/data-center/h200/"
+    retrieved_date: "2026-09-12"
+  - key: node-8x-b200
+    name: "Node, 8x B200"
+    gpu_key: B200
+    accelerators: 8
+    sustained_power_w: 14300
+    source_url: "https://www.nvidia.com/en-us/data-center/technologies/blackwell-architecture/"
+    retrieved_date: "2026-09-12"
+  - key: node-8x-mi300x
+    name: "Node, 8x MI300X"
+    gpu_key: MI300X
+    accelerators: 8
+    sustained_power_w: 8000
+    source_url: "https://www.amd.com/en/products/accelerators/instinct/mi300/mi300x.html"
+    retrieved_date: "2026-09-12"

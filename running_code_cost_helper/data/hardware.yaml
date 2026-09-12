@@ -1,0 +1,210 @@
+# Hardware registry: the source of truth for device power and throughput.
+# -----------------------------------------------------------------------
+# Each row carries provenance (source_url + retrieved_date) because a hardware
+# figure is a sourced value like any other, not folklore. Numeric values are
+# vendor-datasheet figures (SXM/OAM at the default power cap; dense BF16 for
+# throughput). The seed source_url values point at the vendor product pages and
+# should be verified and deep-linked through the `cost-running hardware add`
+# web-search flow as the catalogue grows.
+
+schema_version: "2.0"
+
+gpus:
+  - key: T4
+    tdp_w: 70
+    source_url: "https://www.nvidia.com/en-us/data-center/tesla-t4/"
+    retrieved_date: "2026-07-27"
+  - key: L4
+    tdp_w: 72
+    peak_bf16_tflops: 121
+    source_url: "https://www.nvidia.com/en-us/data-center/l4/"
+    retrieved_date: "2026-07-27"
+  - key: L40S
+    tdp_w: 350
+    peak_bf16_tflops: 362
+    source_url: "https://www.nvidia.com/en-us/data-center/l40s/"
+    retrieved_date: "2026-07-27"
+  - key: P100
+    tdp_w: 250
+    source_url: "https://www.nvidia.com/en-us/data-center/tesla-p100/"
+    retrieved_date: "2026-07-27"
+  - key: V100
+    tdp_w: 300
+    peak_bf16_tflops: 125
+    source_url: "https://www.nvidia.com/en-us/data-center/v100/"
+    retrieved_date: "2026-07-27"
+  - key: A100
+    tdp_w: 400
+    peak_bf16_tflops: 312
+    source_url: "https://www.nvidia.com/en-us/data-center/a100/"
+    retrieved_date: "2026-07-27"
+    notes: "SXM4, dense BF16. A100-40GB and A100-80GB share these figures."
+  - key: A100-40GB
+    tdp_w: 400
+    peak_bf16_tflops: 312
+    source_url: "https://www.nvidia.com/en-us/data-center/a100/"
+    retrieved_date: "2026-07-27"
+  - key: A100-80GB
+    tdp_w: 400
+    peak_bf16_tflops: 312
+    source_url: "https://www.nvidia.com/en-us/data-center/a100/"
+    retrieved_date: "2026-07-27"
+  - key: H100
+    tdp_w: 700
+    peak_bf16_tflops: 989
+    source_url: "https://www.nvidia.com/en-us/data-center/h100/"
+    retrieved_date: "2026-07-27"
+    notes: "SXM5, dense BF16."
+  - key: H100-SXM
+    tdp_w: 700
+    peak_bf16_tflops: 989
+    source_url: "https://www.nvidia.com/en-us/data-center/h100/"
+    retrieved_date: "2026-07-27"
+  - key: H200
+    tdp_w: 700
+    peak_bf16_tflops: 989
+    source_url: "https://www.nvidia.com/en-us/data-center/h200/"
+    retrieved_date: "2026-07-27"
+  - key: B100
+    tdp_w: 700
+    peak_bf16_tflops: 1800
+    source_url: "https://www.nvidia.com/en-us/data-center/technologies/blackwell-architecture/"
+    retrieved_date: "2026-07-27"
+    notes: "NVIDIA Blackwell, SXM, dense BF16."
+  - key: B200
+    tdp_w: 1000
+    peak_bf16_tflops: 2250
+    source_url: "https://www.nvidia.com/en-us/data-center/technologies/blackwell-architecture/"
+    retrieved_date: "2026-07-27"
+    notes: "NVIDIA Blackwell, SXM, dense BF16."
+  - key: MI250X
+    tdp_w: 560
+    source_url: "https://www.amd.com/en/products/accelerators/instinct/mi200/mi250x.html"
+    retrieved_date: "2026-07-27"
+  - key: MI300X
+    tdp_w: 750
+    peak_bf16_tflops: 1307
+    source_url: "https://www.amd.com/en/products/accelerators/instinct/mi300/mi300x.html"
+    retrieved_date: "2026-07-27"
+  - key: MI325X
+    tdp_w: 1000
+    peak_bf16_tflops: 1307
+    source_url: "https://www.amd.com/en/products/accelerators/instinct/mi300/mi325x.html"
+    retrieved_date: "2026-07-27"
+    notes: "AMD CDNA3, same compute die as MI300X."
+  - key: TPU-v4
+    tdp_w: 170
+    peak_bf16_tflops: 275
+    source_url: "https://cloud.google.com/tpu/docs/v4"
+    retrieved_date: "2026-07-27"
+
+  # --- Consumer and workstation accelerators ---
+  # Developer machines are where a cost model is usually written, so the cards
+  # people actually own have to be in the catalogue. Without them, extrapolating
+  # from a laptop to a datacenter GPU is impossible for most users.
+  - key: A10G
+    tdp_w: 150
+    peak_bf16_tflops: 125
+    source_url: "https://www.nvidia.com/en-us/data-center/products/a10-gpu/"
+    retrieved_date: "2026-09-12"
+  - key: RTX-3090
+    tdp_w: 350
+    peak_bf16_tflops: 71
+    source_url: "https://www.nvidia.com/en-us/geforce/graphics-cards/30-series/rtx-3090-3090ti/"
+    retrieved_date: "2026-09-12"
+    notes: "Ampere GA102, dense BF16 without sparsity."
+  - key: RTX-4090
+    tdp_w: 450
+    peak_bf16_tflops: 165
+    source_url: "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/"
+    retrieved_date: "2026-09-12"
+    notes: "Ada AD102, dense BF16 without sparsity."
+  - key: RTX-5090
+    tdp_w: 575
+    peak_bf16_tflops: 210
+    source_url: "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/"
+    retrieved_date: "2026-09-12"
+    notes: "Blackwell GB202, dense BF16 without sparsity."
+  - key: RTX-A6000
+    tdp_w: 300
+    peak_bf16_tflops: 155
+    source_url: "https://www.nvidia.com/en-us/design-visualization/rtx-a6000/"
+    retrieved_date: "2026-09-12"
+  - key: apple-m2-max
+    tdp_w: 40
+    peak_bf16_tflops: 27
+    source_url: "https://www.apple.com/newsroom/2023/01/apple-unveils-m2-pro-and-m2-max-next-generation-chips-for-next-level-workflows/"
+    retrieved_date: "2026-09-12"
+    notes: "Integrated 38-core GPU; the TDP is the whole package under GPU load, not a board power."
+  - key: apple-m3-max
+    tdp_w: 45
+    peak_bf16_tflops: 30
+    source_url: "https://www.apple.com/newsroom/2023/10/apple-unveils-m3-m3-pro-and-m3-max-the-most-advanced-chips-for-a-personal-computer/"
+    retrieved_date: "2026-09-12"
+    notes: "Integrated 40-core GPU; whole-package figure."
+  - key: apple-m4-max
+    tdp_w: 55
+    peak_bf16_tflops: 34
+    source_url: "https://www.apple.com/newsroom/2024/10/apple-introduces-m4-pro-and-m4-max/"
+    retrieved_date: "2026-09-12"
+    notes: "Integrated 40-core GPU; whole-package figure."
+
+cpus:
+  - key: xeon-platinum-8175
+    w_per_core: 10.0
+    source_url: "https://www.intel.com/content/www/us/en/products/sku/120504/"
+    retrieved_date: "2026-07-27"
+    notes: "240 W TDP / 24 cores."
+  - key: xeon-gold-6248
+    w_per_core: 7.5
+    source_url: "https://www.intel.com/content/www/us/en/products/sku/192446/"
+    retrieved_date: "2026-07-27"
+    notes: "150 W TDP / 20 cores."
+  - key: epyc-7742
+    w_per_core: 3.5
+    source_url: "https://www.amd.com/en/products/cpu/amd-epyc-7742"
+    retrieved_date: "2026-07-27"
+    notes: "225 W TDP / 64 cores."
+  - key: epyc-9654
+    w_per_core: 3.75
+    source_url: "https://www.amd.com/en/products/cpu/amd-epyc-9654"
+    retrieved_date: "2026-07-27"
+    notes: "360 W TDP / 96 cores."
+  - key: apple-m-series
+    w_per_core: 4.5
+    source_url: "https://www.apple.com/mac/"
+    retrieved_date: "2026-07-27"
+    notes: "Approximate active power per performance core; integrated SoC."
+  - key: default-server-cpu
+    w_per_core: 12.0
+    source_url: "internal-default"
+    retrieved_date: "2026-07-27"
+    notes: "Generic fallback when the CPU is unrecognised."
+  - key: default-desktop-cpu
+    w_per_core: 15.0
+    source_url: "internal-default"
+    retrieved_date: "2026-07-27"
+    notes: "Generic fallback for an unrecognised desktop or laptop CPU."
+  - key: apple-m2-max
+    w_per_core: 4.0
+    source_url: "https://www.apple.com/newsroom/2023/01/apple-unveils-m2-pro-and-m2-max-next-generation-chips-for-next-level-workflows/"
+    retrieved_date: "2026-09-12"
+    notes: "12 cores; approximate active power per performance core on an integrated SoC."
+  - key: apple-m3-max
+    w_per_core: 4.0
+    source_url: "https://www.apple.com/newsroom/2023/10/apple-unveils-m3-m3-pro-and-m3-max-the-most-advanced-chips-for-a-personal-computer/"
+    retrieved_date: "2026-09-12"
+  - key: apple-m4-max
+    w_per_core: 4.2
+    source_url: "https://www.apple.com/newsroom/2024/10/apple-introduces-m4-pro-and-m4-max/"
+    retrieved_date: "2026-09-12"
+  - key: core-i9-13900k
+    w_per_core: 8.75
+    source_url: "https://www.intel.com/content/www/us/en/products/sku/230496/"
+    retrieved_date: "2026-09-12"
+    notes: "125 W base TDP over 8 performance cores; 253 W at turbo."
+  - key: ryzen-9-7950x
+    w_per_core: 10.6
+    source_url: "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7950x.html"
+    retrieved_date: "2026-09-12"
+    notes: "170 W TDP over 16 cores."

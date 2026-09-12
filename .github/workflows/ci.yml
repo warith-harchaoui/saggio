@@ -1,0 +1,64 @@
+# Continuous integration.
+#
+# Three things are checked on every push, on the three operating systems this
+# package claims to support, because "works on my machine" is exactly the claim a
+# cost model is not allowed to make either.
+#
+# The catalogue freshness gate is deliberately a separate, scheduled job. It does
+# not fail a pull request, because a tariff going out of date is not the fault of
+# whoever changed a docstring; it opens the question on a schedule instead.
+
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Monday morning, to ask whether the catalogue numbers still hold.
+    - cron: "0 7 * * 1"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.os }}, Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.10", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check .
+      - name: Format
+        run: ruff format --check .
+      - name: Test
+        # The doctests run here too: every example in every docstring is executed,
+        # so the documentation cannot drift away from the code.
+        run: python -m pytest
+
+  freshness:
+    name: catalogue freshness
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install -e .
+      - name: Which numbers has nobody checked lately
+        run: running-code-cost-helper catalog freshness

@@ -1,0 +1,7 @@
+# Everything in requirements.txt, plus what is needed to test and lint.
+-r requirements.txt
+pytest>=8.0
+pytest-cov>=5.0
+ruff>=0.6
+# Pillow is used only by the script that regenerates the logo sizes in assets/.
+pillow>=10.0

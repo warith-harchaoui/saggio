@@ -1,0 +1,787 @@
+"""
+The standalone HTML report.
+
+Module summary
+--------------
+One file, opening offline, with no request to anybody: the stylesheet, the script,
+the logo, and the catalogue data it needs are all inlined at render time. That
+makes it something you can attach to an email, commit next to the code, or print
+to PDF without the layout falling apart.
+
+This module assembles; it does not author. The stylesheet is a stylesheet, the
+script is a script, and the translations are a YAML file, all packaged as data and
+read through :mod:`importlib.resources`. An earlier design kept all three inside
+Python string literals, which cost it syntax highlighting, a linter exemption for
+the whole module, a hand-maintained duplicate of the translation table, and one
+outage where a French apostrophe closed a JavaScript string and silently disabled
+every control on the page.
+
+Usage example
+-------------
+>>> from running_code_cost_helper.report.html import render_html
+>>> from running_code_cost_helper.templates import template_mapping
+>>> page = render_html(template_mapping("annotated"))
+>>> page.startswith("<!doctype html>")
+True
+
+Author
+------
+Warith Harchaoui
+"""
+
+from __future__ import annotations
+
+import base64
+import html
+import json
+from functools import cache
+from importlib import resources
+from typing import Any, Final
+
+import yaml
+
+from ..catalog.registry import Catalog
+from ..model.cost_model import CostModel
+from ..model.dimensions import DimensionRegistry
+from ..model.quantity import Quantity, looks_like_quantity
+from ..model.taxonomy import STATUS_MEANING, STATUS_ORDER
+from ..model.validate import overall_status
+from .figures import count_statuses, derivation_chain, honesty_bar, scenario_energy
+from .markdown import NOT_KNOWN, format_quantity
+
+#: Where the report's own assets live inside the package.
+_ASSET_PACKAGE: Final[str] = "running_code_cost_helper.data.report"
+
+#: The project's home, linked from the footer of every report.
+PROJECT_URL: Final[str] = "https://github.com/warith-harchaoui/running-code-cost-helper"
+
+
+@cache
+def _asset(name: str) -> str:
+    """Return a packaged text asset.
+
+    Parameters
+    ----------
+    name : str
+        A filename inside the report asset package.
+
+    Returns
+    -------
+    str
+        The file's text. Cached, because a batch render reads the same stylesheet
+        once per report otherwise.
+
+    Examples
+    --------
+    >>> _asset("report.css").startswith("/*")
+    True
+    """
+    return resources.files(_ASSET_PACKAGE).joinpath(name).read_text("utf-8")
+
+
+@cache
+def _logo_data_uri() -> str:
+    """Return the project logo as a data URI.
+
+    Returns
+    -------
+    str
+        A ``data:image/png;base64,...`` string, so the page carries its own logo
+        and opens identically with no network.
+
+    Examples
+    --------
+    >>> _logo_data_uri().startswith("data:image/png;base64,")
+    True
+    """
+    raw = resources.files(_ASSET_PACKAGE).joinpath("logo.png").read_bytes()
+    return "data:image/png;base64," + base64.b64encode(raw).decode("ascii")
+
+
+@cache
+def translations() -> dict[str, dict[str, str]]:
+    """Return the report's translation table.
+
+    Returns
+    -------
+    dict
+        Language code to key-value mapping. Packaged with the wheel, so there is
+        exactly one copy and no fallback that can drift out of step with it.
+
+    Examples
+    --------
+    >>> sorted(translations())
+    ['en', 'fr']
+    """
+    loaded = yaml.safe_load(_asset("i18n.yaml")) or {}
+    return {
+        str(code): {str(key): str(value) for key, value in table.items()}
+        for code, table in loaded.items()
+        if isinstance(table, dict)
+    }
+
+
+def _escape(text: object) -> str:
+    """Escape a value for HTML.
+
+    Parameters
+    ----------
+    text : object
+        Anything destined for the page.
+
+    Returns
+    -------
+    str
+        The escaped text, empty for ``None``.
+
+    Examples
+    --------
+    >>> _escape("<b>")
+    '&lt;b&gt;'
+    >>> _escape(None)
+    ''
+    """
+    return html.escape(str(text)) if text is not None else ""
+
+
+def _badge(status: object) -> str:
+    """Render an honesty status as a badge.
+
+    Parameters
+    ----------
+    status : object
+        A status label.
+
+    Returns
+    -------
+    str
+        The badge markup, empty when there is no status.
+
+    Examples
+    --------
+    >>> _badge("measured")
+    '<span class="badge badge-measured" title="Recorded from an actual run on the\
+ target system.">measured</span>'
+    >>> _badge(None)
+    ''
+    """
+    if status is None:
+        return ""
+    label = str(status)
+    known = label if label in STATUS_ORDER else ""
+    meaning = STATUS_MEANING.get(label, "")
+    classes = f"badge badge-{known}" if known else "badge"
+    title = f' title="{_escape(meaning)}"' if meaning else ""
+    return f'<span class="{classes}"{title}>{_escape(label)}</span>'
+
+
+def _quantity_cell(quantity: Quantity) -> str:
+    """Render a quantity as a table cell.
+
+    Parameters
+    ----------
+    quantity : Quantity
+        The quantity.
+
+    Returns
+    -------
+    str
+        A ``<td>`` marked as unknown when there is no number, so the missing
+        values read as missing rather than as something a reader might skim past.
+
+    Examples
+    --------
+    >>> _quantity_cell(Quantity(status="TODO"))
+    '<td class="number unknown">not known</td>'
+    """
+    if not quantity.is_known():
+        return f'<td class="number unknown">{NOT_KNOWN}</td>'
+    return f'<td class="number">{_escape(format_quantity(quantity))}</td>'
+
+
+def _table(
+    headers: list[str],
+    rows: list[str],
+    *,
+    i18n_keys: list[str] | None = None,
+    widths: list[int] | None = None,
+) -> str:
+    """Wrap rows in a horizontally scrollable table.
+
+    Parameters
+    ----------
+    headers : list of str
+        Column headings.
+    rows : list of str
+        Pre-rendered ``<tr>`` markup.
+    i18n_keys : list of str or None, optional
+        Translation keys for the headings, one per column.
+    widths : list of int or None, optional
+        Column widths as percentages. Given these, the table lays out in them
+        rather than in whatever its widest cell asks for; a column of dotted
+        derivation paths otherwise takes the width it wants and pushes the notes
+        off the right of the page.
+
+    Returns
+    -------
+    str
+        The table, or an empty string when there is nothing to show.
+
+    Examples
+    --------
+    >>> _table(["a"], [])
+    ''
+    >>> "<colgroup>" in _table(["a"], ["<tr><td>1</td></tr>"], widths=[100])
+    True
+    """
+    if not rows:
+        return ""
+    cells = []
+    for index, heading in enumerate(headers):
+        key = i18n_keys[index] if i18n_keys and index < len(i18n_keys) else None
+        attribute = f' data-i18n="{key}"' if key else ""
+        cells.append(f"<th{attribute}>{_escape(heading)}</th>")
+    if widths:
+        colgroup = (
+            "<colgroup>"
+            + "".join(f'<col style="width:{width}%">' for width in widths)
+            + "</colgroup>"
+        )
+        opening = '<table class="sized">' + colgroup
+    else:
+        opening = "<table>"
+    return (
+        '<div class="scroller">'
+        + opening
+        + "<thead><tr>"
+        + "".join(cells)
+        + "</tr></thead><tbody>"
+        + "".join(rows)
+        + "</tbody></table></div>"
+    )
+
+
+def _heading(level: int, text: str, key: str | None = None) -> str:
+    """Render a translatable heading.
+
+    Parameters
+    ----------
+    level : int
+        Heading level.
+    text : str
+        The English text, which is what a reader sees before the script runs.
+    key : str or None, optional
+        Translation key.
+
+    Returns
+    -------
+    str
+        The heading markup.
+
+    Examples
+    --------
+    >>> _heading(2, "Honesty", "section.honesty")
+    '<h2 data-i18n="section.honesty">Honesty</h2>'
+    """
+    attribute = f' data-i18n="{key}"' if key else ""
+    return f"<h{level}{attribute}>{_escape(text)}</h{level}>"
+
+
+def _verdict(model: CostModel) -> str:
+    """Render the banner that states how far the whole model can be trusted.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model.
+
+    Returns
+    -------
+    str
+        The banner markup, empty when the model states no numbers.
+
+    Examples
+    --------
+    >>> _verdict(CostModel.from_mapping({}))
+    ''
+    """
+    weakest = overall_status(model)
+    if weakest is None:
+        return ""
+    return (
+        f'<div class="verdict" data-status="{_escape(weakest)}">{_badge(weakest)}'
+        f"<p>This model is only as good as its weakest number, which is "
+        f"<code>{_escape(weakest)}</code>. {_escape(STATUS_MEANING.get(weakest, ''))}</p></div>"
+    )
+
+
+def _costs_section(model: CostModel, registry: DimensionRegistry) -> str:
+    """Render one table per scenario, one row per dimension.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model.
+    registry : DimensionRegistry
+        The dimensions to report.
+
+    Returns
+    -------
+    str
+        The section markup, empty when there are no scenarios.
+
+    Examples
+    --------
+    >>> _costs_section(CostModel.from_mapping({"scenarios": []}), DimensionRegistry())
+    ''
+    """
+    scenarios = model.scenarios()
+    if not scenarios:
+        return ""
+    blocks = [_heading(2, "What one unit costs", "section.costs")]
+    for scenario in scenarios:
+        blocks.append(_heading(3, str(scenario.get("name") or "scenario")))
+        if scenario.get("description"):
+            blocks.append(f'<p class="lede">{_escape(scenario["description"])}</p>')
+        costs = scenario.get("costs")
+        costs = costs if isinstance(costs, dict) else {}
+        rows: list[str] = []
+        for dimension in registry:
+            raw = costs.get(dimension.key)
+            if not looks_like_quantity(raw):
+                continue
+            quantity = Quantity.from_mapping(raw)
+            derived = (
+                ", ".join(f"<code>{_escape(path)}</code>" for path in quantity.derived_from)
+                if quantity.is_derived()
+                else "—"
+            )
+            rows.append(
+                f'<tr><td title="{_escape(dimension.description)}">{_escape(dimension.label)}</td>'
+                f"{_quantity_cell(quantity)}"
+                f"<td>{_badge(quantity.status)}</td>"
+                f'<td class="paths">{derived}</td>'
+                f'<td class="muted">{_escape(quantity.notes)}</td></tr>'
+            )
+        blocks.append(
+            _table(
+                ["Dimension", "Per unit", "Status", "Derived from", "Notes"],
+                rows,
+                i18n_keys=[
+                    "column.dimension",
+                    "column.value",
+                    "column.status",
+                    "column.derived",
+                    "column.notes",
+                ],
+                widths=[13, 16, 11, 30, 30],
+            )
+            or '<p class="muted">This scenario states no costs yet.</p>'
+        )
+    return "".join(blocks)
+
+
+def _assumptions_section(model: CostModel) -> str:
+    """Render the numbers everything else rests on, with their sources.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model.
+
+    Returns
+    -------
+    str
+        The section markup, empty when the model assumes nothing.
+
+    Examples
+    --------
+    >>> _assumptions_section(CostModel.from_mapping({}))
+    ''
+    """
+    assumptions = model.data.get("assumptions")
+    if not isinstance(assumptions, dict):
+        return ""
+    rows: list[str] = []
+    for key, raw in assumptions.items():
+        if not looks_like_quantity(raw):
+            continue
+        quantity = Quantity.from_mapping(raw)
+        source = (
+            f'<a href="{_escape(quantity.source_url)}" rel="noopener">source</a>'
+            + (f", read {_escape(quantity.retrieved_date)}" if quantity.retrieved_date else "")
+            if quantity.source_url
+            else "—"
+        )
+        rows.append(
+            f"<tr><td><code>{_escape(key)}</code></td>"
+            f"{_quantity_cell(quantity)}"
+            f"<td>{_badge(quantity.status)}</td>"
+            f'<td class="muted">{source}</td>'
+            f'<td class="muted">{_escape(quantity.notes)}</td></tr>'
+        )
+    if not rows:
+        return ""
+    return _heading(2, "What the numbers rest on", "section.assumptions") + _table(
+        ["Assumption", "Value", "Status", "Provenance", "Notes"],
+        rows,
+        widths=[20, 14, 11, 18, 37],
+    )
+
+
+def _services_section(model: CostModel) -> str:
+    """Render the paid services the code calls, with the evidence.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model.
+
+    Returns
+    -------
+    str
+        The section markup, empty when none were detected.
+
+    Examples
+    --------
+    >>> _services_section(CostModel.from_mapping({}))
+    ''
+    """
+    services = model.data.get("external_services")
+    if not isinstance(services, list) or not services:
+        return ""
+    rows: list[str] = []
+    for entry in services:
+        if not isinstance(entry, dict):
+            continue
+        price = entry.get("price_per_unit") or entry.get("price")
+        quantity = Quantity.from_mapping(price) if looks_like_quantity(price) else Quantity()
+        pricing = entry.get("pricing_source_url")
+        rows.append(
+            f"<tr><td>{_escape(entry.get('name') or entry.get('key'))}</td>"
+            f"<td><code>{_escape(entry.get('detected_at'))}</code></td>"
+            f"<td><code>{_escape(entry.get('evidence'))}</code></td>"
+            f"{_quantity_cell(quantity)}"
+            + (
+                f'<td><a href="{_escape(pricing)}" rel="noopener">prices</a></td>'
+                if pricing
+                else "<td>—</td>"
+            )
+            + "</tr>"
+        )
+    return (
+        _heading(2, "Services this code pays for", "section.services")
+        + '<p class="lede">Prices are not copied into this model. An API price copied today '
+        "is wrong by next quarter, so the report says where the current one lives and "
+        "leaves the figure open until somebody reads it.</p>"
+        + _table(
+            ["Service", "Found at", "Evidence", "Per unit", "Where to price it"],
+            rows,
+            widths=[16, 20, 32, 17, 15],
+        )
+    )
+
+
+def _whatif_section(model: CostModel, *, overlay: Any = None) -> str:
+    """Render the panel that recomputes the model somewhere else.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model, whose machine energy is what gets rescaled.
+    overlay : pathlib.Path or None, optional
+        Catalogue overlay directory.
+
+    Returns
+    -------
+    str
+        The panel markup, empty when the model states no machine energy to
+        rescale. There is deliberately no panel without one: a what-if built on
+        an invented baseline would be the worst number on the page.
+
+    Examples
+    --------
+    >>> _whatif_section(CostModel.from_mapping({}))
+    ''
+    """
+    if not scenario_energy(model).is_known():
+        return ""
+
+    countries = Catalog.load("grid", overlay=overlay).rows("countries")
+    providers = Catalog.load("providers", overlay=overlay).rows("providers")
+    current_country = str(model.get("deployment.country") or "")
+    current_provider = str(model.get("deployment.provider") or "on-prem")
+
+    country_options = "".join(
+        f'<option value="{_escape(key)}"'
+        + (" selected" if key == current_country else "")
+        + f">{_escape(row.get('name') or key)}</option>"
+        for key, row in sorted(
+            countries.items(), key=lambda item: str(item[1].get("name") or item[0])
+        )
+    )
+    provider_options = "".join(
+        f'<option value="{_escape(key)}"'
+        + (" selected" if key == current_provider else "")
+        + f">{_escape(row.get('name') or key)}</option>"
+        for key, row in providers.items()
+    )
+
+    return (
+        # S608 reads the words "What if" as the start of a SQL clause. There is no
+        # database anywhere in this package.
+        _heading(2, "What if it ran somewhere else", "section.whatif")  # noqa: S608
+        + '<div class="card whatif-card"><div class="whatif">'
+        + '<div><label for="whatif-country" data-i18n="whatif.country">Country</label>'
+        f'<select id="whatif-country">{country_options}</select></div>'
+        + '<div><label for="whatif-provider" data-i18n="whatif.provider">Provider</label>'
+        f'<select id="whatif-provider">{provider_options}</select></div>'
+        + "</div>"
+        + '<dl class="readout">'
+        + '<div><dt data-i18n="whatif.energy">Energy</dt><dd id="whatif-energy">—</dd></div>'
+        + '<div><dt data-i18n="whatif.carbon">Carbon</dt><dd id="whatif-carbon">—</dd></div>'
+        + '<div><dt data-i18n="whatif.money">Electricity</dt><dd id="whatif-money">—</dd></div>'
+        + '<div><dt data-i18n="whatif.water">Water</dt><dd id="whatif-water">—</dd></div>'
+        + "</dl>"
+        + '<p class="muted" data-i18n="whatif.note">Recomputed in your browser from the '
+        "energy this model already states. Nothing is sent anywhere.</p></div>"
+    )
+
+
+def _mapping_section(title: str, key: str, mapping: object) -> str:
+    """Render a flat mapping as a two-column table.
+
+    Parameters
+    ----------
+    title : str
+        The heading.
+    key : str
+        Translation key for the heading.
+    mapping : object
+        Expected to be a mapping of label to scalar.
+
+    Returns
+    -------
+    str
+        The section markup, empty when there is nothing to show.
+
+    Examples
+    --------
+    >>> _mapping_section("Where it runs", "section.deployment", {})
+    ''
+    """
+    if not isinstance(mapping, dict) or not mapping:
+        return ""
+    rows = [
+        f"<tr><td>{_escape(str(name).replace('_', ' '))}</td><td>{_escape(value)}</td></tr>"
+        for name, value in mapping.items()
+        if not isinstance(value, (dict, list))
+    ]
+    if not rows:
+        return ""
+    return _heading(2, title, key) + _table(["", ""], rows)
+
+
+def _list_section(title: str, key: str, items: object) -> str:
+    """Render a titled bullet list.
+
+    Parameters
+    ----------
+    title : str
+        The heading.
+    key : str
+        Translation key for the heading.
+    items : object
+        Expected to be a list of strings.
+
+    Returns
+    -------
+    str
+        The section markup, empty when there is nothing to show.
+
+    Examples
+    --------
+    >>> _list_section("Not counted", "section.exclusions", [])
+    ''
+    """
+    if not isinstance(items, list) or not items:
+        return ""
+    bullets = "".join(f"<li>{_escape(item)}</li>" for item in items)
+    return _heading(2, title, key) + f'<ul class="plain">{bullets}</ul>'
+
+
+def _page_data(model: CostModel, *, overlay: Any = None) -> str:
+    """Build the JSON blob the page's script reads.
+
+    Everything the script needs arrives this way, serialised with
+    :func:`json.dumps`, so no value is ever pasted into a JavaScript literal by
+    hand and an apostrophe in a French sentence cannot break the page.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model.
+    overlay : pathlib.Path or None, optional
+        Catalogue overlay directory.
+
+    Returns
+    -------
+    str
+        A JSON document.
+
+    Examples
+    --------
+    >>> json.loads(_page_data(CostModel.from_mapping({})))["machine_energy_kwh"] is None
+    True
+    """
+    countries = Catalog.load("grid", overlay=overlay).rows("countries")
+    providers = Catalog.load("providers", overlay=overlay).rows("providers")
+    energy = scenario_energy(model)
+    payload = {
+        "i18n": translations(),
+        "machine_energy_kwh": float(energy.value) if energy.is_known() else None,
+        "countries": {
+            key: {
+                "name": row.get("name"),
+                "carbon": row.get("carbon_gco2e_per_kwh"),
+                "price": row.get("price_usd_per_kwh"),
+            }
+            for key, row in countries.items()
+        },
+        "providers": {
+            key: {
+                "name": row.get("name"),
+                "pue": row.get("pue"),
+                "wue": row.get("wue_l_per_kwh"),
+            }
+            for key, row in providers.items()
+        },
+    }
+    # The closing tag has to be broken up: a JSON string containing it verbatim
+    # would end the <script> element early, whatever the type attribute says.
+    return json.dumps(payload, ensure_ascii=False).replace("</", "<\\/")
+
+
+def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> str:
+    """Render a cost model as one self-contained HTML page.
+
+    Parameters
+    ----------
+    model : CostModel or dict
+        The model.
+    overlay : pathlib.Path or None, optional
+        Catalogue overlay directory, used for the what-if panel's data.
+
+    Returns
+    -------
+    str
+        A complete document, with the stylesheet, script, logo, and catalogue data
+        inlined, so it opens offline and makes no request to anybody.
+
+    Examples
+    --------
+    >>> page = render_html({"project": {"name": "demo"}, "scenarios": []})
+    >>> "<title>" in page and "demo" in page
+    True
+    """
+    wrapped = model if isinstance(model, CostModel) else CostModel.from_mapping(model)
+    registry = wrapped.registry
+    project = wrapped.data.get("project")
+    name = project.get("name") if isinstance(project, dict) else None
+    title = f"Cost of running {name}" if name else "Cost of running this code"
+
+    languages = "".join(
+        f'<option value="{_escape(code)}">{_escape(code.upper())}</option>'
+        for code in sorted(translations())
+    )
+
+    updated = wrapped.data.get("date_updated")
+    subtitle = (
+        f"Last updated {_escape(updated)}. Schema {_escape(wrapped.schema_version)}."
+        if updated
+        else f"Schema {_escape(wrapped.schema_version)}."
+    )
+
+    unit = wrapped.data.get("unit_of_work")
+    unit_block = ""
+    if isinstance(unit, dict):
+        unit_block = (
+            _heading(2, "One unit of work", "section.unit")
+            + f'<div class="card"><p><strong>{_escape(unit.get("name"))}</strong> '
+            f"{_badge(unit.get('status'))}</p>"
+            + (f"<p>{_escape(unit.get('description'))}</p>" if unit.get("description") else "")
+            + (
+                '<ul class="plain">'
+                + "".join(f"<li>{_escape(item)}</li>" for item in unit["out_of_scope"])
+                + "</ul>"
+                if isinstance(unit.get("out_of_scope"), list) and unit["out_of_scope"]
+                else ""
+            )
+            + "</div>"
+        )
+
+    chain = derivation_chain(wrapped)
+    chain_block = (
+        f"<figure>{chain}<figcaption>Each box is coloured by how well founded that "
+        "number is. A weak colour upstream caps everything downstream of it: that is "
+        "the weakest-link rule, drawn.</figcaption></figure>"
+        if chain
+        else ""
+    )
+
+    body = "".join(
+        [
+            f"<h1>{_escape(title)}</h1>",
+            f'<p class="muted">{subtitle}</p>',
+            _verdict(wrapped),
+            _heading(2, "Honesty", "section.honesty"),
+            f"<figure>{honesty_bar(count_statuses(wrapped))}</figure>",
+            chain_block,
+            unit_block,
+            _mapping_section("Where it runs", "section.deployment", wrapped.data.get("deployment")),
+            _costs_section(wrapped, registry),
+            _whatif_section(wrapped, overlay=overlay),
+            _assumptions_section(wrapped),
+            _services_section(wrapped),
+            _list_section("Not counted", "section.exclusions", wrapped.data.get("exclusions")),
+            _list_section(
+                "Rules this model follows", "section.rules", wrapped.data.get("provenance_rules")
+            ),
+        ]
+    )
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="generator" content="running-code-cost-helper">
+<title>{_escape(title)}</title>
+<link rel="icon" href="{_logo_data_uri()}">
+<style>
+{_asset("report.css")}
+</style>
+</head>
+<body>
+<nav class="bar">
+  <span class="brand"><img src="{_logo_data_uri()}" alt="">running-code-cost-helper</span>
+  <span class="spacer"></span>
+  <select id="language-picker" aria-label="Language">{languages}</select>
+  <button id="theme-toggle" type="button" aria-label="Switch theme">☾</button>
+  <button type="button" onclick="window.print()" data-i18n="bar.print">Save as PDF</button>
+</nav>
+<main class="wrap">
+{body}
+<footer>
+<p><span data-i18n="footer.generated">Generated by running-code-cost-helper.</span>
+<a href="{PROJECT_URL}" rel="noopener">{PROJECT_URL}</a></p>
+</footer>
+</main>
+<script type="application/json" id="report-data">{_page_data(wrapped, overlay=overlay)}</script>
+<script>
+{_asset("report.js")}
+</script>
+</body>
+</html>
+"""
