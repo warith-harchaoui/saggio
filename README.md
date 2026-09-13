@@ -4,13 +4,15 @@
 
 [🇫🇷 LISEZMOI.md](LISEZMOI.md) · 🇬🇧 English
 
+**What does it cost to run your code?** Money, time, energy, carbon, water, and
+any other dimension you decide to watch, per unit of work, with every number
+saying how far it can be trusted.
+
 <p align="center">
   <img src="assets/logo.png" alt="saggio" >
 </p>
 
-**What does it cost to run your code?** Money, time, energy, carbon, water, and
-any other dimension you decide to watch, per unit of work, with every number
-saying how far it can be trusted.
+
 
 The answer is a YAML file you commit next to the code, and reports rendered from
 it. The file is reviewable in a pull request, the reports are readable by people
