@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from running_code_cost_helper.model.taxonomy import (
+from saggio.model.taxonomy import (
     ALLOWED_STATUSES,
     ESTIMATED,
     MEASURED,

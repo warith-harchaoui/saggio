@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/logo-180.png" alt="running-code-cost-helper" width="120">
+  <img src="assets/logo-180.png" alt="saggio" width="120">
 </p>
 
-# running-code-cost-helper
+# saggio
 
 🇫🇷 Français · [🇬🇧 README.md](README.md)
 
@@ -16,10 +16,10 @@ lisent par des gens qui n'ouvriront jamais un terminal, et ni l'un ni l'autre n'
 le droit d'avancer un chiffre sans dire d'où il vient.
 
 ```bash
-pip install running-code-cost-helper
+pip install saggio
 
-running-code-cost-helper audit . --country FR --run -o cost_of_running.yaml
-running-code-cost-helper render cost_of_running.yaml -f html -o cost_of_running.html
+saggio audit . --country FR --run -o cost_of_running.yaml
+saggio render cost_of_running.yaml -f html -o cost_of_running.html
 ```
 
 ## L'idée
@@ -98,7 +98,7 @@ affaibli, et sur une quantité qui a discrètement disparu.
 ## Installation
 
 ```bash
-pip install running-code-cost-helper
+pip install saggio
 ```
 
 Trois dépendances d'exécution, et c'est voulu.
@@ -110,55 +110,53 @@ configuration de l'utilisateur. Tout le reste, ce paquet le fait lui-même.
 Word et PDF demandent une chose de plus, et seulement si vous les voulez :
 
 ```bash
-pip install "running-code-cost-helper[office]"
+pip install "saggio[office]"
 ```
 
 Pour conda :
 
 ```bash
 conda env create -f environment.yaml
-conda activate env-for-running-code-cost-helper
+conda activate env-for-saggio
 ```
 
 ## S'en servir
 
 ```bash
 # Partir d'un exemple travaillé, ou d'un squelette où tout est laissé ouvert.
-running-code-cost-helper init --template annotated -o cost_of_running.yaml
+saggio init --template annotated -o cost_of_running.yaml
 
 # Le vérifier contre le schéma et les règles d'honnêteté.
-running-code-cost-helper validate cost_of_running.yaml
+saggio validate cost_of_running.yaml
 
 # Lire un dépôt et en écrire le modèle.
-running-code-cost-helper audit . --country FR -o cost_of_running.yaml
+saggio audit . --country FR -o cost_of_running.yaml
 
 # Le lire, et exécuter une tranche plafonnée pour mesurer ce qu'il coûte vraiment.
-running-code-cost-helper audit . --country FR --run -o cost_of_running.yaml
+saggio audit . --country FR --run -o cost_of_running.yaml
 
 # Ça coûterait quoi sur un H100, à partir d'une mesure prise sur un 4090 ?
-running-code-cost-helper audit . --country FR --run \
+saggio audit . --country FR --run \
     --source-accelerator RTX-4090 --target-accelerator H100
 
 # Mesurer une commande à vous.
-running-code-cost-helper measure -- python train.py --steps 100
+saggio measure -- python train.py --steps 100
 
 # Transformer le modèle en quelque chose qui se lit.
-running-code-cost-helper render cost_of_running.yaml -f html -o report.html
+saggio render cost_of_running.yaml -f html -o report.html
 
 # Faire échouer le build quand un coût a dérivé.
-running-code-cost-helper diff main.yaml branche.yaml --threshold 10
+saggio diff main.yaml branche.yaml --threshold 10
 ```
-
-`rcch` est installé comme alias plus court de la même commande.
 
 La bibliothèque fait la même chose sans l'affichage :
 
 ```python
-import running_code_cost_helper as rcch
+import saggio
 
-resultat = rcch.audit(".", options=rcch.AuditOptions(country="FR"))
+resultat = saggio.audit(".", options=saggio.AuditOptions(country="FR"))
 print(resultat.report.summary())
-print(rcch.render_markdown(resultat.model))
+print(saggio.render_markdown(resultat.model))
 ```
 
 [`EXEMPLES.md`](EXEMPLES.md) est le livre de recettes.
@@ -173,8 +171,8 @@ L'accord est donc explicite, demandé une seule fois, et enregistré là où vou
 pouvez le retrouver et le révoquer :
 
 ```bash
-running-code-cost-helper consent grant
-running-code-cost-helper consent revoke
+saggio consent grant
+saggio consent revoke
 ```
 
 Sans lui, `--run` ne fait rien et l'audit se poursuit sur la seule lecture. Une
@@ -219,16 +217,16 @@ se définit par kilowattheure de charge informatique et qu'utiliser le chiffre d
 bâtiment compterait le refroidissement deux fois.
 
 Consommations matérielles, intensités carbone, tarifs et rendements de datacenter
-vivent dans [`running_code_cost_helper/data/`](running_code_cost_helper/data/),
+vivent dans [`saggio/data/`](saggio/data/),
 une ligne chacun avec sa source et sa date. Une ligne manquante est une issue
 normale, et l'outil vous dit laquelle par son nom :
 
 ```bash
-running-code-cost-helper catalog list gpu
-running-code-cost-helper catalog add gpu H300 \
+saggio catalog list gpu
+saggio catalog add gpu H300 \
     --source-url https://www.nvidia.com/... --retrieved-date 2026-09-12 \
     --field tdp_w=800 --field peak_bf16_tflops=2400
-running-code-cost-helper catalog freshness   # sort en 1 quand un chiffre a vieilli
+saggio catalog freshness   # sort en 1 quand un chiffre a vieilli
 ```
 
 Une ligne ne peut pas être ajoutée sans source ni date. C'est cette règle qui rend
@@ -254,6 +252,14 @@ cli/        L'analyse des arguments et l'affichage. Rien d'autre.
 Les dépendances ne pointent que dans un sens, si bien que la ligne de commande ne
 peut rien faire qu'un appelant de la bibliothèque ne puisse faire.
 
+Les pièces du rapport HTML s'écrivent hors du paquet, dans
+[`reporting/`](reporting/) : la coquille du document avec les jetons que le rendu
+remplit, la feuille de style, le script, les traductions. Ce sont là une feuille
+de style et un script, et non des chaînes citées dans du Python ;
+`reporting/sync.py` les recopie dans le paquet qui les livre, et un test fait
+échouer le build si les deux viennent à diverger. Copiez ce trio pour produire
+des rapports d'une autre forme.
+
 ## Contribuer
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) donne les détails. En bref : ajoutez une
@@ -272,6 +278,15 @@ ruff format --check .
 [`PAYSAGE.md`](PAYSAGE.md) situe cet outil à côté de CodeCarbon, Green Algorithms,
 Scaphandre, PowerAPI, Cloud Carbon Footprint et le reste du domaine, et dit
 honnêtement là où chacun d'eux est le meilleur choix.
+
+## Le nom
+
+*Saggio*, en italien, c'est l'essai d'un métal : on prélève un échantillon, on en
+détermine le titre, et le résultat est poinçonné avec le nom de qui l'a déterminé
+et la date. Le mot veut dire aussi l'essai qu'on écrit, et il veut dire avisé.
+Les trois sens sont le propos. Cet outil prélève une tranche plafonnée d'une
+vraie exécution, dit à quel point chaque chiffre est fondé, et note d'où vient
+chaque valeur et à quelle date quelqu'un l'a lue.
 
 ## Licence
 

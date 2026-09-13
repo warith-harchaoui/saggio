@@ -10,7 +10,7 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
-SKILL_DIR = ROOT / "skills" / "running-code-cost-helper"
+SKILL_DIR = ROOT / "skills" / "saggio"
 SKILL = SKILL_DIR / "SKILL.md"
 
 
@@ -26,7 +26,7 @@ def body() -> str:
 
 def test_the_skill_exists_and_has_frontmatter() -> None:
     assert SKILL.is_file()
-    assert frontmatter()["name"] == "running-code-cost-helper"
+    assert frontmatter()["name"] == "saggio"
 
 
 @pytest.mark.parametrize("field", ["name", "description", "license", "compatibility", "metadata"])
@@ -40,7 +40,7 @@ def test_the_description_says_when_not_to_fire() -> None:
 
 
 def test_the_skill_version_matches_the_package() -> None:
-    from running_code_cost_helper import __version__
+    from saggio import __version__
 
     assert str(frontmatter()["metadata"]["version"]) == __version__
 
@@ -94,17 +94,17 @@ def test_the_evals_are_valid_json_and_cover_the_refusals() -> None:
 def test_every_command_the_skill_shows_parses() -> None:
     import shlex
 
-    from running_code_cost_helper.cli.app import build_parser
+    from saggio.cli.app import build_parser
 
     parser = build_parser()
     text = SKILL.read_text(encoding="utf-8").replace("\\\n", " ")
     for line in text.splitlines():
         stripped = line.strip()
-        if not stripped.startswith("running-code-cost-helper "):
+        if not stripped.startswith("saggio "):
             continue
         argv = [
             "https://example.invalid" if part.startswith("http") else part
-            for part in shlex.split(stripped.removeprefix("running-code-cost-helper "))
+            for part in shlex.split(stripped.removeprefix("saggio "))
             if part not in {"...", "…"}
         ]
         try:

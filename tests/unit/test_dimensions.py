@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from running_code_cost_helper.model.dimensions import (
+from saggio.model.dimensions import (
     CANONICAL_DIMENSIONS,
     Dimension,
     DimensionRegistry,

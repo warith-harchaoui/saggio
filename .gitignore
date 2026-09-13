@@ -5,6 +5,7 @@ __pycache__/
 build/
 dist/
 .eggs/
+web/
 
 # Test and tooling caches.
 .pytest_cache/
@@ -17,7 +18,7 @@ htmlcov/
 # Environments.
 .venv/
 venv/
-env-for-running-code-cost-helper/
+env-for-saggio/
 
 # Editor and operating-system noise.
 .DS_Store

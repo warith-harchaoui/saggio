@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from running_code_cost_helper.analyze.run import (
+from saggio.analyze.run import (
     CONSENT_WORD,
     _can_profile,
     _is_python_command,

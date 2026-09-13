@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 import yaml
 
-from running_code_cost_helper.cli import DECLINED, INVALID, OK, UNAVAILABLE, USAGE, main
+from saggio.cli import DECLINED, INVALID, OK, UNAVAILABLE, USAGE, main
 
 
 def run(argv: list[str], capsys) -> tuple[int, str, str]:
@@ -147,7 +147,7 @@ def test_a_binary_format_needs_a_destination(
 def test_a_missing_toolchain_is_reported_as_unavailable_not_as_a_crash(
     tmp_path: Path, sound_model: dict[str, Any], monkeypatch: pytest.MonkeyPatch, capsys
 ) -> None:
-    monkeypatch.setattr("running_code_cost_helper.report.office.md2star_available", lambda: False)
+    monkeypatch.setattr("saggio.report.office.md2star_available", lambda: False)
     source = tmp_path / "cost.yaml"
     source.write_text(yaml.safe_dump(sound_model), encoding="utf-8")
     code, _, _ = run(["render", str(source), "-f", "docx", "-o", str(tmp_path / "r.docx")], capsys)

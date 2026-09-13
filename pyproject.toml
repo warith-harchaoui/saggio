@@ -1,4 +1,4 @@
-# Packaging and tooling for running-code-cost-helper.
+# Packaging and tooling for saggio.
 #
 # The package layout is flat, like the rest of this author's helper suite
 # (os-helper, audio-helper, vocal-helper): the importable package sits at the
@@ -15,7 +15,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "running-code-cost-helper"
+name = "saggio"
 version = "1.0.0"
 description = "What it costs to run your code, per unit of work, with every number saying how far it can be trusted: money, time, energy, carbon, water, and any dimension you register."
 readme = "README.md"
@@ -71,24 +71,22 @@ dev = [
 ]
 
 [project.scripts]
-running-code-cost-helper = "running_code_cost_helper.cli.app:run"
-# A short alias, because the full name is a mouthful to type twice.
-rcch = "running_code_cost_helper.cli.app:run"
+saggio = "saggio.cli.app:run"
 
 [project.urls]
-Homepage = "https://github.com/warith-harchaoui/running-code-cost-helper"
-Source = "https://github.com/warith-harchaoui/running-code-cost-helper"
-Issues = "https://github.com/warith-harchaoui/running-code-cost-helper/issues"
+Homepage = "https://github.com/warith-harchaoui/saggio"
+Source = "https://github.com/warith-harchaoui/saggio"
+Issues = "https://github.com/warith-harchaoui/saggio/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["running_code_cost_helper*"]
+include = ["saggio*"]
 
 [tool.setuptools.package-data]
 # The catalogues, the templates, and the report's own assets all ship inside the
 # wheel and are read through importlib.resources, so a checkout and an installed
 # copy behave identically.
-"running_code_cost_helper.data" = ["*.yaml", "templates/*.yaml", "report/*"]
+"saggio.data" = ["*.yaml", "templates/*.yaml", "report/*"]
 
 # --- Linting and formatting -------------------------------------------------
 
@@ -126,14 +124,14 @@ ignore = [
 convention = "numpy"
 
 [tool.ruff.lint.isort]
-known-first-party = ["running_code_cost_helper"]
+known-first-party = ["saggio"]
 
 # --- Tests ------------------------------------------------------------------
 
 [tool.pytest.ini_options]
 # The doctests are part of the suite on purpose: every example in every docstring
 # is executed, so the documentation cannot drift away from the code.
-testpaths = ["tests", "running_code_cost_helper"]
+testpaths = ["tests", "saggio"]
 addopts = "-q --doctest-modules"
 filterwarnings = ["error::DeprecationWarning"]
 markers = [

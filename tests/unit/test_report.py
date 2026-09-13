@@ -8,23 +8,23 @@ from typing import Any
 
 import pytest
 
-from running_code_cost_helper.model import Quantity
-from running_code_cost_helper.report.figures import (
+from saggio.model import Quantity
+from saggio.report.figures import (
     count_statuses,
     derivation_chain,
     derivation_edges,
     honesty_bar,
     scenario_energy,
 )
-from running_code_cost_helper.report.html import render_html, translations
-from running_code_cost_helper.report.markdown import (
+from saggio.report.html import render_html, translations
+from saggio.report.markdown import (
     NOT_KNOWN,
     format_number,
     format_quantity,
     render_markdown,
 )
-from running_code_cost_helper.report.office import render_office
-from running_code_cost_helper.templates import template_mapping
+from saggio.report.office import render_office
+from saggio.templates import template_mapping
 
 # --- Formatting --------------------------------------------------------------
 

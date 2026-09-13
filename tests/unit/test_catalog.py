@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from running_code_cost_helper.catalog.registry import (
+from saggio.catalog.registry import (
     BUNDLED_CATALOGS,
     SECTION_OF_KIND,
     Catalog,

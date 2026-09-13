@@ -5,6 +5,32 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
+## Unreleased
+
+### Renamed to saggio
+
+- The project, the package, the command and the import are all `saggio`, where
+  they were `running-code-cost-helper` and the alias `rcch`. *Saggio* is Italian
+  for the assay of a metal, for an essay, and for judicious; the README says why
+  all three fit. Nothing had been published under the old name, so no release
+  carries it and no import ever has to be kept working.
+- The short alias is gone. It existed because the old name was long to type, and
+  the new one is six letters.
+
+### The report's pieces moved out of the package
+
+- The HTML report's document shell is now a file, `reporting/report.html`, with
+  named tokens the renderer fills, rather than an f-string inside `report/html.py`.
+  The stylesheet, the script, the translations and the logo moved to `reporting/`
+  beside it, so everything the report is made of is authored as the kind of file
+  it is.
+- `reporting/sync.py` copies them into `saggio/data/report/`,
+  which is what the wheel ships, and `--check` reports drift without writing. A
+  contract test runs it, so editing the packaged copy by mistake fails the build.
+- A token the renderer does not fill now raises, because a report containing a
+  literal `{{BODY}}` would be worse than a failure.
+- Nothing changed in the rendered page: the same document comes out.
+
 ## 1.0.0 — 2026-09-13
 
 First release.

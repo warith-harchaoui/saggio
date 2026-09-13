@@ -104,7 +104,7 @@ voice, and they follow the same rules.
 half an error message:
 
 > `GPU 'NVIDIA H300' is not in the catalogue; add it with
-> `running-code-cost-helper catalog add gpu` once you have a datasheet TDP`
+> `saggio catalog add gpu` once you have a datasheet TDP`
 
 **No jargon where a word will do.** "Power usage effectiveness" the first time,
 with what it means; "overhead" after that.

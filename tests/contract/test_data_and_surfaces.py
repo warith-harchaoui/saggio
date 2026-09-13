@@ -10,22 +10,22 @@ from pathlib import Path
 import pytest
 import yaml
 
-from running_code_cost_helper.catalog.registry import (
+from saggio.catalog.registry import (
     BUNDLED_CATALOGS,
     INTERNAL_DEFAULT_SOURCE,
     SECTION_OF_KIND,
     Catalog,
     carries_numbers,
 )
-from running_code_cost_helper.estimate.energy import (
+from saggio.estimate.energy import (
     carbon_from_energy,
     facility_energy,
     it_energy_from_runtime,
     money_from_energy,
 )
-from running_code_cost_helper.model import CostModel, Quantity, overall_status, validate
-from running_code_cost_helper.report import render_html, render_markdown
-from running_code_cost_helper.templates import template_mapping, template_names
+from saggio.model import CostModel, Quantity, overall_status, validate
+from saggio.report import render_html, render_markdown
+from saggio.templates import template_mapping, template_names
 
 ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -48,17 +48,13 @@ ROWS = catalog_rows()
 
 @pytest.mark.parametrize("name", BUNDLED_CATALOGS)
 def test_every_bundled_catalogue_is_in_the_wheel(name: str) -> None:
-    text = (
-        resources.files("running_code_cost_helper.data").joinpath(f"{name}.yaml").read_text("utf-8")
-    )
+    text = resources.files("saggio.data").joinpath(f"{name}.yaml").read_text("utf-8")
     assert yaml.safe_load(text)
 
 
 @pytest.mark.parametrize("name", BUNDLED_CATALOGS)
 def test_every_bundled_catalogue_declares_the_current_schema(name: str) -> None:
-    text = (
-        resources.files("running_code_cost_helper.data").joinpath(f"{name}.yaml").read_text("utf-8")
-    )
+    text = resources.files("saggio.data").joinpath(f"{name}.yaml").read_text("utf-8")
     assert yaml.safe_load(text)["schema_version"] == "2.0"
 
 
@@ -90,9 +86,7 @@ def test_a_source_url_is_a_link_or_an_admitted_default(kind: str, key: str, row:
 @pytest.mark.parametrize("kind", sorted(SECTION_OF_KIND))
 def test_keys_are_unique_within_a_catalogue(kind: str) -> None:
     name, section = SECTION_OF_KIND[kind]
-    text = (
-        resources.files("running_code_cost_helper.data").joinpath(f"{name}.yaml").read_text("utf-8")
-    )
+    text = resources.files("saggio.data").joinpath(f"{name}.yaml").read_text("utf-8")
     keys = [row["key"] for row in yaml.safe_load(text)[section]]
     assert len(keys) == len(set(keys))
 
@@ -102,9 +96,7 @@ def test_every_key_is_a_string(kind: str) -> None:
     # Unquoted, YAML reads NO as the boolean false, and Norway vanishes from the
     # catalogue with no error anywhere.
     name, section = SECTION_OF_KIND[kind]
-    text = (
-        resources.files("running_code_cost_helper.data").joinpath(f"{name}.yaml").read_text("utf-8")
-    )
+    text = resources.files("saggio.data").joinpath(f"{name}.yaml").read_text("utf-8")
     assert all(isinstance(row["key"], str) for row in yaml.safe_load(text)[section])
 
 
@@ -225,15 +217,15 @@ def test_both_reports_show_the_same_verdict(name: str) -> None:
 
 
 def test_every_report_asset_is_in_the_wheel() -> None:
-    for asset in ("report.css", "report.js", "i18n.yaml", "logo.png"):
-        assert resources.files("running_code_cost_helper.data.report").joinpath(asset).is_file()
+    for asset in ("report.html", "report.css", "report.js", "i18n.yaml", "logo.png"):
+        assert resources.files("saggio.data.report").joinpath(asset).is_file()
 
 
 def test_the_public_api_is_importable_and_complete() -> None:
-    import running_code_cost_helper as rcch
+    import saggio
 
-    for name in rcch.__all__:
-        assert hasattr(rcch, name), f"__all__ names {name}, which does not exist"
+    for name in saggio.__all__:
+        assert hasattr(saggio, name), f"__all__ names {name}, which does not exist"
 
 
 def test_the_command_line_reaches_only_the_library() -> None:
@@ -242,7 +234,7 @@ def test_the_command_line_reaches_only_the_library() -> None:
     # of, so every verb has to route through a public function.
     import inspect
 
-    from running_code_cost_helper.cli import commands
+    from saggio.cli import commands
 
     source = inspect.getsource(commands)
     assert "subprocess" not in source

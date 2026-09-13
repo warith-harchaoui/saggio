@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from running_code_cost_helper.model import CostModel, overall_status, validate
+from saggio.model import CostModel, overall_status, validate
 
 
 def messages(model: Any) -> str:

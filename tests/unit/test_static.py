@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from running_code_cost_helper.analyze.static import (
+from saggio.analyze.static import (
     CONFIG_FILE_PRECEDENCE,
     _is_prose_line,
     capped_entrypoint_command,

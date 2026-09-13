@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from running_code_cost_helper.model import CostModel
+from saggio.model import CostModel
 
 
 @pytest.fixture

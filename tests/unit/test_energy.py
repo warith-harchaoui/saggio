@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from running_code_cost_helper.catalog import Catalog
-from running_code_cost_helper.estimate.energy import (
+from saggio.catalog import Catalog
+from saggio.estimate.energy import (
     MEMORY_POWER_W_PER_GB,
     carbon_from_energy,
     energy_from_runtime,
@@ -16,7 +16,7 @@ from running_code_cost_helper.estimate.energy import (
     total_money,
     water_from_energy,
 )
-from running_code_cost_helper.model import Quantity
+from saggio.model import Quantity
 
 MEASURED = "measured"
 ESTIMATED = "estimated"

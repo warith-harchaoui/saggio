@@ -23,11 +23,11 @@ arithmetic that drifts turns the build red.
 ## The five-minute version
 
 ```bash
-pip install running-code-cost-helper
+pip install saggio
 
 cd your-project
-running-code-cost-helper audit . --country FR -o cost_of_running.yaml
-running-code-cost-helper render cost_of_running.yaml -f html -o cost_of_running.html
+saggio audit . --country FR -o cost_of_running.yaml
+saggio render cost_of_running.yaml -f html -o cost_of_running.html
 open cost_of_running.html
 ```
 
@@ -38,7 +38,7 @@ for a model nobody has measured, and the report says so at the top.
 To make it real, measure it:
 
 ```bash
-running-code-cost-helper audit . --country FR --run -o cost_of_running.yaml
+saggio audit . --country FR --run -o cost_of_running.yaml
 ```
 
 ## Starting from nothing
@@ -47,10 +47,10 @@ Two starters ship with the package.
 
 ```bash
 # Everything left open, for filling in by hand.
-running-code-cost-helper init --template minimal -o cost_of_running.yaml
+saggio init --template minimal -o cost_of_running.yaml
 
 # A worked example with a real arithmetic chain and a note on every field.
-running-code-cost-helper init --template annotated -o cost_of_running.yaml
+saggio init --template annotated -o cost_of_running.yaml
 ```
 
 The minimal one states no number at all. That is deliberate: a scaffold full of
@@ -60,7 +60,7 @@ of `TODO` tells the truth about itself.
 Check it whenever you have edited it:
 
 ```bash
-running-code-cost-helper validate cost_of_running.yaml
+saggio validate cost_of_running.yaml
 ```
 
 ```
@@ -74,7 +74,7 @@ and this package does not punish that.
 ## Auditing a repository
 
 ```bash
-running-code-cost-helper audit . --country FR -o cost_of_running.yaml
+saggio audit . --country FR -o cost_of_running.yaml
 ```
 
 Reading a repository establishes what it is: its languages, its shape, the
@@ -103,17 +103,17 @@ so the audit records where the current one lives instead of pretending to know i
 Audit a repository you have not cloned:
 
 ```bash
-running-code-cost-helper audit https://github.com/someone/their-project --country FR
+saggio audit https://github.com/someone/their-project --country FR
 ```
 
 Ask a local model what shape the work is, if you have Ollama running:
 
 ```bash
 # On by default. The model classifies; it never supplies a number.
-running-code-cost-helper audit . --country FR
+saggio audit . --country FR
 
 # Off.
-running-code-cost-helper audit . --country FR --no-llm
+saggio audit . --country FR --no-llm
 ```
 
 ## Measuring instead of guessing
@@ -121,7 +121,7 @@ running-code-cost-helper audit . --country FR --no-llm
 ### One command of yours
 
 ```bash
-running-code-cost-helper measure -- python train.py --steps 100
+saggio measure -- python train.py --steps 100
 ```
 
 ```
@@ -141,8 +141,8 @@ falls back to an estimate labelled as one.
 ### A slice of somebody else's repository
 
 ```bash
-running-code-cost-helper consent grant
-running-code-cost-helper audit . --country FR --run -o cost_of_running.yaml
+saggio consent grant
+saggio audit . --country FR --run -o cost_of_running.yaml
 ```
 
 The audit runs a capped slice of your real entry point. The cap comes from your own
@@ -175,7 +175,7 @@ Most cost models are written on a laptop. Projecting from one needs you to say
 which machine the measurement stands for:
 
 ```bash
-running-code-cost-helper audit . --country FR --run \
+saggio audit . --country FR --run \
     --source-accelerator RTX-4090 \
     --target-accelerator H100
 ```
@@ -201,7 +201,7 @@ is compute-bound and the precision is one the catalogue quotes. Ask for a precis
 it cannot speak to and it refuses rather than guessing:
 
 ```bash
-running-code-cost-helper audit . --run \
+saggio audit . --run \
     --source-accelerator RTX-4090 --target-accelerator H100 --precision fp32
 ```
 
@@ -254,17 +254,17 @@ The drift gate now fails when it goes *down*.
 
 ```bash
 # For a pull request.
-running-code-cost-helper render cost_of_running.yaml -f md -o cost_of_running.md
+saggio render cost_of_running.yaml -f md -o cost_of_running.md
 
 # For everyone else: one self-contained page, offline, light and dark, EN and FR.
-running-code-cost-helper render cost_of_running.yaml -f html -o cost_of_running.html
+saggio render cost_of_running.yaml -f html -o cost_of_running.html
 
-# For a document. Needs `pip install "running-code-cost-helper[office]"`.
-running-code-cost-helper render cost_of_running.yaml -f docx -o cost_of_running.docx
-running-code-cost-helper render cost_of_running.yaml -f pdf -o cost_of_running.pdf
+# For a document. Needs `pip install "saggio[office]"`.
+saggio render cost_of_running.yaml -f docx -o cost_of_running.docx
+saggio render cost_of_running.yaml -f pdf -o cost_of_running.pdf
 
 # In your own house style.
-running-code-cost-helper render cost_of_running.yaml -f docx -o cost_of_running.docx \
+saggio render cost_of_running.yaml -f docx -o cost_of_running.docx \
     --reference-doc assets/template.docx
 ```
 
@@ -280,16 +280,16 @@ invented baseline would be the worst number on the page.
 # .github/workflows/cost.yml
 - name: Has the cost of running this drifted?
   run: |
-    pip install running-code-cost-helper
-    running-code-cost-helper validate cost_of_running.yaml
-    running-code-cost-helper audit . --country FR -o /tmp/now.yaml
-    running-code-cost-helper diff cost_of_running.yaml /tmp/now.yaml --threshold 10
+    pip install saggio
+    saggio validate cost_of_running.yaml
+    saggio audit . --country FR -o /tmp/now.yaml
+    saggio diff cost_of_running.yaml /tmp/now.yaml --threshold 10
 ```
 
 `diff` fails on three things, and the third is the one people forget:
 
 ```bash
-running-code-cost-helper diff before.yaml after.yaml
+saggio diff before.yaml after.yaml
 ```
 
 ```
@@ -307,9 +307,9 @@ somebody deleted the field.
 ## The catalogues
 
 ```bash
-running-code-cost-helper catalog list gpu
-running-code-cost-helper catalog list country --json | jq '.FR'
-running-code-cost-helper catalog list service
+saggio catalog list gpu
+saggio catalog list country --json | jq '.FR'
+saggio catalog list service
 ```
 
 A miss is a normal outcome, and the tool names what it could not find:
@@ -317,11 +317,11 @@ A miss is a normal outcome, and the tool names what it could not find:
 ```
 Read before trusting this model:
   - GPU 'NVIDIA H300' is not in the catalogue; add it with
-    `running-code-cost-helper catalog add gpu` once you have a datasheet TDP
+    `saggio catalog add gpu` once you have a datasheet TDP
 ```
 
 ```bash
-running-code-cost-helper catalog add gpu H300 \
+saggio catalog add gpu H300 \
     --source-url "https://www.nvidia.com/en-us/data-center/h300/" \
     --retrieved-date 2026-09-12 \
     --field tdp_w=800 \
@@ -335,7 +335,7 @@ catalogues worth trusting.
 Ask which numbers have gone quietly out of date:
 
 ```bash
-running-code-cost-helper catalog freshness   # exits 1 when anything is stale
+saggio catalog freshness   # exits 1 when anything is stale
 ```
 
 Tariffs and grid mixes expire in a month, datasheet wattages in a year. A single
@@ -347,23 +347,23 @@ through.
 Everything the command line does, it does by calling this.
 
 ```python
-import running_code_cost_helper as rcch
+import saggio
 
 # Audit a repository.
-result = rcch.audit(".", options=rcch.AuditOptions(country="FR", use_llm=False))
+result = saggio.audit(".", options=saggio.AuditOptions(country="FR", use_llm=False))
 print(result.report.summary())
 for note in result.notes:
     print("-", note)
 
 # Render it.
-open("cost.md", "w").write(rcch.render_markdown(result.model))
-open("cost.html", "w").write(rcch.render_html(result.model))
+open("cost.md", "w").write(saggio.render_markdown(result.model))
+open("cost.html", "w").write(saggio.render_html(result.model))
 ```
 
 Validate a model you built yourself:
 
 ```python
-from running_code_cost_helper import CostModel, validate
+from saggio import CostModel, validate
 
 model = CostModel.load("cost_of_running.yaml")
 report = validate(model)
@@ -374,7 +374,7 @@ if not report.ok:
 Compute one step of the chain by hand:
 
 ```python
-from running_code_cost_helper import Quantity, carbon_from_energy, energy_from_runtime
+from saggio import Quantity, carbon_from_energy, energy_from_runtime
 
 runtime = Quantity(value=3600.0, unit="s", status="measured")
 power = Quantity(value=400.0, unit="W", status="estimated")
@@ -394,7 +394,7 @@ by the arithmetic itself.
 Ask what this machine is:
 
 ```python
-from running_code_cost_helper import detect_machine
+from saggio import detect_machine
 
 machine = detect_machine()
 print(machine.describe())
@@ -405,7 +405,7 @@ for miss in machine.catalog_misses:
 Compare two models:
 
 ```python
-from running_code_cost_helper import compare
+from saggio import compare
 
 comparison = compare(before, after, threshold_percent=10.0)
 for change in comparison.changes:

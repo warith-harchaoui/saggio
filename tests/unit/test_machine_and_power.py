@@ -6,13 +6,13 @@ from pathlib import Path
 
 import pytest
 
-from running_code_cost_helper.analyze.power import (
+from saggio.analyze.power import (
     PowerMeter,
     PowerReading,
     read_package_energy_microjoules,
     unavailable_reason,
 )
-from running_code_cost_helper.estimate.machine import (
+from saggio.estimate.machine import (
     _GPU_PATTERNS,
     MachineProfile,
     _match_key,
@@ -102,9 +102,7 @@ def test_a_counter_that_went_backwards_is_not_a_measurement(
 ) -> None:
     # A wrapped or reset counter gives a difference that is not energy, and
     # reporting it as one would be worse than admitting there is none.
-    monkeypatch.setattr(
-        "running_code_cost_helper.analyze.power.read_package_energy_microjoules", lambda: 5
-    )
+    monkeypatch.setattr("saggio.analyze.power.read_package_energy_microjoules", lambda: 5)
     reading = PowerMeter(started_at=1_000_000).stop(seconds=1.0)
     assert reading.watts is None
     assert "wrapped or reset" in reading.scope
@@ -112,7 +110,7 @@ def test_a_counter_that_went_backwards_is_not_a_measurement(
 
 def test_a_real_reading_divides_energy_by_time(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        "running_code_cost_helper.analyze.power.read_package_energy_microjoules",
+        "saggio.analyze.power.read_package_energy_microjoules",
         lambda: 2_000_000,
     )
     reading = PowerMeter(started_at=0).stop(seconds=2.0)

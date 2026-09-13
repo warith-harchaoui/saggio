@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from running_code_cost_helper.estimate.extrapolate import (
+from saggio.estimate.extrapolate import (
     Projection,
     project_to_completion,
     project_to_machine,
 )
-from running_code_cost_helper.model import Quantity
+from saggio.model import Quantity
 
 
 def measured(value: float, unit: str = "kWh") -> Quantity:

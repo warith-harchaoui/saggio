@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from running_code_cost_helper.model.quantity import (
+from saggio.model.quantity import (
     QUANTITY_KEYS,
     Quantity,
     looks_like_quantity,

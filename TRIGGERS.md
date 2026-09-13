@@ -1,9 +1,9 @@
 # Triggers
 
-What `running-code-cost-helper` is for, and the phrasings, commands, files, and
+What `saggio` is for, and the phrasings, commands, files, and
 questions that should reach for it. Written for a person deciding whether this is
 the right tool, and for an agent deciding whether to invoke the
-[skill](skills/running-code-cost-helper/SKILL.md).
+[skill](skills/saggio/SKILL.md).
 
 ## In one sentence
 

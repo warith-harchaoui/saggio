@@ -23,11 +23,11 @@ exécutés. Une option renommée ou une arithmétique qui dérive fait rougir le
 ## La version en cinq minutes
 
 ```bash
-pip install running-code-cost-helper
+pip install saggio
 
 cd votre-projet
-running-code-cost-helper audit . --country FR -o cost_of_running.yaml
-running-code-cost-helper render cost_of_running.yaml -f html -o cost_of_running.html
+saggio audit . --country FR -o cost_of_running.yaml
+saggio render cost_of_running.yaml -f html -o cost_of_running.html
 open cost_of_running.html
 ```
 
@@ -39,7 +39,7 @@ tête.
 Pour le rendre réel, mesurez-le :
 
 ```bash
-running-code-cost-helper audit . --country FR --run -o cost_of_running.yaml
+saggio audit . --country FR --run -o cost_of_running.yaml
 ```
 
 ## Partir de rien
@@ -48,10 +48,10 @@ Deux points de départ sont livrés avec le paquet.
 
 ```bash
 # Tout laissé ouvert, à remplir à la main.
-running-code-cost-helper init --template minimal -o cost_of_running.yaml
+saggio init --template minimal -o cost_of_running.yaml
 
 # Un exemple travaillé, avec une vraie chaîne de calcul et une note par champ.
-running-code-cost-helper init --template annotated -o cost_of_running.yaml
+saggio init --template annotated -o cost_of_running.yaml
 ```
 
 Le minimal n'avance aucun chiffre. C'est délibéré : un squelette rempli de valeurs
@@ -61,7 +61,7 @@ qu'un squelette rempli de `TODO` dit la vérité sur lui-même.
 Vérifiez-le dès que vous l'avez modifié :
 
 ```bash
-running-code-cost-helper validate cost_of_running.yaml
+saggio validate cost_of_running.yaml
 ```
 
 ```
@@ -75,7 +75,7 @@ incomplet est honnête, et ce paquet ne punit pas l'honnêteté.
 ## Auditer un dépôt
 
 ```bash
-running-code-cost-helper audit . --country FR -o cost_of_running.yaml
+saggio audit . --country FR -o cost_of_running.yaml
 ```
 
 Lire un dépôt établit ce qu'il est : ses langages, sa forme, les frameworks qu'il
@@ -103,17 +103,17 @@ semblant de le connaître.
 Auditer un dépôt que vous n'avez pas cloné :
 
 ```bash
-running-code-cost-helper audit https://github.com/quelquun/leur-projet --country FR
+saggio audit https://github.com/quelquun/leur-projet --country FR
 ```
 
 Demander à un modèle local quelle forme a le travail, si Ollama tourne :
 
 ```bash
 # Activé par défaut. Le modèle classe ; il ne fournit jamais un chiffre.
-running-code-cost-helper audit . --country FR
+saggio audit . --country FR
 
 # Désactivé.
-running-code-cost-helper audit . --country FR --no-llm
+saggio audit . --country FR --no-llm
 ```
 
 ## Mesurer au lieu de deviner
@@ -121,7 +121,7 @@ running-code-cost-helper audit . --country FR --no-llm
 ### Une commande à vous
 
 ```bash
-running-code-cost-helper measure -- python train.py --steps 100
+saggio measure -- python train.py --steps 100
 ```
 
 ```
@@ -141,8 +141,8 @@ Windows, aucun compteur n'est lisible sans privilèges : le rapport affiche donc
 ### Une tranche du dépôt de quelqu'un d'autre
 
 ```bash
-running-code-cost-helper consent grant
-running-code-cost-helper audit . --country FR --run -o cost_of_running.yaml
+saggio consent grant
+saggio audit . --country FR --run -o cost_of_running.yaml
 ```
 
 L'audit exécute une tranche plafonnée de votre vrai point d'entrée. Le plafond
@@ -173,7 +173,7 @@ La plupart des modèles de coût sont écrits sur un portable. Projeter depuis u
 portable demande de dire quelle machine la mesure représente :
 
 ```bash
-running-code-cost-helper audit . --country FR --run \
+saggio audit . --country FR --run \
     --source-accelerator RTX-4090 \
     --target-accelerator H100
 ```
@@ -197,7 +197,7 @@ de celles que le catalogue chiffre. Demandez une précision dont il ne sait pas
 parler et il refuse plutôt que de deviner :
 
 ```bash
-running-code-cost-helper audit . --run \
+saggio audit . --run \
     --source-accelerator RTX-4090 --target-accelerator H100 --precision fp32
 ```
 
@@ -242,17 +242,17 @@ La barrière de dérive échoue désormais quand il *baisse*.
 
 ```bash
 # Pour une pull request.
-running-code-cost-helper render cost_of_running.yaml -f md -o cost_of_running.md
+saggio render cost_of_running.yaml -f md -o cost_of_running.md
 
 # Pour tous les autres : une page autonome, hors ligne, claire et sombre, EN et FR.
-running-code-cost-helper render cost_of_running.yaml -f html -o cost_of_running.html
+saggio render cost_of_running.yaml -f html -o cost_of_running.html
 
-# Pour un document. Demande `pip install "running-code-cost-helper[office]"`.
-running-code-cost-helper render cost_of_running.yaml -f docx -o cost_of_running.docx
-running-code-cost-helper render cost_of_running.yaml -f pdf -o cost_of_running.pdf
+# Pour un document. Demande `pip install "saggio[office]"`.
+saggio render cost_of_running.yaml -f docx -o cost_of_running.docx
+saggio render cost_of_running.yaml -f pdf -o cost_of_running.pdf
 
 # À votre charte graphique.
-running-code-cost-helper render cost_of_running.yaml -f docx -o cost_of_running.docx \
+saggio render cost_of_running.yaml -f docx -o cost_of_running.docx \
     --reference-doc assets/template.docx
 ```
 
@@ -269,10 +269,10 @@ inventée serait le pire chiffre de la page.
 # .github/workflows/cout.yml
 - name: Le coût d'exécution a-t-il dérivé ?
   run: |
-    pip install running-code-cost-helper
-    running-code-cost-helper validate cost_of_running.yaml
-    running-code-cost-helper audit . --country FR -o /tmp/maintenant.yaml
-    running-code-cost-helper diff cost_of_running.yaml /tmp/maintenant.yaml --threshold 10
+    pip install saggio
+    saggio validate cost_of_running.yaml
+    saggio audit . --country FR -o /tmp/maintenant.yaml
+    saggio diff cost_of_running.yaml /tmp/maintenant.yaml --threshold 10
 ```
 
 `diff` échoue sur trois choses, et c'est la troisième qu'on oublie :
@@ -292,9 +292,9 @@ d'être rapporté, c'est que quelqu'un a supprimé le champ.
 ## Les catalogues
 
 ```bash
-running-code-cost-helper catalog list gpu
-running-code-cost-helper catalog list country --json
-running-code-cost-helper catalog list service
+saggio catalog list gpu
+saggio catalog list country --json
+saggio catalog list service
 ```
 
 Une ligne manquante est une issue normale, et l'outil nomme ce qu'il n'a pas
@@ -303,11 +303,11 @@ trouvé :
 ```
 Read before trusting this model:
   - GPU 'NVIDIA H300' is not in the catalogue; add it with
-    `running-code-cost-helper catalog add gpu` once you have a datasheet TDP
+    `saggio catalog add gpu` once you have a datasheet TDP
 ```
 
 ```bash
-running-code-cost-helper catalog add gpu H300 \
+saggio catalog add gpu H300 \
     --source-url "https://www.nvidia.com/en-us/data-center/h300/" \
     --retrieved-date 2026-09-13 \
     --field tdp_w=800 \
@@ -321,7 +321,7 @@ règle qui rend les catalogues dignes de confiance.
 Demander quels chiffres ont discrètement vieilli :
 
 ```bash
-running-code-cost-helper catalog freshness   # sort en 1 si quoi que ce soit a vieilli
+saggio catalog freshness   # sort en 1 si quoi que ce soit a vieilli
 ```
 
 Tarifs et mix électriques périment en un mois, consommations de fiche technique en
@@ -333,23 +333,23 @@ le tarif d'électricité de l'an dernier.
 Tout ce que fait la ligne de commande, elle le fait en appelant ceci.
 
 ```python
-import running_code_cost_helper as rcch
+import saggio
 
 # Auditer un dépôt.
-resultat = rcch.audit(".", options=rcch.AuditOptions(country="FR", use_llm=False))
+resultat = saggio.audit(".", options=saggio.AuditOptions(country="FR", use_llm=False))
 print(resultat.report.summary())
 for note in resultat.notes:
     print("-", note)
 
 # Le rendre.
-open("cout.md", "w").write(rcch.render_markdown(resultat.model))
-open("cout.html", "w").write(rcch.render_html(resultat.model))
+open("cout.md", "w").write(saggio.render_markdown(resultat.model))
+open("cout.html", "w").write(saggio.render_html(resultat.model))
 ```
 
 Valider un modèle que vous avez construit vous-même :
 
 ```python
-from running_code_cost_helper import CostModel, validate
+from saggio import CostModel, validate
 
 modele = CostModel.load("cost_of_running.yaml")
 rapport = validate(modele)
@@ -360,7 +360,7 @@ if not rapport.ok:
 Calculer une étape de la chaîne à la main :
 
 ```python
-from running_code_cost_helper import Quantity, carbon_from_energy, energy_from_runtime
+from saggio import Quantity, carbon_from_energy, energy_from_runtime
 
 duree = Quantity(value=3600.0, unit="s", status="measured")
 puissance = Quantity(value=400.0, unit="W", status="estimated")
@@ -380,7 +380,7 @@ par l'arithmétique elle-même.
 Demander ce qu'est cette machine :
 
 ```python
-from running_code_cost_helper import detect_machine
+from saggio import detect_machine
 
 machine = detect_machine()
 print(machine.describe())
@@ -391,7 +391,7 @@ for manque in machine.catalog_misses:
 Comparer deux modèles :
 
 ```python
-from running_code_cost_helper import compare
+from saggio import compare
 
 comparaison = compare(avant, apres, threshold_percent=10.0)
 for changement in comparaison.changes:

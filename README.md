@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/logo-180.png" alt="running-code-cost-helper" width="120">
+  <img src="assets/logo-180.png" alt="saggio" width="120">
 </p>
 
-# running-code-cost-helper
+# saggio
 
 [🇫🇷 LISEZMOI.md](LISEZMOI.md) · 🇬🇧 English
 
@@ -16,10 +16,10 @@ who will never open a terminal, and neither of them is allowed to state a number
 without saying where it came from.
 
 ```bash
-pip install running-code-cost-helper
+pip install saggio
 
-running-code-cost-helper audit . --country FR --run -o cost_of_running.yaml
-running-code-cost-helper render cost_of_running.yaml -f html -o cost_of_running.html
+saggio audit . --country FR --run -o cost_of_running.yaml
+saggio render cost_of_running.yaml -f html -o cost_of_running.html
 ```
 
 ## The one idea
@@ -95,7 +95,7 @@ that quietly disappeared.
 ## Install
 
 ```bash
-pip install running-code-cost-helper
+pip install saggio
 ```
 
 Three runtime dependencies, on purpose. [`os-helper`](https://pypi.org/project/os-helper/)
@@ -107,55 +107,53 @@ does, it does itself.
 Word and PDF need one more thing, and only if you want them:
 
 ```bash
-pip install "running-code-cost-helper[office]"
+pip install "saggio[office]"
 ```
 
 For conda:
 
 ```bash
 conda env create -f environment.yaml
-conda activate env-for-running-code-cost-helper
+conda activate env-for-saggio
 ```
 
 ## Use it
 
 ```bash
 # Start from a worked example, or from a scaffold with everything left open.
-running-code-cost-helper init --template annotated -o cost_of_running.yaml
+saggio init --template annotated -o cost_of_running.yaml
 
 # Check it against the schema and the honesty rules.
-running-code-cost-helper validate cost_of_running.yaml
+saggio validate cost_of_running.yaml
 
 # Read a repository and write a model for it.
-running-code-cost-helper audit . --country FR -o cost_of_running.yaml
+saggio audit . --country FR -o cost_of_running.yaml
 
 # Read it, and run a capped slice to measure what it really costs.
-running-code-cost-helper audit . --country FR --run -o cost_of_running.yaml
+saggio audit . --country FR --run -o cost_of_running.yaml
 
 # What would this cost on an H100, from a measurement taken on a 4090?
-running-code-cost-helper audit . --country FR --run \
+saggio audit . --country FR --run \
     --source-accelerator RTX-4090 --target-accelerator H100
 
 # Measure one command of your own.
-running-code-cost-helper measure -- python train.py --steps 100
+saggio measure -- python train.py --steps 100
 
 # Turn the model into something a person reads.
-running-code-cost-helper render cost_of_running.yaml -f html -o report.html
+saggio render cost_of_running.yaml -f html -o report.html
 
 # Fail the build when a cost has drifted.
-running-code-cost-helper diff main.yaml branch.yaml --threshold 10
+saggio diff main.yaml branch.yaml --threshold 10
 ```
-
-`rcch` is installed as a shorter alias for the same command.
 
 The library is the same thing without the printing:
 
 ```python
-import running_code_cost_helper as rcch
+import saggio
 
-result = rcch.audit(".", options=rcch.AuditOptions(country="FR"))
+result = saggio.audit(".", options=saggio.AuditOptions(country="FR"))
 print(result.report.summary())
-print(rcch.render_markdown(result.model))
+print(saggio.render_markdown(result.model))
 ```
 
 [`EXAMPLES.md`](EXAMPLES.md) is the cookbook.
@@ -170,8 +168,8 @@ So consent is explicit, asked for once, and recorded where you can find and
 revoke it:
 
 ```bash
-running-code-cost-helper consent grant
-running-code-cost-helper consent revoke
+saggio consent grant
+saggio consent revoke
 ```
 
 Without it, `--run` does nothing and the audit proceeds on reading alone. A
@@ -212,16 +210,16 @@ the machine, because water usage effectiveness is defined per kilowatt-hour of I
 load and using the building figure would count the cooling twice.
 
 Hardware wattages, grid intensities, tariffs, and datacenter overheads live in
-[`running_code_cost_helper/data/`](running_code_cost_helper/data/), one row each
+[`saggio/data/`](saggio/data/), one row each
 with its source and its date. Missing a row is a normal outcome, and the tool
 tells you which one by name:
 
 ```bash
-running-code-cost-helper catalog list gpu
-running-code-cost-helper catalog add gpu H300 \
+saggio catalog list gpu
+saggio catalog add gpu H300 \
     --source-url https://www.nvidia.com/... --retrieved-date 2026-09-12 \
     --field tdp_w=800 --field peak_bf16_tflops=2400
-running-code-cost-helper catalog freshness   # exits 1 when a number has gone stale
+saggio catalog freshness   # exits 1 when a number has gone stale
 ```
 
 A row cannot be added without a source and a date. That rule is what keeps the
@@ -246,6 +244,13 @@ cli/        Argument parsing and printing. Nothing else.
 The dependency direction only points one way, so the command line can do nothing a
 library caller cannot.
 
+The HTML report's own pieces are authored outside the package, in
+[`reporting/`](reporting/): the document shell with the tokens the renderer
+fills, the stylesheet, the script, the translations. They are a stylesheet and a
+script there rather than strings quoted inside Python, and `reporting/sync.py`
+copies them into the package that ships them, with a test that fails the build if
+the two ever drift apart. Copy that trio to render reports of your own shape.
+
 ## Contributing
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) has the details. The short version: add a
@@ -264,6 +269,14 @@ ruff format --check .
 [`LANDSCAPE.md`](LANDSCAPE.md) places this alongside CodeCarbon, Green Algorithms,
 Scaphandre, PowerAPI, Cloud Carbon Footprint, and the rest of the field, and is
 honest about where each of them is the better tool.
+
+## The name
+
+*Saggio* is Italian for the assay of a metal: you draw a sample, you determine
+its fineness, and the result is stamped with who determined it and when. It also
+means an essay, and it means judicious. All three are the point. This tool draws
+a capped sample of a real run, reports how well founded each number is, and
+records where every figure came from and on what date somebody read it.
 
 ## Licence
 

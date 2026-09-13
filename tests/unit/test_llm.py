@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from running_code_cost_helper.analyze.llm import (
+from saggio.analyze.llm import (
     ALLOWED_FIELDS,
     WORKLOAD_KINDS,
     Classification,

@@ -1,7 +1,7 @@
 # A conda environment for people who prefer one. It installs Python and pip, then
 # the package itself; every dependency of the package is a pip dependency, so
 # there is no second list here that could drift out of step with pyproject.toml.
-name: env-for-running-code-cost-helper
+name: env-for-saggio
 channels:
   - conda-forge
 dependencies:

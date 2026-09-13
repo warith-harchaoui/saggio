@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from running_code_cost_helper.diff import compare
+from saggio.diff import compare
 
 
 def model(value: float | None, status: str = "measured", key: str = "energy") -> dict[str, Any]:

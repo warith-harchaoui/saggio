@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from running_code_cost_helper.auditor import AuditOptions, audit, audit_github
-from running_code_cost_helper.model import validate
+from saggio.auditor import AuditOptions, audit, audit_github
+from saggio.model import validate
 
 
 def static_options(**kwargs) -> AuditOptions:
@@ -162,7 +162,7 @@ def test_a_precision_the_catalogue_cannot_speak_to_is_refused_out_loud(
 def test_running_a_slice_replaces_the_guess_with_a_measurement(
     training_repository: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr("running_code_cost_helper.auditor.require_consent", lambda: True)
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
     result = audit(
         training_repository,
         options=static_options(run=True, country="FR", timeout_seconds=120.0),
@@ -177,7 +177,7 @@ def test_running_a_slice_replaces_the_guess_with_a_measurement(
 def test_a_measured_slice_projects_to_the_whole_run(
     training_repository: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr("running_code_cost_helper.auditor.require_consent", lambda: True)
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
     result = audit(
         training_repository,
         options=static_options(run=True, country="FR", timeout_seconds=120.0),
@@ -190,7 +190,7 @@ def test_a_measured_slice_projects_to_the_whole_run(
 def test_declining_to_run_says_so_and_carries_on(
     training_repository: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr("running_code_cost_helper.auditor.require_consent", lambda: False)
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: False)
     result = audit(training_repository, options=static_options(run=True, country="FR"))
     assert result.slice_result is None
     assert any("declined" in note.lower() for note in result.notes)
@@ -199,7 +199,7 @@ def test_declining_to_run_says_so_and_carries_on(
 
 def test_nothing_safe_to_run_is_reported(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     (tmp_path / "library.py").write_text("VALUE = 1\n", encoding="utf-8")
-    monkeypatch.setattr("running_code_cost_helper.auditor.require_consent", lambda: True)
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
     result = audit(tmp_path, options=static_options(run=True))
     assert result.slice_result is None
     assert any("nothing safe to run" in note.lower() for note in result.notes)

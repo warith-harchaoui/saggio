@@ -12,13 +12,13 @@ When it meets one it does not know, it says so by name:
 
 ```
 GPU 'NVIDIA H300' is not in the catalogue; add it with
-`running-code-cost-helper catalog add gpu` once you have a datasheet TDP
+`saggio catalog add gpu` once you have a datasheet TDP
 ```
 
 Adding it is one command and one pull request:
 
 ```bash
-running-code-cost-helper catalog add gpu H300 \
+saggio catalog add gpu H300 \
     --source-url "https://www.nvidia.com/en-us/data-center/h300/" \
     --retrieved-date 2026-09-13 \
     --field tdp_w=800 \
@@ -27,7 +27,7 @@ running-code-cost-helper catalog add gpu H300 \
 
 That writes it to your own overlay, where it works immediately. To offer it
 upstream, copy the row into the matching file under
-`running_code_cost_helper/data/` and open a pull request.
+`saggio/data/` and open a pull request.
 
 **A row without a source and a date will not be merged.** Not because of process,
 but because a catalogue of unsourced numbers is folklore, and this package exists
@@ -37,15 +37,15 @@ a source.
 
 ### A number that is wrong
 
-If a figure in `running_code_cost_helper/data/` is wrong or has gone stale, say so,
+If a figure in `saggio/data/` is wrong or has gone stale, say so,
 and say what it should be and where you read that. Corrections are the highest
 value thing here, and they are welcome even without a patch.
 
 ## Changing the code
 
 ```bash
-git clone https://github.com/warith-harchaoui/running-code-cost-helper
-cd running-code-cost-helper
+git clone https://github.com/warith-harchaoui/saggio
+cd saggio
 pip install -e ".[dev]"
 
 pytest                   # the whole suite, including every docstring example
@@ -86,14 +86,29 @@ catalog/     Sourced facts and the provenance rule.
 estimate/    Facts and measurements into numbers.
 analyze/     Reading a repository, running a slice of it, asking a local model.
 auditor.py   The whole job.
-report/      Markdown, HTML, Word, PDF. The stylesheet and the script are files
-             under data/report/, not Python strings.
+report/      Markdown, HTML, Word, PDF. It assembles; it does not author.
 cli/         Argument parsing and printing, and nothing else.
+reporting/   What the HTML report is made of: the document shell with the tokens
+             the renderer fills, the stylesheet, the script, the translations.
+             Files of their own kind, not Python strings.
 ```
 
 The dependency direction only points one way: `cli` may import `report`, `report`
 may import `model`, and nothing in `model` imports anything above it. A change that
 needs an exception to that is a change that needs a conversation first.
+
+`reporting/` sits outside the package because its files are edited as a
+stylesheet, a script and an HTML shell rather than as Python. The renderer reads
+them through `importlib.resources`, which only reaches inside the package, so a
+copy lives at `saggio/data/report/` and that copy is what the
+wheel ships. Edit the originals, then:
+
+```bash
+python reporting/sync.py
+```
+
+A contract test runs `python reporting/sync.py --check`, so a change made in the
+packaged copy fails the build rather than shipping.
 
 ## Changing the schema
 

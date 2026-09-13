@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 import yaml
 
-from running_code_cost_helper.model.cost_model import (
+from saggio.model.cost_model import (
     CostModel,
     resolve_path,
     status_at,

@@ -13,8 +13,8 @@ from pathlib import Path
 
 import pytest
 
-from running_code_cost_helper import __version__
-from running_code_cost_helper.cli.app import PROGRAM, build_parser
+from saggio import __version__
+from saggio.cli.app import PROGRAM, build_parser
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DOCUMENTS = ["README.md", "LISEZMOI.md", "EXAMPLES.md", "EXEMPLES.md", "TRIGGERS.md"]
 
 #: Both spellings of the console script.
-_INVOCATION = re.compile(rf"^\s*(?:\$ )?(?:{re.escape(PROGRAM)}|rcch)\s+(.*)$")
+_INVOCATION = re.compile(rf"^\s*(?:\$ )?(?:{re.escape(PROGRAM)}|saggio)\s+(.*)$")
 
 #: A line ending in a backslash is continued on the next one.
 _CONTINUED = re.compile(r"\\\s*$")
@@ -111,7 +111,7 @@ def test_the_readme_and_the_french_one_cover_the_same_ground() -> None:
 
 def test_the_arithmetic_the_examples_promise_is_the_arithmetic_they_get() -> None:
     # This is the snippet EXAMPLES.md prints the output of, run for real.
-    from running_code_cost_helper import Quantity, carbon_from_energy, energy_from_runtime
+    from saggio import Quantity, carbon_from_energy, energy_from_runtime
 
     runtime = Quantity(value=3600.0, unit="s", status="measured")
     power = Quantity(value=400.0, unit="W", status="estimated")
@@ -125,7 +125,7 @@ def test_the_arithmetic_the_examples_promise_is_the_arithmetic_they_get() -> Non
 
 
 def test_the_exit_code_table_in_the_examples_matches_the_code() -> None:
-    from running_code_cost_helper.cli.exit_codes import MEANINGS
+    from saggio.cli.exit_codes import MEANINGS
 
     text = (ROOT / "EXAMPLES.md").read_text(encoding="utf-8")
     for code in MEANINGS:
