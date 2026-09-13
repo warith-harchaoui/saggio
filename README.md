@@ -1,10 +1,12 @@
-<p align="center">
-  <img src="assets/logo.png" alt="saggio" >
-</p>
+
 
 # saggio
 
 [🇫🇷 LISEZMOI.md](LISEZMOI.md) · 🇬🇧 English
+
+<p align="center">
+  <img src="assets/logo.png" alt="saggio" >
+</p>
 
 **What does it cost to run your code?** Money, time, energy, carbon, water, and
 any other dimension you decide to watch, per unit of work, with every number
