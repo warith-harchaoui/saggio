@@ -90,7 +90,20 @@ catalogue has no throughput figure for the precision the work runs in.
 **Writes reports that people read.** Markdown for a pull request. A single
 self-contained HTML page for everyone else: offline, light and dark, English and
 French, with a panel that recomputes the model for a different country in the
-browser. Word and PDF through `md2star` when a document is what somebody wants.
+browser and a chart of how the grid would move the carbon elsewhere. Word and PDF
+through `md2star` when a document is what somebody wants. Every known carbon
+figure is also restated in terms a reader can feel — tree-months of
+sequestration, kilometres in an average car, a fraction of a Paris–London
+flight — with the [Green Algorithms](https://doi.org/10.1002/advs.202100707)
+coefficients, and without gaining any confidence in the restating: an open figure
+stays open, and a measured one reads `estimated`, because the tree is an average
+tree.
+
+**Shows the team, not just the project.** `saggio dashboard` renders every
+committed cost model on one page. It leads with the one comparison that is honest
+across projects — how much of each model is measured, estimated, or still open —
+and says plainly that the cost rows, each per its own unit of work, do not
+compare with each other.
 
 **Fails your build when a cost drifts.** `diff` compares two models and fails on a
 cost that worsened past a threshold, on a status that weakened, and on a quantity

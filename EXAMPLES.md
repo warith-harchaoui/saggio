@@ -439,6 +439,25 @@ different country or provider in the browser, from the energy the model already
 states. A model with no stated energy gets no panel, because a what-if built on an
 invented baseline would be the worst number on the page.
 
+Wherever a report shows a known carbon figure, a line beneath it restates the
+number in terms a reader can feel — tree-months, kilometres in an average
+European car, a fraction of a reference flight — using the Green Algorithms
+coefficients. The restatement never gains confidence: an open figure stays open.
+
+### The team page
+
+```bash
+# Every committed model, side by side, on one self-contained page.
+saggio dashboard examples/nanoGPT.yaml examples/whisper.yaml examples/fastapi.yaml -o dashboard.html
+```
+
+The dashboard leads with the one comparison that is honest across projects: how
+much of each model is measured, estimated, or still open, drawn as one stacked
+bar per project on the same hundred-percent scale. The costs table follows, per
+each project's own unit of work, and the page says plainly that those rows do not
+compare with each other — one project's unit is a request, another's is a whole
+training run.
+
 ## Keeping it honest in CI
 
 ```yaml

@@ -93,7 +93,20 @@ pour la précision dans laquelle le travail tourne.
 **Il écrit des rapports qui se lisent.** Du Markdown pour une pull request. Une
 page HTML autonome pour tous les autres : hors ligne, clair et sombre, anglais et
 français, avec un panneau qui recalcule le modèle pour un autre pays dans le
-navigateur. Word et PDF via `md2star` quand c'est un document qu'on attend.
+navigateur et un graphique de ce que le réseau électrique ferait au carbone
+ailleurs. Word et PDF via `md2star` quand c'est un document qu'on attend. Chaque
+chiffre de carbone connu est aussi restitué en termes qu'un lecteur peut
+ressentir — des mois-arbre de séquestration, des kilomètres en voiture moyenne,
+une fraction d'un vol Paris–Londres — avec les coefficients de
+[Green Algorithms](https://doi.org/10.1002/advs.202100707), et sans gagner en
+confiance au passage : un chiffre ouvert reste ouvert, et un chiffre mesuré se
+lit `estimated`, parce que l'arbre est un arbre moyen.
+
+**Il montre l'équipe, pas seulement le projet.** `saggio dashboard` rend tous les
+modèles de coût commités sur une seule page. Elle ouvre sur la seule comparaison
+honnête entre projets — la part de chaque modèle qui est mesurée, estimée, ou
+encore ouverte — et dit clairement que les lignes de coûts, chacune par unité de
+travail propre à son projet, ne se comparent pas entre elles.
 
 **Il fait échouer votre build quand un coût dérive.** `diff` compare deux modèles
 et échoue sur un coût qui a empiré au-delà d'un seuil, sur un statut qui s'est

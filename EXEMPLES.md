@@ -447,6 +447,26 @@ navigateur, à partir de l'énergie que le modèle annonce déjà. Un modèle sa
 énergie annoncée n'a pas de panneau, parce qu'un « et si » bâti sur une base
 inventée serait le pire chiffre de la page.
 
+Partout où un rapport montre un chiffre de carbone connu, une ligne en dessous le
+restitue en termes qu'un lecteur peut ressentir — mois-arbre, kilomètres en
+voiture européenne moyenne, fraction d'un vol de référence — avec les
+coefficients de Green Algorithms. La restitution ne gagne jamais en confiance :
+un chiffre ouvert reste ouvert.
+
+### La page d'équipe
+
+```bash
+# Tous les modèles commités, côte à côte, sur une page autonome.
+saggio dashboard examples/nanoGPT.yaml examples/whisper.yaml examples/fastapi.yaml -o dashboard.html
+```
+
+Le dashboard ouvre sur la seule comparaison honnête entre projets : la part de
+chaque modèle qui est mesurée, estimée, ou encore ouverte, dessinée en une barre
+empilée par projet, toutes sur la même échelle de cent pour cent. Le tableau des
+coûts suit, par unité de travail propre à chaque projet, et la page dit
+clairement que ces lignes ne se comparent pas entre elles — l'unité de l'un est
+une requête, celle de l'autre un entraînement complet.
+
 ## Tenir la ligne en intégration continue
 
 ```yaml
