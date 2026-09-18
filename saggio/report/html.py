@@ -48,7 +48,13 @@ from ..model.dimensions import DimensionRegistry
 from ..model.quantity import Quantity, looks_like_quantity
 from ..model.taxonomy import STATUS_MEANING, STATUS_ORDER
 from ..model.validate import overall_status
-from .figures import count_statuses, derivation_chain, honesty_bar, scenario_energy
+from .figures import (
+    count_statuses,
+    derivation_chain,
+    honesty_bar,
+    location_impact,
+    scenario_energy,
+)
 from .markdown import NOT_KNOWN, ROUTE_LABEL, felt_size, format_number, format_quantity
 
 #: Where the report's own assets live inside the package.
@@ -847,6 +853,7 @@ def _whatif_section(model: CostModel, *, overlay: Any = None) -> str:
         + f">{_escape(row.get('name') or key)}</option>"
         for key, row in providers.items()
     )
+    panel = location_impact(countries, current_country or None)
 
     return (
         # S608 reads the words "What if" as the start of a SQL clause. There is no
@@ -865,7 +872,9 @@ def _whatif_section(model: CostModel, *, overlay: Any = None) -> str:
         + '<div><dt data-i18n="whatif.water">Water</dt><dd id="whatif-water">—</dd></div>'
         + "</dl>"
         + '<p class="muted" data-i18n="whatif.note">Recomputed in your browser from the '
-        "energy this model already states. Nothing is sent anywhere.</p></div>"
+        "energy this model already states. Nothing is sent anywhere.</p>"
+        + (f"<figure>{panel}</figure>" if panel else "")
+        + "</div>"
     )
 
 

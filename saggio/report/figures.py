@@ -485,3 +485,127 @@ def scenario_energy(model: CostModel | dict[str, Any]) -> Quantity:
     if looks_like_quantity(node):
         return Quantity.from_mapping(node)
     return Quantity()
+
+
+# --- The location panel --------------------------------------------------------
+
+#: Vertical rhythm of the location chart: one bar row and the caption under it.
+_ROW_HEIGHT: Final[int] = 30
+_CAPTION_HEIGHT: Final[int] = 34
+
+#: Horizontal layout: the country names sit right-aligned in the label column,
+#: the bars start after it, and the gutter keeps room for the value labels.
+_LABEL_WIDTH: Final[int] = 190
+_VALUE_GUTTER: Final[int] = 96
+
+#: How many countries the panel shows. Enough to span the range from a mostly
+#: hydro grid to a mostly coal one without turning into a wall of bars.
+_PANEL_SIZE: Final[int] = 9
+
+
+def location_impact(countries: dict[str, dict[str, Any]], current: str | None = None) -> str:
+    """Draw how the grid's carbon intensity moves with the country.
+
+    The Green Algorithms calculator's flagship panel, redrawn in this report's
+    own idiom: one bar per country, the model's own country picked out in the
+    accent colour. The bars show the catalogue's grid carbon intensity rather
+    than this model's multiplied figure, because the multiplication is linear
+    and the intensities are the sourced fact; the caption says as much.
+
+    The panel is a sample, not the catalogue: the countries are picked evenly
+    across the sorted range so the cleanest and dirtiest grids always appear,
+    and the model's own country replaces its nearest neighbour when it was not
+    already in the sample.
+
+    Parameters
+    ----------
+    countries : dict
+        The grid catalogue's ``countries`` table: key to row, each row carrying
+        ``name`` and ``carbon_gco2e_per_kwh``.
+    current : str or None, optional
+        ISO code of the country the model runs in, when it is resolved.
+
+    Returns
+    -------
+    str
+        Inline SVG, or an empty string when fewer than two countries carry a
+        number, because a comparison needs something to compare.
+
+    Examples
+    --------
+    >>> rows = {"SE": {"name": "Sweden", "carbon_gco2e_per_kwh": 30},
+    ...         "AU": {"name": "Australia", "carbon_gco2e_per_kwh": 580}}
+    >>> svg = location_impact(rows, current="SE")
+    >>> svg.count("<rect")
+    2
+    >>> "Sweden" in svg and "Australia" in svg
+    True
+    >>> location_impact({}) == ""
+    True
+    """
+    usable = sorted(
+        (
+            (str(key), str(row.get("name") or key), float(row["carbon_gco2e_per_kwh"]))
+            for key, row in countries.items()
+            if isinstance(row, dict) and row.get("carbon_gco2e_per_kwh") is not None
+        ),
+        key=lambda entry: entry[2],
+    )
+    if len(usable) < 2:
+        return ""
+
+    if len(usable) > _PANEL_SIZE:
+        span = len(usable) - 1
+        picked = [usable[round(index * span / (_PANEL_SIZE - 1))] for index in range(_PANEL_SIZE)]
+        keys = {entry[0] for entry in picked}
+        own = next((entry for entry in usable if entry[0] == current), None)
+        if own is not None and own[0] not in keys:
+            # The reader's own grid must be on the chart to anchor it, so it
+            # takes the sampled slot whose intensity sits closest to its own —
+            # but never the first or last slot: the cleanest and dirtiest grids
+            # are what give the scale its meaning.
+            nearest = min(
+                range(1, len(picked) - 1), key=lambda index: abs(picked[index][2] - own[2])
+            )
+            picked[nearest] = own
+            picked.sort(key=lambda entry: entry[2])
+    else:
+        picked = usable
+
+    top = max(entry[2] for entry in picked)
+    bar_area = _WIDTH - _LABEL_WIDTH - _VALUE_GUTTER
+    height = len(picked) * _ROW_HEIGHT + _CAPTION_HEIGHT
+    listed = ", ".join(f"{name} {value:g}" for _, name, value in picked)
+    parts = [
+        f'<svg viewBox="0 0 {_WIDTH} {height}" role="img" '
+        f'aria-labelledby="location-title location-desc" xmlns="http://www.w3.org/2000/svg">',
+        '<title id="location-title">How the location moves the carbon</title>',
+        f'<desc id="location-desc">Grid carbon intensity in gCO2e per kWh: '
+        f"{_escape(listed)}.</desc>",
+    ]
+    for index, (key, name, value) in enumerate(picked):
+        y = index * _ROW_HEIGHT
+        is_current = key == current
+        fill = "var(--accent)" if is_current else "var(--line-strong)"
+        weight = ' font-weight="600"' if is_current else ""
+        bar = max(bar_area * value / top, 2.0)
+        parts.append(
+            f'<text x="{_LABEL_WIDTH - 12}" y="{y + _ROW_HEIGHT / 2 + 4:.0f}" '
+            f'text-anchor="end" font-size="13" fill="var(--ink-soft)"{weight}>'
+            f"{_escape(name)}</text>"
+        )
+        parts.append(
+            f'<rect x="{_LABEL_WIDTH}" y="{y + 7}" width="{bar:.1f}" height="16" rx="3" '
+            f'fill="{fill}"><title>{_escape(name)}: {value:g} gCO2e/kWh</title></rect>'
+        )
+        parts.append(
+            f'<text x="{_LABEL_WIDTH + bar + 8:.1f}" y="{y + _ROW_HEIGHT / 2 + 4:.0f}" '
+            f'font-size="13" fill="var(--ink-faint)">{value:g}</text>'
+        )
+    parts.append(
+        f'<text x="{_LABEL_WIDTH}" y="{height - 10}" font-size="12" '
+        'fill="var(--ink-faint)">gCO2e per kWh of grid electricity (lower is better) — '
+        "this model's carbon scales linearly with it</text>"
+    )
+    parts.append("</svg>")
+    return "\n".join(parts)

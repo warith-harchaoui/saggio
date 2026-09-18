@@ -320,3 +320,56 @@ def test_every_language_translates_the_equivalence_labels() -> None:
         for key in ("equivalence.trees", "equivalence.car", "equivalence.note",
                     "equivalence.unit.one", "equivalence.unit.million"):
             assert key in table, f"{language} is missing {key}"
+
+
+# --- The location panel ---------------------------------------------------------
+
+
+def _grid_rows(count: int = 12) -> dict[str, dict[str, Any]]:
+    """A synthetic grid catalogue spanning clean to dirty."""
+    return {
+        f"C{index}": {"name": f"Country {index}", "carbon_gco2e_per_kwh": 30 + 60 * index}
+        for index in range(count)
+    }
+
+
+def test_the_location_panel_needs_something_to_compare() -> None:
+    from saggio.report.figures import location_impact
+
+    assert location_impact({}) == ""
+    assert location_impact({"SE": {"name": "Sweden", "carbon_gco2e_per_kwh": 30}}) == ""
+
+
+def test_the_location_panel_spans_the_range_and_keeps_the_readers_country() -> None:
+    from saggio.report.figures import location_impact
+
+    svg = location_impact(_grid_rows(), current="C5")
+    # The cleanest and dirtiest grids anchor the scale, and the reader's own
+    # country is always drawn, in the accent colour.
+    assert "Country 0" in svg and "Country 11" in svg
+    assert "Country 5" in svg
+    assert "var(--accent)" in svg
+
+
+def test_the_location_panel_names_its_polarity() -> None:
+    from saggio.report.figures import location_impact
+
+    assert "lower is better" in location_impact(_grid_rows())
+
+
+def test_the_location_panel_escapes_country_names() -> None:
+    from saggio.report.figures import location_impact
+
+    rows = {
+        "XX": {"name": "<script>alert(1)</script>", "carbon_gco2e_per_kwh": 100},
+        "SE": {"name": "Sweden", "carbon_gco2e_per_kwh": 30},
+    }
+    svg = location_impact(rows)
+    assert "<script>" not in svg
+
+
+def test_the_whatif_card_carries_the_location_panel() -> None:
+    model = template_mapping("annotated")
+    page = render_html(model)
+    if 'id="whatif-country"' in page:
+        assert "How the location moves the carbon" in page
