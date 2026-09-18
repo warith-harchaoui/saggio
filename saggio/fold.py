@@ -50,7 +50,7 @@ from .estimate.energy import (
 from .estimate.extrapolate import project_to_completion
 from .model.cost_model import CostModel
 from .model.quantity import Quantity
-from .model.taxonomy import MEASURED
+from .model.taxonomy import MEASURED, TODO, weakest
 from .model.validate import validate
 
 #: Where the assumptions a derived cost leans on are kept.
@@ -60,6 +60,7 @@ _PRICE_PATH = "assumptions.electricity_price"
 _GRID_PATH = "assumptions.grid_carbon_intensity"
 _WUE_PATH = "assumptions.water_usage_effectiveness"
 _IT_ENERGY_PATH = "assumptions.machine_energy"
+_PSF_PATH = "assumptions.pragmatic_scaling_factor"
 
 
 @dataclass(frozen=True, slots=True)
@@ -255,6 +256,12 @@ def fold_measurement(
     if whole is not None:
         updated["projections"] = dict(updated.get("projections") or {}) | {"whole_run": whole}
         changes.append("whole run: projected from the per-unit costs above")
+        repeated = _repeated_runs(updated, whole)
+        if repeated is not None:
+            updated["projections"]["repeated_runs"] = repeated
+            changes.append(
+                "repeated runs: the whole run times the model's pragmatic scaling factor"
+            )
 
     folded = CostModel.from_mapping(updated, path=model.path)
     verdict = validate(folded)
@@ -329,6 +336,81 @@ def _whole_run(
             "work means something else, restate this."
         ),
         "costs": projected,
+    }
+
+
+def _repeated_runs(data: dict[str, Any], whole: dict[str, Any]) -> dict[str, Any] | None:
+    """Scale the whole-run projection by the model's pragmatic scaling factor.
+
+    An analysis is rarely performed once. Parameter tuning, debugging, and
+    re-runs multiply the footprint by a factor the Green Algorithms paper calls
+    the *pragmatic scaling factor*: how many times the whole computation is
+    actually performed. Nobody but the team can know it, so nothing here invents
+    one: the projection exists exactly when the model carries the assumption
+    ``assumptions.pragmatic_scaling_factor``, and an assumption still marked
+    ``TODO`` yields a projection whose figures are open rather than absent, so
+    the report shows the question instead of hiding it.
+
+    Parameters
+    ----------
+    data : dict
+        The model being folded into, already carrying the assumption or not.
+    whole : dict
+        The whole-run projections block just built.
+
+    Returns
+    -------
+    dict or None
+        A projections block, or ``None`` when the model does not carry the
+        assumption at all.
+
+    Examples
+    --------
+    >>> _repeated_runs({}, {"costs": {}}) is None
+    True
+    """
+    raw = (data.get("assumptions") or {}).get("pragmatic_scaling_factor")
+    if not isinstance(raw, dict):
+        return None
+    psf = Quantity.from_mapping(raw)
+
+    scaled: dict[str, Any] = {}
+    for key, mapping in (whole.get("costs") or {}).items():
+        if not isinstance(mapping, dict):
+            continue
+        result = mapping.get("result") if isinstance(mapping.get("result"), dict) else mapping
+        cost = Quantity.from_mapping(result)
+        source_paths = (f"projections.whole_run.costs.{key}.result", _PSF_PATH)
+        if not (cost.is_known() and psf.is_known()):
+            scaled[key] = Quantity(
+                unit=cost.unit,
+                currency=cost.currency,
+                status=TODO,
+                derived_from=source_paths,
+                notes="The whole-run figure or the pragmatic scaling factor is still open.",
+            ).to_mapping()
+            continue
+        scaled[key] = Quantity(
+            value=float(cost.value) * float(psf.value),
+            unit=cost.unit,
+            currency=cost.currency,
+            status=weakest(cost.status, psf.status),
+            derived_from=source_paths,
+            notes=f"The whole run times the stated scaling factor of {float(psf.value):g}.",
+        ).to_mapping()
+    if not scaled:
+        return None
+
+    return {
+        "description": (
+            "What all the runs together would cost: the whole-run projection "
+            "multiplied by the pragmatic scaling factor the model states — how many "
+            "times this computation is actually performed, tuning and re-runs "
+            "included. The factor is the team's own estimate; nothing here can know "
+            "it, which is why it lives in the assumptions where the validator "
+            "watches it."
+        ),
+        "costs": scaled,
     }
 
 

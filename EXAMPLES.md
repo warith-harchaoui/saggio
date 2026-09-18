@@ -267,6 +267,14 @@ before anything is written.
 recorded runtime is per unit. When the model already knows how much work a whole
 run performs, a whole-run projection follows from the per-unit costs.
 
+An analysis is rarely performed once. State how many times yours actually runs —
+tuning, debugging, re-runs — as `assumptions.pragmatic_scaling_factor` (the Green
+Algorithms paper's term; its worked examples range from 11 to 180), and the next
+fold projects `repeated_runs`: the whole run times that factor, derived from both
+so the validator watches the arithmetic. The factor is the team's own estimate;
+nothing here invents one, and a factor still marked `TODO` yields a projection
+whose figures are open rather than absent, so the report shows the question.
+
 Three things are refused rather than written: a command that exited non-zero,
 because a failed run measured a failure and a failure has no cost per unit of work;
 a model with no scenario to write into; and any result that would no longer

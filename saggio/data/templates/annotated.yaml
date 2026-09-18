@@ -96,6 +96,16 @@ assumptions:
       A self-run room publishes no water usage effectiveness. This stays open
       rather than being filled with a plausible figure, because an invented water
       number in a sustainability report is the worst kind of number there is.
+  pragmatic_scaling_factor:
+    value: null
+    status: "TODO"
+    notes: >-
+      How many times the whole computation is actually performed: parameter
+      tuning, debugging, re-runs. The Green Algorithms paper calls this the
+      pragmatic scaling factor, and its worked examples range from 11 to 180.
+      Only the team can know it, so it stays open until somebody states it;
+      once it carries a number, `saggio measure --into` projects what all the
+      runs together cost.
 
 external_services:
   - key: "openai"

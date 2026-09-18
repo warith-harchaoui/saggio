@@ -229,3 +229,60 @@ def test_folding_writes_the_energy_its_derivations_stand_on() -> None:
     fold = fold_measurement(model, seconds=3600.0)
     assert fold.refused is None
     assert "energy" in fold.model.data["scenarios"][0]["costs"]
+
+
+# --- The pragmatic scaling factor ----------------------------------------------
+
+
+def _model_with_a_run_size(**assumptions_extra: Any) -> CostModel:
+    model = model_with(
+        analysis={
+            "evidence_source": "static",
+            "archetype": "inference",
+            "total_work": {"unit": "num_samples", "stated_as": "5000", "source": "config.py"},
+        }
+    )
+    model.data["assumptions"].update(assumptions_extra)
+    return model
+
+
+def test_a_stated_scaling_factor_projects_the_repeated_runs() -> None:
+    folded = fold_measurement(
+        _model_with_a_run_size(
+            pragmatic_scaling_factor={
+                "value": 100,
+                "status": "estimated",
+                "source_url": "https://doi.org/10.1002/advs.202100707",
+                "retrieved_date": "2026-09-18",
+                "notes": "A conservative hyper-parameter search.",
+            }
+        ),
+        seconds=3600.0,
+    )
+    assert folded.refused is None
+    repeated = folded.model.data["projections"]["repeated_runs"]["costs"]
+    whole = folded.model.data["projections"]["whole_run"]["costs"]
+    assert repeated["energy"]["value"] == pytest.approx(whole["energy"]["result"]["value"] * 100)
+    assert "assumptions.pragmatic_scaling_factor" in repeated["energy"]["derived_from"]
+    # The folded model still validates: the weakest-link rule covers the new
+    # projection because its derivation is data like everything else.
+    from saggio.model.validate import validate
+
+    assert validate(folded.model).ok
+
+
+def test_an_open_scaling_factor_keeps_the_projection_open() -> None:
+    folded = fold_measurement(
+        _model_with_a_run_size(pragmatic_scaling_factor={"value": None, "status": "TODO"}),
+        seconds=3600.0,
+    )
+    assert folded.refused is None
+    repeated = folded.model.data["projections"]["repeated_runs"]["costs"]
+    assert repeated["energy"]["status"] == "TODO"
+    assert repeated["energy"].get("value") is None
+
+
+def test_no_scaling_factor_means_no_repeated_runs_block() -> None:
+    folded = fold_measurement(_model_with_a_run_size(), seconds=3600.0)
+    assert folded.refused is None
+    assert "repeated_runs" not in folded.model.data.get("projections", {})

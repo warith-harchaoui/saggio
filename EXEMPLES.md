@@ -274,6 +274,15 @@ durée enregistrée est donc par unité. Quand le modèle sait déjà quelle qua
 travail effectue une exécution complète, une projection sur cette exécution découle
 des coûts unitaires.
 
+Une analyse est rarement exécutée une seule fois. Dites combien de fois la vôtre
+tourne vraiment — réglage, débogage, relances — dans
+`assumptions.pragmatic_scaling_factor` (le terme du papier Green Algorithms ; ses
+exemples vont de 11 à 180), et le pliage suivant projette `repeated_runs` :
+l'exécution complète multipliée par ce facteur, dérivée des deux pour que le
+validateur surveille l'arithmétique. Le facteur est l'estimation de l'équipe ;
+rien ici n'en invente un, et un facteur encore marqué `TODO` donne une projection
+aux chiffres ouverts plutôt qu'absents, pour que le rapport montre la question.
+
 Trois choses sont refusées plutôt qu'écrites : une commande sortie en non-zéro,
 parce qu'une exécution ratée a mesuré un échec et qu'un échec n'a pas de coût par
 unité de travail ; un modèle sans scénario où écrire ; et tout résultat qui ne
