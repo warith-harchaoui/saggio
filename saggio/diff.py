@@ -114,6 +114,34 @@ class Change:
     percent_change: float | None
     worse: bool
 
+    def units_mismatch(self) -> bool:
+        """Return whether the two sides are not even in the same unit or money.
+
+        Returns
+        -------
+        bool
+            ``True`` when both sides carry numbers but in different units or
+            currencies, which makes any numeric comparison meaningless and is a
+            drift of its own.
+
+        Examples
+        --------
+        >>> Change("p", Quantity(value=10.0, currency="USD", status="measured"),
+        ...        Quantity(value=10.0, currency="EUR", status="measured"),
+        ...        None, True).units_mismatch()
+        True
+        """
+        return (
+            self.before is not None
+            and self.after is not None
+            and self.before.is_known()
+            and self.after.is_known()
+            and (
+                (self.before.currency or None) != (self.after.currency or None)
+                or (self.before.unit or None) != (self.after.unit or None)
+            )
+        )
+
     def appeared(self) -> bool:
         """Return whether the quantity is new.
 
@@ -215,6 +243,17 @@ class Change:
         if before is not None and after is not None and before.value != after.value:
             movement = f" ({self.percent_change:+.1f}%)" if self.percent_change is not None else ""
             parts.append(f"{_rendered(before.value)} -> {_rendered(after.value)}{movement}")
+        if before is not None and after is not None:
+            if (before.currency or None) != (after.currency or None):
+                parts.append(
+                    f"currency {before.currency or 'none'} -> {after.currency or 'none'}: "
+                    "not the same money"
+                )
+            elif (before.unit or None) != (after.unit or None):
+                parts.append(
+                    f"unit {before.unit or 'none'} -> {after.unit or 'none'}: "
+                    "the numbers are not comparable"
+                )
         if self.status_changed() and before is not None and after is not None:
             parts.append(f"{before.status} -> {after.status}")
         if self.provenance_weakened() and before is not None and after is not None:
@@ -247,9 +286,9 @@ class Comparison:
         """Return the changes that fail the gate.
 
         A change fails when it moved a cost in the worse direction by more than
-        the threshold, when it weakened a quantity's honesty status, when it
-        weakened its provenance, or when it removed a quantity that used to be
-        reported.
+        the threshold, when it switched a quantity's unit or currency, when it
+        weakened a quantity's honesty status, when it weakened its provenance,
+        or when it removed a quantity that used to be reported.
 
         Returns
         -------
@@ -265,6 +304,10 @@ class Comparison:
         failing: list[Change] = []
         for change in self.changes:
             if change.disappeared():
+                failing.append(change)
+            elif change.units_mismatch():
+                # Dollars against euros, or kWh against Wh: there is no percent
+                # to be under a threshold, and the switch itself is the drift.
                 failing.append(change)
             elif (
                 change.worse
@@ -367,7 +410,8 @@ def _percent_change(before: Quantity, after: Quantity) -> float | None:
 
     Examples
     --------
-    >>> _percent_change(Quantity(value=2.0), Quantity(value=3.0))
+    >>> _percent_change(Quantity(value=2.0, status="measured"),
+    ...                 Quantity(value=3.0, status="measured"))
     50.0
     >>> _percent_change(Quantity(value=0.0), Quantity(value=1.0)) is None
     True
@@ -459,8 +503,25 @@ def compare(
         new = later_quantities.get(path)
         if old is not None and new is not None and old == new:
             continue
-        percent = _percent_change(old, new) if old is not None and new is not None else None
-        worse = _is_worse(path, later, percent) or (old is not None and new is None)
+        # A number in dollars against a number in euros, or kWh against Wh, is
+        # not a percentage: the unit change IS the drift, and a silent currency
+        # switch is exactly what this gate exists to catch.
+        mismatched = (
+            old is not None
+            and new is not None
+            and old.is_known()
+            and new.is_known()
+            and (
+                (old.currency or None) != (new.currency or None)
+                or (old.unit or None) != (new.unit or None)
+            )
+        )
+        percent = (
+            _percent_change(old, new)
+            if not mismatched and old is not None and new is not None
+            else None
+        )
+        worse = mismatched or _is_worse(path, later, percent) or (old is not None and new is None)
         changes.append(
             Change(path=path, before=old, after=new, percent_change=percent, worse=worse)
         )

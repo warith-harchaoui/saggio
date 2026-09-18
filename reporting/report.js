@@ -29,11 +29,20 @@
     var button = document.getElementById("theme-toggle");
     if (button) {
       button.textContent = theme === "dark" ? "☀" : "☾";
+      /* Translated here rather than in applyLanguage, because this label
+         changes with the theme as well as with the language. */
       button.setAttribute(
         "aria-label",
-        theme === "dark" ? "Switch to the light theme" : "Switch to the dark theme"
+        theme === "dark"
+          ? translated("bar.theme.light", "Switch to the light theme")
+          : translated("bar.theme.dark", "Switch to the dark theme")
       );
     }
+  }
+
+  function translated(key, fallback) {
+    var table = DATA.i18n[currentLanguage()] || DATA.i18n.en || {};
+    return Object.prototype.hasOwnProperty.call(table, key) ? table[key] : fallback;
   }
 
   function currentTheme() {
@@ -63,6 +72,14 @@
     document.documentElement.setAttribute("lang", code);
     var picker = document.getElementById("language-picker");
     if (picker) { picker.value = code; }
+    /* The bar controls carry no visible text, only aria-labels, which the
+       textContent loop above never touches; without this, assistive tech
+       stays in English whatever the picker says. The theme button's label is
+       refreshed via applyTheme, whose label depends on the theme too. */
+    if (picker && table["bar.language"]) {
+      picker.setAttribute("aria-label", table["bar.language"]);
+    }
+    applyTheme(currentTheme());
   }
 
   function currentLanguage() {

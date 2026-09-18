@@ -571,7 +571,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return USAGE
     if args.verb == "catalog":
         if getattr(args, "catalog_verb", None) is None:
-            parser.parse_args([args.verb, "--help"])
+            # Not parse_args([verb, "--help"]): argparse's help action raises
+            # SystemExit(0), which made a usage error read as success to any
+            # script checking the exit code.
+            osh.error("catalog needs an action: list, add, or freshness. Try `saggio catalog -h`.")
             return USAGE
         key = f"catalog {args.catalog_verb}"
     else:

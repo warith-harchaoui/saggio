@@ -103,6 +103,7 @@ which `help()` will show you.
 | `render_dashboard(models: 'list[CostModel \| dict[str, Any]]') -> 'str'` | Render several cost models as one self-contained HTML page. |
 | `template_text(name: 'str' = 'minimal') -> 'str'` | Return a template's YAML text. |
 | `template_mapping(name: 'str' = 'minimal') -> 'dict[str, Any]'` | Return a template already parsed. |
+| `template_names() -> 'tuple[str, ...]'` | Return the available template names. |
 | `TEMPLATES` | `minimal`, `annotated` |
 | `DEFAULT_TEMPLATE` | `'minimal'` |
 

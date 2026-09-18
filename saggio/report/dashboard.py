@@ -219,6 +219,12 @@ def render_dashboard(models: list[CostModel | dict[str, Any]]) -> str:
     table = _table(
         ["Project", "Unit of work", "Weakest"] + [label for _, label in _COLUMNS],
         _rows(wrapped),
+        i18n_keys=[
+            "dashboard.column.project",
+            "dashboard.column.unit",
+            "dashboard.column.weakest",
+            *(f"dashboard.column.{key}" for key, _ in _COLUMNS),
+        ],
         widths=[20, 17, 10, 11, 10, 11, 11, 10],
     )
 
@@ -231,9 +237,12 @@ def render_dashboard(models: list[CostModel | dict[str, Any]]) -> str:
             "side by side. Each project defines its own unit of work, so the costs "
             "below are per that project's unit and the rows do not compare with each "
             "other; how well founded each model is compares exactly.</p>",
-            _heading(2, "How well founded each model is", "section.honesty"),
+            # The dashboard's own keys, not the single-report ones: reusing
+            # section.honesty would let the language script rewrite this page's
+            # wording — including the "per project" caveat — even in English.
+            _heading(2, "How well founded each model is", "dashboard.honesty"),
             f"<figure>{overview}</figure>" if overview else "",
-            _heading(2, "What one unit costs, per project", "section.costs"),
+            _heading(2, "What one unit costs, per project", "dashboard.costs"),
             table,
         ]
     )

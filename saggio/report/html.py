@@ -809,6 +809,67 @@ def _models_section(model: CostModel) -> str:
     return "".join(blocks)
 
 
+def _measurement_section(model: CostModel) -> str:
+    """Render how a measurement was taken, and what to distrust about it.
+
+    The Markdown report has carried this section from the start; the HTML page
+    silently dropped it, so the reader most likely to be sent the page — the
+    one who never opens a terminal — was the one who never saw the command,
+    the hot path, or the warnings that qualify every number above.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model.
+
+    Returns
+    -------
+    str
+        The section markup, empty when nothing was run.
+
+    Examples
+    --------
+    >>> _measurement_section(CostModel.from_mapping({}))
+    ''
+    >>> markup = _measurement_section(CostModel.from_mapping(
+    ...     {"measurement": {"command": ["python", "train.py"],
+    ...                      "warnings": ["read this"]}}))
+    >>> "train.py" in markup and "read this" in markup
+    True
+    """
+    measurement = model.data.get("measurement")
+    if not isinstance(measurement, dict) or not measurement:
+        return ""
+    blocks = [_heading(2, "How it was measured", "section.measurement")]
+    command = measurement.get("command")
+    if isinstance(command, list):
+        blocks.append(
+            "<pre><code>" + _escape(" ".join(str(part) for part in command)) + "</code></pre>"
+        )
+    rows = [
+        f"<tr><td>{_escape(str(key).replace('_', ' '))}</td><td>{_escape(value)}</td></tr>"
+        for key, value in measurement.items()
+        if key not in {"command", "hot_path", "warnings"} and not isinstance(value, (dict, list))
+    ]
+    if rows:
+        blocks.append(_table(["", ""], rows, widths=[30, 70]))
+    hot_path = measurement.get("hot_path")
+    if isinstance(hot_path, list) and hot_path:
+        entries = [
+            f"<tr><td><code>{_escape(entry.get('function'))}</code></td>"
+            f"<td>{_escape(entry.get('cumulative_seconds'))}</td>"
+            f"<td>{_escape(entry.get('calls'))}</td></tr>"
+            for entry in hot_path
+            if isinstance(entry, dict)
+        ]
+        blocks.append(_table(["Function", "Cumulative seconds", "Calls"], entries))
+    warnings = measurement.get("warnings")
+    if isinstance(warnings, list) and warnings:
+        bullets = "".join(f"<li>{_escape(item)}</li>" for item in warnings)
+        blocks.append(f'<ul class="plain">{bullets}</ul>')
+    return "".join(blocks)
+
+
 def _whatif_section(model: CostModel, *, overlay: Any = None) -> str:
     """Render the panel that recomputes the model somewhere else.
 
@@ -1075,6 +1136,7 @@ def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> st
             _assumptions_section(wrapped),
             _services_section(wrapped),
             _models_section(wrapped),
+            _measurement_section(wrapped),
             _list_section("Not counted", "section.exclusions", wrapped.data.get("exclusions")),
             _list_section(
                 "Rules this model follows", "section.rules", wrapped.data.get("provenance_rules")

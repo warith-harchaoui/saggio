@@ -94,7 +94,11 @@ def _scenario_index(data: dict[str, Any], name: str | None) -> int | None:
     if not isinstance(scenarios, list) or not scenarios:
         return None
     if name is None:
-        return 0
+        # The first *mapping*: a stray string at position 0 is not a scenario,
+        # and indexing it blindly crashed instead of refusing.
+        return next(
+            (index for index, entry in enumerate(scenarios) if isinstance(entry, dict)), None
+        )
     for index, scenario in enumerate(scenarios):
         if isinstance(scenario, dict) and str(scenario.get("name")) == name:
             return index
@@ -163,6 +167,17 @@ def fold_measurement(
             return Fold(model, refused=f"This model has no scenario named {scenario!r}.")
         return Fold(model, refused="This model has no scenario to fold a measurement into.")
 
+    before = validate(model)
+    if not before.ok:
+        listed = "; ".join(
+            f"{issue.path}: {issue.message}" if issue.path else issue.message
+            for issue in before.errors[:3]
+        )
+        # Refusing up front keeps the post-fold check meaningful: without this,
+        # folding into one scenario could paper over an existing fault while
+        # folding into another was blamed for it.
+        return Fold(model, refused=f"The model does not validate before folding: {listed}")
+
     updated: dict[str, Any] = _deep_copy(data)
     target = updated["scenarios"][index]
     scenario_path = f"scenarios[{index}]"
@@ -222,11 +237,16 @@ def fold_measurement(
             machine_energy, _assumption(updated, "water_usage_effectiveness")
         ).with_derivation(_IT_ENERGY_PATH, _WUE_PATH),
     }
+    # A dimension the model never carried is not introduced here — with one
+    # exception. Money and carbon derive from the energy cost by path, so a
+    # model that watches either without watching energy still needs the energy
+    # row written, or its derivations would name nothing and the fold would
+    # invalidate a model it just improved.
+    wanted = {key for key in recomputed if key in costs or key == "time"}
+    if wanted & {"money", "carbon"}:
+        wanted.add("energy")
     for key, quantity in recomputed.items():
-        # A dimension the model never carried is not introduced here. Folding a
-        # measurement answers the questions a model already asked; it does not
-        # decide that it should have asked more of them.
-        if key not in costs and key != "time":
+        if key not in wanted:
             continue
         changes.append(_moved(key, costs.get(key), quantity))
         costs[key] = quantity.to_mapping()

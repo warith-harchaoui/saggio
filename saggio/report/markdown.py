@@ -30,6 +30,7 @@ Warith Harchaoui
 from __future__ import annotations
 
 from typing import Any, Final
+from urllib.parse import quote
 
 from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE, equivalences
 from ..model.cost_model import CostModel
@@ -286,6 +287,32 @@ def _escape(text: object) -> str:
     return str(text).replace("|", "\\|").replace("\n", " ").strip()
 
 
+def _safe_url(url: object) -> str:
+    """Return a URL safe to embed as a Markdown link target inside a table.
+
+    A ``)`` would end the link early and a ``|`` would split the table row,
+    letting whatever follows flow into the page as markup. Percent-encoding the
+    handful of characters Markdown assigns meaning to keeps the link working
+    and the table intact; a browser decodes the rest.
+
+    Parameters
+    ----------
+    url : object
+        The URL a model or catalogue row carried.
+
+    Returns
+    -------
+    str
+        The encoded URL.
+
+    Examples
+    --------
+    >>> _safe_url("https://x.invalid/a)b|c")
+    'https://x.invalid/a%29b%7Cc'
+    """
+    return quote(str(url), safe=":/?#[]@!$&'*+,;=%~-._")
+
+
 def _table(headers: list[str], rows: list[list[str]]) -> str:
     """Render a Markdown table, or nothing when there are no rows.
 
@@ -366,7 +393,7 @@ def _source_cell(quantity: Quantity) -> str:
     """
     if not quantity.source_url:
         return "—"
-    link = f"[source]({quantity.source_url})"
+    link = f"[source]({_safe_url(quantity.source_url)})"
     if quantity.retrieved_date:
         return f"{link}, read {quantity.retrieved_date}"
     return link
@@ -392,7 +419,9 @@ def _header(model: CostModel) -> list[str]:
     """
     project = model.data.get("project")
     name = project.get("name") if isinstance(project, dict) else None
-    lines = [f"# Cost of running {name}" if name else "# Cost of running this code", ""]
+    # The name is model content: escaped so a newline in it cannot inject a
+    # second heading, and a pipe cannot leak into the tables below.
+    lines = [f"# Cost of running {_escape(name)}" if name else "# Cost of running this code", ""]
 
     weakest = overall_status(model)
     if weakest:
@@ -633,7 +662,7 @@ def _services_section(model: CostModel) -> list[str]:
                 f"`{_escape(entry.get('detected_at'))}`" if entry.get("detected_at") else "—",
                 f"`{_escape(entry.get('evidence'))}`" if entry.get("evidence") else "—",
                 format_quantity(quantity),
-                f"[prices]({pricing})" if pricing else "—",
+                f"[prices]({_safe_url(pricing)})" if pricing else "—",
             ]
         )
     return [

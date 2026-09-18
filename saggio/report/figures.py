@@ -503,6 +503,35 @@ _VALUE_GUTTER: Final[int] = 96
 _PANEL_SIZE: Final[int] = 9
 
 
+def _row_label(name: str) -> tuple[str, int]:
+    """Return the display form and font size that keep a row label in its column.
+
+    The label column is 190 units wide and the text is right-anchored, so an
+    untrimmed long name would extend leftwards past the viewBox and be clipped
+    invisible — while the ``<desc>`` still carried it, telling screen readers
+    more than sighted readers. The full name stays in the row's tooltip.
+
+    Parameters
+    ----------
+    name : str
+        The row's full name.
+
+    Returns
+    -------
+    tuple of (str, int)
+        What to draw, and at what font size.
+
+    Examples
+    --------
+    >>> _row_label("France")
+    ('France', 13)
+    >>> _row_label("The Grand Duchy of Overlong Naming")
+    ('The Grand Duchy of Overlo…', 11)
+    """
+    display = name if len(name) <= 26 else name[:25] + "…"
+    return display, 13 if len(display) <= 20 else 11
+
+
 def location_impact(countries: dict[str, dict[str, Any]], current: str | None = None) -> str:
     """Draw how the grid's carbon intensity moves with the country.
 
@@ -543,15 +572,20 @@ def location_impact(countries: dict[str, dict[str, Any]], current: str | None = 
     >>> location_impact({}) == ""
     True
     """
-    usable = sorted(
-        (
-            (str(key), str(row.get("name") or key), float(row["carbon_gco2e_per_kwh"]))
-            for key, row in countries.items()
-            if isinstance(row, dict) and row.get("carbon_gco2e_per_kwh") is not None
-        ),
-        key=lambda entry: entry[2],
-    )
-    if len(usable) < 2:
+    usable: list[tuple[str, str, float]] = []
+    for key, row in countries.items():
+        if not isinstance(row, dict):
+            continue
+        try:
+            value = float(row["carbon_gco2e_per_kwh"])
+        except (KeyError, TypeError, ValueError):
+            # One malformed overlay row ("n/a", a list, a typo) must not take
+            # the whole report page down with it; the row simply is not drawn.
+            continue
+        usable.append((str(key), str(row.get("name") or key), value))
+    usable.sort(key=lambda entry: entry[2])
+    if len(usable) < 2 or max(entry[2] for entry in usable) <= 0.0:
+        # Nothing to compare, or nothing to scale the bars by.
         return ""
 
     if len(usable) > _PANEL_SIZE:
@@ -589,10 +623,11 @@ def location_impact(countries: dict[str, dict[str, Any]], current: str | None = 
         fill = "var(--accent)" if is_current else "var(--line-strong)"
         weight = ' font-weight="600"' if is_current else ""
         bar = max(bar_area * value / top, 2.0)
+        display, size = _row_label(name)
         parts.append(
             f'<text x="{_LABEL_WIDTH - 12}" y="{y + _ROW_HEIGHT / 2 + 4:.0f}" '
-            f'text-anchor="end" font-size="13" fill="var(--ink-soft)"{weight}>'
-            f"{_escape(name)}</text>"
+            f'text-anchor="end" font-size="{size}" fill="var(--ink-soft)"{weight}>'
+            f"{_escape(display)}</text>"
         )
         parts.append(
             f'<rect x="{_LABEL_WIDTH}" y="{y + 7}" width="{bar:.1f}" height="16" rx="3" '
@@ -673,9 +708,10 @@ def honesty_overview(entries: list[tuple[str, dict[str, int]]]) -> str:
     ]
     for index, (name, counts, total) in enumerate(counted):
         y = index * _ROW_HEIGHT
+        display, size = _row_label(name)
         parts.append(
             f'<text x="{_LABEL_WIDTH - 12}" y="{y + _ROW_HEIGHT / 2 + 4:.0f}" '
-            f'text-anchor="end" font-size="13" fill="var(--ink-soft)">{_escape(name)}</text>'
+            f'text-anchor="end" font-size="{size}" fill="var(--ink-soft)">{_escape(display)}</text>'
         )
         offset = float(_LABEL_WIDTH)
         for status in STATUS_ORDER:

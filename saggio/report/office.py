@@ -124,14 +124,23 @@ def render_office(
         command = [MD2STAR_COMMAND, output_format, scratch, "--output", str(target)]
         if reference_document is not None:
             command += ["--reference-doc", str(reference_document)]
-        completed = subprocess.run(  # noqa: S603 - a list, never a shell.
-            command,
-            capture_output=True,
-            text=True,
-            timeout=_CONVERSION_TIMEOUT_SECONDS,
-            check=False,
-        )
+        try:
+            completed = subprocess.run(  # noqa: S603 - a list, never a shell.
+                command,
+                capture_output=True,
+                text=True,
+                timeout=_CONVERSION_TIMEOUT_SECONDS,
+                check=False,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(
+                f"md2star did not produce the {output_format} within "
+                f"{_CONVERSION_TIMEOUT_SECONDS:g} seconds."
+            ) from exc
     if completed.returncode != 0:
-        detail = (completed.stderr or completed.stdout or "no output").strip().splitlines()[-1:]
-        raise RuntimeError(f"md2star could not produce the {output_format}: {detail[0]}")
+        # The failure message must not be able to fail: whitespace-only output
+        # strips to nothing, and indexing an empty tail crashed the messenger.
+        tail = (completed.stderr or completed.stdout or "").strip().splitlines()[-1:]
+        detail = tail[0] if tail else "no output"
+        raise RuntimeError(f"md2star could not produce the {output_format}: {detail}")
     return target

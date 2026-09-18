@@ -285,9 +285,10 @@ def test_a_malformed_field_is_a_usage_problem(capsys) -> None:
     assert code == USAGE
 
 
-def test_catalog_without_an_action_shows_its_help(capsys) -> None:
-    with pytest.raises(SystemExit):
-        main(["catalog"])
+def test_catalog_without_an_action_is_a_usage_error_not_a_success(capsys) -> None:
+    # The old behavior raised SystemExit(0) via argparse's help action, so a CI
+    # script checking the exit code saw success for a usage error.
+    assert main(["catalog"]) == 2
 
 
 def test_freshness_is_a_gate(capsys) -> None:

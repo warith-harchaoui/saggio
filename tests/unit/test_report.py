@@ -317,8 +317,13 @@ def test_every_language_translates_the_equivalence_labels() -> None:
     # The picker is built from the i18n file, so a missing key would silently
     # leave one language showing English mid-sentence.
     for language, table in translations().items():
-        for key in ("equivalence.trees", "equivalence.car", "equivalence.note",
-                    "equivalence.unit.one", "equivalence.unit.million"):
+        for key in (
+            "equivalence.trees",
+            "equivalence.car",
+            "equivalence.note",
+            "equivalence.unit.one",
+            "equivalence.unit.million",
+        ):
             assert key in table, f"{language} is missing {key}"
 
 
@@ -373,3 +378,84 @@ def test_the_whatif_card_carries_the_location_panel() -> None:
     page = render_html(model)
     if 'id="whatif-country"' in page:
         assert "How the location moves the carbon" in page
+
+
+# --- Holes the third audit found, kept closed -----------------------------------
+
+
+def test_a_hostile_source_url_cannot_break_a_markdown_table() -> None:
+    from saggio.report.markdown import _source_cell
+
+    cell = _source_cell(Quantity(source_url="https://x.invalid/a)b|c", retrieved_date="2026-01-01"))
+    assert "|" not in cell.replace("\\|", "")
+    assert "%29" in cell and "%7C" in cell
+
+
+def test_a_newline_in_the_project_name_cannot_inject_a_heading() -> None:
+    text = render_markdown({"project": {"name": "x\n# fake"}, "scenarios": []})
+    assert text.splitlines()[0].startswith("# Cost of running x")
+    assert "\n# fake" not in text
+
+
+def test_the_location_panel_survives_zero_and_garbage_intensities() -> None:
+    from saggio.report.figures import location_impact
+
+    zeros = {
+        "A": {"name": "A", "carbon_gco2e_per_kwh": 0},
+        "B": {"name": "B", "carbon_gco2e_per_kwh": 0},
+    }
+    assert location_impact(zeros) == ""
+    mixed = {
+        "A": {"name": "A", "carbon_gco2e_per_kwh": "n/a"},
+        "SE": {"name": "Sweden", "carbon_gco2e_per_kwh": 30},
+        "AU": {"name": "Australia", "carbon_gco2e_per_kwh": 580},
+    }
+    svg = location_impact(mixed)
+    assert "Sweden" in svg and "n/a" not in svg
+
+
+def test_a_long_row_label_is_trimmed_into_its_column() -> None:
+    from saggio.report.figures import _row_label
+
+    display, size = _row_label("A" * 49)
+    assert display.endswith("…") and len(display) <= 26
+    assert size < 13
+
+
+def test_the_html_report_shows_how_it_was_measured() -> None:
+    page = render_html(
+        {
+            "schema_version": "2.1",
+            "scenarios": [],
+            "measurement": {
+                "command": ["python", "train.py"],
+                "warnings": ["profiler attached"],
+            },
+        }
+    )
+    assert 'data-i18n="section.measurement"' in page
+    assert "train.py" in page and "profiler attached" in page
+
+
+def test_the_dashboard_speaks_with_its_own_i18n_keys() -> None:
+    from saggio.report.dashboard import render_dashboard
+
+    page = render_dashboard([template_mapping("annotated")])
+    assert 'data-i18n="dashboard.honesty"' in page
+    assert 'data-i18n="dashboard.column.project"' in page
+    assert 'data-i18n="section.honesty"' not in page
+
+
+def test_every_data_i18n_key_in_both_pages_exists_in_every_language() -> None:
+    # An orphan key fails silently: the node just stays English.
+    import re
+
+    from saggio.report.dashboard import render_dashboard
+
+    model = template_mapping("annotated")
+    model["measurement"] = {"command": ["x"]}
+    pages = render_html(model) + render_dashboard([model])
+    used = set(re.findall(r'data-i18n="([^"]+)"', pages))
+    for language, table in translations().items():
+        missing = used - set(table)
+        assert not missing, f"{language} is missing {sorted(missing)}"

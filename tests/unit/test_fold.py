@@ -40,7 +40,7 @@ def model_with(**extra: Any) -> CostModel:
                 "costs": {
                     "time": {"value": None, "status": "TODO", "unit": "s"},
                     "energy": {"value": None, "status": "TODO", "unit": "kWh"},
-                    "money": {"value": None, "status": "TODO", "unit": "USD"},
+                    "money": {"value": None, "status": "TODO", "unit": "USD", "currency": "USD"},
                     "carbon": {"value": None, "status": "TODO", "unit": "gCO2e"},
                 },
             }
@@ -202,3 +202,30 @@ def test_a_stated_run_length_that_is_not_a_number_projects_nothing() -> None:
         analysis={"total_work": {"unit": "epochs", "stated_as": "many", "source": "config.py"}}
     )
     assert "projections" not in fold_measurement(model, seconds=1.0).model.data
+
+
+# --- Holes the third audit found, kept closed -----------------------------------
+
+
+def test_a_stray_scenario_entry_is_refused_not_crashed_on() -> None:
+    model = CostModel.from_mapping({"schema_version": "2.1", "scenarios": ["oops"]})
+    fold = fold_measurement(model, seconds=1.0)
+    assert fold.refused is not None
+
+
+def test_an_invalid_model_is_refused_before_folding() -> None:
+    broken = model_with()
+    broken.data["scenarios"][0]["costs"]["money"].pop("currency")
+    fold = fold_measurement(broken, seconds=1.0)
+    assert fold.refused is not None
+    assert "before folding" in fold.refused
+
+
+def test_folding_writes_the_energy_its_derivations_stand_on() -> None:
+    # A model watching money but not energy still gets the energy row, or the
+    # money's derived_from would name nothing and the fold would invalidate it.
+    model = model_with()
+    model.data["scenarios"][0]["costs"].pop("energy")
+    fold = fold_measurement(model, seconds=3600.0)
+    assert fold.refused is None
+    assert "energy" in fold.model.data["scenarios"][0]["costs"]

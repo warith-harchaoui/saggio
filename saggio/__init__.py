@@ -95,7 +95,7 @@ from .model import (
     weakest,
 )
 from .report import render_dashboard, render_html, render_markdown, render_office
-from .templates import DEFAULT_TEMPLATE, TEMPLATES, template_mapping, template_text
+from .templates import DEFAULT_TEMPLATE, TEMPLATES, template_mapping, template_names, template_text
 
 __all__ = [
     "__version__",
@@ -161,6 +161,7 @@ __all__ = [
     "render_dashboard",
     "template_text",
     "template_mapping",
+    "template_names",
     "TEMPLATES",
     "DEFAULT_TEMPLATE",
 ]

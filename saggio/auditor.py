@@ -493,14 +493,12 @@ def _run_a_slice(
     notes: list[str] = []
     if not options.run:
         return None, notes
-    if not require_consent():
-        notes.append(
-            "Running the code was declined, so every number below comes from "
-            "reading it and from the catalogues, never from a measurement."
-        )
-        return None, notes
 
+    # What would run is decided before consent is asked: prompting a person for
+    # permission — and persisting their answer — over a repository with nothing
+    # safe to run would spend their trust on a no-op.
     command, fraction = capped_entrypoint_command(reading, cap_fraction=options.cap_fraction)
+    fallback_note: str | None = None
     if command is None:
         if not reading.has_tests:
             notes.append(
@@ -510,11 +508,20 @@ def _run_a_slice(
             )
             return None, notes
         command, fraction = reading.test_command, None
-        notes.append(
+        fallback_note = (
             "No entry point with a stated work size was found, so the repository's "
             "own test suite was run instead. It covers an unknown share of a real "
             "workload, so no whole-run projection follows from it."
         )
+
+    if not require_consent():
+        notes.append(
+            "Running the code was declined, so every number below comes from "
+            "reading it and from the catalogues, never from a measurement."
+        )
+        return None, notes
+    if fallback_note:
+        notes.append(fallback_note)
 
     osh.info(f"Running a slice: {' '.join(command)}")
     result = run_slice(
@@ -728,6 +735,14 @@ def _cost_on_other_hardware(
             "carbon": carbon_from_energy(energy, site["grid_carbon_intensity"])
             .with_derivation(_PROJECTED_ENERGY_PATH, _GRID_PATH)
             .to_mapping(),
+            # Water tracks the machine's own energy, exactly as in the scenario
+            # above; leaving it out of the projection would silently drop a
+            # dimension the model watches everywhere else.
+            "water": water_from_energy(
+                machine_energy, site.get("water_usage_effectiveness", Quantity())
+            )
+            .with_derivation(_PROJECTED_IT_ENERGY_PATH, _WUE_PATH)
+            .to_mapping(),
         },
         "held_constant": (
             "The country, the tariff, the grid carbon intensity and the datacenter "
@@ -792,6 +807,14 @@ def audit(
             "No country was resolved, so the carbon and money figures are open. "
             "Pass --country with an ISO code, for example --country FR."
         )
+    elif settings.country and context.grid_intensity().status == TODO:
+        # The user named a country and it is kept as stated, but the grid
+        # catalogue has no row for it — a miss that belongs in the notes, next
+        # to the machine's, not only in a log line that scrolls away.
+        notes.append(
+            f"The grid catalogue has no row for {context.country!r}, so its carbon "
+            "intensity and tariff stay open. Add it with `saggio catalog add country`."
+        )
 
     slice_result, slice_notes = _run_a_slice(reading, settings)
     notes.extend(slice_notes)
@@ -841,7 +864,12 @@ def audit(
         machine,
         settings,
         compute_bound=reading.is_compute_bound(),
-        site={"pue": pue, "electricity_price": price, "grid_carbon_intensity": grid},
+        site={
+            "pue": pue,
+            "electricity_price": price,
+            "grid_carbon_intensity": grid,
+            "water_usage_effectiveness": wue,
+        },
     )
     notes.extend(projection_notes)
 
@@ -979,7 +1007,12 @@ def repository_name(url: str) -> str:
     without_scheme = url.split("://", 1)[-1]
     # A scp-style address (git@host:owner/name) puts a colon where a slash would
     # otherwise be, so it separates here exactly as a slash does.
-    segments = [part for part in without_scheme.replace(":", "/").split("/") if part]
+    # "." and ".." are dropped along with empty segments: the result becomes a
+    # directory name under a temp folder, and a ".." there would point the
+    # clone target outside it.
+    segments = [
+        part for part in without_scheme.replace(":", "/").split("/") if part not in ("", ".", "..")
+    ]
     # The first segment is the host. A URL that stops there names no repository,
     # and answering with the hostname would put "example.invalid" in the model
     # where a project name belongs.

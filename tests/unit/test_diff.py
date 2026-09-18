@@ -154,3 +154,50 @@ def test_a_quantity_that_never_declared_a_source_kind_has_not_weakened() -> None
     earlier = {"p": {"value": 1.0, "status": "estimated"}}
     later = {"p": {"value": 1.0, "status": "estimated", "notes": "same number"}}
     assert compare(earlier, later).passes()
+
+
+# --- Holes the third audit found, kept closed -----------------------------------
+
+
+def test_a_currency_switch_fails_the_gate_even_at_the_same_number() -> None:
+    # 10 USD -> 10 EUR is not "no change"; it is the drift the gate exists for.
+    before = {
+        "scenarios": [
+            {
+                "name": "s",
+                "costs": {"money": {"value": 10.0, "currency": "USD", "status": "measured"}},
+            }
+        ]
+    }
+    after = {
+        "scenarios": [
+            {
+                "name": "s",
+                "costs": {"money": {"value": 10.0, "currency": "EUR", "status": "measured"}},
+            }
+        ]
+    }
+    comparison = compare(before, after)
+    assert not comparison.passes()
+    assert any("not the same money" in change.describe() for change in comparison.changes)
+
+
+def test_a_unit_switch_is_named_not_compared_numerically() -> None:
+    before = {
+        "scenarios": [
+            {"name": "s", "costs": {"energy": {"value": 1.0, "unit": "kWh", "status": "measured"}}}
+        ]
+    }
+    after = {
+        "scenarios": [
+            {
+                "name": "s",
+                "costs": {"energy": {"value": 1000.0, "unit": "Wh", "status": "measured"}},
+            }
+        ]
+    }
+    comparison = compare(before, after)
+    change = next(c for c in comparison.changes if "energy" in c.path)
+    assert change.percent_change is None
+    assert change.worse
+    assert "not comparable" in change.describe()

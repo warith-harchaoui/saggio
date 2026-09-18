@@ -557,7 +557,7 @@ def catalog_add(args: argparse.Namespace) -> int:
     Examples
     --------
     >>> catalog_add(argparse.Namespace(kind="gpu", key="X", source_url="",
-    ...                                retrieved_date="2026-01-01", field=[]))
+    ...                                retrieved_date="2026-01-01", field=["tdp_w=400"]))
     2
     """
     row: dict[str, Any] = {
