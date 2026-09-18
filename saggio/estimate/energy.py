@@ -116,14 +116,15 @@ def node_power(
     memory_gb: float,
     gpu_key: str | None = None,
     accelerator_count: int = 0,
+    usage_factor: float | None = None,
     overlay_catalog: Catalog | None = None,
 ) -> Quantity:
     """Estimate what a machine draws under load, from its parts.
 
-    The sum is the Green Algorithms one: cores multiplied by per-core power, plus
-    memory multiplied by per-gigabyte power, plus each accelerator's board power.
-    It is an upper-ish bound on sustained draw and is always ``estimated``: a
-    datasheet is not a wattmeter.
+    The sum is the Green Algorithms one: cores multiplied by per-core power and
+    by the core usage factor, plus memory multiplied by per-gigabyte power, plus
+    each accelerator's board power scaled the same way. It is an upper-ish bound
+    on sustained draw and is always ``estimated``: a datasheet is not a wattmeter.
 
     Parameters
     ----------
@@ -135,9 +136,19 @@ def node_power(
     memory_gb : float
         Installed memory in gigabytes.
     gpu_key : str or None, optional
-        Catalogue key of the accelerator, when there is one.
+        Catalogue key of the accelerator, when there is one. Leaving it ``None``
+        while ``accelerator_count`` is positive yields a ``TODO``: an accelerator
+        the catalogue cannot name is an accelerator whose draw cannot be counted,
+        and omitting it silently would understate the machine by most of its power.
     accelerator_count : int, optional
         How many of that accelerator are installed.
+    usage_factor : float or None, optional
+        Fraction of the compute units' rated power actually drawn while the
+        code runs, in ``(0, 1]``: the Green Algorithms core usage factor. It
+        scales the processor and accelerator terms but not the memory term,
+        because memory draws by being populated, not by being busy. ``None``
+        keeps the paper's default of 1.0, full rated draw, which is the honest
+        assumption when nothing measured the utilisation.
     overlay_catalog : Catalog or None, optional
         A pre-loaded hardware catalogue; loaded from the default location when
         not given.
@@ -156,7 +167,22 @@ def node_power(
     814.7
     >>> node_power(cpu_key=None, physical_cores=8, memory_gb=16).status
     'TODO'
+    >>> node_power(cpu_key="epyc-7742", physical_cores=64, memory_gb=512,
+    ...            gpu_key=None, accelerator_count=8).status
+    'TODO'
+    >>> full = node_power(cpu_key="epyc-7742", physical_cores=64, memory_gb=0)
+    >>> half = node_power(cpu_key="epyc-7742", physical_cores=64, memory_gb=0,
+    ...                   usage_factor=0.5)
+    >>> round(half.value / full.value, 2)
+    0.5
     """
+    if usage_factor is not None and not 0.0 < usage_factor <= 1.0:
+        # A usage factor outside (0, 1] is a caller error, not missing data: 0
+        # would claim the processor draws nothing, and above 1 would claim more
+        # than its rated power without a measurement to back it.
+        raise ValueError(f"usage_factor must be in (0, 1], got {usage_factor!r}.")
+    usage = 1.0 if usage_factor is None else usage_factor
+
     if not cpu_key:
         return _unresolved("W", "The CPU is not identified, so its power cannot be looked up.")
 
@@ -169,12 +195,25 @@ def node_power(
             "add it with its datasheet TDP before a power figure can be given.",
         )
 
-    cpu_power = float(cpu_row["w_per_core"]) * max(physical_cores, 1)
+    cpu_power = float(cpu_row["w_per_core"]) * max(physical_cores, 1) * usage
     memory_power = max(memory_gb, 0.0) * MEMORY_POWER_W_PER_GB
+    scaled = "" if usage_factor is None else f" x {usage:g} usage"
     parts = [
-        f"{physical_cores} cores x {cpu_row['w_per_core']} W",
+        f"{physical_cores} cores x {cpu_row['w_per_core']} W{scaled}",
         f"{memory_gb:g} GB x {MEMORY_POWER_W_PER_GB} W/GB",
     ]
+
+    if accelerator_count > 0 and not gpu_key:
+        # An accelerator that is present but unidentified cannot simply be left
+        # out of the sum: a board drawing several hundred watts would vanish from
+        # a figure that still called itself a nameplate total for this machine.
+        return _unresolved(
+            "W",
+            f"This machine has {accelerator_count} accelerator(s) that the hardware "
+            "catalogue does not recognise, and their board power is most of what it "
+            "draws. Add the row with `saggio catalog add gpu` and its datasheet TDP, "
+            "or name the machine shape with --instance.",
+        )
 
     gpu_power = 0.0
     if gpu_key and accelerator_count > 0:
@@ -185,8 +224,8 @@ def node_power(
                 f"GPU {gpu_key!r} is not in the hardware catalogue; "
                 "add it with its datasheet TDP before a power figure can be given.",
             )
-        gpu_power = float(gpu_row["tdp_w"]) * accelerator_count
-        parts.append(f"{accelerator_count} x {gpu_row['tdp_w']} W")
+        gpu_power = float(gpu_row["tdp_w"]) * accelerator_count * usage
+        parts.append(f"{accelerator_count} x {gpu_row['tdp_w']} W{scaled}")
 
     return Quantity(
         value=cpu_power + memory_power + gpu_power,
@@ -421,17 +460,24 @@ def money_from_energy(energy: Quantity, price: Quantity) -> Quantity:
 def total_money(*amounts: Quantity) -> Quantity:
     """Add several money quantities, refusing to mix currencies.
 
+    A term with no number is not zero, so it cannot simply be left out of the
+    sum. It is not a reason to throw the arithmetic away either, so what comes
+    back is a ``TODO`` carrying no number, whose notes say what the terms that
+    *did* have numbers came to and how many did not. That keeps two rules that
+    would otherwise contradict each other: a total missing a term is not the
+    total, and a ``TODO`` never carries a number for the validator to object to.
+
     Parameters
     ----------
     *amounts : Quantity
-        Money quantities to add. Ones with no number are skipped, and their
-        absence weakens the total's status rather than being treated as zero.
+        Money quantities to add.
 
     Returns
     -------
     Quantity
         The sum in the shared currency, or a ``TODO`` when the amounts are in
-        different currencies or none of them carries a number.
+        different currencies, when none of them carries a number, or when any one
+        of them does not.
 
     Examples
     --------
@@ -442,6 +488,12 @@ def total_money(*amounts: Quantity) -> Quantity:
     >>> total_money(Quantity(value=1.0, currency="USD", status="measured"),
     ...             Quantity(value=1.0, currency="EUR", status="measured")).status
     'TODO'
+    >>> partial = total_money(Quantity(value=5.0, currency="USD", status="measured"),
+    ...                       Quantity(currency="USD", status="TODO"))
+    >>> partial.value is None, partial.status
+    (True, 'TODO')
+    >>> "5 USD so far" in partial.notes
+    True
     """
     known = [amount for amount in amounts if amount.is_known()]
     if not known:
@@ -455,13 +507,22 @@ def total_money(*amounts: Quantity) -> Quantity:
             "convert them before adding, and record the rate you used.",
         )
     currency = next(iter(currencies), None)
-    # An amount with no number is not zero; it is unknown, and an unknown term
-    # drags the total's confidence down to the status that amount carried.
-    statuses = [amount.status for amount in amounts]
+    running = sum(float(amount.value) for amount in known)
+
+    missing = len(amounts) - len(known)
+    if missing:
+        return _unresolved(
+            "currency",
+            f"{missing} of the {len(amounts)} money costs carries no number, so this "
+            f"is not the total: it is {running:g} {currency or 'in the shared currency'} "
+            "so far. Fill the open terms in, and the total closes with them.",
+            currency=currency,
+        )
+
     return Quantity(
-        value=sum(float(amount.value) for amount in known),
+        value=running,
         unit=currency or "currency",
         currency=currency,
-        status=weakest(*statuses) or ESTIMATED,
+        status=weakest(*(amount.status for amount in amounts)) or ESTIMATED,
         notes="Sum of the money costs of one unit of work.",
     )

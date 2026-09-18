@@ -274,6 +274,15 @@ def _add_audit(verbs: argparse._SubParsersAction) -> None:
         default=DEFAULT_PRECISION,
         help=f"Numeric precision the workload runs in. Default {DEFAULT_PRECISION}.",
     )
+    parser.add_argument(
+        "--fetch-prices",
+        action="store_true",
+        help=(
+            "Look up published rates for the models the code names. Reads a "
+            "structured source, never a web page, and records which. Off by "
+            "default: it is the only part of an audit that reaches the network."
+        ),
+    )
 
 
 def _add_measure(verbs: argparse._SubParsersAction) -> None:
@@ -310,6 +319,29 @@ def _add_measure(verbs: argparse._SubParsersAction) -> None:
     )
     parser.add_argument(
         "--no-profile", action="store_true", help="Skip the function-level profile."
+    )
+    parser.add_argument(
+        "--into",
+        default=None,
+        metavar="MODEL",
+        help=(
+            "Write the measurement into this cost model and recompute everything "
+            "derived from it. Without it, the measurement is only printed."
+        ),
+    )
+    parser.add_argument(
+        "--units",
+        type=float,
+        default=1.0,
+        help=(
+            "How many units of work the command performed. The runtime recorded "
+            "is the wall-clock time divided by this. Default 1."
+        ),
+    )
+    parser.add_argument(
+        "--scenario",
+        default=None,
+        help="Which scenario to write into, by name. The first one by default.",
     )
     parser.add_argument("--json", action="store_true", help="Print the measurement as JSON.")
 

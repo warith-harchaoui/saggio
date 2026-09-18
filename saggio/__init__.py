@@ -55,23 +55,28 @@ from .analyze import (
     read_repository,
     run_slice,
 )
-from .auditor import AuditOptions, AuditResult, audit, audit_github
+from .auditor import AuditOptions, AuditResult, audit, audit_git_url, repository_name
 from .catalog import Catalog, add_row, stale_report
 from .diff import Change, Comparison, compare
 from .estimate import (
     DeploymentContext,
     MachineProfile,
     Projection,
+    car_km,
     carbon_from_energy,
     detect_machine,
     energy_from_runtime,
+    equivalences,
+    flight_fraction,
     it_energy_from_runtime,
     money_from_energy,
     node_power,
     project_to_completion,
     project_to_machine,
+    tree_months,
     water_from_energy,
 )
+from .fold import Fold, fold_measurement
 from .model import (
     CANONICAL_DIMENSIONS,
     ESTIMATED,
@@ -126,6 +131,10 @@ __all__ = [
     "carbon_from_energy",
     "water_from_energy",
     "money_from_energy",
+    "tree_months",
+    "car_km",
+    "flight_fraction",
+    "equivalences",
     "Projection",
     "project_to_completion",
     "project_to_machine",
@@ -138,8 +147,11 @@ __all__ = [
     "AuditOptions",
     "AuditResult",
     "audit",
-    "audit_github",
+    "audit_git_url",
+    "repository_name",
+    "Fold",
     "compare",
+    "fold_measurement",
     "Comparison",
     "Change",
     # Reports.

@@ -39,7 +39,7 @@ from dataclasses import dataclass, field
 from typing import Any, Final
 
 from .model.cost_model import CostModel
-from .model.quantity import Quantity
+from .model.quantity import Quantity, source_strength
 from .model.results import Report
 from .model.taxonomy import status_strength
 
@@ -51,6 +51,36 @@ DEFAULT_DRIFT_THRESHOLD_PERCENT: Final[float] = 10.0
 #: The dotted-path segment that marks a quantity as a per-dimension cost, used to
 #: read the direction of a change from the dimension registry.
 _COSTS_SEGMENT: Final[str] = ".costs."
+
+
+#: What a side of a change reads as when the quantity carries no number. A
+#: ``TODO`` gaining a measurement is the most ordinary good change there is, and
+#: it has a side with nothing in it, so both sides are rendered through this.
+_NO_NUMBER: Final[str] = "no number"
+
+
+def _rendered(value: float | int | None) -> str:
+    """Render one side of a numeric change, including the side that has none.
+
+    Parameters
+    ----------
+    value : float or int or None
+        The number, or ``None`` when the quantity is a ``placeholder`` or a
+        ``TODO`` and so has no number to show.
+
+    Returns
+    -------
+    str
+        The number, or :data:`_NO_NUMBER`.
+
+    Examples
+    --------
+    >>> _rendered(2.0)
+    '2'
+    >>> _rendered(None)
+    'no number'
+    """
+    return _NO_NUMBER if value is None else f"{value:g}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -132,6 +162,33 @@ class Change:
             return False
         return self.before.status != self.after.status
 
+    def provenance_weakened(self) -> bool:
+        """Return whether the number is now further from whoever sets it.
+
+        A price that was read from a vendor's own price API and is now copied
+        from a community aggregator is the same number at the same status, and
+        is nonetheless a step down: one more pair of hands between the model and
+        the fact. The gate treats that the way it treats a weakened status.
+
+        Returns
+        -------
+        bool
+            ``True`` when both sides exist and the later one declares a weaker
+            source kind. A quantity that declared none and still declares none
+            has not weakened.
+
+        Examples
+        --------
+        >>> Change("p", Quantity(source_kind="first-party"),
+        ...        Quantity(source_kind="aggregator"), None, False).provenance_weakened()
+        True
+        >>> Change("p", Quantity(), Quantity(), None, False).provenance_weakened()
+        False
+        """
+        if self.before is None or self.after is None:
+            return False
+        return source_strength(self.after.source_kind) < source_strength(self.before.source_kind)
+
     def describe(self) -> str:
         """Return one line saying what changed.
 
@@ -145,6 +202,9 @@ class Change:
         >>> Change("p", Quantity(value=1.0, status="measured"),
         ...        Quantity(value=2.0, status="measured"), 100.0, True).describe()
         'p: 1 -> 2 (+100.0%), worse'
+        >>> Change("p", Quantity(status="TODO"),
+        ...        Quantity(value=2.0, status="measured"), None, False).describe()
+        'p: no number -> 2, TODO -> measured'
         """
         if self.appeared():
             return f"{self.path}: appeared, {self.after.status if self.after else ''}"
@@ -154,9 +214,11 @@ class Change:
         parts: list[str] = []
         if before is not None and after is not None and before.value != after.value:
             movement = f" ({self.percent_change:+.1f}%)" if self.percent_change is not None else ""
-            parts.append(f"{before.value:g} -> {after.value:g}{movement}")
+            parts.append(f"{_rendered(before.value)} -> {_rendered(after.value)}{movement}")
         if self.status_changed() and before is not None and after is not None:
             parts.append(f"{before.status} -> {after.status}")
+        if self.provenance_weakened() and before is not None and after is not None:
+            parts.append(f"{before.source_kind or 'no source kind'} -> {after.source_kind}")
         detail = ", ".join(parts) or "changed"
         return f"{self.path}: {detail}" + (", worse" if self.worse else "")
 
@@ -185,8 +247,9 @@ class Comparison:
         """Return the changes that fail the gate.
 
         A change fails when it moved a cost in the worse direction by more than
-        the threshold, when it weakened a quantity's honesty status, or when it
-        removed a quantity that used to be reported.
+        the threshold, when it weakened a quantity's honesty status, when it
+        weakened its provenance, or when it removed a quantity that used to be
+        reported.
 
         Returns
         -------
@@ -214,6 +277,8 @@ class Comparison:
                 and change.after is not None
                 and status_strength(change.after.status) < status_strength(change.before.status)
             ):
+                failing.append(change)
+            elif change.provenance_weakened():
                 failing.append(change)
         return failing
 

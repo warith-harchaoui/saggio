@@ -66,3 +66,20 @@ gCO2e per request" is a claim the model never made.
 A model is worth its weakest number, wherever that number is hiding. That is the
 sentence a report leads with, and the one to lead with when summarising a model to
 somebody: not the impressive figures, the weakest one.
+
+## Provenance, beside the status
+
+A status says how well founded a number is. It cannot say *whose* number it is,
+and for a sourced figure that matters: a price read from a vendor's own price API
+and the same price copied out of a community table are both, correctly,
+`estimated`. So a quantity may also carry a `source_kind`:
+
+| `source_kind` | Meaning |
+|---|---|
+| `stated` | A human asserted it. |
+| `first-party` | Read from the vendor's own machine-readable source. |
+| `aggregator` | Read from somebody else's transcription of that. |
+
+It is ordered, and `saggio diff` fails when it weakens, exactly as it fails when
+a status weakens. A number that came from the vendor last month and from a
+community table this month is the same number and a worse citation.

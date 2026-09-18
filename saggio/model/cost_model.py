@@ -64,6 +64,7 @@ _BLOCK_ORDER: Final[tuple[str, ...]] = (
     "dimensions",
     "assumptions",
     "external_services",
+    "models_called",
     "scenarios",
     "projections",
     "analysis",

@@ -24,6 +24,12 @@ a dimension this package has never heard of exactly as well as it covers carbon.
 currency, so a report never adds dollars to euros and never has to parse a field
 name to find out which it was holding.
 
+*Provenance says whose number it is.* A quantity may declare a ``source_kind``:
+``stated`` when a human wrote it, ``first-party`` when it came from the vendor's
+own machine-readable source, ``aggregator`` when it came from somebody else's
+transcription of that. The vocabulary is closed, because an invented kind would
+read as a stronger provenance than it is.
+
 The rest is the usual hygiene: a schema version this build understands, the
 required blocks, statuses drawn from the vocabulary, non-negative physical
 quantities, sourced estimates, and provenance old enough to be worth re-reading.
@@ -51,7 +57,14 @@ from datetime import date
 from typing import Any, Final
 
 from .cost_model import CostModel, walk_bare_numbers
-from .quantity import QUANTITY_KEYS, Quantity, looks_like_quantity
+from .dimensions import CANONICAL_DIMENSIONS
+from .quantity import (
+    QUANTITY_KEYS,
+    SOURCE_KINDS,
+    Quantity,
+    is_valid_source_kind,
+    looks_like_quantity,
+)
 from .results import Report
 from .schema import REQUIRED_BLOCKS, SCHEMA_VERSION, is_bare_number_exempt, schema_major
 from .taxonomy import ESTIMATED, MEASURED, is_valid_status, overclaims, weakest
@@ -281,6 +294,13 @@ def _check_quantity(path: str, raw: dict[str, Any], model: CostModel, report: Re
             "either supply one or lower the status to TODO",
         )
 
+    if quantity.source_kind is not None and not is_valid_source_kind(quantity.source_kind):
+        listed = ", ".join(SOURCE_KINDS)
+        report.error(
+            path,
+            f"has source_kind {quantity.source_kind!r}; it must be one of {listed}",
+        )
+
     if quantity.currency is not None and not _CURRENCY_PATTERN.match(quantity.currency):
         report.error(
             path,
@@ -413,13 +433,35 @@ def _check_dimensions(model: CostModel, report: Report) -> None:
     if declared is not None and not isinstance(declared, list):
         report.error("dimensions", "must be a list of dimension declarations")
     elif isinstance(declared, list):
+        # The registry drops a colliding declaration rather than failing to build,
+        # which leaves the model saying one thing and the tool reading another. The
+        # collision is reported here, where there is a path to point at.
+        seen: set[str] = set()
+        canonical = {dimension.key for dimension in CANONICAL_DIMENSIONS}
         for index, entry in enumerate(declared):
             entry_path = f"dimensions[{index}]"
             if not isinstance(entry, dict):
                 report.error(entry_path, "must be a mapping with at least a key")
-            elif not str(entry.get("key") or "").strip():
+                continue
+            key = str(entry.get("key") or "").strip()
+            if not key:
                 report.error(f"{entry_path}.key", "is required")
-            elif not str(entry.get("unit") or "").strip():
+                continue
+            if key in seen:
+                report.error(
+                    f"{entry_path}.key",
+                    f"declares {key!r} a second time; the later declaration is ignored, "
+                    "so remove it or give this dimension its own key",
+                )
+                continue
+            seen.add(key)
+            if key in canonical:
+                report.warning(
+                    f"{entry_path}.key",
+                    f"redeclares the built-in dimension {key!r}; the built-in label and "
+                    "unit are what reports use, so this declaration changes nothing",
+                )
+            if not str(entry.get("unit") or "").strip():
                 report.warning(
                     f"{entry_path}.unit", "is empty; say what the numbers are counted in"
                 )

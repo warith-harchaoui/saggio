@@ -1,0 +1,149 @@
+schema_version: '2.1'
+date_updated: '2026-09-14'
+project:
+  name: nanoGPT
+  audited_from: https://github.com/karpathy/nanoGPT
+unit_of_work:
+  name: one training run to completion
+  description: 'Proposed from the repository''s shape, which reads as training. Confirm or replace it:
+    every number below is per one of these, so the whole model means whatever this sentence means.'
+  status: placeholder
+  out_of_scope: []
+deployment:
+  provider: on-prem
+  country: FR
+  country_provenance: Stated by the caller.
+  operating_system: darwin
+  logical_cores: 12
+  physical_cores: 12
+  cpu: Apple M2 Max
+  machine_provenance: This describes the machine that ran the audit, not where the code runs. https://github.com/karpathy/nanoGPT
+    was cloned and read here. Replace the machine, the provider and the country with the ones it actually
+    runs on before any number below means anything about this project.
+assumptions:
+  power_draw:
+    value: 83.75999999999999
+    status: estimated
+    unit: W
+    source_url: https://doi.org/10.1002/advs.202100707
+    retrieved_date: '2026-09-12'
+    notes: 'Nameplate sum, Green Algorithms method: 12 cores x 4.0 W + 96 GB x 0.3725 W/GB'
+  pue:
+    value: 1.5
+    status: estimated
+    unit: ratio
+    source_url: https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024
+    retrieved_date: '2026-09-12'
+    notes: Power usage effectiveness published by On-premises.
+  electricity_price:
+    value: 0.24
+    status: estimated
+    unit: USD/kWh
+    currency: USD
+    source_url: https://ember-energy.org/data/electricity-data-explorer/
+    retrieved_date: '2026-09-12'
+    notes: Indicative tariff for France.
+  grid_carbon_intensity:
+    value: 56
+    status: estimated
+    unit: gCO2e/kWh
+    source_url: https://ember-energy.org/data/electricity-data-explorer/
+    retrieved_date: '2026-09-12'
+    notes: Annual average for France.
+  water_usage_effectiveness:
+    value: null
+    status: TODO
+    unit: L/kWh
+    notes: On-premises publishes no water usage effectiveness. Leave this open rather than inventing a
+      figure.
+  machine_energy:
+    value: null
+    status: TODO
+    unit: kWh
+    derived_from:
+    - scenarios[0].runtime
+    - assumptions.power_draw
+    notes: Needs both a runtime and an average power draw.
+scenarios:
+- name: as-audited
+  description: One unit of work as this audit found it, on the machine it ran on.
+  runtime:
+    value: null
+    status: TODO
+    unit: s
+    notes: No run was measured. Measure the real command with `saggio measure`, or audit again with --run.
+  costs:
+    time:
+      value: null
+      status: TODO
+      unit: s
+      derived_from:
+      - scenarios[0].runtime
+      notes: No run was measured. Measure the real command with `saggio measure`, or audit again with
+        --run.
+    energy:
+      value: null
+      status: TODO
+      unit: kWh
+      derived_from:
+      - assumptions.machine_energy
+      - assumptions.pue
+      notes: Needs the machine's own energy and the site's power usage effectiveness.
+    money:
+      value: null
+      status: TODO
+      unit: currency
+      currency: USD
+      derived_from:
+      - scenarios[0].costs.energy
+      - assumptions.electricity_price
+      notes: Needs the energy drawn and a price per kilowatt-hour.
+    carbon:
+      value: null
+      status: TODO
+      unit: gCO2e
+      derived_from:
+      - scenarios[0].costs.energy
+      - assumptions.grid_carbon_intensity
+      notes: Needs the energy drawn and the grid carbon intensity where it runs.
+    water:
+      value: null
+      status: TODO
+      unit: L
+      derived_from:
+      - assumptions.machine_energy
+      - assumptions.water_usage_effectiveness
+      notes: Needs the machine's energy and a published water usage effectiveness.
+analysis:
+  evidence_source: static
+  archetype: training
+  languages:
+  - Python
+  language_file_counts:
+    Python: 17
+  frameworks:
+  - pytorch
+  - transformers
+  - numpy
+  compute_bound: true
+  total_work:
+    unit: max_iters
+    stated_as: '600000'
+    source: train.py::max_iters
+  total_work_conflicts:
+  - max_iters is stated more than once and the statements disagree (train.py::max_iters says 600000; config/finetune_shakespeare.py::max_iters
+    says 20; config/train_gpt2.py::max_iters says 600000; config/train_shakespeare_char.py::max_iters
+    says 5000). train.py::max_iters was used; check it is the one a real run reads.
+  - 'num_samples is stated more than once and the statements disagree (model.py::num_samples says 1; sample.py::num_samples
+    says 10). model.py::num_samples takes precedence among them, but none of them was used: the size this
+    read went with is train.py::max_iters (600000).'
+  entrypoint: train.py
+  has_tests: false
+exclusions:
+- Making the hardware. Only the electricity to run it is counted.
+- The people. Salaries, offices, and travel are out of scope.
+- Idle capacity. This is the cost of one unit of work, not of being ready.
+provenance_rules:
+- Every sourced value carries source_url and retrieved_date.
+- A derived value names its inputs and never outranks the weakest of them.
+- The country is stated by a human, never inferred from a developer's locale.

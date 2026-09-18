@@ -1,0 +1,23 @@
+{
+  "command": [
+    "python",
+    "predict.py",
+    "--num_samples",
+    "500"
+  ],
+  "exit_code": 0,
+  "wall_seconds": 0.563,
+  "watts": null,
+  "power_scope": "macOS publishes package power only through powermetrics, which needs administrator rights and so cannot be read from a library call.",
+  "truncated": false,
+  "hot_path": [],
+  "warnings": [
+    "macOS publishes package power only through powermetrics, which needs administrator rights and so cannot be read from a library call."
+  ]
+}
+  runtime: not known -> 0.00112596 s, TODO -> measured
+  time: not known -> 0.00112596 s, TODO -> measured
+  energy: not known -> 3.92961e-08 kWh, TODO -> estimated
+  money: not known -> 9.43107e-09 USD, TODO -> estimated
+  carbon: not known -> 2.20058e-06 gCO2e, TODO -> estimated
+  whole run: projected from the per-unit costs above

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from saggio.auditor import AuditOptions, audit, audit_github
+from saggio.auditor import AuditOptions, audit, audit_git_url
 from saggio.model import validate
 
 
@@ -138,6 +138,75 @@ def test_a_stated_source_machine_makes_the_projection_possible(
     assert projection["source"] == "RTX-4090"
 
 
+def test_a_projection_onto_another_machine_carries_what_it_would_cost(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # "How long would it take on an H100" is not the question anybody asked. The
+    # projection has to reach money and carbon, or the feature stops one step
+    # short of the thing the package exists to report.
+    from saggio.model.quantity import Quantity
+
+    monkeypatch.setattr(
+        "saggio.auditor._runtime_assumption",
+        lambda *a, **k: Quantity(value=3600.0, unit="s", status="measured"),
+    )
+    result = audit(
+        training_repository,
+        options=static_options(
+            country="FR", source_accelerator="RTX-4090", target_accelerator="H100"
+        ),
+    )
+    projection = result.model.get("projections.on_other_hardware")
+    assert projection["runtime"]["refused"] is False if "refused" in projection["runtime"] else True
+    costs = projection["costs"]
+    assert {"time", "energy", "money", "carbon"} <= set(costs)
+    assert costs["money"]["value"] > 0
+    # A projected cost names the projected numbers it came from, never the local
+    # ones, or the trail a reader follows arrives at the wrong machine.
+    assert costs["energy"]["derived_from"][0].startswith("projections.on_other_hardware")
+    assert validate(result.model).ok
+
+
+def test_a_projection_onto_another_machine_says_what_it_held_constant(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from saggio.model.quantity import Quantity
+
+    monkeypatch.setattr(
+        "saggio.auditor._runtime_assumption",
+        lambda *a, **k: Quantity(value=3600.0, unit="s", status="measured"),
+    )
+    result = audit(
+        training_repository,
+        options=static_options(
+            country="FR", source_accelerator="RTX-4090", target_accelerator="H100"
+        ),
+    )
+    held = result.model.get("projections.on_other_hardware")["held_constant"]
+    assert "tariff" in held and "carbon" in held
+
+
+def test_a_projection_onto_another_machine_brackets_the_speed_up(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # An H100 has six times the arithmetic of a 4090 and three times the
+    # bandwidth. Reporting the six alone would halve the bill on paper.
+    from saggio.model.quantity import Quantity
+
+    monkeypatch.setattr(
+        "saggio.auditor._runtime_assumption",
+        lambda *a, **k: Quantity(value=3600.0, unit="s", status="measured"),
+    )
+    result = audit(
+        training_repository,
+        options=static_options(
+            country="FR", source_accelerator="RTX-4090", target_accelerator="H100"
+        ),
+    )
+    bounds = result.model.get("projections.on_other_hardware")["runtime"]["bounds"]
+    assert bounds["fastest"]["value"] < bounds["slowest"]["value"]
+
+
 def test_a_precision_the_catalogue_cannot_speak_to_is_refused_out_loud(
     training_repository: Path,
 ) -> None:
@@ -210,4 +279,4 @@ def test_nothing_safe_to_run_is_reported(tmp_path: Path, monkeypatch: pytest.Mon
 
 def test_cloning_something_that_is_not_a_repository_says_why() -> None:
     with pytest.raises(RuntimeError, match=r"clone|git"):
-        audit_github("https://example.invalid/not-a-repository.git", options=static_options())
+        audit_git_url("https://example.invalid/not-a-repository.git", options=static_options())

@@ -7,8 +7,10 @@ Everything here turns facts into numbers, and every number it produces says how
 it was arrived at. :mod:`machine` asks the operating system what hardware this
 is; :mod:`context` resolves where the code runs and what that place charges and
 emits; :mod:`energy` applies the Green Algorithms chain from power and time to
-energy, carbon, water, and money; :mod:`extrapolate` projects a measured slice to
-a whole run, and one machine's run to another's.
+energy, carbon, water, and money; :mod:`equivalences` restates a carbon figure
+in tree-months, car kilometres, and reference flights so a reader can feel its
+size; :mod:`extrapolate` projects a measured slice to a whole run, and one
+machine's run to another's.
 
 Usage example
 -------------
@@ -47,6 +49,15 @@ from .energy import (
     total_money,
     water_from_energy,
 )
+from .equivalences import (
+    CAR_GCO2_PER_KM,
+    FLIGHT_GCO2,
+    TREE_MONTH_GCO2,
+    car_km,
+    equivalences,
+    flight_fraction,
+    tree_months,
+)
 from .extrapolate import (
     DEFAULT_PRECISION,
     THROUGHPUT_PRECISIONS,
@@ -57,20 +68,26 @@ from .extrapolate import (
 from .machine import MachineProfile, detect_machine
 
 __all__ = [
+    "CAR_GCO2_PER_KM",
     "CATALOG_CURRENCY",
     "COUNTRY_ENVIRONMENT_VARIABLE",
     "DEFAULT_PRECISION",
     "DEFAULT_PROVIDER",
+    "FLIGHT_GCO2",
     "GREEN_ALGORITHMS_SOURCE",
     "MEMORY_POWER_W_PER_GB",
     "THROUGHPUT_PRECISIONS",
+    "TREE_MONTH_GCO2",
     "DeploymentContext",
     "MachineProfile",
     "Projection",
+    "car_km",
     "carbon_from_energy",
     "country_from_timezone",
     "detect_machine",
     "energy_from_runtime",
+    "equivalences",
+    "flight_fraction",
     "facility_energy",
     "it_energy_from_runtime",
     "local_timezone_name",
@@ -79,5 +96,6 @@ __all__ = [
     "project_to_completion",
     "project_to_machine",
     "total_money",
+    "tree_months",
     "water_from_energy",
 ]

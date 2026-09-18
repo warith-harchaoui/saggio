@@ -7,8 +7,10 @@ from pathlib import Path
 import pytest
 
 from saggio.analyze.power import (
+    AcceleratorSampler,
     PowerMeter,
     PowerReading,
+    _query_nvidia_smi,
     read_package_energy_microjoules,
     unavailable_reason,
 )
@@ -121,3 +123,124 @@ def test_a_real_reading_divides_energy_by_time(monkeypatch: pytest.MonkeyPatch) 
 
 def test_the_scope_of_a_reading_is_stated() -> None:
     assert "package" in PowerReading(1.0, 1.0, "Intel RAPL counts the package").scope
+
+
+class _StubProcess:
+    """A logging process that is already over, for the parsing tests."""
+
+    def terminate(self) -> None:
+        return None
+
+    def wait(self, timeout: float | None = None) -> int:
+        return 0
+
+    def kill(self) -> None:
+        return None
+
+
+def _sampler_over(readings: str, tmp_path: Path) -> AcceleratorSampler:
+    log = tmp_path / "watts.log"
+    log.write_text(readings, encoding="utf-8")
+    return AcceleratorSampler(process=_StubProcess(), log_path=log)  # type: ignore[arg-type]
+
+
+def test_a_board_that_does_not_know_voids_the_query(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Two boards where one answers "[N/A]" is not an answer about the machine,
+    # and half a machine's power presented as the machine's would be wrong.
+    monkeypatch.setattr("saggio.analyze.power.shutil.which", lambda _: "/usr/bin/nvidia-smi")
+
+    class _Completed:
+        returncode = 0
+        stdout = "250.4\n[N/A]\n"
+
+    monkeypatch.setattr("saggio.analyze.power.subprocess.run", lambda *a, **k: _Completed())
+    assert _query_nvidia_smi("power.draw") is None
+
+
+def test_no_driver_means_no_answer(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("saggio.analyze.power.shutil.which", lambda _: None)
+    assert _query_nvidia_smi("power.draw") is None
+
+
+def test_a_single_sample_is_not_an_average(tmp_path: Path) -> None:
+    # One reading taken at an arbitrary instant is not a mean over a run, and a
+    # training run's power varies by hundreds of watts between steps.
+    assert _sampler_over("300.0\n", tmp_path).stop() is None
+
+
+def test_the_mean_comes_with_the_number_of_readings_it_is(tmp_path: Path) -> None:
+    sampled = _sampler_over("100.0\n200.0\n300.0\n", tmp_path)
+    result = sampled.stop()
+    assert result is not None
+    mean_watts, count = result
+    assert mean_watts == pytest.approx(200.0)
+    assert count == 3
+
+
+def test_noise_in_the_log_is_not_counted_as_a_reading(tmp_path: Path) -> None:
+    result = _sampler_over("100.0\n[N/A]\n300.0\n", tmp_path).stop()
+    assert result is not None
+    assert result == (pytest.approx(200.0), 2)
+
+
+def test_the_accelerator_counter_is_added_to_the_package(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A processor drawing 50 W beside a board drawing 300 W is a 350 W machine,
+    # and reporting only the 50 W is the failure this whole path exists to fix.
+    monkeypatch.setattr("saggio.analyze.power.read_package_energy_microjoules", lambda: 100_000_000)
+    monkeypatch.setattr("saggio.analyze.power.read_accelerator_energy_millijoules", lambda: 600_000)
+    reading = PowerMeter(started_at=0, accelerator_started_at=0).stop(seconds=2.0)
+    assert reading.measured()
+    assert reading.watts == pytest.approx(50.0 + 300.0)
+    assert reading.sources == ("processor package", "accelerator")
+    assert "added" in reading.scope
+
+
+def test_a_machine_with_only_a_board_says_the_processor_is_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Windows and Apple Silicon have no package counter. An accelerator figure
+    # there is worth having, and worth labelling as the accelerator alone.
+    monkeypatch.setattr("saggio.analyze.power.read_package_energy_microjoules", lambda: None)
+    monkeypatch.setattr("saggio.analyze.power.read_accelerator_energy_millijoules", lambda: 600_000)
+    reading = PowerMeter(started_at=None, accelerator_started_at=0).stop(seconds=2.0)
+    assert reading.watts == pytest.approx(300.0)
+    assert reading.sources == ("accelerator",)
+    assert "not included" in reading.scope
+
+
+def test_a_package_alone_still_says_what_it_misses(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("saggio.analyze.power.read_package_energy_microjoules", lambda: 2_000_000)
+    monkeypatch.setattr("saggio.analyze.power.read_accelerator_energy_millijoules", lambda: None)
+    reading = PowerMeter(started_at=0).stop(seconds=2.0)
+    assert reading.sources == ("processor package",)
+    assert "accelerator" in reading.scope
+
+
+def test_an_accelerator_counter_that_went_backwards_is_not_a_measurement(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("saggio.analyze.power.read_package_energy_microjoules", lambda: 2_000_000)
+    monkeypatch.setattr("saggio.analyze.power.read_accelerator_energy_millijoules", lambda: 5)
+    reading = PowerMeter(started_at=0, accelerator_started_at=600_000).stop(seconds=2.0)
+    assert reading.sources == ("processor package",)
+
+
+def test_the_sampled_figure_says_how_many_readings_it_averaged(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr("saggio.analyze.power.read_package_energy_microjoules", lambda: None)
+    meter = PowerMeter(started_at=None, sampler=_sampler_over("100.0\n300.0\n", tmp_path))
+    reading = meter.stop(seconds=4.0)
+    assert reading.watts == pytest.approx(200.0)
+    assert "2 readings" in reading.scope
+    assert reading.joules == pytest.approx(800.0)
+
+
+def test_a_run_too_short_to_average_still_stops_the_sampler(tmp_path: Path) -> None:
+    # The logging process outlives nothing: a meter stopped at zero seconds must
+    # not leave a driver writing to a temporary file nobody will read.
+    sampler = _sampler_over("100.0\n300.0\n", tmp_path)
+    assert PowerMeter(started_at=None, sampler=sampler).stop(seconds=0.0).watts is None
+    assert not (tmp_path / "watts.log").exists()

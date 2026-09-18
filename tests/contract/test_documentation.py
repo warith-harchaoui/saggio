@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 import shlex
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -19,7 +20,15 @@ from saggio.cli.app import PROGRAM, build_parser
 ROOT = Path(__file__).resolve().parents[2]
 
 #: The documents that show commands a reader is expected to type.
-DOCUMENTS = ["README.md", "LISEZMOI.md", "EXAMPLES.md", "EXEMPLES.md", "TRIGGERS.md"]
+DOCUMENTS = [
+    "README.md",
+    "LISEZMOI.md",
+    "EXAMPLES.md",
+    "EXEMPLES.md",
+    "TRIGGERS.md",
+    "GALLERY.md",
+    "GALERIE.md",
+]
 
 #: Both spellings of the console script.
 _INVOCATION = re.compile(rf"^\s*(?:\$ )?(?:{re.escape(PROGRAM)}|saggio)\s+(.*)$")
@@ -95,18 +104,118 @@ def test_no_document_shows_a_flag_that_was_renamed(document: str) -> None:
         assert gone not in text, f"{document} still mentions {gone!r}"
 
 
+@pytest.mark.parametrize("catalogue", ["hardware", "grid", "providers", "instances", "services"])
+def test_no_bundled_catalogue_names_a_command_that_does_not_exist(catalogue: str) -> None:
+    # The catalogue headers tell a contributor how to add a row, and two of them
+    # went on naming `cost-running <verb>` long after the verb and the name were
+    # both gone. A wrong instruction in a data file is read as often as one in a
+    # document and is checked by nothing else.
+    text = (ROOT / "saggio" / "data" / f"{catalogue}.yaml").read_text(encoding="utf-8")
+    for gone in ("cost-running", "running-code-cost", "rcch "):
+        assert gone not in text, f"{catalogue}.yaml still mentions {gone!r}"
+
+
 def test_the_version_in_the_changelog_is_the_installed_one() -> None:
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     assert f"## {__version__}" in changelog
 
 
-def test_the_readme_and_the_french_one_cover_the_same_ground() -> None:
-    english = (ROOT / "README.md").read_text(encoding="utf-8")
-    french = (ROOT / "LISEZMOI.md").read_text(encoding="utf-8")
-    # Not a translation check, a coverage check: both have to show the same
-    # commands, or one audience is being told about a feature the other is not.
-    for command in ("audit", "validate", "render", "diff", "measure", "consent", "catalog"):
-        assert command in english and command in french
+#: Every page this repository writes twice, English first. The French half is not
+#: a courtesy translation, it is the other half of the documentation, and the way
+#: it rots is that an English section lands on Tuesday and its twin never does.
+BILINGUAL_PAIRS: list[tuple[str, str]] = [
+    ("README.md", "LISEZMOI.md"),
+    ("EXAMPLES.md", "EXEMPLES.md"),
+    ("GALLERY.md", "GALERIE.md"),
+    ("CONTRIBUTING.md", "CONTRIBUER.md"),
+    ("LANDSCAPE.md", "PAYSAGE.md"),
+    ("docs/README.md", "docs/LISEZMOI.md"),
+]
+
+#: Pages written once on purpose, each with the reason, so that adding a new page
+#: is a decision about both languages rather than an oversight in one.
+MONOLINGUAL_ON_PURPOSE: dict[str, str] = {
+    "CHANGELOG.md": "a log of releases, read by the person who wrote the release",
+    "CODING.md": "the house rules for source code, which is written in English",
+    "TRIGGERS.md": "addressed to agents, whose working language here is English",
+    "docs/api.md": "generated from the docstrings, which are written in English",
+}
+
+
+def _command_shape(command: str) -> tuple[str, tuple[str, ...]]:
+    """Reduce an invocation to the verbs and flags it uses.
+
+    The two languages localise the words around a command, its file names, and
+    the comment at the end of the line, and none of that is a difference in what
+    the reader is being taught. What has to match is which verb is being shown
+    and which flags it is being shown with.
+
+    >>> _command_shape("audit . --country FR -o /tmp/now.yaml  # go")
+    ('audit', ('--country',))
+    >>> _command_shape("catalog add gpu H300 --source-url https://x --field tdp_w=800")
+    ('catalog add gpu H300', ('--field', '--source-url'))
+    """
+    without_comment = re.sub(r"\s+#.*$", "", command)
+    tokens = shlex.split(without_comment, posix=False)
+    verbs: list[str] = []
+    for token in tokens:
+        if token.startswith("-") or any(character in token for character in "/.:="):
+            break
+        verbs.append(token)
+    flags = tuple(sorted({token.split("=")[0] for token in tokens if token.startswith("--")}))
+    return " ".join(verbs), flags
+
+
+@pytest.mark.parametrize(("english", "french"), BILINGUAL_PAIRS)
+def test_both_halves_of_a_bilingual_page_are_there(english: str, french: str) -> None:
+    for document in (english, french):
+        path = ROOT / document
+        assert path.is_file(), f"{document} is promised by its twin and is not there"
+        assert len(path.read_text(encoding="utf-8").split()) > 200, (
+            f"{document} is a stub standing in for a page that was written once"
+        )
+
+
+@pytest.mark.parametrize(("english", "french"), BILINGUAL_PAIRS)
+def test_each_half_of_a_bilingual_page_points_at_the_other(english: str, french: str) -> None:
+    # A reader who lands on the wrong half has to be able to leave, and the link
+    # is also what tells a contributor that the other half exists to be updated.
+    english_text = (ROOT / english).read_text(encoding="utf-8")
+    french_text = (ROOT / french).read_text(encoding="utf-8")
+    assert Path(french).name in english_text, f"{english} never links to {french}"
+    assert Path(english).name in french_text, f"{french} never links to {english}"
+
+
+@pytest.mark.parametrize(("english", "french"), BILINGUAL_PAIRS)
+def test_the_two_languages_show_the_same_commands(english: str, french: str) -> None:
+    # Not a translation check, a coverage check: a command shown in one language
+    # and not the other means one audience is being told about a feature the
+    # other is not, which is the ordinary way a second language falls behind.
+    in_english = Counter(_command_shape(command) for _, command in commands_in(english))
+    in_french = Counter(_command_shape(command) for _, command in commands_in(french))
+    assert in_english == in_french, (
+        f"only in {english}: {sorted((in_english - in_french).elements())}; "
+        f"only in {french}: {sorted((in_french - in_english).elements())}"
+    )
+
+
+@pytest.mark.parametrize("page", sorted(MONOLINGUAL_ON_PURPOSE))
+def test_a_page_written_once_is_written_once_on_purpose(page: str) -> None:
+    assert (ROOT / page).is_file(), f"{page} is listed as monolingual and is not there"
+    assert MONOLINGUAL_ON_PURPOSE[page].strip(), f"{page} has no reason recorded"
+
+
+def test_no_page_escapes_the_language_decision() -> None:
+    # The failure this catches is a new English page landing with no French twin
+    # and nobody noticing for a month. Every markdown page at the top level and
+    # in docs/ is either half of a pair or listed above with its reason.
+    accounted = {name for pair in BILINGUAL_PAIRS for name in pair} | set(MONOLINGUAL_ON_PURPOSE)
+    found = {path.name for path in ROOT.glob("*.md")}
+    found |= {f"docs/{path.name}" for path in (ROOT / "docs").glob("*.md")}
+    assert found <= accounted, (
+        f"{sorted(found - accounted)} is neither half of a bilingual pair nor "
+        f"listed in MONOLINGUAL_ON_PURPOSE with a reason"
+    )
 
 
 def test_the_arithmetic_the_examples_promise_is_the_arithmetic_they_get() -> None:
@@ -130,3 +239,61 @@ def test_the_exit_code_table_in_the_examples_matches_the_code() -> None:
     text = (ROOT / "EXAMPLES.md").read_text(encoding="utf-8")
     for code in MEANINGS:
         assert f"| `{code}` |" in text, f"exit code {code} is not documented"
+
+
+def test_the_conda_environment_installs_the_package_and_not_just_its_dependencies() -> None:
+    # An environment that installs only the dependencies leaves the reader with
+    # no `saggio` command, which is not what the README promises them.
+    environment = (ROOT / "environment.yaml").read_text(encoding="utf-8")
+    assert re.search(r"^\s*-\s*(--editable\s+)?\.(\[[a-z,]+\])?\s*$", environment, re.MULTILINE), (
+        "environment.yaml installs dependencies but never the package itself"
+    )
+
+
+def test_the_requirements_files_still_match_pyproject() -> None:
+    # They exist for tools that expect that shape and are kept in step by hand,
+    # which is exactly the arrangement that drifts without a test watching it.
+    tomllib = pytest.importorskip("tomllib", reason="tomllib arrived in Python 3.11")
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+
+    def named(lines: list[str]) -> set[str]:
+        return {
+            line.strip()
+            for line in lines
+            if line.strip() and not line.lstrip().startswith(("#", "-r "))
+        }
+
+    runtime = named((ROOT / "requirements.txt").read_text(encoding="utf-8").splitlines())
+    assert runtime == set(pyproject["project"]["dependencies"])
+
+    development = named((ROOT / "requirements-dev.txt").read_text(encoding="utf-8").splitlines())
+    assert development == set(pyproject["project"]["optional-dependencies"]["dev"])
+
+
+def test_the_api_page_matches_the_docstrings_it_was_generated_from() -> None:
+    # docs/api.md is derived, so an edited docstring must regenerate it or the
+    # reference starts describing a package that no longer exists.
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("docs_sync_api", ROOT / "docs" / "sync_api.py")
+    assert spec is not None and spec.loader is not None
+    sync_api = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sync_api)
+
+    assert not sync_api.out_of_date(), (
+        "docs/api.md no longer matches the docstrings. Run `python docs/sync_api.py`."
+    )
+
+
+DOCUMENTATION_PAGES = sorted(path.name for path in (ROOT / "docs").glob("*.md"))
+
+
+@pytest.mark.parametrize("page", DOCUMENTATION_PAGES)
+def test_every_link_in_the_documentation_map_resolves(page: str) -> None:
+    # The map exists to route a reader somewhere. A link that goes nowhere is
+    # worse than no map, because the reader trusted it.
+    path = ROOT / "docs" / page
+    for target in re.findall(r"\]\((?!https?:)([^)#]+)\)", path.read_text(encoding="utf-8")):
+        assert (path.parent / target).resolve().exists(), (
+            f"{page} links to {target}, which is not there"
+        )

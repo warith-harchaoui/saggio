@@ -33,3 +33,6 @@ secrets.yml
 
 # Cost models a run produces here, as opposed to the ones a project commits.
 /scratch/
+
+# Local-only scratch space, never committed.
+/.private/

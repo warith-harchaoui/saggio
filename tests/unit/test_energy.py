@@ -108,6 +108,28 @@ def test_node_power_sums_cores_memory_and_accelerators() -> None:
     assert power.status == ESTIMATED
 
 
+def test_node_power_scales_compute_but_not_memory_by_the_usage_factor() -> None:
+    # The Green Algorithms core usage factor applies to processors and
+    # accelerators; memory draws by being populated, not by being busy.
+    power = node_power(
+        cpu_key="epyc-7742",
+        physical_cores=64,
+        memory_gb=512,
+        gpu_key="A100",
+        accelerator_count=1,
+        usage_factor=0.5,
+    )
+    expected = (3.5 * 64 + 400) * 0.5 + 512 * MEMORY_POWER_W_PER_GB
+    assert power.value == pytest.approx(expected)
+    assert "0.5 usage" in str(power.notes)
+
+
+def test_node_power_refuses_a_usage_factor_outside_the_unit_interval() -> None:
+    for bad in (0.0, -0.1, 1.5):
+        with pytest.raises(ValueError, match="usage_factor"):
+            node_power(cpu_key="epyc-7742", physical_cores=1, memory_gb=0, usage_factor=bad)
+
+
 def test_node_power_without_a_cpu_is_open() -> None:
     assert node_power(cpu_key=None, physical_cores=8, memory_gb=16).status == "TODO"
 
@@ -157,13 +179,18 @@ def test_totalling_refuses_to_mix_currencies() -> None:
     assert "different currencies" in str(total.notes)
 
 
-def test_an_unknown_term_drags_the_total_down_rather_than_counting_as_zero() -> None:
+def test_an_unknown_term_opens_the_total_rather_than_counting_as_zero() -> None:
     total = total_money(
         Quantity(value=5.0, currency="USD", status=MEASURED),
         Quantity(currency="USD", status="TODO"),
     )
-    assert total.value == pytest.approx(5.0)
+    # A sum missing a term is not the total, so no number is claimed; what the
+    # known terms came to is kept in the notes, where it cannot be mistaken for
+    # a figure the model may quote.
+    assert total.value is None
     assert total.status == "TODO"
+    assert total.currency == "USD"
+    assert "5 USD so far" in str(total.notes)
 
 
 def test_totalling_nothing_is_open() -> None:

@@ -503,6 +503,70 @@ def _services_section(model: CostModel) -> list[str]:
     ]
 
 
+def _models_section(model: CostModel) -> list[str]:
+    """Render the models the code calls, and what each is charged at.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model.
+
+    Returns
+    -------
+    list of str
+        Markdown lines, empty when the code names no model.
+
+    Examples
+    --------
+    >>> _models_section(CostModel.from_mapping({}))
+    []
+    """
+    called = model.data.get("models_called")
+    if not isinstance(called, list) or not called:
+        return []
+    lines = [
+        "## Models this code calls",
+        "",
+        "A rate is not a cost. These are what the vendor charges per unit; how many "
+        "of those units one unit of work spends is the open half, and reading the "
+        "code cannot establish it.",
+        "",
+    ]
+    for entry in called:
+        if not isinstance(entry, dict):
+            continue
+        name = _escape(entry.get("model"))
+        where = entry.get("detected_at")
+        heading = f"### `{name}`" + (f" — found at `{_escape(where)}`" if where else "")
+        lines += [heading, ""]
+        if entry.get("provider"):
+            lines += [f"Vendor: {_escape(entry['provider'])}.", ""]
+        rates = entry.get("rates")
+        rows: list[list[str]] = []
+        if isinstance(rates, dict):
+            for key, raw in rates.items():
+                if not looks_like_quantity(raw):
+                    continue
+                quantity = Quantity.from_mapping(raw)
+                rows.append(
+                    [
+                        f"`{_escape(key)}`",
+                        format_quantity(quantity),
+                        f"`{quantity.status}`",
+                        f"`{_escape(quantity.source_kind)}`" if quantity.source_kind else "—",
+                        _source_cell(quantity),
+                    ]
+                )
+        lines += [
+            _table(["Rate", "Value", "Status", "Provenance", "Source"], rows)
+            or "_No published rate was found for this model._",
+            "",
+        ]
+        if entry.get("rates_provenance"):
+            lines += [str(entry["rates_provenance"]).strip(), ""]
+    return lines
+
+
 def _projections_section(model: CostModel) -> list[str]:
     """Render the projections, each with what it assumed.
 
@@ -540,33 +604,85 @@ def _projections_section(model: CostModel) -> list[str]:
         for key, value in block.items():
             if key in {"description", "costs"}:
                 continue
-            if isinstance(value, dict) and looks_like_quantity(value.get("result")):
-                quantity = Quantity.from_mapping(value["result"])
-                rows.append(
-                    [
-                        _escape(key),
-                        format_quantity(quantity),
-                        f"`{quantity.status}`",
-                        _escape(value.get("method")),
-                    ]
-                )
-            elif not isinstance(value, (dict, list)):
-                rows.append([_escape(key), _escape(value), "—", "—"])
+            rows += _projection_rows(key, value)
         costs = block.get("costs")
         if isinstance(costs, dict):
             for key, value in costs.items():
-                if isinstance(value, dict) and looks_like_quantity(value.get("result")):
-                    quantity = Quantity.from_mapping(value["result"])
-                    rows.append(
-                        [
-                            _escape(key),
-                            format_quantity(quantity),
-                            f"`{quantity.status}`",
-                            _escape(value.get("method")),
-                        ]
-                    )
+                rows += _projection_rows(key, value)
         lines += [_table(["", "Value", "Status", "Method"], rows), ""]
+        held = block.get("held_constant")
+        if held:
+            lines += [f"*{_escape(held)}*", ""]
     return lines
+
+
+def _projection_rows(key: str, value: object) -> list[list[str]]:
+    """Render one entry of a projections block, whatever shape it arrived in.
+
+    A projection nests its number under ``result`` and carries a method. A figure
+    derived from one, such as what the run would cost on the target accelerator,
+    is an ordinary quantity. Both belong in the table, and a renderer that knew
+    only the first shape dropped every projected cost on the floor without
+    saying so.
+
+    Parameters
+    ----------
+    key : str
+        The entry's name in the block.
+    value : object
+        A projection mapping, a quantity mapping, or a plain scalar.
+
+    Returns
+    -------
+    list of list of str
+        Table rows, empty when the entry is not something to show.
+
+    Examples
+    --------
+    >>> _projection_rows("target", "H100")
+    [['target', 'H100', '—', '—']]
+    >>> _projection_rows("costs", {"nested": {}})
+    []
+    """
+    if isinstance(value, dict) and looks_like_quantity(value.get("result")):
+        quantity = Quantity.from_mapping(value["result"])
+        rows = [
+            [
+                _escape(key),
+                format_quantity(quantity),
+                f"`{quantity.status}`",
+                _escape(value.get("method")),
+            ]
+        ]
+        bounds = value.get("bounds")
+        if isinstance(bounds, dict):
+            fastest, slowest = bounds.get("fastest"), bounds.get("slowest")
+            if looks_like_quantity(fastest) and looks_like_quantity(slowest):
+                # The bracket is the honest part of the answer. A reader who sees
+                # only the point estimate has been told less than is known.
+                rows.append(
+                    [
+                        f"{_escape(key)}, bracketed",
+                        f"{format_quantity(Quantity.from_mapping(fastest))} to "
+                        f"{format_quantity(Quantity.from_mapping(slowest))}",
+                        f"`{Quantity.from_mapping(slowest).status}`",
+                        "Fastest and slowest the evidence supports.",
+                    ]
+                )
+        return rows
+    if looks_like_quantity(value):
+        quantity = Quantity.from_mapping(value)
+        return [
+            [
+                _escape(key),
+                format_quantity(quantity),
+                f"`{quantity.status}`",
+                _escape(quantity.notes),
+            ]
+        ]
+    if not isinstance(value, (dict, list)):
+        return [[_escape(key), _escape(value), "—", "—"]]
+    return []
 
 
 def _measurement_section(model: CostModel) -> list[str]:
@@ -691,6 +807,7 @@ def render_markdown(model: CostModel | dict[str, Any]) -> str:
 
     lines += _assumptions_section(wrapped)
     lines += _services_section(wrapped)
+    lines += _models_section(wrapped)
     lines += _measurement_section(wrapped)
     lines += _projections_section(wrapped)
     lines += _list_section("Not counted", wrapped.data.get("exclusions"))

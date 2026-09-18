@@ -31,7 +31,11 @@ from typing import Final
 
 #: The schema line this build writes and understands. Bump the minor for an
 #: additive change, the major only for a break.
-SCHEMA_VERSION: Final[str] = "2.0"
+#:
+#: 2.1 added the optional ``source_kind`` on a quantity and the optional ``rates``
+#: table on an external service. Both are additive, so every 2.0 model still
+#: validates unchanged.
+SCHEMA_VERSION: Final[str] = "2.1"
 
 #: Top-level blocks every model must carry.
 REQUIRED_BLOCKS: Final[tuple[str, ...]] = (
@@ -48,6 +52,7 @@ OPTIONAL_BLOCKS: Final[tuple[str, ...]] = (
     "dimensions",
     "assumptions",
     "external_services",
+    "models_called",
     "analysis",
     "measurement",
     "projections",

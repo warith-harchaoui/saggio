@@ -212,3 +212,57 @@ def test_an_empty_model_still_renders_a_page() -> None:
 def test_an_unknown_office_format_is_refused_by_name() -> None:
     with pytest.raises(ValueError, match="Unknown output format"):
         render_office({}, "out.odt", output_format="odt")
+
+
+# --- Projections reach the page ----------------------------------------------
+
+
+def _model_with_a_projection() -> dict[str, Any]:
+    """A model carrying what the run would cost on another accelerator."""
+    from saggio.auditor import AuditOptions, _projections
+    from saggio.estimate.machine import MachineProfile
+
+    block, _ = _projections(
+        {},
+        Quantity(value=3600.0, unit="s", status="measured"),
+        None,
+        MachineProfile("linux"),
+        AuditOptions(source_accelerator="RTX-4090", target_accelerator="H100"),
+        compute_bound=True,
+        site={
+            "pue": Quantity(value=1.2, unit="ratio", status="estimated"),
+            "electricity_price": Quantity(
+                value=0.24, unit="USD/kWh", currency="USD", status="estimated"
+            ),
+            "grid_carbon_intensity": Quantity(value=56, unit="gCO2e/kWh", status="estimated"),
+        },
+    )
+    return {"schema_version": "2.1", "scenarios": [], "projections": block}
+
+
+def test_the_markdown_report_shows_what_the_run_would_cost_elsewhere() -> None:
+    # The projected cost was invisible in the report for as long as the renderer
+    # knew only one of the two shapes a projections block holds.
+    text = render_markdown(_model_with_a_projection())
+    assert "Projections" in text
+    assert "money" in text and "carbon" in text
+    assert "held constant" in text.lower() or "tariff" in text
+
+
+def test_the_markdown_report_shows_the_bracket_not_only_the_point() -> None:
+    text = render_markdown(_model_with_a_projection())
+    assert "bracketed" in text
+
+
+def test_the_html_report_has_a_projections_section_at_all() -> None:
+    # The translations carried a heading for this section long before the page
+    # had one, which is how a whole feature stays invisible to everyone who does
+    # not read YAML.
+    page = render_html(_model_with_a_projection())
+    assert 'data-i18n="section.projections"' in page
+    assert "H100" in page
+
+
+def test_the_html_report_names_what_the_projection_held_constant() -> None:
+    page = render_html(_model_with_a_projection())
+    assert "tariff" in page

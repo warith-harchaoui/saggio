@@ -74,6 +74,14 @@ LANGUAGE_BY_EXTENSION: Final[dict[str, str]] = {
     ".sql": "SQL",
 }
 
+#: Directory names that hold code which tests the repository rather than code the
+#: repository runs. A suite is part of the project and is not part of the
+#: workload, and the difference decides whether a framework named in a fixture is
+#: evidence about what this thing costs to run.
+TEST_DIRECTORIES: Final[frozenset[str]] = frozenset(
+    {"tests", "test", "testing", "spec", "specs", "__tests__", "e2e", "fixtures", "testdata"}
+)
+
 #: Directories that are never the code under study.
 SKIPPED_DIRECTORIES: Final[frozenset[str]] = frozenset(
     {
@@ -140,6 +148,37 @@ CONFIG_FILE_PRECEDENCE: Final[tuple[str, ...]] = (
     "pyproject.toml",
 )
 
+#: Directory names that say what the files under them are for. A repository that
+#: keeps its configurations apart this way is telling you which of them a real run
+#: reads, and reading an epoch count out of an evaluation directory is how an audit
+#: of DINOv2 took the length of a training run from a config that scores a model
+#: rather than one that trains it.
+TRAINING_DIRECTORIES: Final[frozenset[str]] = frozenset(
+    {"train", "training", "pretrain", "pretraining", "finetune", "finetuning", "sft"}
+)
+
+#: Directories whose configurations describe something other than a production
+#: run: scoring a model, timing it, or showing somebody how to call it.
+SIDE_ERRAND_DIRECTORIES: Final[frozenset[str]] = frozenset(
+    {
+        "eval",
+        "evals",
+        "evaluation",
+        "benchmark",
+        "benchmarks",
+        "example",
+        "examples",
+        "demo",
+        "demos",
+        "tutorial",
+        "tutorials",
+        "doc",
+        "docs",
+        "notebook",
+        "notebooks",
+    }
+)
+
 #: Keys that state how much work a whole run performs, in the order they are
 #: trusted. An iteration count is more precise than an epoch count, which depends
 #: on a dataset size that may not be stated anywhere.
@@ -154,22 +193,98 @@ WORK_SIZE_KEYS: Final[tuple[str, ...]] = (
     "n_samples",
 )
 
-#: Import fingerprints that identify a compute framework.
-FRAMEWORK_HINTS: Final[dict[str, tuple[str, ...]]] = {
-    "pytorch": ("import torch", "from torch", "pytorch_lightning"),
-    "tensorflow": ("import tensorflow", "from tensorflow", "import keras"),
-    "jax": ("import jax", "from jax", "import flax"),
-    "scikit-learn": ("import sklearn", "from sklearn"),
-    "transformers": ("from transformers", "import transformers"),
-    "diffusers": ("from diffusers", "import diffusers"),
-    "vllm": ("from vllm", "import vllm"),
-    "llama.cpp": ("llama_cpp", "llama-cpp-python"),
-    "onnxruntime": ("import onnxruntime", "from onnxruntime"),
-    "numpy": ("import numpy", "from numpy"),
-    "pandas": ("import pandas", "from pandas"),
-    "polars": ("import polars", "from polars"),
-    "spark": ("pyspark", "from pyspark"),
-    "ffmpeg": ("ffmpeg", "subprocess.*ffmpeg"),
+#: How a model identifier is written where it is chosen, as an assignment:
+#: ``model="gpt-4o"``, ``model_name = 'claude-3-5-sonnet'``. Only a string literal
+#: is captured, because a variable would need the program to be run to know its
+#: value, and this pass does not run anything.
+MODEL_ASSIGNMENT_PATTERN: Final[re.Pattern[str]] = re.compile(
+    r"""\b(?:model|model_name|model_id|deployment_name)\s*=\s*(["'])([^"']{2,80})\1"""
+)
+
+#: The same identifier as an entry in a mapping: ``{"model": "gpt-4o"}`` in Python
+#: or JSON, ``{ model: "gpt-4o" }`` in JavaScript, ``Model: "gpt-4o"`` in Go. The
+#: first group says whether the key was written in quotes, which is what separates
+#: a mapping from a type annotation in a language that has both.
+MODEL_MAPPING_PATTERN: Final[re.Pattern[str]] = re.compile(
+    r"""(["']?)\b(?:model|model_name|model_id|deployment_name)\1\s*:\s*(["'])([^"']{2,80})\2"""
+)
+
+#: Languages where ``name: "Something"`` outside a mapping is a type annotation
+#: rather than a value. Python's ``def decode(model: "Whisper", mel: Tensor)`` is
+#: a forward reference to a class, and reading it as a model being called is how
+#: an audit of Whisper reported a model named Whisper.
+_ANNOTATIONS_LOOK_LIKE_MAPPINGS: Final[frozenset[str]] = frozenset({".py", ".pyi"})
+
+#: What a string literal is doing when one of these sits against it: being built,
+#: not being named. ``model_name = "Body_" + name`` chooses no model, and reading
+#: the fragment as one is how an audit of FastAPI reported a model named Body_.
+_CONCATENATION: Final[tuple[str, ...]] = ("+", "%", ".join", ".format")
+
+#: The modules whose import identifies a compute framework. Names, not lines: the
+#: line that counts as an import is built below, because a substring search finds
+#: the same words inside a string literal, a comment, or a table like this one,
+#: and a tool that reports fourteen frameworks to a project that imports none is
+#: not reading code, it is matching text.
+FRAMEWORK_MODULES: Final[dict[str, tuple[str, ...]]] = {
+    "pytorch": ("torch", "pytorch_lightning", "lightning"),
+    "tensorflow": ("tensorflow", "keras"),
+    "jax": ("jax", "flax"),
+    "scikit-learn": ("sklearn",),
+    "transformers": ("transformers",),
+    "diffusers": ("diffusers",),
+    "vllm": ("vllm",),
+    "llama.cpp": ("llama_cpp",),
+    "onnxruntime": ("onnxruntime",),
+    "numpy": ("numpy",),
+    "pandas": ("pandas",),
+    "polars": ("polars",),
+    "spark": ("pyspark",),
+}
+
+#: Frameworks that are run as a program rather than imported, and the shape a
+#: call site gives them: the name quoted as an argument, or followed by a flag.
+FRAMEWORK_INVOCATIONS: Final[dict[str, str]] = {
+    "ffmpeg": r"""["']ffmpeg["']|\bffmpeg\s+-""",
+}
+
+
+def _framework_pattern(modules: tuple[str, ...]) -> re.Pattern[str]:
+    """Build the pattern that recognises importing any of these modules.
+
+    Python's ``import x`` and ``from x import`` both start a line, and JavaScript's
+    ``require("x")`` and ``from "x"`` both quote the name. Anchoring to those two
+    shapes is what separates code that uses a framework from prose that names one.
+
+    Parameters
+    ----------
+    modules : tuple of str
+        Module names, as the import statement spells them.
+
+    Returns
+    -------
+    re.Pattern
+        A multiline pattern matching an import of any of them.
+
+    Examples
+    --------
+    >>> pattern = _framework_pattern(("torch",))
+    >>> bool(pattern.search("import torch"))
+    True
+    >>> bool(pattern.search('    write("import torch")'))
+    False
+    """
+    alternatives = "|".join(re.escape(module) for module in modules)
+    return re.compile(
+        rf"^[ \t]*(?:import|from)[ \t]+({alternatives})\b"
+        rf"|(?:require\(|from\s+)[\"']({alternatives})[\"'/]",
+        re.MULTILINE,
+    )
+
+
+#: One compiled pattern per framework, built once at import time.
+FRAMEWORK_PATTERNS: Final[dict[str, re.Pattern[str]]] = {
+    **{name: _framework_pattern(modules) for name, modules in FRAMEWORK_MODULES.items()},
+    **{name: re.compile(source) for name, source in FRAMEWORK_INVOCATIONS.items()},
 }
 
 #: Filenames whose presence suggests a workload shape. Checked in the order the
@@ -225,6 +340,15 @@ class WorkSizeCandidate:
     source: str
 
 
+#: Said of a service or a model whose only evidence line is in the suite. It is
+#: reported rather than dropped, and it is flagged rather than counted, because
+#: the suite calling an API is not the workload calling it.
+FOUND_ONLY_IN_SUITE: Final[str] = (
+    "Found only in the code that tests this repository, so it may not be part of "
+    "the workload. Confirm before pricing it."
+)
+
+
 @dataclass(slots=True)
 class ServiceHit:
     """One call to a paid service, with the line that gave it away.
@@ -273,13 +397,74 @@ class ServiceHit:
         --------
         >>> sorted(ServiceHit("k", "n", "p", 1, "l").to_mapping())
         ['detected_at', 'evidence', 'key', 'name']
+        >>> ServiceHit("k", "n", "tests/test_x.py", 1, "l").to_mapping()["caveat"][:5]
+        'Found'
         """
-        return {
+        mapping: dict[str, Any] = {
             "key": self.key,
             "name": self.name,
             "detected_at": f"{self.path}:{self.line_number}",
             "evidence": self.line,
         }
+        if is_test_path(Path(self.path)):
+            mapping["caveat"] = FOUND_ONLY_IN_SUITE
+        return mapping
+
+
+@dataclass(frozen=True, slots=True)
+class ModelHit:
+    """One model identifier the code names, with the line that names it.
+
+    A price is per model, not per vendor: ``gpt-4o`` and ``gpt-4o-mini`` are the
+    same API at an eightfold difference. So the audit has to know which model is
+    called before it can price anything, and the only honest way to know from
+    reading is to find the identifier written down.
+
+    Parameters
+    ----------
+    identifier : str
+        The string literal as the code spells it.
+    path : str
+        Repository-relative path of the file it was found in.
+    line_number : int
+        One-based line number.
+    line : str
+        The matching line, stripped, kept as the evidence.
+
+    Examples
+    --------
+    >>> ModelHit("gpt-4o", "app.py", 12, 'model="gpt-4o"').identifier
+    'gpt-4o'
+    """
+
+    identifier: str
+    path: str
+    line_number: int
+    line: str
+
+    def to_mapping(self) -> dict[str, Any]:
+        """Serialise the hit, evidence included.
+
+        Returns
+        -------
+        dict
+            A mapping naming the model and where it was found.
+
+        Examples
+        --------
+        >>> sorted(ModelHit("m", "p", 1, "l").to_mapping())
+        ['detected_at', 'evidence', 'model']
+        >>> "caveat" in ModelHit("m", "tests/test_x.py", 1, "l").to_mapping()
+        True
+        """
+        mapping: dict[str, Any] = {
+            "model": self.identifier,
+            "detected_at": f"{self.path}:{self.line_number}",
+            "evidence": self.line,
+        }
+        if is_test_path(Path(self.path)):
+            mapping["caveat"] = FOUND_ONLY_IN_SUITE
+        return mapping
 
 
 @dataclass(slots=True)
@@ -296,7 +481,11 @@ class RepositoryReading:
         A coarse shape: ``training``, ``inference``, ``batch-pipeline``,
         ``service``, ``command-line-tool``, or ``unknown``.
     frameworks : tuple of str
-        Compute frameworks found by import fingerprint.
+        Compute frameworks the workload imports, found by import fingerprint.
+    frameworks_in_suite_only : tuple of str
+        Frameworks that appear only in the code that tests the repository. Kept
+        and reported rather than dropped, because a reader who expected to see
+        one of them is owed the reason it is not counted.
     work_size : WorkSizeCandidate or None
         The size of a whole run, as stated in a file, or ``None``.
     work_size_candidates : tuple of WorkSizeCandidate
@@ -307,6 +496,9 @@ class RepositoryReading:
         disagreement is surfaced rather than resolved quietly.
     services : tuple of ServiceHit
         Paid services the code calls, with evidence.
+    models : tuple of ModelHit
+        Model identifiers the code names, with evidence. A price is per model, so
+        this is what makes pricing an API call possible at all.
     has_tests : bool
         Whether a runnable test suite was found.
     test_command : tuple of str
@@ -326,10 +518,12 @@ class RepositoryReading:
     languages: dict[str, int] = field(default_factory=dict)
     archetype: str = "unknown"
     frameworks: tuple[str, ...] = field(default_factory=tuple)
+    frameworks_in_suite_only: tuple[str, ...] = field(default_factory=tuple)
     work_size: WorkSizeCandidate | None = None
     work_size_candidates: tuple[WorkSizeCandidate, ...] = field(default_factory=tuple)
     work_size_conflicts: tuple[str, ...] = field(default_factory=tuple)
     services: tuple[ServiceHit, ...] = field(default_factory=tuple)
+    models: tuple[ModelHit, ...] = field(default_factory=tuple)
     has_tests: bool = False
     test_command: tuple[str, ...] = field(default_factory=tuple)
     entrypoint: str | None = None
@@ -397,6 +591,8 @@ class RepositoryReading:
         }
         if self.frameworks:
             mapping["frameworks"] = list(self.frameworks)
+        if self.frameworks_in_suite_only:
+            mapping["frameworks_in_suite_only"] = list(self.frameworks_in_suite_only)
         compute_bound = self.is_compute_bound()
         if compute_bound is not None:
             mapping["compute_bound"] = compute_bound
@@ -414,8 +610,44 @@ class RepositoryReading:
         return mapping
 
 
+def is_test_path(path: Path) -> bool:
+    """Return whether a file is part of the suite rather than the workload.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        Any file inside the repository.
+
+    Returns
+    -------
+    bool
+        ``True`` when the file tests the repository rather than running it.
+
+    Examples
+    --------
+    >>> is_test_path(Path("tests/unit/test_static.py"))
+    True
+    >>> is_test_path(Path("src/app.py"))
+    False
+    """
+    if any(part.lower() in TEST_DIRECTORIES for part in path.parts):
+        return True
+    name = path.name.lower()
+    return (
+        name == "conftest.py"
+        or name.startswith("test_")
+        or name.endswith(("_test.py", ".test.ts", ".test.js", ".spec.ts", ".spec.js"))
+    )
+
+
 def _iter_source_files(root: Path):
     """Yield the repository's own source files, skipping vendored trees.
+
+    The workload's own code comes first and the suite that tests it comes last.
+    Every detector below keeps the first place it saw a thing, so that ordering
+    is what makes a service called from ``app.py`` outrank the same service named
+    in a fixture, and what makes a hit whose evidence line is a test file mean
+    that the suite is the only place it appears.
 
     Parameters
     ----------
@@ -425,18 +657,48 @@ def _iter_source_files(root: Path):
     Yields
     ------
     pathlib.Path
-        Files that are part of the code under study.
+        Files that are part of the code under study, workload before suite.
 
     Examples
     --------
     >>> any(p.suffix == ".py" for p in _iter_source_files(Path(".")))
     True
     """
+    deferred: list[Path] = []
     for path in root.rglob("*"):
         if any(part in SKIPPED_DIRECTORIES for part in path.parts):
             continue
-        if path.is_file():
-            yield path
+        if not path.is_file():
+            continue
+        if is_test_path(path.relative_to(root) if path.is_relative_to(root) else path):
+            deferred.append(path)
+            continue
+        yield path
+    yield from deferred
+
+
+def _iter_workload_files(root: Path):
+    """Yield only the files the repository runs, leaving out the suite.
+
+    Parameters
+    ----------
+    root : pathlib.Path
+        The repository root.
+
+    Yields
+    ------
+    pathlib.Path
+        Files that are part of the workload.
+
+    Examples
+    --------
+    >>> all(not is_test_path(p) for p in _iter_workload_files(Path("saggio")))
+    True
+    """
+    for path in _iter_source_files(root):
+        if is_test_path(path.relative_to(root) if path.is_relative_to(root) else path):
+            return
+        yield path
 
 
 def detect_languages(root: Path) -> dict[str, int]:
@@ -465,6 +727,78 @@ def detect_languages(root: Path) -> dict[str, int]:
     return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
 
 
+def _filename_weight_at_depth(depth: int) -> float:
+    """Return how much a file name counts as evidence at that depth.
+
+    A file at the root is what the repository is about; the same name three
+    directories down is a detail of how it is built. An ``app.py`` inside
+    ``src/cli/`` is not a web service, and weighing it as one is how a
+    command-line tool gets reported as a server.
+
+    Parameters
+    ----------
+    depth : int
+        How many directories separate the file from the root.
+
+    Returns
+    -------
+    float
+        One at the root, falling away below it.
+
+    Examples
+    --------
+    >>> _filename_weight_at_depth(0) > _filename_weight_at_depth(2)
+    True
+    """
+    return 1.0 / (1.0 + depth)
+
+
+def declares_console_script(root: Path) -> bool:
+    r"""Return whether the packaging metadata installs a command.
+
+    Parameters
+    ----------
+    root : pathlib.Path
+        The repository root.
+
+    Returns
+    -------
+    bool
+        ``True`` when ``pyproject.toml``, ``setup.py`` or ``package.json`` says
+        the project installs an executable.
+
+    Examples
+    --------
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as folder:
+    ...     _ = (Path(folder) / "pyproject.toml").write_text(
+    ...         '[project.scripts]\\nthing = "thing:run"\\n', encoding="utf-8")
+    ...     declares_console_script(Path(folder))
+    True
+    """
+    pyproject = root / "pyproject.toml"
+    if pyproject.is_file():
+        try:
+            if "[project.scripts]" in pyproject.read_text(encoding="utf-8", errors="replace"):
+                return True
+        except OSError:
+            pass
+    setup = root / "setup.py"
+    if setup.is_file():
+        try:
+            if "console_scripts" in setup.read_text(encoding="utf-8", errors="replace"):
+                return True
+        except OSError:
+            pass
+    package = root / "package.json"
+    if package.is_file():
+        try:
+            return '"bin"' in package.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return False
+    return False
+
+
 def detect_archetype(root: Path, languages: dict[str, int]) -> str:
     """Return a coarse label for the shape of work the repository does.
 
@@ -488,17 +822,40 @@ def detect_archetype(root: Path, languages: dict[str, int]) -> str:
     ...     detect_archetype(Path(folder), {"Python": 1})
     'training'
     """
-    present = {path.name.lower() for path in _iter_source_files(root)}
-    for label, names in ARCHETYPE_FILES:
-        if present & names:
-            return label
+    scores: dict[str, float] = {}
+    present: set[str] = set()
+    for path in _iter_workload_files(root):
+        present.add(path.name.lower())
+        relative = path.relative_to(root) if path.is_relative_to(root) else path
+        for label, names in ARCHETYPE_FILES:
+            if path.name.lower() in names:
+                scores[label] = scores.get(label, 0.0) + _filename_weight_at_depth(
+                    len(relative.parts) - 1
+                )
+
+    if declares_console_script(root):
+        # Packaging metadata is a statement about what the thing is, where a file
+        # name is an inference about it. A repository that installs a command is
+        # a command, whatever a file three directories down happens to be called.
+        scores["command-line-tool"] = scores.get("command-line-tool", 0.0) + 1.0
+
+    if scores:
+        order = [label for label, _ in ARCHETYPE_FILES]
+        # Ties go to the earlier label, which is how a project that both trains
+        # and serves is reported as the expensive one it is.
+        return max(scores, key=lambda label: (scores[label], -order.index(label)))
     if "Python" in languages and ("setup.py" in present or "pyproject.toml" in present):
         return "library"
     return "unknown"
 
 
-def detect_frameworks(root: Path) -> tuple[str, ...]:
-    """Return the compute frameworks the repository imports.
+def detect_frameworks(root: Path) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Return the frameworks the workload imports, and those only its suite names.
+
+    A suite writes fixtures, and a fixture that writes ``import torch`` into a
+    temporary file is not a repository that trains anything. Reading both at once
+    is how a tool ends up reporting a dozen frameworks to a project that uses
+    none, so the two are read apart and reported apart.
 
     Parameters
     ----------
@@ -507,30 +864,75 @@ def detect_frameworks(root: Path) -> tuple[str, ...]:
 
     Returns
     -------
-    tuple of str
-        Framework names, in catalogue order.
+    tuple of (tuple of str, tuple of str)
+        Frameworks the workload imports, then frameworks that appear only in the
+        code that tests it. Both in catalogue order.
 
     Examples
     --------
-    >>> isinstance(detect_frameworks(Path(".")), tuple)
+    >>> workload, in_suite_only = detect_frameworks(Path("."))
+    >>> isinstance(workload, tuple) and isinstance(in_suite_only, tuple)
     True
     """
-    found: list[str] = []
-    blobs: list[str] = []
+    workload_blobs: list[str] = []
+    suite_blobs: list[str] = []
     for path in _iter_source_files(root):
         if path.suffix.lower() not in _SCANNED_EXTENSIONS:
             continue
         try:
             if path.stat().st_size > _MAX_SCANNED_BYTES:
                 continue
-            blobs.append(path.read_text(encoding="utf-8", errors="replace"))
+            text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-    blob = "\n".join(blobs)
-    for name, hints in FRAMEWORK_HINTS.items():
-        if any(hint in blob for hint in hints):
+        relative = path.relative_to(root) if path.is_relative_to(root) else path
+        (suite_blobs if is_test_path(relative) else workload_blobs).append(text)
+
+    workload = "\n".join(workload_blobs)
+    suite = "\n".join(suite_blobs)
+    found: list[str] = []
+    in_suite_only: list[str] = []
+    for name, pattern in FRAMEWORK_PATTERNS.items():
+        if pattern.search(workload):
             found.append(name)
-    return tuple(found)
+        elif pattern.search(suite):
+            in_suite_only.append(name)
+    return tuple(found), tuple(in_suite_only)
+
+
+def _purpose_rank(relative_path: str) -> int:
+    """Return how far a file's directory is trusted to state the length of a run.
+
+    Only directory names are read, never the file's own name: a repository that
+    separates ``configs/train`` from ``configs/eval`` is saying which of the two a
+    real run reads, and that statement is worth more than any guess from a stem.
+
+    Parameters
+    ----------
+    relative_path : str
+        Repository-relative path.
+
+    Returns
+    -------
+    int
+        ``0`` under a training directory, ``2`` under an evaluation, benchmark or
+        example one, ``1`` everywhere else. Smaller means more trusted.
+
+    Examples
+    --------
+    >>> _purpose_rank("configs/train/vitg14.yaml")
+    0
+    >>> _purpose_rank("configs/ssl_default.yaml")
+    1
+    >>> _purpose_rank("configs/eval/linear.yaml")
+    2
+    """
+    directories = {part.lower() for part in Path(relative_path).parts[:-1]}
+    if directories & TRAINING_DIRECTORIES:
+        return 0
+    if directories & SIDE_ERRAND_DIRECTORIES:
+        return 2
+    return 1
 
 
 def _config_rank(relative_path: str) -> int:
@@ -553,12 +955,18 @@ def _config_rank(relative_path: str) -> int:
     True
     >>> _config_rank("some/other.py") == len(CONFIG_FILE_PRECEDENCE)
     True
+    >>> _config_rank("tests/conftest.py") > _config_rank("some/other.py")
+    True
     """
     lowered = relative_path.lower()
+    # A suite states a size so that a test finishes quickly, which is the opposite
+    # of what a real run does. It ranks below every file the workload owns, so it
+    # only ever wins when the workload states no size at all.
+    penalty = len(CONFIG_FILE_PRECEDENCE) + 1 if is_test_path(Path(relative_path)) else 0
     for rank, name in enumerate(CONFIG_FILE_PRECEDENCE):
         if lowered == name or lowered.endswith(f"/{name}") or f"/{name}/" in f"/{lowered}/":
-            return rank
-    return len(CONFIG_FILE_PRECEDENCE)
+            return rank + penalty
+    return len(CONFIG_FILE_PRECEDENCE) + penalty
 
 
 def find_work_size(
@@ -618,25 +1026,48 @@ def find_work_size(
     candidates.sort(
         key=lambda item: (
             _config_rank(item.source.split("::", 1)[0]),
+            _purpose_rank(item.source.split("::", 1)[0]),
             WORK_SIZE_KEYS.index(item.key) if item.key in WORK_SIZE_KEYS else len(WORK_SIZE_KEYS),
             item.source,
         )
     )
 
+    chosen = candidates[0] if candidates else None
     conflicts: list[str] = []
+    # A suite states a small size so that a test finishes, and the workload states
+    # the real one. That is not a disagreement, it is the two files doing their
+    # jobs, and reporting it as one buries the disagreements that matter.
+    from_workload = [
+        candidate
+        for candidate in candidates
+        if not is_test_path(Path(candidate.source.split("::", 1)[0]))
+    ]
+    considered = from_workload or candidates
     by_key: dict[str, list[WorkSizeCandidate]] = {}
-    for candidate in candidates:
+    for candidate in considered:
         by_key.setdefault(candidate.key, []).append(candidate)
     for key, group in by_key.items():
         values = {candidate.value for candidate in group}
         if len(values) > 1:
             listed = "; ".join(f"{item.source} says {item.value:g}" for item in group)
+            # Only one candidate in the whole repository is actually used, and it
+            # may well belong to another key. Saying "was used" of each key's own
+            # front-runner would name a figure nothing read.
+            if chosen is not None and chosen.key == key:
+                outcome = f"{chosen.source} was used; check it is the one a real run reads."
+            elif chosen is not None:
+                outcome = (
+                    f"{group[0].source} takes precedence among them, but none of them "
+                    f"was used: the size this read went with is {chosen.source} "
+                    f"({chosen.value:g})."
+                )
+            else:
+                outcome = f"{group[0].source} takes precedence among them."
             conflicts.append(
-                f"{key} is stated more than once and the statements disagree ({listed}). "
-                f"{group[0].source} was used; check it is the one a real run reads."
+                f"{key} is stated more than once and the statements disagree ({listed}). {outcome}"
             )
 
-    return (candidates[0] if candidates else None), tuple(candidates), tuple(conflicts)
+    return chosen, tuple(candidates), tuple(conflicts)
 
 
 def _is_prose_line(line: str) -> bool:
@@ -723,6 +1154,140 @@ def detect_services(root: Path, *, overlay: Path | None = None) -> tuple[Service
     return tuple(hits[key] for key in sorted(hits))
 
 
+def model_named_on(line: str, *, suffix: str) -> str | None:
+    r"""Return the model identifier a line chooses, or ``None``.
+
+    Three things look alike to a regular expression and are not alike at all: a
+    model being chosen, a type being annotated, and a string being built. The
+    first is what this looks for; the other two produced two of the wrong answers
+    in this package's own gallery, and both are decidable from the line.
+
+    Parameters
+    ----------
+    line : str
+        One line of source, already known not to be prose.
+    suffix : str
+        The file's extension, lowercased. It decides whether an unquoted key
+        before a colon is a mapping entry or a type annotation.
+
+    Returns
+    -------
+    str or None
+        The identifier, or ``None`` when the line names none.
+
+    Examples
+    --------
+    >>> model_named_on('client.chat(model="gpt-4o")', suffix=".py")
+    'gpt-4o'
+    >>> model_named_on('reply = call({"model": "gpt-4o"})', suffix=".py")
+    'gpt-4o'
+    >>> model_named_on('    model: "Whisper", mel: Tensor', suffix=".py") is None
+    True
+    >>> model_named_on('const body = { model: "gpt-4o" };', suffix=".ts")
+    'gpt-4o'
+    >>> model_named_on('model_name = "Body_" + name', suffix=".py") is None
+    True
+    """
+    for match in MODEL_ASSIGNMENT_PATTERN.finditer(line):
+        identifier = _identifier_if_not_being_built(line, match, group=2)
+        if identifier is not None:
+            return identifier
+    for match in MODEL_MAPPING_PATTERN.finditer(line):
+        key_was_quoted = bool(match.group(1))
+        if not key_was_quoted and suffix in _ANNOTATIONS_LOOK_LIKE_MAPPINGS:
+            # Python has no unquoted mapping keys, so this is an annotation.
+            continue
+        identifier = _identifier_if_not_being_built(line, match, group=3)
+        if identifier is not None:
+            return identifier
+    return None
+
+
+def _identifier_if_not_being_built(line: str, match: re.Match[str], *, group: int) -> str | None:
+    """Return the matched literal unless it is a fragment of a larger string.
+
+    Parameters
+    ----------
+    line : str
+        The line the match came from.
+    match : re.Match
+        The match.
+    group : int
+        Which group holds the literal.
+
+    Returns
+    -------
+    str or None
+        The identifier, or ``None`` when the literal is being concatenated,
+        interpolated, or formatted into something else.
+
+    Examples
+    --------
+    >>> line = 'model = "gpt-" + version'
+    >>> _identifier_if_not_being_built(
+    ...     line, MODEL_ASSIGNMENT_PATTERN.search(line), group=2) is None
+    True
+    """
+    after = line[match.end() :].lstrip()
+    before = line[: match.start(group) - 1].rstrip()
+    if after.startswith(_CONCATENATION) or before.endswith(_CONCATENATION):
+        return None
+    identifier = match.group(group).strip()
+    return identifier or None
+
+
+def detect_models(root: Path) -> tuple[ModelHit, ...]:
+    r"""Find the model identifiers the code names, keeping the evidence.
+
+    Every distinct identifier is reported once, at its first occurrence, in the
+    order the walk meets them. Nothing is verified here: whether a string is a
+    real model is a question for whoever prices it, and a string this pass cannot
+    price is still worth showing to a reader who can.
+
+    Parameters
+    ----------
+    root : pathlib.Path
+        The repository root.
+
+    Returns
+    -------
+    tuple of ModelHit
+        One hit per distinct identifier.
+
+    Examples
+    --------
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as folder:
+    ...     _ = (Path(folder) / "app.py").write_text(
+    ...         'client.chat(model="gpt-4o")\n', encoding="utf-8")
+    ...     detect_models(Path(folder))[0].identifier
+    'gpt-4o'
+    """
+    hits: dict[str, ModelHit] = {}
+    for path in _iter_source_files(root):
+        if path.suffix.lower() not in _SCANNED_EXTENSIONS:
+            continue
+        try:
+            if path.stat().st_size > _MAX_SCANNED_BYTES:
+                continue
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        relative = str(path.relative_to(root))
+        for number, line in enumerate(lines, start=1):
+            if _is_prose_line(line):
+                continue
+            identifier = model_named_on(line, suffix=path.suffix.lower())
+            if identifier is not None and identifier not in hits:
+                hits[identifier] = ModelHit(
+                    identifier=identifier,
+                    path=relative,
+                    line_number=number,
+                    line=line.strip()[:200],
+                )
+    return tuple(hits.values())
+
+
 def detect_tests(root: Path) -> tuple[bool, tuple[str, ...]]:
     """Return whether the repository has a test suite, and how to run a slice of it.
 
@@ -748,7 +1313,13 @@ def detect_tests(root: Path) -> tuple[bool, tuple[str, ...]]:
     """
     has_tests = (root / "tests").is_dir() or (root / "test").is_dir()
     if not has_tests:
-        has_tests = any(True for _ in root.rglob("test_*.py"))
+        # Via the filtered walk, so a test file inside .venv or node_modules does
+        # not make the tool run somebody else's suite as if it were this one's.
+        has_tests = any(
+            path.name.startswith("test_")
+            for path in _iter_source_files(root)
+            if path.suffix == ".py"
+        )
     if not has_tests:
         return False, ()
     # sys.executable is the interpreter actually running, which is the only
@@ -872,15 +1443,19 @@ def read_repository(path: str | Path, *, overlay: Path | None = None) -> Reposit
     for sentence in conflicts:
         osh.warning(sentence)
 
+    frameworks, frameworks_in_suite_only = detect_frameworks(root)
+
     return RepositoryReading(
         root=root,
         languages=languages,
         archetype=archetype,
-        frameworks=detect_frameworks(root),
+        frameworks=frameworks,
+        frameworks_in_suite_only=frameworks_in_suite_only,
         work_size=chosen,
         work_size_candidates=candidates,
         work_size_conflicts=conflicts,
         services=detect_services(root, overlay=overlay),
+        models=detect_models(root),
         has_tests=has_tests,
         test_command=test_command,
         entrypoint=find_entrypoint(root),

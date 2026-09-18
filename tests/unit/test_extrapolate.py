@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from saggio.catalog.registry import Catalog
 from saggio.estimate.extrapolate import (
     Projection,
     project_to_completion,
@@ -64,11 +65,81 @@ def test_a_projection_states_what_it_assumed_and_where_it_stops() -> None:
 # --- One machine to another --------------------------------------------------
 
 
-def test_a_faster_accelerator_finishes_sooner_in_proportion() -> None:
+def test_a_workload_read_as_compute_bound_gains_the_arithmetic_ratio() -> None:
+    projected = project_to_machine(
+        runtime=measured(1000.0, "s"), source_key="A100", target_key="H100", compute_bound=True
+    )
+    assert projected.quantity.value == pytest.approx(1000.0 * 312 / 989, rel=1e-6)
+
+
+def test_a_workload_read_as_memory_bound_gains_only_the_bandwidth_ratio() -> None:
+    # The H100 has 3.2x the arithmetic of an A100 and 2.2x the bandwidth. Single
+    # stream generation moves weights and waits, so it gets the 2.2x, and a model
+    # that promised the 3.2x would understate the bill by a third.
+    projected = project_to_machine(
+        runtime=measured(1000.0, "s"), source_key="A100", target_key="H100", compute_bound=False
+    )
+    assert projected.quantity.value == pytest.approx(1000.0 * 1555 / 3350, rel=1e-6)
+
+
+def test_when_nobody_knows_which_limit_applies_the_slower_ratio_is_reported() -> None:
+    # The slower ratio is the longer run, the larger bill, and the number a reader
+    # is not harmed by having believed. The faster one is still on the record.
     projected = project_to_machine(
         runtime=measured(1000.0, "s"), source_key="A100", target_key="H100"
     )
-    assert projected.quantity.value == pytest.approx(1000.0 * 312 / 989, rel=1e-6)
+    assert projected.quantity.value == pytest.approx(1000.0 * 1555 / 3350, rel=1e-6)
+    assert projected.bounds is not None
+    fastest, slowest = projected.bounds
+    assert fastest.value == pytest.approx(1000.0 * 312 / 989, rel=1e-6)
+    assert slowest.value == pytest.approx(projected.quantity.value, rel=1e-6)
+
+
+def test_the_bracket_is_serialised_as_two_quantities() -> None:
+    # Two quantities, not two bare numbers: everything with a number in this
+    # package carries its own status, and a bound is no exception.
+    mapping = project_to_machine(
+        runtime=measured(1000.0, "s"), source_key="A100", target_key="H100"
+    ).to_mapping()
+    assert set(mapping["bounds"]) == {"fastest", "slowest"}
+    for bound in mapping["bounds"].values():
+        assert bound["status"] == "estimated"
+        assert isinstance(bound["value"], float)
+
+
+def test_a_part_with_no_bandwidth_figure_says_the_number_is_an_upper_bound() -> None:
+    # Without both bandwidths there is no bracket, and the compute ratio alone is
+    # the optimistic end. Saying so is the difference between an estimate and a
+    # claim.
+    catalog = Catalog(
+        name="hardware",
+        data={
+            "gpus": [
+                {
+                    "key": "SOURCE",
+                    "peak_bf16_tflops": 100,
+                    "source_url": "https://example.invalid/source",
+                    "retrieved_date": "2026-09-14",
+                },
+                {
+                    "key": "TARGET",
+                    "peak_bf16_tflops": 400,
+                    "source_url": "https://example.invalid/target",
+                    "retrieved_date": "2026-09-14",
+                },
+            ]
+        },
+    )
+    projected = project_to_machine(
+        runtime=measured(1000.0, "s"),
+        source_key="SOURCE",
+        target_key="TARGET",
+        overlay_catalog=catalog,
+    )
+    assert not projected.refused
+    assert projected.bounds is None
+    assert projected.quantity.value == pytest.approx(250.0)
+    assert any("upper bound" in limit for limit in projected.limits)
 
 
 def test_the_same_accelerator_changes_nothing() -> None:
@@ -109,7 +180,8 @@ def test_an_accelerator_with_no_throughput_figure_is_refused() -> None:
     # no ratio to scale by and saying so beats inventing one.
     projection = project_to_machine(runtime=measured(1.0, "s"), source_key="T4", target_key="H100")
     assert projection.refused
-    assert "peak throughput" in str(projection.quantity.notes)
+    assert "peak_bf16_tflops" in str(projection.quantity.notes)
+    assert "T4" in str(projection.quantity.notes)
 
 
 def test_a_consumer_card_can_be_the_source() -> None:
@@ -130,7 +202,8 @@ def test_the_method_can_be_redone_by_hand() -> None:
     method = project_to_machine(
         runtime=measured(1.0, "s"), source_key="A100", target_key="H100"
     ).method
-    assert "312" in method and "989" in method
+    assert ("312" in method and "989" in method) or ("1555" in method and "3350" in method)
+    assert "/" in method
 
 
 # --- Serialisation -----------------------------------------------------------
@@ -152,3 +225,22 @@ def test_a_refusal_serialises_as_a_refusal() -> None:
 
 def test_an_empty_projection_carries_no_empty_lists() -> None:
     assert set(Projection(Quantity(status="TODO"), "m").to_mapping()) == {"method", "result"}
+
+
+def test_a_smaller_target_board_is_said_before_the_number_is_used() -> None:
+    # 80 GB of measured work does not fit on a 24 GB card. Nothing here knows how
+    # much of the board the run actually used, so this is a warning rather than a
+    # refusal, and it has to come before anybody acts on the duration.
+    projection = project_to_machine(
+        runtime=measured(100.0, "s"), source_key="A100-80GB", target_key="RTX-4090"
+    )
+    assert not projection.refused
+    assert any("may" in limit and "not start" in limit for limit in projection.limits)
+    assert projection.limits[0].startswith("RTX-4090 has 24 GB")
+
+
+def test_a_larger_target_board_says_nothing_about_memory() -> None:
+    projection = project_to_machine(
+        runtime=measured(100.0, "s"), source_key="RTX-4090", target_key="H100"
+    )
+    assert not any("not start" in limit for limit in projection.limits)

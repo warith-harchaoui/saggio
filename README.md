@@ -1,5 +1,3 @@
-
-
 # saggio
 
 [🇫🇷 LISEZMOI.md](LISEZMOI.md) · 🇬🇧 English
@@ -9,10 +7,8 @@ any other dimension you decide to watch, per unit of work, with every number
 saying how far it can be trusted.
 
 <p align="center">
-  <img src="assets/logo.png" alt="saggio" >
+  <img src="assets/logo.png" alt="saggio logo">
 </p>
-
-
 
 The answer is a YAML file you commit next to the code, and reports rendered from
 it. The file is reviewable in a pull request, the reports are readable by people
@@ -73,8 +69,8 @@ deterministic, all of it quoting its evidence.
 
 **Runs a slice of it, if you let it.** With `--run`, and after you have agreed
 once, it executes a capped slice of your real entry point, times it, reads the
-machine's power counter where the operating system offers one, and profiles where
-the time went. The size the slice covers is read from your own configuration, so
+processor's and the accelerator's power counters where the machine offers them,
+and profiles where the time went. The size the slice covers is read from your own configuration, so
 projecting to a whole run is arithmetic rather than a guess.
 
 **Looks things up rather than assuming them.** What a GPU draws, what a kilowatt
@@ -83,9 +79,13 @@ prices: sourced YAML catalogues, each row carrying the URL it came from and the
 date somebody read it, each one going stale on a schedule that matches how fast
 that kind of fact actually moves.
 
-**Projects, and says what it assumed.** From a measured slice to a whole run. From
-one accelerator to another, by peak-throughput ratio, refusing when the workload's
-precision is one the catalogue cannot speak to and saying which one it is.
+**Projects, and says what it assumed.** From a measured slice to a whole run.
+From one accelerator to another, and all the way to money and carbon rather than
+stopping at a duration. That second projection is a bracket, not a number: work is
+limited by arithmetic throughput or by memory bandwidth, the two ratios differ by
+more than a factor of two between an A100 and an H100, and reporting the compute
+ratio alone would understate the bill by a third. It refuses outright when the
+catalogue has no throughput figure for the precision the work runs in.
 
 **Writes reports that people read.** Markdown for a pull request. A single
 self-contained HTML page for everyone else: offline, light and dark, English and
@@ -143,6 +143,9 @@ saggio audit . --country FR --run \
 # Measure one command of your own.
 saggio measure -- python train.py --steps 100
 
+# What is this machine, and does the catalogue know its parts?
+saggio machine
+
 # Turn the model into something a person reads.
 saggio render cost_of_running.yaml -f html -o report.html
 
@@ -160,7 +163,10 @@ print(result.report.summary())
 print(saggio.render_markdown(result.model))
 ```
 
-[`EXAMPLES.md`](EXAMPLES.md) is the cookbook.
+[`EXAMPLES.md`](EXAMPLES.md) is the cookbook, [`GALLERY.md`](GALLERY.md) is what
+it says about nanoGPT, Whisper, DINOv2, FastAPI and Airflow with the files
+committed beside it, [`docs/api.md`](docs/api.md) is every name `import saggio`
+gives you, and [`docs/`](docs/README.md) is the map of the rest.
 
 ## Running your code, and what that means
 
@@ -186,10 +192,14 @@ It never puts a number in a file that nobody chose. The country is stated by a
 person or inferred from the machine's timezone and labelled as an inference; it is
 never read off a locale and written down as fact.
 
-It never copies an API price into your model. Prices move, and a stale one shipped
-as authoritative is exactly the dishonesty this package exists to prevent. It
-records which service you call, the line of code that proves it, and the page
-where the current price lives.
+It never parses a pricing page, and never asks a model what one says. With
+`--fetch-prices` it reads rates from sources published *as data*, records which
+model the code names and on which line, and stamps every rate with where it was
+read and when. A rate from the vendor's own price API and a rate from somebody
+else's transcription are both `estimated`, so each one also carries a
+`source_kind` saying which it is, and the drift gate fails when that weakens.
+Without the flag nothing reaches the network and the price stays open, pointing
+at the page where the current number lives.
 
 It never lets a language model supply a number. A local model, when you have one
 running, is asked what shape of work your repository does and nothing else. Its
@@ -241,6 +251,8 @@ estimate/   Facts and measurements into numbers: the machine, the deployment,
 analyze/    What a repository is: reading it, running a slice of it, and asking a
             local model about its shape (never about its numbers).
 auditor.py  The whole job, in one function.
+diff.py     What changed between two models, and whether it fails the gate.
+templates.py  The starter models the wheel ships.
 report/     Markdown, HTML, Word, PDF.
 cli/        Argument parsing and printing. Nothing else.
 ```

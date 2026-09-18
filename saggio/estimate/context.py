@@ -51,7 +51,7 @@ from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, MEASURED, TODO
 
 #: Environment variable a user or a container sets to state the country outright.
-COUNTRY_ENVIRONMENT_VARIABLE: Final[str] = "RUNNING_CODE_COST_COUNTRY"
+COUNTRY_ENVIRONMENT_VARIABLE: Final[str] = "SAGGIO_COUNTRY"
 
 #: Where a Unix machine's timezone name can be read without a third-party
 #: dependency: the symlink the system points at a zoneinfo file.

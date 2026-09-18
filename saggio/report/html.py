@@ -56,6 +56,9 @@ _ASSET_PACKAGE: Final[str] = "saggio.data.report"
 #: The project's home, linked from the footer of every report.
 PROJECT_URL: Final[str] = "https://github.com/warith-harchaoui/saggio"
 
+#: The shape of a token in the report shell, as authored in ``reporting/report.html``.
+_TOKEN_PATTERN: Final[re.Pattern[str]] = re.compile(r"\{\{([A-Z_]+)\}\}")
+
 
 @cache
 def _asset(name: str) -> str:
@@ -87,6 +90,11 @@ def _fill(template: str, **values: str) -> str:
     the script this fills in are full of braces of their own, and a format call
     would try to read them as fields.
 
+    The substitution is a single pass, so a value is never scanned for tokens
+    itself. Replacing token by token would mean a cost model whose notes happened
+    to contain ``{{SCRIPT}}`` had that text replaced by the real script, which is
+    a strange enough outcome to be worth one regular expression to rule out.
+
     Parameters
     ----------
     template : str
@@ -102,20 +110,33 @@ def _fill(template: str, **values: str) -> str:
     Raises
     ------
     KeyError
-        If the shell still holds a token nothing was given for. A report with a
-        literal ``{{BODY}}`` in it would be worse than a failure here.
+        If the shell holds a token nothing was given for. A report with a literal
+        ``{{BODY}}`` in it would be worse than a failure here.
 
     Examples
     --------
     >>> _fill("<p>{{GREETING}}</p>", GREETING="hello")
     '<p>hello</p>'
+    >>> _fill("{{A}}{{B}}", A="{{B}}", B="!")
+    '{{B}}!'
+    >>> _fill("<p>{{MISSING}}</p>")
+    Traceback (most recent call last):
+        ...
+    KeyError: 'the report shell has unfilled tokens: MISSING'
     """
-    for token, value in values.items():
-        template = template.replace("{{" + token + "}}", value)
-    left = re.findall(r"\{\{([A-Z_]+)\}\}", template)
-    if left:
-        raise KeyError(f"the report shell has unfilled tokens: {', '.join(sorted(set(left)))}")
-    return template
+    missing: list[str] = []
+
+    def substitute(match: re.Match[str]) -> str:
+        token = match.group(1)
+        if token not in values:
+            missing.append(token)
+            return match.group(0)
+        return values[token]
+
+    filled = _TOKEN_PATTERN.sub(substitute, template)
+    if missing:
+        raise KeyError(f"the report shell has unfilled tokens: {', '.join(sorted(set(missing)))}")
+    return filled
 
 
 @cache
@@ -420,6 +441,118 @@ def _costs_section(model: CostModel, registry: DimensionRegistry) -> str:
     return "".join(blocks)
 
 
+def _projections_section(model: CostModel) -> str:
+    """Render what the run would cost elsewhere, and what that answer rests on.
+
+    The page carried no projections at all until now, while the translations
+    already had a heading waiting for them. A figure that only exists in the YAML
+    is a figure most readers never see, and "what would this cost on an H100" is
+    the question the people who never open a terminal are asking.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model.
+
+    Returns
+    -------
+    str
+        The section markup, empty when nothing was projected.
+
+    Examples
+    --------
+    >>> _projections_section(CostModel.from_mapping({}))
+    ''
+    """
+    projections = model.data.get("projections")
+    if not isinstance(projections, dict) or not projections:
+        return ""
+    blocks = [_heading(2, "Projections", "section.projections")]
+    for name, block in projections.items():
+        if not isinstance(block, dict):
+            continue
+        blocks.append(_heading(3, str(name).replace("_", " ")))
+        if block.get("description"):
+            blocks.append(f'<p class="lede">{_escape(block["description"])}</p>')
+        rows: list[str] = []
+        for key, value in block.items():
+            if key in {"description", "costs", "held_constant", "costs_note"}:
+                continue
+            rows += _projection_rows(key, value)
+        costs = block.get("costs")
+        if isinstance(costs, dict):
+            for key, value in costs.items():
+                rows += _projection_rows(key, value)
+        blocks.append(
+            _table(
+                ["", "Value", "Status", "How it was obtained"],
+                rows,
+                i18n_keys=["column.dimension", "column.value", "column.status", "column.method"],
+                widths=[18, 20, 11, 51],
+            )
+        )
+        for sentence in (block.get("costs_note"), block.get("held_constant")):
+            if sentence:
+                blocks.append(f'<p class="muted">{_escape(sentence)}</p>')
+    return "".join(blocks)
+
+
+def _projection_rows(key: str, value: object) -> list[str]:
+    """Render one entry of a projections block as table rows.
+
+    Parameters
+    ----------
+    key : str
+        The entry's name in the block.
+    value : object
+        A projection mapping, a quantity mapping, or a plain scalar.
+
+    Returns
+    -------
+    list of str
+        ``<tr>`` markup, empty when the entry is not something to show.
+
+    Examples
+    --------
+    >>> _projection_rows("target", "H100")[0][:32]
+    '<tr><td>target</td><td>H100</td>'
+    """
+    if isinstance(value, dict) and looks_like_quantity(value.get("result")):
+        quantity = Quantity.from_mapping(value["result"])
+        rows = [
+            f"<tr><td>{_escape(key)}</td>{_quantity_cell(quantity)}"
+            f"<td>{_badge(quantity.status)}</td>"
+            f'<td class="muted">{_escape(value.get("method"))}</td></tr>'
+        ]
+        bounds = value.get("bounds")
+        if isinstance(bounds, dict):
+            fastest, slowest = bounds.get("fastest"), bounds.get("slowest")
+            if looks_like_quantity(fastest) and looks_like_quantity(slowest):
+                low, high = Quantity.from_mapping(fastest), Quantity.from_mapping(slowest)
+                rows.append(
+                    f"<tr><td>{_escape(key)} &mdash; range</td>"
+                    f'<td class="number">{_escape(format_quantity(low))} to '
+                    f"{_escape(format_quantity(high))}</td>"
+                    f"<td>{_badge(high.status)}</td>"
+                    '<td class="muted">The fastest and the slowest the evidence '
+                    "supports.</td></tr>"
+                )
+        return rows
+    if looks_like_quantity(value):
+        quantity = Quantity.from_mapping(value)
+        return [
+            f"<tr><td>{_escape(key)}</td>{_quantity_cell(quantity)}"
+            f"<td>{_badge(quantity.status)}</td>"
+            f'<td class="muted">{_escape(quantity.notes)}</td></tr>'
+        ]
+    if not isinstance(value, (dict, list)):
+        return [
+            f"<tr><td>{_escape(key)}</td><td>{_escape(value)}</td>"
+            '<td>&mdash;</td><td class="muted">&mdash;</td></tr>'
+        ]
+    return []
+
+
 def _assumptions_section(model: CostModel) -> str:
     """Render the numbers everything else rests on, with their sources.
 
@@ -519,6 +652,78 @@ def _services_section(model: CostModel) -> str:
             widths=[16, 20, 32, 17, 15],
         )
     )
+
+
+def _models_section(model: CostModel) -> str:
+    """Render the models the code calls, and what each is charged at.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model.
+
+    Returns
+    -------
+    str
+        The section markup, empty when the code names no model.
+
+    Examples
+    --------
+    >>> _models_section(CostModel.from_mapping({}))
+    ''
+    """
+    called = model.data.get("models_called")
+    if not isinstance(called, list) or not called:
+        return ""
+    blocks = [
+        _heading(2, "Models this code calls", "section.models"),
+        '<p class="lede">A rate is not a cost. These are what the vendor charges per '
+        "unit; how many of those units one unit of work spends is the open half, and "
+        "reading the code cannot establish it.</p>",
+    ]
+    for entry in called:
+        if not isinstance(entry, dict):
+            continue
+        where = entry.get("detected_at")
+        blocks.append(
+            _heading(3, str(entry.get("model") or "model"))
+            + (f'<p class="muted"><code>{_escape(where)}</code></p>' if where else "")
+        )
+        rates = entry.get("rates")
+        rows: list[str] = []
+        if isinstance(rates, dict):
+            for key, raw in rates.items():
+                if not looks_like_quantity(raw):
+                    continue
+                quantity = Quantity.from_mapping(raw)
+                source = (
+                    f'<a href="{_escape(quantity.source_url)}" rel="noopener">source</a>'
+                    + (
+                        f", read {_escape(quantity.retrieved_date)}"
+                        if quantity.retrieved_date
+                        else ""
+                    )
+                    if quantity.source_url
+                    else "—"
+                )
+                rows.append(
+                    f"<tr><td><code>{_escape(key)}</code></td>"
+                    f"{_quantity_cell(quantity)}"
+                    f"<td>{_badge(quantity.status)}</td>"
+                    f"<td><code>{_escape(quantity.source_kind or '—')}</code></td>"
+                    f'<td class="muted">{source}</td></tr>'
+                )
+        blocks.append(
+            _table(
+                ["Rate", "Value", "Status", "Provenance", "Source"],
+                rows,
+                widths=[28, 18, 12, 16, 26],
+            )
+            or '<p class="muted">No published rate was found for this model.</p>'
+        )
+        if entry.get("rates_provenance"):
+            blocks.append(f'<p class="muted">{_escape(entry["rates_provenance"])}</p>')
+    return "".join(blocks)
 
 
 def _whatif_section(model: CostModel, *, overlay: Any = None) -> str:
@@ -779,9 +984,11 @@ def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> st
             unit_block,
             _mapping_section("Where it runs", "section.deployment", wrapped.data.get("deployment")),
             _costs_section(wrapped, registry),
+            _projections_section(wrapped),
             _whatif_section(wrapped, overlay=overlay),
             _assumptions_section(wrapped),
             _services_section(wrapped),
+            _models_section(wrapped),
             _list_section("Not counted", "section.exclusions", wrapped.data.get("exclusions")),
             _list_section(
                 "Rules this model follows", "section.rules", wrapped.data.get("provenance_rules")

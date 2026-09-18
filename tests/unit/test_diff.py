@@ -129,3 +129,28 @@ def test_a_change_describes_itself_in_one_line() -> None:
     described = compare(model(1.0), model(2.0)).changes[0].describe()
     assert "1 -> 2" in described
     assert "+100.0%" in described
+
+
+# --- Provenance --------------------------------------------------------------
+
+
+def test_a_price_that_fell_back_to_an_aggregator_fails_the_gate() -> None:
+    # Same number, same status: only the distance to whoever sets it changed,
+    # and that is a regression the gate has to see.
+    earlier = {"p": {"value": 3e-06, "status": "estimated", "source_kind": "first-party"}}
+    later = {"p": {"value": 3e-06, "status": "estimated", "source_kind": "aggregator"}}
+    comparison = compare(earlier, later)
+    assert not comparison.passes()
+    assert "first-party -> aggregator" in comparison.changes[0].describe()
+
+
+def test_a_price_a_human_took_over_does_not_fail_the_gate() -> None:
+    earlier = {"p": {"value": 3e-06, "status": "estimated", "source_kind": "aggregator"}}
+    later = {"p": {"value": 3e-06, "status": "measured", "source_kind": "stated"}}
+    assert compare(earlier, later).passes()
+
+
+def test_a_quantity_that_never_declared_a_source_kind_has_not_weakened() -> None:
+    earlier = {"p": {"value": 1.0, "status": "estimated"}}
+    later = {"p": {"value": 1.0, "status": "estimated", "notes": "same number"}}
+    assert compare(earlier, later).passes()

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo-180.png" alt="saggio" width="120">
+  <img src="assets/logo.png" alt="saggio" width="120">
 </p>
 
 # saggio
@@ -70,8 +70,8 @@ quantité de travail d'une exécution complète, quelles API payantes vous appel
 
 **Il en exécute une tranche, si vous l'autorisez.** Avec `--run`, et après votre
 accord donné une fois, il lance une tranche plafonnée de votre vrai point
-d'entrée, la chronomètre, lit le compteur de puissance de la machine quand le
-système d'exploitation en offre un, et profile où le temps est passé. La part du
+d'entrée, la chronomètre, lit les compteurs de puissance du processeur et de
+l'accélérateur quand la machine en offre, et profile où le temps est passé. La part du
 travail que couvre la tranche est lue dans votre propre configuration : projeter
 sur une exécution complète relève donc de l'arithmétique, pas de la devinette.
 
@@ -82,9 +82,13 @@ des catalogues YAML sourcés, chaque ligne portant l'URL d'où elle vient et la 
 à laquelle ce genre de fait bouge vraiment.
 
 **Il projette, et il dit ce qu'il a supposé.** D'une tranche mesurée à une
-exécution complète. D'un accélérateur à un autre, par rapport de débit crête, en
-refusant quand la précision de la charge n'est pas une de celles dont le catalogue
-sait parler, et en disant laquelle.
+exécution complète. D'un accélérateur à un autre, et jusqu'à l'argent et au
+carbone plutôt que de s'arrêter à une durée. Cette seconde projection est un
+encadrement, pas un nombre : une charge est limitée par le débit arithmétique ou
+par la bande passante mémoire, les deux rapports diffèrent de plus du double entre
+une A100 et une H100, et ne rapporter que le rapport de calcul sous-estimerait la
+facture d'un tiers. Il refuse net quand le catalogue n'a aucun chiffre de débit
+pour la précision dans laquelle le travail tourne.
 
 **Il écrit des rapports qui se lisent.** Du Markdown pour une pull request. Une
 page HTML autonome pour tous les autres : hors ligne, clair et sombre, anglais et
@@ -142,6 +146,9 @@ saggio audit . --country FR --run \
 # Mesurer une commande à vous.
 saggio measure -- python train.py --steps 100
 
+# Cette machine, c'est quoi, et le catalogue connaît-il ses composants ?
+saggio machine
+
 # Transformer le modèle en quelque chose qui se lit.
 saggio render cost_of_running.yaml -f html -o report.html
 
@@ -159,7 +166,11 @@ print(resultat.report.summary())
 print(saggio.render_markdown(resultat.model))
 ```
 
-[`EXEMPLES.md`](EXEMPLES.md) est le livre de recettes.
+[`EXEMPLES.md`](EXEMPLES.md) est le livre de recettes,
+[`GALERIE.md`](GALERIE.md) montre ce qu'il dit de nanoGPT, Whisper, DINOv2,
+FastAPI et Airflow, fichiers commités à l'appui, [`docs/api.md`](docs/api.md)
+liste tout ce que `import saggio` donne, et [`docs/`](docs/LISEZMOI.md) est la
+carte du reste.
 
 ## Exécuter votre code, et ce que ça implique
 
@@ -185,10 +196,14 @@ Il ne met jamais dans un fichier un chiffre que personne n'a choisi. Le pays est
 indiqué par une personne, ou déduit du fuseau horaire de la machine et étiqueté
 comme déduction ; il n'est jamais lu dans une locale puis écrit comme un fait.
 
-Il ne recopie jamais un tarif d'API dans votre modèle. Les tarifs bougent, et un
-tarif périmé livré comme s'il faisait autorité est exactement la malhonnêteté que
-ce paquet existe pour empêcher. Il note quel service vous appelez, la ligne de code
-qui le prouve, et la page où vit le tarif du jour.
+Il n'analyse jamais une page de tarification, et ne demande jamais à un modèle ce
+qu'une page raconte. Avec `--fetch-prices`, il lit des tarifs dans des sources
+publiées *en tant que données*, note quel modèle le code nomme et à quelle ligne,
+et estampille chaque tarif de l'endroit et de la date de lecture. Un tarif venu de
+l'API de prix du vendeur et un tarif venu de la transcription d'un tiers sont tous
+deux `estimated` : chacun porte donc en plus un `source_kind` qui dit lequel, et la
+porte de dérive échoue quand celui-ci s'affaiblit. Sans le drapeau, rien ne touche
+le réseau et le tarif reste ouvert, pointant la page où vit le chiffre du jour.
 
 Il ne laisse jamais un modèle de langue fournir un chiffre. Un modèle local, quand
 vous en avez un qui tourne, se voit demander quelle forme de travail fait votre
@@ -245,6 +260,8 @@ estimate/   Des faits et des mesures vers des chiffres : la machine, le
 analyze/    Ce qu'est un dépôt : le lire, en exécuter une tranche, et interroger
             un modèle local sur sa forme (jamais sur ses chiffres).
 auditor.py  Tout le travail, dans une fonction.
+diff.py     Ce qui a changé entre deux modèles, et si cela fait échouer le seuil.
+templates.py  Les modèles de départ que le paquet livre.
 report/     Markdown, HTML, Word, PDF.
 cli/        L'analyse des arguments et l'affichage. Rien d'autre.
 ```
@@ -262,7 +279,7 @@ des rapports d'une autre forme.
 
 ## Contribuer
 
-[`CONTRIBUTING.md`](CONTRIBUTING.md) donne les détails. En bref : ajoutez une
+[`CONTRIBUER.md`](CONTRIBUER.md) donne les détails. En bref : ajoutez une
 ligne de catalogue avec sa source et sa date, ou un test qui fige un comportement
 qui compte pour vous. [`CODING.md`](CODING.md) décrit le style de ce dépôt.
 

@@ -1,0 +1,586 @@
+schema_version: '2.1'
+date_updated: '2026-09-14'
+project:
+  name: airflow
+  audited_from: https://github.com/apache/airflow
+unit_of_work:
+  name: one request handled end to end
+  description: 'Proposed from the repository''s shape, which reads as service. Confirm or replace it:
+    every number below is per one of these, so the whole model means whatever this sentence means.'
+  status: placeholder
+  out_of_scope: []
+deployment:
+  provider: on-prem
+  country: FR
+  country_provenance: Stated by the caller.
+  operating_system: darwin
+  logical_cores: 12
+  physical_cores: 12
+  cpu: Apple M2 Max
+  machine_provenance: This describes the machine that ran the audit, not where the code runs. https://github.com/apache/airflow
+    was cloned and read here. Replace the machine, the provider and the country with the ones it actually
+    runs on before any number below means anything about this project.
+assumptions:
+  power_draw:
+    value: 83.75999999999999
+    status: estimated
+    unit: W
+    source_url: https://doi.org/10.1002/advs.202100707
+    retrieved_date: '2026-09-12'
+    notes: 'Nameplate sum, Green Algorithms method: 12 cores x 4.0 W + 96 GB x 0.3725 W/GB'
+  pue:
+    value: 1.5
+    status: estimated
+    unit: ratio
+    source_url: https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024
+    retrieved_date: '2026-09-12'
+    notes: Power usage effectiveness published by On-premises.
+  electricity_price:
+    value: 0.24
+    status: estimated
+    unit: USD/kWh
+    currency: USD
+    source_url: https://ember-energy.org/data/electricity-data-explorer/
+    retrieved_date: '2026-09-12'
+    notes: Indicative tariff for France.
+  grid_carbon_intensity:
+    value: 56
+    status: estimated
+    unit: gCO2e/kWh
+    source_url: https://ember-energy.org/data/electricity-data-explorer/
+    retrieved_date: '2026-09-12'
+    notes: Annual average for France.
+  water_usage_effectiveness:
+    value: null
+    status: TODO
+    unit: L/kWh
+    notes: On-premises publishes no water usage effectiveness. Leave this open rather than inventing a
+      figure.
+  machine_energy:
+    value: null
+    status: TODO
+    unit: kWh
+    derived_from:
+    - scenarios[0].runtime
+    - assumptions.power_draw
+    notes: Needs both a runtime and an average power draw.
+external_services:
+- key: anthropic
+  name: Anthropic API
+  detected_at: providers/anthropic/src/airflow/providers/anthropic/operators/agent.py:36
+  evidence: from anthropic.types.beta import BetaManagedAgentsSession
+  pricing_source_url: https://www.anthropic.com/pricing
+  price_per_unit:
+    value: null
+    status: TODO
+    unit: currency
+    source_url: https://www.anthropic.com/pricing
+    notes: Read the current price from the page above and record what one unit of work spends. It is left
+      open because a price copied today is wrong by next quarter.
+- key: aws
+  name: AWS (boto3)
+  detected_at: dev/breeze/src/airflow_breeze/utils/publish_docs_to_s3.py:26
+  evidence: import boto3
+  pricing_source_url: https://aws.amazon.com/pricing/
+  price_per_unit:
+    value: null
+    status: TODO
+    unit: currency
+    source_url: https://aws.amazon.com/pricing/
+    notes: Read the current price from the page above and record what one unit of work spends. It is left
+      open because a price copied today is wrong by next quarter.
+- key: azure
+  name: Microsoft Azure
+  detected_at: providers/databricks/src/airflow/providers/databricks/hooks/databricks_base.py:418
+  evidence: from azure.identity import ClientSecretCredential, ManagedIdentityCredential
+  pricing_source_url: https://azure.microsoft.com/en-us/pricing/
+  price_per_unit:
+    value: null
+    status: TODO
+    unit: currency
+    source_url: https://azure.microsoft.com/en-us/pricing/
+    notes: Read the current price from the page above and record what one unit of work spends. It is left
+      open because a price copied today is wrong by next quarter.
+- key: cohere
+  name: Cohere API
+  detected_at: providers/cohere/src/airflow/providers/cohere/operators/rerank.py:28
+  evidence: from cohere.core.request_options import RequestOptions
+  pricing_source_url: https://cohere.com/pricing
+  price_per_unit:
+    value: null
+    status: TODO
+    unit: currency
+    source_url: https://cohere.com/pricing
+    notes: Read the current price from the page above and record what one unit of work spends. It is left
+      open because a price copied today is wrong by next quarter.
+- key: gcp
+  name: Google Cloud
+  detected_at: providers/google/src/airflow/providers/google/cloud/sensors/pubsub.py:26
+  evidence: from google.cloud import pubsub_v1
+  pricing_source_url: https://cloud.google.com/pricing
+  price_per_unit:
+    value: null
+    status: TODO
+    unit: currency
+    source_url: https://cloud.google.com/pricing
+    notes: Read the current price from the page above and record what one unit of work spends. It is left
+      open because a price copied today is wrong by next quarter.
+- key: google-gemini
+  name: Google Gemini API
+  detected_at: providers/google/src/airflow/providers/google/cloud/hooks/gen_ai.py:26
+  evidence: from google import genai
+  pricing_source_url: https://ai.google.dev/pricing
+  price_per_unit:
+    value: null
+    status: TODO
+    unit: currency
+    source_url: https://ai.google.dev/pricing
+    notes: Read the current price from the page above and record what one unit of work spends. It is left
+      open because a price copied today is wrong by next quarter.
+- key: openai
+  name: OpenAI API
+  detected_at: providers/openai/src/airflow/providers/openai/hooks/openai.py:26
+  evidence: from openai import OpenAI
+  pricing_source_url: https://openai.com/api/pricing/
+  price_per_unit:
+    value: null
+    status: TODO
+    unit: currency
+    source_url: https://openai.com/api/pricing/
+    notes: Read the current price from the page above and record what one unit of work spends. It is left
+      open because a price copied today is wrong by next quarter.
+- key: sendgrid
+  name: SendGrid API
+  detected_at: providers/sendgrid/src/airflow/providers/sendgrid/utils/emailer.py:28
+  evidence: import sendgrid
+  pricing_source_url: https://sendgrid.com/en-us/pricing
+  price_per_unit:
+    value: null
+    status: TODO
+    unit: currency
+    source_url: https://sendgrid.com/en-us/pricing
+    notes: Read the current price from the page above and record what one unit of work spends. It is left
+      open because a price copied today is wrong by next quarter.
+models_called:
+- model: claude-sonnet-4-6
+  detected_at: dev/skill-evals/eval.py:301
+  evidence: model = "claude-sonnet-4-6"
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: claude-opus-4-8
+  detected_at: providers/anthropic/src/airflow/providers/anthropic/example_dags/example_batch.py:33
+  evidence: '"model": "claude-opus-4-8",'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: openai:gpt-5.6-sol
+  detected_at: providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:144
+  evidence: '"extra": ''{"model": "openai:gpt-5.6-sol"}'','
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: azure:gpt-4o
+  detected_at: providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:165
+  evidence: '"extra": ''{"model": "azure:gpt-4o", "api_version": "2024-07-01-preview"}'','
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: bedrock:us.anthropic.claude-opus-4-5
+  detected_at: providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:190
+  evidence: '"extra": ''{"model": "bedrock:us.anthropic.claude-opus-4-5", "region_name": "us-east-1"}  —
+    leave aws_access_key_id empty for IAM role / env-var auth'''
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: google-cloud:gemini-2.0-flash
+  detected_at: providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:255
+  evidence: '"extra": ''{"model": "google-cloud:gemini-2.0-flash", "project": "my-project", "location":
+    "us-central1"}  — add service_account_info (object) for SA auth; omit both to use Application Default
+    Credenti'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: openai:gpt-4o
+  detected_at: providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:341
+  evidence: '"extra": ''{"model": "openai:gpt-4o", "embed_model": "openai:text-embedding-3-small"}'','
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: embed-english-v3.0
+  detected_at: providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llamaindex_hook.py:129
+  evidence: return CohereEmbedding(model_name="embed-english-v3.0", cohere_api_key=conn.password)
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: anthropic:claude-haiku-4-5-20251001
+  detected_at: providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llm_retry_policy.py:25
+  evidence: '``password=<API key>``, ``extra=''{"model": "anthropic:claude-haiku-4-5-20251001"}''``'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: gpt-test
+  detected_at: scripts/tests/ci/prek/test_skill_eval.py:79
+  evidence: '"model": "gpt-test",'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: text-embedding-3-small
+  detected_at: providers/openai/tests/system/openai/example_openai.py:81
+  evidence: model="text-embedding-3-small",
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: gpt-4o-mini
+  detected_at: providers/openai/tests/system/openai/example_trigger_batch_operator.py:65
+  evidence: model = "gpt-4o-mini"
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: test_model
+  detected_at: providers/openai/tests/unit/openai/operators/test_openai.py:58
+  evidence: task_id=TASK_ID, conn_id=CONN_ID, model="test_model", input_text="Test input text"
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: text-embedding-ada-002-v2
+  detected_at: providers/openai/tests/unit/openai/hooks/test_openai.py:102
+  evidence: model="text-embedding-ada-002-v2",
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: text-embedding-ada-002
+  detected_at: providers/weaviate/tests/system/weaviate/example_weaviate_openai.py:77
+  evidence: model="text-embedding-ada-002",
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: claude-haiku-4-5
+  detected_at: providers/anthropic/tests/unit/anthropic/operators/test_batch.py:150
+  evidence: task_id="t", requests=REQUESTS, model="claude-haiku-4-5", wait_for_completion=False
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: test-model
+  detected_at: providers/common/ai/tests/unit/common/ai/conftest.py:43
+  evidence: mock_result.response = MagicMock(model_name="test-model")
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: test
+  detected_at: providers/common/ai/tests/unit/common/ai/test_observability.py:105
+  evidence: hook = PydanticAIHook(llm_conn_id="c", model_id="test")
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: openai:gpt-5
+  detected_at: providers/common/ai/tests/unit/common/ai/operators/test_agent.py:371
+  evidence: model_id="openai:gpt-5",
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: gpt-5
+  detected_at: providers/common/ai/tests/unit/common/ai/utils/test_logging.py:37
+  evidence: 'def _make_mock_result(model_name="gpt-5", tool_names=None, usage_kwargs=None):'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: gpt-x
+  detected_at: providers/common/ai/tests/unit/common/ai/durable/test_task_state_store.py:118
+  evidence: model_name="gpt-x",
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: anthropic:claude-3-7-sonnet
+  detected_at: providers/common/ai/tests/unit/common/ai/hooks/test_langchain.py:104
+  evidence: '{"model": "anthropic:claude-3-7-sonnet"},'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: anthropic:claude-opus-4-6
+  detected_at: providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:151
+  evidence: 'extra=''{"model": "anthropic:claude-opus-4-6"}'','
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: bedrock:us.anthropic.claude-v2
+  detected_at: providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:195
+  evidence: hook = PydanticAIHook(llm_conn_id="test_conn", model_id="bedrock:us.anthropic.claude-v2")
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: openai:llama3
+  detected_at: providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:213
+  evidence: hook = PydanticAIHook(llm_conn_id="test_conn", model_id="openai:llama3")
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: badprovider:model
+  detected_at: providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:490
+  evidence: hook = PydanticAIHook(llm_conn_id="test_conn", model_id="badprovider:model")
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: google:gemini-2.0-flash
+  detected_at: providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:784
+  evidence: '{"model": "google:gemini-2.0-flash", "api_key": "gla-key"},'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: text-embedding-3-large
+  detected_at: providers/common/ai/tests/unit/common/ai/hooks/test_llamaindex.py:141
+  evidence: mock_cls.assert_called_once_with(model="text-embedding-3-large", api_key="sk-test")
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: gpt-4o
+  detected_at: providers/common/ai/tests/unit/common/ai/hooks/test_llamaindex.py:161
+  evidence: mock_cls.assert_called_once_with(model="gpt-4o", api_key="sk-test")
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: base
+  detected_at: providers/google/tests/system/google/cloud/translate/example_translate.py:49
+  evidence: model="base",
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: provisioned_model_arn
+  detected_at: providers/amazon/tests/unit/amazon/aws/sensors/test_bedrock.py:94
+  evidence: model_id="provisioned_model_arn",
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: model_name
+  detected_at: providers/amazon/tests/unit/amazon/aws/operators/test_sagemaker_model.py:77
+  evidence: delete_model.assert_called_once_with(model_name="model_name")
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: s3://your-bucket-name/model.tar.gz
+  detected_at: providers/amazon/tests/unit/amazon/aws/operators/test_sagemaker_model.py:91
+  evidence: model = "s3://your-bucket-name/model.tar.gz"
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: test_model_arn
+  detected_at: providers/amazon/tests/unit/amazon/aws/operators/test_bedrock.py:531
+  evidence: model_id="test_model_arn",
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: rerank-v3.5
+  detected_at: providers/cohere/tests/unit/cohere/operators/test_rerank.py:37
+  evidence: model="rerank-v3.5",
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+scenarios:
+- name: as-audited
+  description: One unit of work as this audit found it, on the machine it ran on.
+  runtime:
+    value: null
+    status: TODO
+    unit: s
+    notes: No run was measured. Measure the real command with `saggio measure`, or audit again with --run.
+  costs:
+    time:
+      value: null
+      status: TODO
+      unit: s
+      derived_from:
+      - scenarios[0].runtime
+      notes: No run was measured. Measure the real command with `saggio measure`, or audit again with
+        --run.
+    energy:
+      value: null
+      status: TODO
+      unit: kWh
+      derived_from:
+      - assumptions.machine_energy
+      - assumptions.pue
+      notes: Needs the machine's own energy and the site's power usage effectiveness.
+    money:
+      value: null
+      status: TODO
+      unit: currency
+      currency: USD
+      derived_from:
+      - scenarios[0].costs.energy
+      - assumptions.electricity_price
+      notes: Needs the energy drawn and a price per kilowatt-hour.
+    carbon:
+      value: null
+      status: TODO
+      unit: gCO2e
+      derived_from:
+      - scenarios[0].costs.energy
+      - assumptions.grid_carbon_intensity
+      notes: Needs the energy drawn and the grid carbon intensity where it runs.
+    water:
+      value: null
+      status: TODO
+      unit: L
+      derived_from:
+      - assumptions.machine_energy
+      - assumptions.water_usage_effectiveness
+      notes: Needs the machine's energy and a published water usage effectiveness.
+analysis:
+  evidence_source: static
+  archetype: service
+  languages:
+  - Python
+  - TypeScript
+  - Shell
+  - JavaScript
+  - Go
+  - Kotlin
+  - SQL
+  - Java
+  - Scala
+  language_file_counts:
+    Python: 7920
+    TypeScript: 1112
+    Shell: 90
+    JavaScript: 67
+    Go: 65
+    Kotlin: 32
+    SQL: 12
+    Java: 11
+    Scala: 1
+  frameworks:
+  - numpy
+  - pandas
+  - polars
+  - spark
+  has_tests: true
+exclusions:
+- Making the hardware. Only the electricity to run it is counted.
+- The people. Salaries, offices, and travel are out of scope.
+- Idle capacity. This is the cost of one unit of work, not of being ready.
+provenance_rules:
+- Every sourced value carries source_url and retrieved_date.
+- A derived value names its inputs and never outranks the weakest of them.
+- The country is stated by a human, never inferred from a developer's locale.

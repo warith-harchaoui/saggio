@@ -11,7 +11,7 @@
 # costs then rise to `measured` on their own, because each one names its inputs
 # in `derived_from` and the validator recomputes the weakest link from there.
 
-schema_version: "2.0"
+schema_version: "2.1"
 
 date_updated: "2026-09-12"
 

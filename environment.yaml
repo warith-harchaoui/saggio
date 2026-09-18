@@ -1,6 +1,11 @@
 # A conda environment for people who prefer one. It installs Python and pip, then
-# the package itself; every dependency of the package is a pip dependency, so
-# there is no second list here that could drift out of step with pyproject.toml.
+# this package from the checkout, with the test and lint tooling. Installing the
+# package is what puts the `saggio` command on the path; installing only its
+# dependencies would leave you with an environment that cannot run it.
+#
+# The dependency list itself lives in pyproject.toml and nowhere else. The
+# requirements*.txt files in this repository are a convenience for tools that
+# still expect that shape, and are kept in step with pyproject.toml by hand.
 name: env-for-saggio
 channels:
   - conda-forge
@@ -8,4 +13,4 @@ dependencies:
   - python>=3.10,<3.14
   - pip
   - pip:
-      - -r requirements-dev.txt
+      - --editable .[dev]

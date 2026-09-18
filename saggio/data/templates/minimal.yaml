@@ -5,7 +5,7 @@
 # tell a lie that survives into a report. Fill the TODOs in, or measure them with
 # `saggio measure`, and the statuses will rise on their own.
 
-schema_version: "2.0"
+schema_version: "2.1"
 
 date_updated: "YYYY-MM-DD"
 

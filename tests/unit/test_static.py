@@ -14,6 +14,7 @@ from saggio.analyze.static import (
     detect_archetype,
     detect_frameworks,
     detect_languages,
+    detect_models,
     detect_services,
     detect_tests,
     find_entrypoint,
@@ -80,7 +81,45 @@ def test_an_unremarkable_repository_is_unknown(tmp_path: Path) -> None:
 
 def test_frameworks_are_found_by_import_fingerprint(tmp_path: Path) -> None:
     write(tmp_path, "model.py", "import torch\nfrom transformers import AutoModel\n")
-    assert set(detect_frameworks(tmp_path)) >= {"pytorch", "transformers"}
+    workload, in_suite_only = detect_frameworks(tmp_path)
+    assert set(workload) >= {"pytorch", "transformers"}
+    assert in_suite_only == ()
+
+
+def test_a_framework_written_into_a_fixture_is_not_a_framework(tmp_path: Path) -> None:
+    # This is what a tool doing the naive thing gets wrong, and what it got wrong
+    # on this very repository: a fixture writing "import torch" into a temporary
+    # file made the audit report a project that trains models. It does not, and
+    # the string inside the call is not an import anywhere.
+    write(tmp_path, "app.py", "import flask\n")
+    write(tmp_path, "tests/test_model.py", 'write("import torch\\n")\n')
+    workload, in_suite_only = detect_frameworks(tmp_path)
+    assert "pytorch" not in workload
+    assert "pytorch" not in in_suite_only
+
+
+def test_a_framework_the_suite_itself_imports_is_reported_apart(tmp_path: Path) -> None:
+    # The suite really does import it, which is worth saying and is not evidence
+    # that the workload does.
+    write(tmp_path, "app.py", "import flask\n")
+    write(tmp_path, "tests/test_model.py", "import torch\n")
+    workload, in_suite_only = detect_frameworks(tmp_path)
+    assert "pytorch" not in workload
+    assert "pytorch" in in_suite_only
+
+
+def test_a_framework_named_in_prose_is_not_detected(tmp_path: Path) -> None:
+    write(tmp_path, "app.py", "# we could import torch here one day\nimport flask\n")
+    workload, in_suite_only = detect_frameworks(tmp_path)
+    assert workload == () and in_suite_only == ()
+
+
+def test_a_framework_used_in_both_places_belongs_to_the_workload(tmp_path: Path) -> None:
+    write(tmp_path, "train.py", "import torch\n")
+    write(tmp_path, "tests/test_train.py", "import torch\n")
+    workload, in_suite_only = detect_frameworks(tmp_path)
+    assert "pytorch" in workload
+    assert "pytorch" not in in_suite_only
 
 
 # --- Work size, and the disagreement it refuses to settle quietly ------------
@@ -257,3 +296,128 @@ def test_the_reading_serialises_as_prose_and_counts(training_repository: Path) -
     mapping = read_repository(training_repository).to_mapping()
     assert mapping["evidence_source"] == "static"
     assert mapping["total_work"]["source"].endswith("::max_iters")
+
+
+# --- Model identifiers -------------------------------------------------------
+
+
+def test_a_model_named_in_a_call_is_found_with_its_evidence(tmp_path) -> None:
+    (tmp_path / "app.py").write_text(
+        'reply = client.chat.completions.create(model="gpt-4o")\n', encoding="utf-8"
+    )
+    hits = detect_models(tmp_path)
+    assert [hit.identifier for hit in hits] == ["gpt-4o"]
+    assert hits[0].path == "app.py"
+    assert hits[0].line_number == 1
+    assert "gpt-4o" in hits[0].line
+
+
+def test_the_other_spellings_of_naming_a_model_are_found_too(tmp_path) -> None:
+    (tmp_path / "a.py").write_text('model_name = "claude-3-5-sonnet"\n', encoding="utf-8")
+    (tmp_path / "b.py").write_text('{"model": "mistral-large-latest"}\n', encoding="utf-8")
+    found = {hit.identifier for hit in detect_models(tmp_path)}
+    assert found == {"claude-3-5-sonnet", "mistral-large-latest"}
+
+
+def test_a_model_named_only_in_a_comment_is_not_a_model_the_code_calls(tmp_path) -> None:
+    # The same rule the service detection keeps: prose about code is not code.
+    (tmp_path / "app.py").write_text('# model="gpt-4o" is the expensive one\n', encoding="utf-8")
+    assert detect_models(tmp_path) == ()
+
+
+def test_a_model_held_in_a_variable_is_not_guessed_at(tmp_path) -> None:
+    # Knowing what CHOSEN holds would mean running the program, and this pass
+    # runs nothing.
+    (tmp_path / "app.py").write_text("client.chat(model=CHOSEN)\n", encoding="utf-8")
+    assert detect_models(tmp_path) == ()
+
+
+def test_each_identifier_is_reported_once_however_often_it_appears(tmp_path) -> None:
+    (tmp_path / "a.py").write_text('model="gpt-4o"\nmodel="gpt-4o"\n', encoding="utf-8")
+    (tmp_path / "b.py").write_text('model="gpt-4o"\n', encoding="utf-8")
+    assert len(detect_models(tmp_path)) == 1
+
+
+# --- Model identifiers: three things that look alike ------------------------
+
+
+def test_a_type_annotation_is_not_a_model_being_called(tmp_path: Path) -> None:
+    # Auditing Whisper reported a model called Whisper, from the line
+    # `model: "Whisper", mel: Tensor` in a function signature. Python has no
+    # unquoted mapping keys, so a colon after a bare name is an annotation.
+    write(tmp_path, "decoding.py", 'def decode(model: "Whisper", mel: Tensor) -> str:\n    ...\n')
+    assert detect_models(tmp_path) == ()
+
+
+def test_a_quoted_key_in_python_is_a_mapping_and_still_counts(tmp_path: Path) -> None:
+    write(tmp_path, "call.py", 'reply = post({"model": "gpt-4o"})\n')
+    assert [hit.identifier for hit in detect_models(tmp_path)] == ["gpt-4o"]
+
+
+def test_an_unquoted_key_outside_python_is_a_mapping(tmp_path: Path) -> None:
+    # JavaScript, TypeScript and Go all write object keys without quotes, and
+    # there the same line really is a model being chosen.
+    write(tmp_path, "client.ts", 'const body = { model: "gpt-4o" };\n')
+    assert [hit.identifier for hit in detect_models(tmp_path)] == ["gpt-4o"]
+
+
+def test_a_string_being_built_is_not_a_model(tmp_path: Path) -> None:
+    # Auditing FastAPI reported a model called Body_, from
+    # `model_name = "Body_" + name` in its own internals.
+    write(tmp_path, "utils.py", 'model_name = "Body_" + name\n')
+    assert detect_models(tmp_path) == ()
+
+
+def test_a_string_being_formatted_is_not_a_model(tmp_path: Path) -> None:
+    write(tmp_path, "utils.py", 'model = "gpt-{}".format(version)\n')
+    assert detect_models(tmp_path) == ()
+
+
+def test_a_fragment_appended_to_something_else_is_not_a_model(tmp_path: Path) -> None:
+    write(tmp_path, "utils.py", 'model = prefix + "-turbo"\n')
+    assert detect_models(tmp_path) == ()
+
+
+def test_the_ordinary_ways_of_naming_a_model_all_still_work(tmp_path: Path) -> None:
+    write(
+        tmp_path,
+        "app.py",
+        'a = chat(model="gpt-4o")\n'
+        "b = chat(model_name='claude-3-5-sonnet')\n"
+        'c = post({"model": "mistral-large-latest"})\n',
+    )
+    found = {hit.identifier for hit in detect_models(tmp_path)}
+    assert found == {"gpt-4o", "claude-3-5-sonnet", "mistral-large-latest"}
+
+
+# --- Which file states the length of a run ----------------------------------
+
+
+def test_a_training_config_outranks_an_evaluation_one(tmp_path: Path) -> None:
+    # Auditing DINOv2 took its epoch count from configs/eval/, because the rule
+    # was alphabetical within a rank and "eval" sorts before "train".
+    write(tmp_path, "configs/eval/linear.yaml", "epochs: 10\n")
+    write(tmp_path, "configs/train/vitg14.yaml", "epochs: 500\n")
+    chosen, every, conflicts = find_work_size(tmp_path)
+    assert chosen is not None
+    assert chosen.value == 500.0
+    assert "train" in chosen.source
+    # Both are still on the record, and the disagreement is still reported.
+    assert len(every) == 2
+    assert conflicts
+
+
+def test_a_neutral_directory_outranks_an_evaluation_one(tmp_path: Path) -> None:
+    write(tmp_path, "configs/benchmarks/speed.yaml", "epochs: 3\n")
+    write(tmp_path, "configs/default.yaml", "epochs: 100\n")
+    chosen, _, _ = find_work_size(tmp_path)
+    assert chosen is not None and chosen.value == 100.0
+
+
+def test_a_named_config_file_still_beats_a_training_directory(tmp_path: Path) -> None:
+    # The file-name table is the stronger statement of the two: a repository that
+    # has a config.py is telling you where its configuration lives.
+    write(tmp_path, "config.py", "epochs = 42\n")
+    write(tmp_path, "train/other.yaml", "epochs: 7\n")
+    chosen, _, _ = find_work_size(tmp_path)
+    assert chosen is not None and chosen.value == 42.0

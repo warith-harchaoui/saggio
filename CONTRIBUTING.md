@@ -1,5 +1,7 @@
 # Contributing
 
+[🇫🇷 CONTRIBUER.md](CONTRIBUER.md) · 🇬🇧 English
+
 Thank you for looking. The most useful contributions to this project are small and
 specific, and two of them need no Python at all.
 
@@ -109,6 +111,17 @@ python reporting/sync.py
 
 A contract test runs `python reporting/sync.py --check`, so a change made in the
 packaged copy fails the build rather than shipping.
+
+`docs/api.md` works the same way, in the other direction: it is written *from*
+the docstrings rather than beside them. Change a public signature or the first
+line of a public docstring, then:
+
+```bash
+python docs/sync_api.py
+```
+
+A contract test runs `python docs/sync_api.py --check`, so a reference that has
+drifted away from the package fails the build rather than misleading a reader.
 
 ## Changing the schema
 

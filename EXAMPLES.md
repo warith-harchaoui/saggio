@@ -81,6 +81,15 @@ Reading a repository establishes what it is: its languages, its shape, the
 frameworks it imports, how much work a full run performs, and which paid APIs it
 calls. All of it is deterministic and quotes the line it came from.
 
+The code that tests a repository is read apart from the code it runs. A suite
+writes fixtures, and a fixture that writes `import torch` into a temporary file
+is not a project that trains anything. A framework is counted when a line
+actually imports it, never when a line merely contains its name, so a table of
+framework names in a comment detects nothing. What the suite alone imports is
+reported under `frameworks_in_suite_only`, and a service or a model whose only
+evidence line is a test file arrives with a `caveat` saying so rather than being
+priced as part of the workload.
+
 A detected service looks like this in the model:
 
 ```yaml
@@ -116,6 +125,77 @@ saggio audit . --country FR
 saggio audit . --country FR --no-llm
 ```
 
+### From the environment
+
+Two things can be set once instead of passed every time, which is what a container
+or a continuous-integration job wants:
+
+| Variable | What it sets |
+|---|---|
+| `SAGGIO_COUNTRY` | The ISO 3166-1 alpha-2 country the code runs in. Stating it this way is a human assertion, so it counts as `measured`, exactly as `--country` does. |
+| `SAGGIO_MODEL` | The Ollama model tag to classify with, instead of the first preferred one installed. |
+| `OLLAMA_HOST` | Where Ollama listens, when it is not `http://127.0.0.1:11434`. |
+
+```bash
+export SAGGIO_COUNTRY=FR
+saggio audit . -o cost_of_running.yaml
+```
+
+`--country` wins over the variable, and neither is ever guessed: with no country
+from either, the carbon and money figures stay open.
+
+### Pricing the APIs it calls
+
+A price is per *model*, not per vendor: `gpt-4o` and `gpt-4o-mini` are one API at
+an eightfold difference. So the audit reads the model identifier out of your code,
+with the line that names it, and looks the rates up only when you ask:
+
+```bash
+saggio audit . --country FR --fetch-prices -o cost_of_running.yaml
+```
+
+```yaml
+models_called:
+  - model: gpt-4o
+    detected_at: app.py:7
+    evidence: model="gpt-4o",
+    provider: openai
+    rates:
+      input_cost_per_token:
+        value: 2.5e-06
+        status: estimated
+        unit: USD per input token
+        currency: USD
+        source_kind: aggregator
+        source_url: https://github.com/BerriAI/litellm
+        retrieved_date: '2026-09-13'
+      output_cost_per_token: {...}     # eight rates in all, for this one model
+    units_per_unit_of_work:
+      value: null
+      status: TODO
+```
+
+Three things are deliberate there.
+
+**Nothing parses a web page, and no model is asked what one says.** A price on a
+marketing page fails silently and wrongly: a layout change returns the
+struck-through old figure, or the enterprise tier, or the cached-input rate
+instead of the input rate. Only sources published *as data* are read.
+
+**`source_kind` says how close the figure is to whoever sets it.** `stated` when
+a human wrote it, `first-party` when it came from the vendor's own price API,
+`aggregator` when it came from somebody else's transcription. The large
+language-model vendors publish no price API, so their rates are `aggregator` and
+the model says so rather than dressing it up. `saggio diff` fails when a price's
+provenance weakens, exactly as it fails when a status weakens.
+
+**The rate is known; the usage is not.** How many tokens one unit of work spends
+is not something reading a repository establishes, so it stays `TODO`. The model
+shows precisely which half is missing.
+
+Without `--fetch-prices` nothing reaches the network and the audit produces the
+same model it produces offline, with the prices left open.
+
 ## Measuring instead of guessing
 
 ### One command of yours
@@ -133,10 +213,69 @@ Average power: 96.3 W (measured)
      2.106 s  dataloader.py:41(__next__)
 ```
 
-Power is measured where the operating system will say. On Linux with an Intel
-processor that is the package energy counter. On macOS and Windows there is no
-unprivileged counter to read, so the report says `not measured` and the model
-falls back to an estimate labelled as one.
+Power is measured where the machine will say, from two counters rather than one.
+On Linux with an Intel processor, the package energy counter gives the processor.
+On any machine with an NVIDIA board, the driver gives the accelerator without
+needing privileges, either as an accumulated energy counter or, on boards that
+keep no running total, as the mean of readings taken every half second across the
+run. The accelerator is the one that matters: a processor drawing 50 W beside a
+board drawing 300 W is a 350 W machine, and a model that reported the 50 W would
+be wrong by a factor of seven.
+
+Whatever answered is named in the report, and so is whatever did not. Both
+counters give a figure that says what it leaves out; the accelerator alone says
+the processor is missing; neither says so, the report says `not measured` and the
+model falls back to an estimate labelled as one. On macOS there is no
+unprivileged counter on either side.
+
+The two lines under the total are the function-level profile, and they cost
+something to obtain. `cProfile` charges per call, so a call-heavy workload can
+take close to twice as long under it, and the wall-clock above is of the profiled
+run. The command says so in a warning. When the runtime is what you are after
+rather than where it went, take it without the profiler:
+
+```bash
+saggio measure --no-profile -- python train.py --steps 100
+```
+
+### Putting the measurement into the model
+
+A measurement printed to a terminal is a number nobody kept. `--into` writes it
+into a model and recomputes everything that derives from it:
+
+```bash
+saggio measure --into cost_of_running.yaml --units 500 -- python predict.py --n 500
+```
+
+```
+  runtime: not known -> 0.0011 s, TODO -> measured
+  time: not known -> 0.0011 s, TODO -> measured
+  energy: not known -> 3.93e-08 kWh, TODO -> estimated
+  money: not known -> 9.43e-09 USD, TODO -> estimated
+  carbon: not known -> 2.2e-06 gCO2e, TODO -> estimated
+  whole run: projected from the per-unit costs above
+```
+
+This is the step people get wrong by hand. Pasting a runtime into the YAML leaves
+the energy, the money and the carbon holding their old values, and a model whose
+energy no longer matches its runtime is worse than one that had neither, because
+it looks finished. Every figure above is recomputed from the model's own
+assumptions, by the same functions the audit uses, and the result is validated
+before anything is written.
+
+`--units 500` says the command performed five hundred units of work, so the
+recorded runtime is per unit. When the model already knows how much work a whole
+run performs, a whole-run projection follows from the per-unit costs.
+
+Three things are refused rather than written: a command that exited non-zero,
+because a failed run measured a failure and a failure has no cost per unit of work;
+a model with no scenario to write into; and any result that would no longer
+validate. Nothing is half-written, and a fold that changes six numbers prints all
+six.
+
+```bash
+saggio measure --into cost_of_running.yaml --scenario production -- pytest -q
+```
 
 ### A slice of somebody else's repository
 
@@ -186,19 +325,44 @@ projections:
     source: RTX-4090
     target: H100
     runtime:
-      method: Runtime on H100 = runtime on RTX-4090 x (165 / 989) peak bf16 TFLOP/s.
+      method: Runtime on H100 = runtime on RTX-4090 / 3.32, where 3.32 is the
+        memory bandwidth ratio, 3350 / 1008 GB/s.
       result:
-        value: 7.65
+        value: 13.79
         unit: s
         status: estimated
-      limits:
-        - A workload bound by memory bandwidth, storage, or the data loader will
-          not gain the full ratio, and may gain none of it.
+      bounds:
+        fastest: {value: 7.65, unit: s, status: estimated}
+        slowest: {value: 13.79, unit: s, status: estimated}
+    power_draw:
+      value: 700.0
+      unit: W
+      status: estimated
+    costs:
+      energy: {value: 0.0032, unit: kWh, status: estimated}
+      money: {value: 0.00077, unit: USD, status: estimated}
+      carbon: {value: 0.18, unit: gCO2e, status: estimated}
+    held_constant: The country, the tariff, the grid carbon intensity and the
+      datacenter overhead are the ones stated for this deployment.
 ```
 
-The scaling is a ratio of peak throughputs, which only means anything when the work
-is compute-bound and the precision is one the catalogue quotes. Ask for a precision
-it cannot speak to and it refuses rather than guessing:
+Two things limit a workload on an accelerator, and a projection that knows about
+only one of them is optimistic by construction. Arithmetic throughput limits work
+that keeps the tensor cores fed; memory bandwidth limits work that spends its time
+moving weights. Between a 4090 and an H100 those ratios are 6.0 and 3.3, so the
+answer is a bracket rather than a number. The point estimate is the compute ratio
+when the read established the work is compute-bound, the bandwidth ratio when it
+established the opposite, and the slower of the two when nothing established
+either, because the slower ratio is the longer run and the larger bill.
+
+The projection reaches money and carbon, not just a duration, because a duration
+is not the question. It holds the country, the tariff and the grid constant and
+says so: running the work on another accelerator usually means running it
+somewhere else, and where it runs is what sets the price.
+
+The throughput figure comes from the catalogue column for the precision the work
+runs in. Ask for one the catalogue has not been given and it refuses rather than
+scaling by a figure about different arithmetic:
 
 ```bash
 saggio audit . --run \
@@ -207,9 +371,10 @@ saggio audit . --run \
 
 ```
 Read before trusting this model:
-  - The catalogue quotes peak throughput at bf16, bfloat16, fp16, float16 only,
-    and this workload runs in fp32. Two chips do not keep the same ratio across
-    precisions, so scaling by a BF16 figure would overstate the faster one.
+  - The catalogue has no peak_fp32_tflops for 'RTX-4090' and 'H100', so there is
+    no fp32 ratio to scale by. Add it with `saggio catalog add gpu RTX-4090
+    --field peak_fp32_tflops=...` from the vendor datasheet, or measure on the
+    target.
 ```
 
 ## Adding a dimension of your own

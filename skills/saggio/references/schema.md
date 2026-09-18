@@ -1,6 +1,6 @@
 # The cost-model file
 
-Schema 2.0. A plain YAML mapping, so it diffs, reviews in a pull request, and reads
+Schema 2.1. A plain YAML mapping, so it diffs, reviews in a pull request, and reads
 without this package installed.
 
 ## A quantity
@@ -13,6 +13,7 @@ electricity_price:
   unit: "USD/kWh"
   currency: "USD"                               # ISO 4217, for money only
   status: "estimated"                           # measured | estimated | placeholder | TODO
+  source_kind: "first-party"                    # stated | first-party | aggregator
   source_url: "https://ember-energy.org/..."    # where it was read
   retrieved_date: "2026-09-13"                  # when it was read
   derived_from: ["a.path", "another.path"]      # what it was computed from
@@ -69,6 +70,17 @@ external_services:
     pricing_source_url: "https://openai.com/api/pricing/"
     price_per_unit: {...}
 
+models_called:                     # one entry per model identifier found in code
+  - model: "gpt-4o"
+    detected_at: "app/handlers.py:21"
+    evidence: 'model="gpt-4o"'
+    provider: "openai"
+    rates:                         # a model is charged on several axes at once
+      input_cost_per_token: {...}
+      output_cost_per_token: {...}
+    rates_provenance: "Read from a community table rather than from openai directly..."
+    units_per_unit_of_work: {...}  # how many of those units one unit spends: TODO
+
 scenarios:
   - name: "default"
     description: "One request, model loaded, no batching."
@@ -114,6 +126,10 @@ package.
 - No cost is negative.
 - An estimate in `assumptions` that was read somewhere carries a `source_url`
   (a warning), and its `retrieved_date` is watched for staleness.
+- A `source_kind`, when present, is one of `stated`, `first-party`, `aggregator`.
+  It says how close a sourced number is to whoever sets it, which the status
+  cannot: a vendor's own published price and a community transcription of it are
+  both `estimated`.
 - Within a major line the schema only grows. A newer major is refused rather than
   misread.
 

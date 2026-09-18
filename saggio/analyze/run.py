@@ -16,11 +16,13 @@ fact. Second choice is the repository's own test suite, which was written to be
 run and to terminate, but which covers an unknown share of a real workload, so no
 completion projection follows from it.
 
-Two failures used to happen quietly and now do not. A capped run that exits
+Three failures used to happen quietly and now do not. A capped run that exits
 non-zero, usually because the entry point does not take the flag, produces a
 warning that says so, and no projection. A run that hits the time limit is
 recorded as truncated, with the share of the limit it used, rather than being
-presented as a completed slice.
+presented as a completed slice. And a run taken with the profiler attached says
+so, because cProfile charges per call and the inflated wall time it produces is
+what every downstream energy, carbon, and money figure gets multiplied by.
 
 Usage example
 -------------
@@ -390,6 +392,10 @@ class SliceResult:
             "measured_on": date.today().isoformat(),
             "power_scope": self.power.scope,
         }
+        if self.power.sources:
+            # Which counters answered, so a reader comparing two models can see
+            # whether they are comparing the same hardware boundary.
+            mapping["power_sources"] = list(self.power.sources)
         if self.truncated:
             mapping["truncated"] = True
         if self.hot_path:
@@ -586,6 +592,20 @@ def run_slice(
                 "No function-level profile was taken: the profiler can only wrap a "
                 "Python script or a `-m module` invocation. The totals below are "
                 "unaffected."
+            )
+
+        if wrap:
+            # The wall-clock time below is of the *profiled* process. cProfile
+            # charges per function call, which roughly doubles a call-heavy
+            # workload, and that runtime is what every energy, carbon, and money
+            # figure downstream is multiplied by. Saying so is the difference
+            # between a measurement and an overstatement nobody can see.
+            warnings.append(
+                "The runtime below was measured with the function-level profiler "
+                "attached. cProfile charges per call, so a call-heavy workload can "
+                "take close to twice as long under it, and every cost derived from "
+                "this runtime inherits that. Treat it as an upper bound, and measure "
+                "again with --no-profile for the figure a cost model should carry."
             )
 
         meter = PowerMeter.start()

@@ -3,97 +3,146 @@
 # Each row carries provenance (source_url + retrieved_date) because a hardware
 # figure is a sourced value like any other, not folklore. Numeric values are
 # vendor-datasheet figures (SXM/OAM at the default power cap; dense BF16 for
-# throughput). The seed source_url values point at the vendor product pages and
-# should be verified and deep-linked through the `cost-running hardware add`
-# web-search flow as the catalogue grows.
+# throughput; peak theoretical memory bandwidth for the default memory
+# configuration). The seed source_url values point at the vendor product pages
+# and should be verified and deep-linked through the `saggio catalog add gpu`
+# and `saggio catalog add cpu` flow as the catalogue grows.
+#
+# memory_gb is the board's own memory, and it is what says whether a projection
+# is worth making at all. Projecting a run measured on an 80 GB board onto a 24 GB
+# one gives an arithmetic answer to a run that would not start. The Apple rows
+# carry no memory_gb on purpose: their memory is unified with the host and chosen
+# per machine, so it is a property of a laptop rather than of a part.
+#
+# memory_bandwidth_gbps is what makes a projection onto another accelerator
+# honest rather than optimistic. A workload that waits on memory gains the ratio
+# of bandwidths, not the ratio of peak FLOP/s, and the two differ by more than a
+# factor of two between an A100 and an H100. A row without it can still be
+# projected onto, and the projection then says it is reporting an upper bound on
+# the speed-up rather than a bracket around it.
 
-schema_version: "2.0"
+schema_version: "2.1"
 
 gpus:
   - key: T4
     tdp_w: 70
+    memory_bandwidth_gbps: 320
+    memory_gb: 16
     source_url: "https://www.nvidia.com/en-us/data-center/tesla-t4/"
     retrieved_date: "2026-07-27"
   - key: L4
     tdp_w: 72
+    memory_bandwidth_gbps: 300
+    memory_gb: 24
     peak_bf16_tflops: 121
     source_url: "https://www.nvidia.com/en-us/data-center/l4/"
     retrieved_date: "2026-07-27"
   - key: L40S
     tdp_w: 350
+    memory_bandwidth_gbps: 864
+    memory_gb: 48
     peak_bf16_tflops: 362
     source_url: "https://www.nvidia.com/en-us/data-center/l40s/"
     retrieved_date: "2026-07-27"
   - key: P100
     tdp_w: 250
+    memory_bandwidth_gbps: 732
+    memory_gb: 16
     source_url: "https://www.nvidia.com/en-us/data-center/tesla-p100/"
     retrieved_date: "2026-07-27"
   - key: V100
     tdp_w: 300
+    memory_bandwidth_gbps: 900
+    memory_gb: 32
     peak_bf16_tflops: 125
     source_url: "https://www.nvidia.com/en-us/data-center/v100/"
     retrieved_date: "2026-07-27"
   - key: A100
     tdp_w: 400
+    memory_bandwidth_gbps: 1555
+    memory_gb: 40
     peak_bf16_tflops: 312
     source_url: "https://www.nvidia.com/en-us/data-center/a100/"
     retrieved_date: "2026-07-27"
-    notes: "SXM4, dense BF16. A100-40GB and A100-80GB share these figures."
+    notes: "SXM4, dense BF16, 40 GB memory configuration. The 80 GB part has
+      the same compute and 2039 GB/s of bandwidth; see the A100-80GB row."
   - key: A100-40GB
     tdp_w: 400
+    memory_bandwidth_gbps: 1555
+    memory_gb: 40
     peak_bf16_tflops: 312
     source_url: "https://www.nvidia.com/en-us/data-center/a100/"
     retrieved_date: "2026-07-27"
   - key: A100-80GB
     tdp_w: 400
+    memory_bandwidth_gbps: 2039
+    memory_gb: 80
     peak_bf16_tflops: 312
     source_url: "https://www.nvidia.com/en-us/data-center/a100/"
     retrieved_date: "2026-07-27"
   - key: H100
     tdp_w: 700
+    memory_bandwidth_gbps: 3350
+    memory_gb: 80
     peak_bf16_tflops: 989
     source_url: "https://www.nvidia.com/en-us/data-center/h100/"
     retrieved_date: "2026-07-27"
     notes: "SXM5, dense BF16."
   - key: H100-SXM
     tdp_w: 700
+    memory_bandwidth_gbps: 3350
+    memory_gb: 80
     peak_bf16_tflops: 989
     source_url: "https://www.nvidia.com/en-us/data-center/h100/"
     retrieved_date: "2026-07-27"
   - key: H200
     tdp_w: 700
+    memory_bandwidth_gbps: 4800
+    memory_gb: 141
     peak_bf16_tflops: 989
     source_url: "https://www.nvidia.com/en-us/data-center/h200/"
     retrieved_date: "2026-07-27"
   - key: B100
     tdp_w: 700
+    memory_bandwidth_gbps: 8000
+    memory_gb: 192
     peak_bf16_tflops: 1800
     source_url: "https://www.nvidia.com/en-us/data-center/technologies/blackwell-architecture/"
     retrieved_date: "2026-07-27"
     notes: "NVIDIA Blackwell, SXM, dense BF16."
   - key: B200
     tdp_w: 1000
+    memory_bandwidth_gbps: 8000
+    memory_gb: 192
     peak_bf16_tflops: 2250
     source_url: "https://www.nvidia.com/en-us/data-center/technologies/blackwell-architecture/"
     retrieved_date: "2026-07-27"
     notes: "NVIDIA Blackwell, SXM, dense BF16."
   - key: MI250X
     tdp_w: 560
+    memory_bandwidth_gbps: 3277
+    memory_gb: 128
     source_url: "https://www.amd.com/en/products/accelerators/instinct/mi200/mi250x.html"
     retrieved_date: "2026-07-27"
   - key: MI300X
     tdp_w: 750
+    memory_bandwidth_gbps: 5300
+    memory_gb: 192
     peak_bf16_tflops: 1307
     source_url: "https://www.amd.com/en/products/accelerators/instinct/mi300/mi300x.html"
     retrieved_date: "2026-07-27"
   - key: MI325X
     tdp_w: 1000
+    memory_bandwidth_gbps: 6000
+    memory_gb: 256
     peak_bf16_tflops: 1307
     source_url: "https://www.amd.com/en/products/accelerators/instinct/mi300/mi325x.html"
     retrieved_date: "2026-07-27"
     notes: "AMD CDNA3, same compute die as MI300X."
   - key: TPU-v4
     tdp_w: 170
+    memory_bandwidth_gbps: 1228
+    memory_gb: 32
     peak_bf16_tflops: 275
     source_url: "https://cloud.google.com/tpu/docs/v4"
     retrieved_date: "2026-07-27"
@@ -104,46 +153,59 @@ gpus:
   # from a laptop to a datacenter GPU is impossible for most users.
   - key: A10G
     tdp_w: 150
+    memory_bandwidth_gbps: 600
+    memory_gb: 24
     peak_bf16_tflops: 125
     source_url: "https://www.nvidia.com/en-us/data-center/products/a10-gpu/"
     retrieved_date: "2026-09-12"
   - key: RTX-3090
     tdp_w: 350
+    memory_bandwidth_gbps: 936
+    memory_gb: 24
     peak_bf16_tflops: 71
     source_url: "https://www.nvidia.com/en-us/geforce/graphics-cards/30-series/rtx-3090-3090ti/"
     retrieved_date: "2026-09-12"
     notes: "Ampere GA102, dense BF16 without sparsity."
   - key: RTX-4090
     tdp_w: 450
+    memory_bandwidth_gbps: 1008
+    memory_gb: 24
     peak_bf16_tflops: 165
     source_url: "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/"
     retrieved_date: "2026-09-12"
     notes: "Ada AD102, dense BF16 without sparsity."
   - key: RTX-5090
     tdp_w: 575
+    memory_bandwidth_gbps: 1792
+    memory_gb: 32
     peak_bf16_tflops: 210
     source_url: "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/"
     retrieved_date: "2026-09-12"
     notes: "Blackwell GB202, dense BF16 without sparsity."
   - key: RTX-A6000
     tdp_w: 300
+    memory_bandwidth_gbps: 768
+    memory_gb: 48
     peak_bf16_tflops: 155
     source_url: "https://www.nvidia.com/en-us/design-visualization/rtx-a6000/"
     retrieved_date: "2026-09-12"
   - key: apple-m2-max
     tdp_w: 40
+    memory_bandwidth_gbps: 400
     peak_bf16_tflops: 27
     source_url: "https://www.apple.com/newsroom/2023/01/apple-unveils-m2-pro-and-m2-max-next-generation-chips-for-next-level-workflows/"
     retrieved_date: "2026-09-12"
     notes: "Integrated 38-core GPU; the TDP is the whole package under GPU load, not a board power."
   - key: apple-m3-max
     tdp_w: 45
+    memory_bandwidth_gbps: 400
     peak_bf16_tflops: 30
     source_url: "https://www.apple.com/newsroom/2023/10/apple-unveils-m3-m3-pro-and-m3-max-the-most-advanced-chips-for-a-personal-computer/"
     retrieved_date: "2026-09-12"
     notes: "Integrated 40-core GPU; whole-package figure."
   - key: apple-m4-max
     tdp_w: 55
+    memory_bandwidth_gbps: 546
     peak_bf16_tflops: 34
     source_url: "https://www.apple.com/newsroom/2024/10/apple-introduces-m4-pro-and-m4-max/"
     retrieved_date: "2026-09-12"

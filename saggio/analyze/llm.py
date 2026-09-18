@@ -45,7 +45,7 @@ DEFAULT_HOST: Final[str] = "http://127.0.0.1:11434"
 
 #: Environment variables a user sets to point elsewhere or pick a model.
 HOST_ENVIRONMENT_VARIABLE: Final[str] = "OLLAMA_HOST"
-MODEL_ENVIRONMENT_VARIABLE: Final[str] = "RUNNING_CODE_COST_MODEL"
+MODEL_ENVIRONMENT_VARIABLE: Final[str] = "SAGGIO_MODEL"
 
 #: Models preferred for reading code, best first. The first one installed is used.
 PREFERRED_MODELS: Final[tuple[str, ...]] = (

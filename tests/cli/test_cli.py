@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -10,6 +11,7 @@ import pytest
 import yaml
 
 from saggio.cli import DECLINED, INVALID, OK, UNAVAILABLE, USAGE, main
+from saggio.model import SCHEMA_VERSION
 
 
 def run(argv: list[str], capsys) -> tuple[int, str, str]:
@@ -45,7 +47,7 @@ def test_init_writes_a_template(tmp_path: Path, capsys) -> None:
     target = tmp_path / "cost.yaml"
     code, _, _ = run(["init", "--template", "annotated", "-o", str(target)], capsys)
     assert code == OK
-    assert yaml.safe_load(target.read_text(encoding="utf-8"))["schema_version"] == "2.0"
+    assert yaml.safe_load(target.read_text(encoding="utf-8"))["schema_version"] == SCHEMA_VERSION
 
 
 def test_init_writes_to_standard_output_when_no_file_is_named(capsys) -> None:
@@ -194,7 +196,7 @@ def test_audit_writes_a_model_and_its_notes_to_different_streams(
         capsys,
     )
     assert code == OK
-    assert yaml.safe_load(target.read_text(encoding="utf-8"))["schema_version"] == "2.0"
+    assert yaml.safe_load(target.read_text(encoding="utf-8"))["schema_version"] == SCHEMA_VERSION
     assert err == "" or "Read before trusting" in err
 
 
@@ -202,7 +204,7 @@ def test_audit_emits_json_on_request(training_repository: Path, capsys) -> None:
     code, out, _ = run(["audit", str(training_repository), "--no-llm", "--json"], capsys)
     payload = json.loads(out)
     assert code == OK
-    assert payload["model"]["schema_version"] == "2.0"
+    assert payload["model"]["schema_version"] == SCHEMA_VERSION
     assert "validation" in payload
 
 
@@ -314,3 +316,35 @@ def test_consent_records_a_decision_where_it_is_told_to(tmp_path: Path, capsys) 
     assert json.loads(target.read_text(encoding="utf-8"))["granted"] is True
     assert run(["consent", "revoke", "--path", str(target)], capsys)[0] == DECLINED
     assert json.loads(target.read_text(encoding="utf-8"))["granted"] is False
+
+
+# --- measure --into ----------------------------------------------------------
+
+
+def test_measuring_into_a_model_that_is_not_there_says_so(tmp_path: Path) -> None:
+    code = main(
+        ["measure", "--no-profile", "--into", str(tmp_path / "nope.yaml"), "--", "python", "-c", ""]
+    )
+    assert code != 0
+
+
+def test_a_failed_command_is_not_folded_into_a_model(tmp_path: Path) -> None:
+    # A command that exited non-zero measured a failure, and a failure has no
+    # cost per unit of work because it produced no units.
+    model = tmp_path / "cost.yaml"
+    main(["init", "-o", str(model), "--template", "annotated"])
+    before = model.read_text(encoding="utf-8")
+    code = main(
+        [
+            "measure",
+            "--no-profile",
+            "--into",
+            str(model),
+            "--",
+            sys.executable,
+            "-c",
+            "raise SystemExit(3)",
+        ]
+    )
+    assert code != 0
+    assert model.read_text(encoding="utf-8") == before

@@ -14,7 +14,7 @@
 # price_usd_per_kwh    : indicative price, household or small-business tariff.
 # timezones            : IANA zones used to offer, never to assert, a country.
 
-schema_version: "2.0"
+schema_version: "2.1"
 
 # Country keys are quoted on purpose. Unquoted, YAML reads NO as the boolean false
 # and Norway disappears from the catalogue without an error anywhere.

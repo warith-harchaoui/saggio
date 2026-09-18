@@ -39,10 +39,11 @@ from typing import Any
 import os_helper as osh
 
 from ..analyze.run import record_consent, run_slice
-from ..auditor import AuditOptions, audit, audit_github
+from ..auditor import AuditOptions, audit, audit_git_url
 from ..catalog.registry import SECTION_OF_KIND, Catalog, add_row, stale_report
 from ..diff import compare
 from ..estimate.machine import detect_machine
+from ..fold import fold_measurement
 from ..model.cost_model import CostModel
 from ..model.validate import overall_status, validate
 from ..report.html import render_html
@@ -273,11 +274,12 @@ def audit_command(args: argparse.Namespace) -> int:
         source_accelerator=args.source_accelerator,
         target_accelerator=args.target_accelerator,
         precision=args.precision,
+        fetch_prices=args.fetch_prices,
     )
     target = str(args.target)
     try:
         if target.startswith(("http://", "https://", "git@")) or target.endswith(".git"):
-            result = audit_github(target, options=options)
+            result = audit_git_url(target, options=options)
         else:
             result = audit(target, options=options)
     except RuntimeError as exc:
@@ -372,6 +374,61 @@ def measure(args: argparse.Namespace) -> int:
             print(f"  {entry.cumulative_seconds:8.3f} s  {entry.function}")
         for warning in result.warnings:
             osh.warning(warning)
+    if args.into:
+        return _fold_into(args, result)
+    return OK
+
+
+def _fold_into(args: argparse.Namespace, result: Any) -> int:
+    """Write a measurement into a model, or say why it was not written.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        With ``into``, ``units`` and ``scenario``.
+    result : SliceResult
+        What the run produced.
+
+    Returns
+    -------
+    int
+        An exit code. A run that failed or was cut short is refused rather than
+        folded, because a command that exited non-zero measured a failure and a
+        failure has no cost per unit of work: it produced no units.
+
+    Examples
+    --------
+    >>> namespace = argparse.Namespace(into="/nope.yaml", units=1.0, scenario=None)
+    >>> _fold_into(namespace, None)
+    2
+    """
+    if result is not None and (result.exit_code != 0 or result.truncated):
+        osh.error(
+            f"The command exited {result.exit_code} and nothing was written to "
+            f"{args.into}. A failed run measured a failure, which has no cost per "
+            "unit of work because it produced no units."
+        )
+        return USAGE
+    try:
+        model = _load(args.into)
+    except (AssertionError, ValueError) as exc:
+        osh.error(str(exc))
+        return USAGE
+    folded = fold_measurement(
+        model,
+        seconds=result.wall_seconds,
+        units=args.units,
+        power=result.power,
+        scenario=args.scenario,
+        command=" ".join(result.command),
+    )
+    if folded.refused:
+        osh.error(f"Nothing was written to {args.into}: {folded.refused}")
+        return INVALID
+    folded.model.save(args.into)
+    osh.info(f"Wrote {args.into}")
+    for change in folded.changes:
+        print(f"  {change}")
     return OK
 
 

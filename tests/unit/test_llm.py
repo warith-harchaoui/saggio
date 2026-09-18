@@ -29,14 +29,14 @@ def test_a_bare_host_gets_a_scheme(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_a_pinned_model_wins(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("RUNNING_CODE_COST_MODEL", "my-model:latest")
+    monkeypatch.setenv("SAGGIO_MODEL", "my-model:latest")
     assert pick_model() == "my-model:latest"
 
 
 def test_an_absent_server_is_a_normal_outcome(monkeypatch: pytest.MonkeyPatch) -> None:
     # Most machines have no Ollama running, and an audit must not care.
     monkeypatch.setenv("OLLAMA_HOST", "http://127.0.0.1:1")
-    monkeypatch.delenv("RUNNING_CODE_COST_MODEL", raising=False)
+    monkeypatch.delenv("SAGGIO_MODEL", raising=False)
     assert is_available() is False
     assert installed_models() == ()
     assert pick_model() is None

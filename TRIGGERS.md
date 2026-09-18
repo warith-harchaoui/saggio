@@ -18,7 +18,7 @@ rendered into reports.
 |---|---|---|
 | Start a cost model | `... init` | `template_text` |
 | Check one against the rules | `... validate` | `validate` |
-| Build one from a repository | `... audit` | `audit`, `audit_github` |
+| Build one from a repository | `... audit` | `audit`, `audit_git_url` |
 | Measure a real command | `... measure` | `run_slice` |
 | Report it for people | `... render` | `render_markdown`, `render_html`, `render_office` |
 | Fail a build on drift | `... diff` | `compare` |

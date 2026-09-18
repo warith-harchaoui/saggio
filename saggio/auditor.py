@@ -52,6 +52,7 @@ from .analyze.static import (
     capped_entrypoint_command,
     read_repository,
 )
+from .catalog.pricing import open_price, rate_table
 from .catalog.registry import Catalog
 from .estimate.context import DeploymentContext
 from .estimate.energy import (
@@ -72,7 +73,7 @@ from .model.cost_model import CostModel
 from .model.quantity import Quantity
 from .model.results import Report
 from .model.schema import SCHEMA_VERSION
-from .model.taxonomy import MEASURED, TODO
+from .model.taxonomy import ESTIMATED, MEASURED, TODO
 from .model.validate import validate
 
 #: The scenario an audit writes, and the dotted path everything in it derives from.
@@ -90,6 +91,16 @@ _WUE_PATH: Final[str] = "assumptions.water_usage_effectiveness"
 _RUNTIME_PATH: Final[str] = f"{_SCENARIO_PATH}.runtime"
 _IT_ENERGY_PATH: Final[str] = "assumptions.machine_energy"
 _ENERGY_PATH: Final[str] = f"{_SCENARIO_PATH}.costs.energy"
+
+#: The same, inside the block that says what the run would cost on another
+#: accelerator. A projected cost names the projected numbers it came from, not
+#: the measured ones it did not, or a reader following the trail would arrive at
+#: the local machine and wonder why the arithmetic does not work out.
+_ELSEWHERE_PATH: Final[str] = "projections.on_other_hardware"
+_PROJECTED_RUNTIME_PATH: Final[str] = f"{_ELSEWHERE_PATH}.runtime.result"
+_PROJECTED_POWER_PATH: Final[str] = f"{_ELSEWHERE_PATH}.power_draw"
+_PROJECTED_IT_ENERGY_PATH: Final[str] = f"{_ELSEWHERE_PATH}.machine_energy"
+_PROJECTED_ENERGY_PATH: Final[str] = f"{_ELSEWHERE_PATH}.costs.energy"
 
 #: What one unit of work is, per archetype, when the repository does not say. It
 #: is phrased as a question the user should answer rather than as a fact.
@@ -139,6 +150,11 @@ class AuditOptions:
     precision : str
         Numeric precision the workload runs in, which decides whether the
         catalogue's throughput figures apply to it at all.
+    fetch_prices : bool
+        Whether to look up published rates for the models the code names. Off by
+        default, because it is the only thing in an audit that reaches the
+        network beyond a local model, and an audit without it must produce the
+        same model it produces offline, with the prices left open.
     overlay : pathlib.Path or None
         Catalogue overlay directory.
 
@@ -158,6 +174,7 @@ class AuditOptions:
     source_accelerator: str | None = None
     target_accelerator: str | None = None
     precision: str = DEFAULT_PRECISION
+    fetch_prices: bool = False
     overlay: Path | None = None
 
 
@@ -364,14 +381,58 @@ def _runtime_assumption(reading: RepositoryReading, slice_result: SliceResult | 
     )
 
 
+def _model_blocks(reading: RepositoryReading, options: AuditOptions) -> list[dict[str, Any]]:
+    """Describe each model the code names, priced when a source publishes a rate.
+
+    A price is per model, not per vendor, so this is the block that can actually
+    carry a number. What it never carries is a *cost*: how many tokens one unit
+    of work spends is not something reading a repository establishes, so the
+    usage stays open and the model says which half is missing.
+
+    Parameters
+    ----------
+    reading : RepositoryReading
+        The static reading, carrying the model hits.
+    options : AuditOptions
+        What the caller asked for; the rates are only looked up on request.
+
+    Returns
+    -------
+    list of dict
+        One block per model identifier found, with its evidence and its rates.
+
+    Examples
+    --------
+    >>> _model_blocks(RepositoryReading(root=Path(".")), AuditOptions())
+    []
+    """
+    blocks: list[dict[str, Any]] = []
+    for hit in reading.models:
+        block = hit.to_mapping()
+        if options.fetch_prices:
+            table = rate_table(hit.identifier, timeout=options.timeout_seconds)
+            if not table.is_empty():
+                if table.provider:
+                    block["provider"] = table.provider
+                block["rates"] = table.to_mapping()
+                block["rates_provenance"] = table.note
+        block["units_per_unit_of_work"] = open_price(
+            None,
+            "How much of each rate one unit of work spends. Reading the code cannot "
+            "establish this; measure a real call, or state it.",
+        ).to_mapping()
+        blocks.append(block)
+    return blocks
+
+
 def _service_blocks(reading: RepositoryReading) -> list[dict[str, Any]]:
     """Describe each paid service the code calls, with a price left open.
 
-    A price is deliberately not fetched. API prices change, a stale one shipped as
-    authoritative is exactly the failure this package exists to prevent, and the
-    only honest thing an automated audit can do is name the service, quote the
-    line that proves it is used, and point at the page where the current number
-    lives.
+    A per-service price is deliberately not fetched, because a service is not
+    what anybody is charged for: ``gpt-4o`` and ``gpt-4o-mini`` are one API at an
+    eightfold difference. The rates live per model, in :func:`_model_blocks`. What
+    belongs here is the identification, the line that proves the call, and the
+    page where the vendor's own numbers live.
 
     Parameters
     ----------
@@ -473,6 +534,9 @@ def _projections(
     slice_result: SliceResult | None,
     machine: MachineProfile,
     options: AuditOptions,
+    *,
+    compute_bound: bool | None = None,
+    site: dict[str, Quantity] | None = None,
 ) -> tuple[dict[str, Any], list[str]]:
     """Build whatever projections the evidence supports, and say what it does not.
 
@@ -488,6 +552,14 @@ def _projections(
         The local machine, whose accelerator is the default projection source.
     options : AuditOptions
         What the caller asked for.
+    compute_bound : bool or None, optional
+        Whether the read established that arithmetic rather than memory limits
+        this workload. It decides which end of the speed-up bracket is reported.
+    site : dict or None, optional
+        The deployment's overhead, tariff and grid intensity, used to turn a
+        projected runtime on another accelerator into what that run would cost.
+        Without it the projection stops at a duration, which is not the question
+        anybody asked.
 
     Returns
     -------
@@ -535,24 +607,141 @@ def _projections(
                 "represents, for example --source-accelerator RTX-4090."
             )
         else:
+            catalog = Catalog.load("hardware", overlay=options.overlay)
             projection = project_to_machine(
                 runtime=runtime,
                 source_key=source,
                 target_key=options.target_accelerator,
                 precision=options.precision,
-                overlay_catalog=Catalog.load("hardware", overlay=options.overlay),
+                compute_bound=compute_bound,
+                overlay_catalog=catalog,
             )
-            block["on_other_hardware"] = {
+            elsewhere: dict[str, Any] = {
                 "source": source,
                 "target": options.target_accelerator,
                 "runtime": projection.to_mapping(),
             }
             if projection.refused:
                 notes.append(str(projection.quantity.notes))
+            elif site is not None:
+                elsewhere |= _cost_on_other_hardware(
+                    projected_runtime=projection.quantity,
+                    target_key=options.target_accelerator,
+                    target_row=catalog.rows("gpus").get(options.target_accelerator, {}),
+                    site=site,
+                )
+            block["on_other_hardware"] = elsewhere
     return block, notes
 
 
-def audit(path: str | Path, *, options: AuditOptions | None = None) -> AuditResult:
+def _cost_on_other_hardware(
+    *,
+    projected_runtime: Quantity,
+    target_key: str,
+    target_row: dict[str, Any],
+    site: dict[str, Quantity],
+) -> dict[str, Any]:
+    """Turn a projected runtime on another accelerator into what it would cost.
+
+    A duration is not the question. "What would this cost on an H100" is, and the
+    answer is the projected runtime against the target board's power, the same
+    datacenter overhead, and the same tariff and grid the deployment states. That
+    last part is an assumption large enough to be written down rather than
+    implied: moving work to another accelerator usually means moving it to
+    another place, and the place is what sets the price and the carbon.
+
+    Parameters
+    ----------
+    projected_runtime : Quantity
+        Seconds on the target, as projected.
+    target_key : str
+        The catalogue key of the target, named in the power figure's notes.
+    target_row : dict
+        Its catalogue row, for the board power and that row's provenance.
+    site : dict
+        ``pue``, ``electricity_price`` and ``grid_carbon_intensity`` as the
+        deployment states them.
+
+    Returns
+    -------
+    dict
+        The power assumed and the costs that follow, plus the sentence naming
+        what was held constant. Empty of costs when the catalogue has no board
+        power for the target.
+
+    Examples
+    --------
+    >>> block = _cost_on_other_hardware(
+    ...     projected_runtime=Quantity(value=3600.0, unit="s", status="estimated"),
+    ...     target_key="H100", target_row={"tdp_w": 700},
+    ...     site={"pue": Quantity(value=1.2, unit="ratio", status="estimated"),
+    ...           "electricity_price": Quantity(value=0.2, unit="USD/kWh",
+    ...                                         currency="USD", status="estimated"),
+    ...           "grid_carbon_intensity": Quantity(value=56, unit="gCO2e/kWh",
+    ...                                             status="estimated")})
+    >>> round(block["costs"]["energy"]["value"], 3)
+    0.84
+    """
+    board_watts = target_row.get("tdp_w")
+    if not board_watts:
+        return {
+            "costs_note": (
+                f"The catalogue has no board power for {target_key}, so the projection "
+                "stops at a duration. Add tdp_w from the vendor datasheet with "
+                f"`saggio catalog add gpu {target_key}` and it will carry a cost."
+            )
+        }
+    power = Quantity(
+        value=float(board_watts),
+        unit="W",
+        status=ESTIMATED,
+        source_url=target_row.get("source_url"),
+        retrieved_date=target_row.get("retrieved_date"),
+        notes=(
+            f"Board power for {target_key} from the catalogue, at the default power cap. "
+            "The host processor, the memory outside the board, and the rest of the node "
+            "are not included, so this understates a whole machine."
+        ),
+    )
+    machine_energy = it_energy_from_runtime(projected_runtime, power).with_derivation(
+        _PROJECTED_RUNTIME_PATH, _PROJECTED_POWER_PATH
+    )
+    energy = facility_energy(machine_energy, site["pue"]).with_derivation(
+        _PROJECTED_IT_ENERGY_PATH, _PUE_PATH
+    )
+    return {
+        "power_draw": power.to_mapping(),
+        "machine_energy": machine_energy.to_mapping(),
+        "costs": {
+            "time": Quantity(
+                value=projected_runtime.value,
+                unit="s",
+                status=projected_runtime.status,
+                notes=projected_runtime.notes,
+            )
+            .with_derivation(_PROJECTED_RUNTIME_PATH)
+            .to_mapping(),
+            "energy": energy.to_mapping(),
+            "money": money_from_energy(energy, site["electricity_price"])
+            .with_derivation(_PROJECTED_ENERGY_PATH, _PRICE_PATH)
+            .to_mapping(),
+            "carbon": carbon_from_energy(energy, site["grid_carbon_intensity"])
+            .with_derivation(_PROJECTED_ENERGY_PATH, _GRID_PATH)
+            .to_mapping(),
+        },
+        "held_constant": (
+            "The country, the tariff, the grid carbon intensity and the datacenter "
+            "overhead are the ones stated for this deployment. Running the work on "
+            "another accelerator usually means running it somewhere else, and where "
+            "it runs is what sets the price and the carbon. Restate them before "
+            "quoting these figures for a different site."
+        ),
+    }
+
+
+def audit(
+    path: str | Path, *, options: AuditOptions | None = None, origin: str | None = None
+) -> AuditResult:
     """Build a cost model for a repository.
 
     Parameters
@@ -562,6 +751,11 @@ def audit(path: str | Path, *, options: AuditOptions | None = None) -> AuditResu
     options : AuditOptions or None, optional
         What the audit should do; sensible defaults when not given, which means
         reading the code without running it.
+    origin : str or None, optional
+        Where the tree came from, when it is not where it lives. A clone lands in
+        a temporary directory whose name and path say nothing about the project
+        and will not exist tomorrow, so :func:`audit_git_url` passes the URL here
+        and the model records that instead.
 
     Returns
     -------
@@ -577,7 +771,7 @@ def audit(path: str | Path, *, options: AuditOptions | None = None) -> AuditResu
     --------
     >>> result = audit(".", options=AuditOptions(run=False, use_llm=False))
     >>> result.model.data["schema_version"]
-    '2.0'
+    '2.1'
     """
     settings = options or AuditOptions()
     notes: list[str] = []
@@ -640,16 +834,35 @@ def audit(path: str | Path, *, options: AuditOptions | None = None) -> AuditResu
         "water": water_from_energy(machine_energy, wue).with_derivation(_IT_ENERGY_PATH, _WUE_PATH),
     }
 
-    projections, projection_notes = _projections(costs, runtime, slice_result, machine, settings)
+    projections, projection_notes = _projections(
+        costs,
+        runtime,
+        slice_result,
+        machine,
+        settings,
+        compute_bound=reading.is_compute_bound(),
+        site={"pue": pue, "electricity_price": price, "grid_carbon_intensity": grid},
+    )
     notes.extend(projection_notes)
 
     deployment = context.to_mapping() | machine.to_mapping()
+    if origin is not None and not Path(origin).exists():
+        # The tree was cloned, so the processor, the core count and the operating
+        # system below are the auditing machine's. Somebody reading a model of a
+        # training framework would otherwise take a laptop's figures for the place
+        # that framework runs, and every energy number under them with it.
+        deployment["machine_provenance"] = (
+            "This describes the machine that ran the audit, not where the code "
+            f"runs. {origin} was cloned and read here. Replace the machine, the "
+            "provider and the country with the ones it actually runs on before "
+            "any number below means anything about this project."
+        )
     data: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "date_updated": date.today().isoformat(),
         "project": {
-            "name": reading.root.name,
-            "audited_from": osh.path_without_home(str(reading.root)),
+            "name": repository_name(origin) if origin else reading.root.name,
+            "audited_from": origin or osh.path_without_home(str(reading.root)),
         },
         "unit_of_work": _unit_of_work(reading),
         "deployment": deployment,
@@ -685,6 +898,8 @@ def audit(path: str | Path, *, options: AuditOptions | None = None) -> AuditResu
     }
     if reading.services:
         data["external_services"] = _service_blocks(reading)
+    if reading.models:
+        data["models_called"] = _model_blocks(reading, settings)
     if slice_result is not None:
         data["measurement"] = slice_result.to_mapping()
     if projections:
@@ -732,8 +947,56 @@ def _repository_summary(reading: RepositoryReading) -> str:
     return "\n".join(lines)
 
 
-def audit_github(url: str, *, options: AuditOptions | None = None) -> AuditResult:
+def repository_name(url: str) -> str:
+    """Return the repository's own name, as its clone URL spells it.
+
+    Parameters
+    ----------
+    url : str
+        A git URL, in any of the spellings git itself accepts.
+
+    Returns
+    -------
+    str
+        The last path segment without its ``.git`` suffix, or ``"repository"``
+        when the URL carries nothing usable.
+
+    Examples
+    --------
+    >>> repository_name("https://github.com/warith-harchaoui/saggio")
+    'saggio'
+    >>> repository_name("https://gitlab.com/gitlab-org/gitlab-runner.git")
+    'gitlab-runner'
+    >>> repository_name("git@github.com:someone/their-project.git")
+    'their-project'
+    >>> repository_name("https://example.invalid/")
+    'repository'
+    >>> repository_name("https://git.example.org/team/sub/group/thing.git/")
+    'thing'
+    """
+    # Drop the scheme first, so the "//" in "https://" cannot be mistaken for a
+    # path separator and leave an empty segment behind.
+    without_scheme = url.split("://", 1)[-1]
+    # A scp-style address (git@host:owner/name) puts a colon where a slash would
+    # otherwise be, so it separates here exactly as a slash does.
+    segments = [part for part in without_scheme.replace(":", "/").split("/") if part]
+    # The first segment is the host. A URL that stops there names no repository,
+    # and answering with the hostname would put "example.invalid" in the model
+    # where a project name belongs.
+    if len(segments) < 2:
+        return "repository"
+    last = segments[-1]
+    if last.endswith(".git"):
+        last = last[: -len(".git")]
+    return last or "repository"
+
+
+def audit_git_url(url: str, *, options: AuditOptions | None = None) -> AuditResult:
     """Clone a public repository into a temporary directory and audit it.
+
+    Any URL ``git clone`` understands works: GitHub, GitLab, Codeberg, a
+    self-hosted forge, an scp-style address. Nothing here is specific to one host,
+    because nothing here does anything but hand the URL to git.
 
     Parameters
     ----------
@@ -745,7 +1008,10 @@ def audit_github(url: str, *, options: AuditOptions | None = None) -> AuditResul
     Returns
     -------
     AuditResult
-        The model, its verdict, and the evidence.
+        The model, its verdict, and the evidence. The model names the repository
+        after the URL and records the URL as where it was audited from, rather
+        than the temporary directory the clone happened to land in, which is
+        nobody's business and gone by the time anyone reads the model.
 
     Raises
     ------
@@ -754,13 +1020,13 @@ def audit_github(url: str, *, options: AuditOptions | None = None) -> AuditResul
 
     Examples
     --------
-    >>> audit_github("not a url")
+    >>> audit_git_url("not a url")
     Traceback (most recent call last):
         ...
     RuntimeError: ...
     """
     folder = osh.make_temporary_directory(prefix="audit-")
-    target = Path(folder) / "repository"
+    target = Path(folder) / repository_name(url)
     try:
         completed = subprocess.run(  # noqa: S603 - a list, never a shell.
             # S607: git is resolved from PATH on purpose. Hard-coding a path would
@@ -782,4 +1048,4 @@ def audit_github(url: str, *, options: AuditOptions | None = None) -> AuditResul
     if completed.returncode != 0:
         detail = (completed.stderr or "").strip().splitlines()[-1:] or ["no output"]
         raise RuntimeError(f"Could not clone {url}: {detail[0]}")
-    return audit(target, options=options)
+    return audit(target, options=options, origin=url)

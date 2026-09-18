@@ -13,8 +13,8 @@ Two copies of every catalogue exist. The **bundled** one ships inside the
 package and is the same for everyone. The **overlay** lives in the user's config
 directory and holds rows they or an agent added locally, which take precedence by
 key. A row added to the overlay works immediately and can later be offered to the
-public catalogue as a pull request; see
-:mod:`saggio.catalog.contribute`.
+public catalogue as a pull request; :func:`add_row` is what writes it, and
+``saggio catalog add`` is the same thing from a terminal.
 
 Two rules keep the catalogues worth trusting. A row cannot be added without a
 ``source_url`` and a ``retrieved_date``, so nothing enters as folklore. And every

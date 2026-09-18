@@ -107,6 +107,6 @@ def template_mapping(name: str = DEFAULT_TEMPLATE) -> dict[str, Any]:
     Examples
     --------
     >>> template_mapping("minimal")["schema_version"]
-    '2.0'
+    '2.1'
     """
     return yaml.safe_load(template_text(name))

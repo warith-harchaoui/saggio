@@ -11,7 +11,7 @@
 # electricity is inside that price. When it is null, a money cost computed from
 # energy is a TODO, not a zero.
 
-schema_version: "2.0"
+schema_version: "2.1"
 
 providers:
   - key: on-prem

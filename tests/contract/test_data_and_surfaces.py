@@ -23,7 +23,7 @@ from saggio.estimate.energy import (
     it_energy_from_runtime,
     money_from_energy,
 )
-from saggio.model import CostModel, Quantity, overall_status, validate
+from saggio.model import SCHEMA_VERSION, CostModel, Quantity, overall_status, validate
 from saggio.report import render_html, render_markdown
 from saggio.templates import template_mapping, template_names
 
@@ -55,7 +55,7 @@ def test_every_bundled_catalogue_is_in_the_wheel(name: str) -> None:
 @pytest.mark.parametrize("name", BUNDLED_CATALOGS)
 def test_every_bundled_catalogue_declares_the_current_schema(name: str) -> None:
     text = resources.files("saggio.data").joinpath(f"{name}.yaml").read_text("utf-8")
-    assert yaml.safe_load(text)["schema_version"] == "2.0"
+    assert yaml.safe_load(text)["schema_version"] == SCHEMA_VERSION
 
 
 @pytest.mark.parametrize(("kind", "key", "row"), ROWS, ids=[f"{k}:{key}" for k, key, _ in ROWS])
@@ -191,7 +191,7 @@ def test_the_annotated_template_exercises_a_custom_dimension() -> None:
 
 def test_every_template_declares_the_current_schema() -> None:
     for name in template_names():
-        assert template_mapping(name)["schema_version"] == "2.0"
+        assert template_mapping(name)["schema_version"] == SCHEMA_VERSION
 
 
 # --- Between the surfaces ----------------------------------------------------

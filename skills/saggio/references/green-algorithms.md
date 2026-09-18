@@ -39,10 +39,70 @@ watts = physical cores x watts per core
 ```
 
 The 0.3725 W per gigabyte is from the paper, derived from manufacturer figures for
-DDR4. The per-core figures and the board wattages come from the hardware catalogue,
-each row carrying the datasheet it was read from.
+DDR4. It applies to the memory **available** to the job, not the memory used:
+populated slots idle in a power-hungry state whether or not the algorithm touches
+them. The per-core figures and the board wattages come from the hardware
+catalogue, each row carrying the datasheet it was read from.
 
 The result is always `estimated`. A datasheet is not a wattmeter.
+
+**The usage factor.** The paper's full formula scales the compute terms by a core
+usage factor `u_c` in `(0, 1]`: the fraction of rated power actually drawn while
+the code runs. `node_power(usage_factor=...)` accepts it, applied to processors
+and accelerators but never to memory. When nothing measured the utilisation the
+default stays 1.0, the paper's own assumption — full rated draw is the honest
+upper figure, not a hedge. Note the TDP itself can *understate* real draw when
+hyperthreading is on (up to 2x in pathological cases), which is one more reason a
+datasheet number is `estimated`.
+
+**Storage** draws about 0.001 W per gigabyte — two orders of magnitude below
+memory — so it is excluded, as the paper excludes it. The motherboard is excluded
+for the same reason the paper gives: it serves every job on the machine at once,
+and no fraction of it is attributable to this one.
+
+## The pragmatic scaling factor
+
+An analysis is rarely run once. Parameter tuning, debugging, and re-runs multiply
+the footprint by a factor the paper calls the **pragmatic scaling factor** (PSF):
+the number of times the computation was actually performed. Its worked examples
+use PSF 11 (one per energy level tested), 100 (a conservative hyper-parameter
+search), and 180 (operational forecasts per day). saggio's per-unit-of-work
+framing composes with it: the model prices one unit, and repetitions are a
+multiplication the reader can see, not a hidden assumption.
+
+## Restating carbon so a reader can feel it
+
+Grams of CO2 equivalent are exact and mean nothing to most readers. The paper
+contextualises them three ways, implemented in `saggio.estimate.equivalences`
+with the paper's coefficients:
+
+```
+tree-months = carbon / (11 000 / 12) g   (a mature tree sequesters ~11 kg CO2/year)
+car km      = carbon / 175 g (EU fleet)  or / 251 g (US fleet)
+flights     = carbon / 50 000 g   (Paris-London, per passenger, economy)
+              carbon / 570 000 g  (New York-San Francisco)
+              carbon / 2 310 000 g (New York-Melbourne)
+```
+
+An equivalence is a restatement, not a new measurement: it inherits the carbon's
+status capped at `estimated`, because the tree is an average tree and the car an
+average car, and an open carbon figure gives an open equivalence.
+
+## Reference values worth knowing
+
+- Worldwide average grid carbon intensity, as used by the paper: **475 gCO2e/kWh**;
+  the national range runs from under 20 (Norway, Switzerland, mainly hydro) to
+  880 (Australia, mainly coal and gas).
+- Global average datacenter PUE in 2019: **1.67**; Google publishes 1.10; the
+  paper uses 1.0, with a caveat, when the machine is a laptop or the PUE unknown.
+- For a *relocation* decision the **marginal** carbon intensity — the plant that
+  answers the extra demand, usually gas — is the right figure, and the average is
+  a lower bound on the benefit of moving.
+- The GHG basket behind "CO2e" is CO2, CH4, and N2O under GWP100 (IPCC), which
+  together cover 97.9% of global GHG emissions.
+- Parallelising has an optimum: past it, adding cores cuts runtime slower than it
+  adds power, and the footprint climbs (the paper doubles emissions going from 15
+  to 60 cores for a halved runtime).
 
 ## Projecting a measured slice to a whole run
 

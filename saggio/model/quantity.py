@@ -48,12 +48,88 @@ QUANTITY_KEYS: Final[frozenset[str]] = frozenset(
         "unit",
         "currency",
         "status",
+        "source_kind",
         "source_url",
         "retrieved_date",
         "derived_from",
         "notes",
     }
 )
+
+#: How a sourced number was come by. The honesty status says how well founded a
+#: number is; this says who founded it, which the status cannot express because
+#: a figure read from a vendor's own price API and a figure copied out of a
+#: community JSON are both, correctly, ``estimated``.
+STATED: Final[str] = "stated"
+FIRST_PARTY: Final[str] = "first-party"
+AGGREGATOR: Final[str] = "aggregator"
+
+#: The source kinds a quantity may declare, strongest first. Anything else is a
+#: typo, and the validator says so rather than letting an invented kind through.
+SOURCE_KINDS: Final[tuple[str, ...]] = (STATED, FIRST_PARTY, AGGREGATOR)
+
+#: Comparable strength of each kind, so a drift gate can see a provenance that
+#: weakened. Only the ordering is meaningful; the gaps are not.
+_SOURCE_STRENGTH: Final[dict[str, int]] = {STATED: 3, FIRST_PARTY: 2, AGGREGATOR: 1}
+
+#: Strength of an unrecognised kind: below every real one, so a typo can never
+#: make a provenance look stronger than it is.
+_UNKNOWN_SOURCE_STRENGTH: Final[int] = -1
+
+
+def source_strength(kind: object) -> int:
+    """Return the comparable strength of a source kind.
+
+    Parameters
+    ----------
+    kind : object
+        A source kind, or ``None`` when the quantity declares none.
+
+    Returns
+    -------
+    int
+        Higher means closer to whoever actually sets the number. ``0`` when no
+        kind is declared, which is neither a promotion nor a demotion; anything
+        unrecognised scores below that.
+
+    Examples
+    --------
+    >>> source_strength("first-party") > source_strength("aggregator")
+    True
+    >>> source_strength(None)
+    0
+    >>> source_strength("vibes") < source_strength("aggregator")
+    True
+    """
+    if kind is None:
+        return 0
+    if not isinstance(kind, str):
+        return _UNKNOWN_SOURCE_STRENGTH
+    return _SOURCE_STRENGTH.get(kind, _UNKNOWN_SOURCE_STRENGTH)
+
+
+def is_valid_source_kind(kind: object) -> bool:
+    """Return whether a value is one of the declared source kinds.
+
+    Parameters
+    ----------
+    kind : object
+        Any value, typically a string parsed from a cost model.
+
+    Returns
+    -------
+    bool
+        ``True`` when it is exactly one of :data:`SOURCE_KINDS`.
+
+    Examples
+    --------
+    >>> is_valid_source_kind("aggregator")
+    True
+    >>> is_valid_source_kind("scraped")
+    False
+    """
+    return isinstance(kind, str) and kind in SOURCE_KINDS
+
 
 #: Statuses for which a missing (``None``) value is expected rather than a fault.
 _VALUELESS_STATUSES: Final[frozenset[str]] = frozenset({PLACEHOLDER, TODO})
@@ -78,6 +154,13 @@ class Quantity:
         One of the four honesty labels. Not validated on construction;
         :meth:`has_valid_status` reports it, so the caller decides whether a bad
         label is a warning or an error.
+    source_kind : str or None
+        Who the number ultimately came from: ``stated`` when a human wrote it,
+        ``first-party`` when it was read from the vendor's own machine-readable
+        source, ``aggregator`` when it was read from somebody else's transcription
+        of that. ``None`` when the question does not arise. The status cannot
+        express this, because a vendor's published price and a community JSON's
+        copy of it are both, correctly, ``estimated``.
     source_url : str or None
         A live reference establishing the value. Expected on every sourced
         ``estimated`` assumption.
@@ -107,6 +190,7 @@ class Quantity:
     unit: str | None = None
     currency: str | None = None
     status: str = TODO
+    source_kind: str | None = None
     source_url: str | None = None
     retrieved_date: str | None = None
     derived_from: tuple[str, ...] = field(default_factory=tuple)
@@ -149,6 +233,7 @@ class Quantity:
             unit=mapping.get("unit"),
             currency=mapping.get("currency"),
             status=str(mapping.get("status", TODO)),
+            source_kind=mapping.get("source_kind"),
             source_url=mapping.get("source_url"),
             retrieved_date=mapping.get("retrieved_date"),
             derived_from=derived,
@@ -175,6 +260,8 @@ class Quantity:
             mapping["unit"] = self.unit
         if self.currency is not None:
             mapping["currency"] = self.currency
+        if self.source_kind is not None:
+            mapping["source_kind"] = self.source_kind
         if self.source_url is not None:
             mapping["source_url"] = self.source_url
         if self.retrieved_date is not None:
@@ -285,6 +372,7 @@ class Quantity:
             unit=self.unit,
             currency=self.currency,
             status=self.status,
+            source_kind=self.source_kind,
             source_url=self.source_url,
             retrieved_date=self.retrieved_date,
             derived_from=tuple(paths),
