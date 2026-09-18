@@ -609,3 +609,98 @@ def location_impact(countries: dict[str, dict[str, Any]], current: str | None = 
     )
     parts.append("</svg>")
     return "\n".join(parts)
+
+
+# --- The dashboard's honesty overview -------------------------------------------
+
+#: Room under the overview's rows for its one shared legend.
+_OVERVIEW_LEGEND_HEIGHT: Final[int] = 40
+
+
+def honesty_overview(entries: list[tuple[str, dict[str, int]]]) -> str:
+    """Draw how well founded several models are, side by side.
+
+    The one comparison a multi-project dashboard can make honestly. Costs per
+    unit do not compare across projects, because each project defines its own
+    unit of work; the *share* of each model that is measured, estimated, or
+    still open compares exactly, so that is what gets drawn: one full-width
+    stacked bar per project, all on the same scale of one hundred percent.
+
+    Parameters
+    ----------
+    entries : list of (str, dict)
+        Project name and its status counts, as from :func:`count_statuses`.
+
+    Returns
+    -------
+    str
+        Inline SVG, or an empty string when no entry counts anything, because
+        an overview of nothing is not a figure.
+
+    Examples
+    --------
+    >>> svg = honesty_overview([("a", {"measured": 2, "estimated": 2}),
+    ...                         ("b", {"TODO": 1})])
+    >>> svg.count("<rect") >= 3
+    True
+    >>> honesty_overview([]) == ""
+    True
+    >>> honesty_overview([("empty", {})]) == ""
+    True
+    """
+    counted = [
+        (name, counts, sum(counts.get(status, 0) for status in STATUS_ORDER))
+        for name, counts in entries
+    ]
+    counted = [(name, counts, total) for name, counts, total in counted if total]
+    if not counted:
+        return ""
+
+    bar_area = _WIDTH - _LABEL_WIDTH - 12
+    height = len(counted) * _ROW_HEIGHT + _OVERVIEW_LEGEND_HEIGHT
+    described = "; ".join(
+        f"{name}: "
+        + ", ".join(
+            f"{counts.get(status, 0)} {status}" for status in STATUS_ORDER if counts.get(status)
+        )
+        for name, counts, _ in counted
+    )
+    parts = [
+        f'<svg viewBox="0 0 {_WIDTH} {height}" role="img" '
+        f'aria-labelledby="overview-title overview-desc" xmlns="http://www.w3.org/2000/svg">',
+        '<title id="overview-title">How well founded each model is</title>',
+        f'<desc id="overview-desc">{_escape(described)}</desc>',
+    ]
+    for index, (name, counts, total) in enumerate(counted):
+        y = index * _ROW_HEIGHT
+        parts.append(
+            f'<text x="{_LABEL_WIDTH - 12}" y="{y + _ROW_HEIGHT / 2 + 4:.0f}" '
+            f'text-anchor="end" font-size="13" fill="var(--ink-soft)">{_escape(name)}</text>'
+        )
+        offset = float(_LABEL_WIDTH)
+        for status in STATUS_ORDER:
+            count = counts.get(status, 0)
+            if not count:
+                continue
+            width = bar_area * count / total
+            parts.append(
+                f'<rect x="{offset:.1f}" y="{y + 7}" width="{width:.1f}" height="16" rx="3" '
+                f'fill="{_FILL[status]}"><title>{_escape(name)}: {count} {_escape(status)}'
+                "</title></rect>"
+            )
+            offset += width
+
+    legend_x = _LABEL_WIDTH
+    legend_y = len(counted) * _ROW_HEIGHT + 24
+    for status in STATUS_ORDER:
+        parts.append(
+            f'<rect x="{legend_x}" y="{legend_y - 10}" width="11" height="11" rx="2" '
+            f'fill="{_FILL[status]}"/>'
+        )
+        parts.append(
+            f'<text x="{legend_x + 17}" y="{legend_y}" font-size="13" '
+            f'fill="var(--ink-soft)">{_escape(status)}</text>'
+        )
+        legend_x += 34 + 8 * len(status) + 16
+    parts.append("</svg>")
+    return "\n".join(parts)

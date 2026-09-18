@@ -50,6 +50,7 @@ _HANDLERS: Final[dict[str, Callable[[argparse.Namespace], int]]] = {
     "init": commands.initialise,
     "validate": commands.check,
     "render": commands.render,
+    "dashboard": commands.dashboard,
     "audit": commands.audit_command,
     "measure": commands.measure,
     "diff": commands.difference,
@@ -106,6 +107,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_init(verbs)
     _add_validate(verbs)
     _add_render(verbs)
+    _add_dashboard(verbs)
     _add_audit(verbs)
     _add_measure(verbs)
     _add_diff(verbs)
@@ -196,6 +198,33 @@ def _add_render(verbs: argparse._SubParsersAction) -> None:
         "--reference-doc",
         default=None,
         help="A .docx whose styles a Word or PDF output should follow.",
+    )
+
+
+def _add_dashboard(verbs: argparse._SubParsersAction) -> None:
+    """Attach the ``dashboard`` verb.
+
+    Parameters
+    ----------
+    verbs : argparse._SubParsersAction
+        The sub-parser collection.
+
+    Examples
+    --------
+    >>> build_parser().parse_args(["dashboard", "a.yaml", "b.yaml"]).models
+    ['a.yaml', 'b.yaml']
+    """
+    parser = verbs.add_parser(
+        "dashboard",
+        help="Render several cost models as one team page.",
+        epilog=(
+            "Each project's costs are per its own unit of work, so the page "
+            "compares how well founded the models are, never the costs across rows."
+        ),
+    )
+    parser.add_argument("models", nargs="+", help="The cost models to show, one path each.")
+    parser.add_argument(
+        "-o", "--output", default=None, help="Where to write it. Standard output when omitted."
     )
 
 

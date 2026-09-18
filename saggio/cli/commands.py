@@ -46,6 +46,7 @@ from ..estimate.machine import detect_machine
 from ..fold import fold_measurement
 from ..model.cost_model import CostModel
 from ..model.validate import overall_status, validate
+from ..report.dashboard import render_dashboard
 from ..report.html import render_html
 from ..report.markdown import render_markdown
 from ..report.office import OFFICE_FORMATS, render_office
@@ -244,6 +245,36 @@ def render(args: argparse.Namespace) -> int:
 
     osh.error(f"Unknown format {args.format!r}.")
     return USAGE
+
+
+def dashboard(args: argparse.Namespace) -> int:
+    """Render several cost models as one dashboard page.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        With ``models`` (one path per model) and ``output``.
+
+    Returns
+    -------
+    int
+        An exit code. One unreadable model fails the whole page, because a
+        dashboard silently missing a project would read as a team without it.
+
+    Examples
+    --------
+    >>> dashboard(argparse.Namespace(models=["/nonexistent.yaml"], output=None))
+    2
+    """
+    loaded = []
+    for path in args.models:
+        try:
+            loaded.append(_load(path))
+        except (AssertionError, ValueError) as exc:
+            osh.error(str(exc))
+            return USAGE
+    _write(render_dashboard(loaded), args.output)
+    return OK
 
 
 def audit_command(args: argparse.Namespace) -> int:
