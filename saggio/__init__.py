@@ -44,7 +44,7 @@ from __future__ import annotations
 from typing import Final
 
 #: The installed version, kept in step with pyproject.toml at release.
-__version__: Final[str] = "1.0.0"
+__version__: Final[str] = "1.1.0"
 
 __author__: Final[str] = "Warith Harchaoui, Ph.D."
 __email__: Final[str] = "warith.harchaoui@sev7n.io"

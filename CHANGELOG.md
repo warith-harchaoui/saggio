@@ -5,7 +5,79 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
-## Unreleased
+## 1.1.0 — 2026-09-18
+
+### Carbon is restated in terms a reader can feel
+
+- `saggio.estimate.equivalences` restates a carbon figure the three ways the
+  Green Algorithms paper does, with the paper's own coefficients: months of
+  sequestration by a mature tree (11 kg of CO2 a year), kilometres in an average
+  passenger car (175 g/km in Europe, 251 in the United States), and a fraction
+  of a reference flight (Paris–London, New York–San Francisco, New York–Melbourne).
+  An equivalence is a restatement, not a new measurement: it inherits the
+  carbon's status capped at `estimated`, and an open carbon figure gives an open
+  equivalence. Nothing becomes more convincing by being turned into trees.
+- Both reports now carry the felt-size line under every scenario and projection
+  whose carbon is known. A figure under a kilogram per unit is restated per
+  million units, and the sentence says so. The HTML version translates its
+  labels, so the French report speaks of mois-arbre.
+
+### The reports grew the calculator's flagship panel, and a team view
+
+- The HTML report's what-if card ends with *how the location moves the carbon*:
+  one bar of grid intensity per country, sampled across the catalogue so the
+  cleanest and dirtiest grids always anchor the scale, the model's own country
+  in the accent colour. Hand-authored inline SVG on the page's own tokens, with
+  its polarity stated.
+- `saggio dashboard model.yaml [model.yaml ...]` renders every committed model
+  on one self-contained page. It leads with the only comparison that is honest
+  across projects — the share of each model that is measured, estimated, or
+  still open — and says plainly that the cost rows, each per its own unit of
+  work, do not compare with each other.
+- The HTML report gains the measurement section the Markdown always had: the
+  command, the hot path, and the warnings that qualify every number above.
+
+### The power estimate accepts a usage factor
+
+- `node_power(usage_factor=...)` scales the processor and accelerator terms by
+  the Green Algorithms core usage factor, never the memory term, because memory
+  draws by being populated rather than by being busy. The default stays the
+  paper's own: full rated draw when nothing measured the utilisation.
+
+### One audit of the whole package, and what it closed
+
+Three passes of verified-by-execution review covered every module, and each
+finding landed with a regression test. The ones a user could have met:
+
+- A `TODO` or `placeholder` smuggling a value can no longer be computed with:
+  `is_known()` now means a finite number under a status entitled to one, so
+  estimators, projections, and equivalences leave the result open instead of
+  laundering it. The validator also sees numbers hidden inside a quantity's own
+  fields, rejects NaN and infinity, names string-typed values, warns on the
+  template's literal `YYYY-MM-DD`, and reports scenario faults at the document's
+  own indices.
+- A timed-out slice now ends the whole process tree it spawned, not just the
+  direct child; its stdout no longer buffers unbounded in the auditor's memory;
+  the child's processor time is recorded. The RAPL reader no longer double-counts
+  package subzones, and the sampled accelerator figure multiplies by the board
+  count instead of reporting an eight-board node at the wattage of one.
+- Work sizes written `6e5` are read whole, not as their mantissa; a commented-out
+  size no longer outranks the real one; a repository cloned under a directory
+  named `build` is still read; `openai_agents` no longer matches `openai`.
+- A partial catalogue overlay updates its columns instead of erasing the ones it
+  did not restate; an unquoted `NO` key is refused out loud; a future
+  `retrieved_date` reads as stale; the aggregator price table is fetched once
+  per process instead of once per detected model.
+- `diff` fails the gate on a unit or currency switch even at an equal number;
+  `fold` refuses an invalid model up front and writes the energy row its money
+  and carbon derivations stand on; `total_money` refuses a currency-less amount
+  next to a currency; negative runtimes, powers, tariffs, and intensities are
+  refused as the sign errors they are.
+- `saggio catalog` with no action exits as the usage error it is; a hostile URL
+  cannot break a Markdown table; a malformed catalogue row cannot take the HTML
+  page down; the dashboard, the projections table, and the bar controls all
+  translate.
+
 
 ### A measurement can be put into a model without retyping it
 

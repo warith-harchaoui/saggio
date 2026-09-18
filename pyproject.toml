@@ -16,7 +16,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "saggio"
-version = "1.0.0"
+version = "1.1.0"
 description = "What it costs to run your code, per unit of work, with every number saying how far it can be trusted: money, time, energy, carbon, water, and any dimension you register."
 readme = "README.md"
 requires-python = ">=3.10,<3.14"

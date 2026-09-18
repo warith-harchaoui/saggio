@@ -109,4 +109,4 @@ which `help()` will show you.
 
 ---
 
-Generated from the docstrings by `docs/sync_api.py`. saggio 1.0.0.
+Generated from the docstrings by `docs/sync_api.py`. saggio 1.1.0.
