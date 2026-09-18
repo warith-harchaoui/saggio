@@ -29,6 +29,27 @@ vieilli, [dites-le](CONTRIBUTING.md).
 | OpenCost / Kubecost | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ |
 | Consoles de facturation cloud | ⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐ | ⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ |
 
+## La carte
+
+Le même tableau, dessiné. [standpoint](https://github.com/warith-harchaoui/standpoint)
+passe une analyse en composantes principales sur les neuf notes et dispose chaque
+outil le long des deux directions qui les distinguent vraiment, en orientant la
+carte pour que saggio soit en haut à droite. Les noms d'axes sont la lecture que
+la machine fait des loadings ; ce que les loadings disent est plus simple : plus
+on va à **droite**, plus l'outil produit des réponses sourcées, versionnées, par
+unité de travail ; plus on va à **gauche**, plus il mesure la puissance en direct.
+Plus on monte, plus il modélise une unité de travail ; plus on descend, plus c'est
+quelque chose qu'on pointe vers une facture ou un formulaire.
+
+<p align="center">
+  <img src="assets/landscape.png" alt="Carte de positionnement des douze outils le long de deux composantes principales, saggio en haut à droite" width="720">
+</p>
+
+Les distances sont celles du tableau, pas une opinion : deux outils sont voisins
+parce que leurs lignes de notes le sont. Après une mise à jour du tableau,
+régénérez avec `standpoint <table> -r saggio` et commitez le
+`assets/landscape.png` rafraîchi.
+
 ## Les projets
 
 ### [CodeCarbon](https://codecarbon.io/)

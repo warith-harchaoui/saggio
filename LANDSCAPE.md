@@ -29,6 +29,25 @@ date, [say so](CONTRIBUTING.md).
 | OpenCost / Kubecost | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ |
 | Cloud billing consoles | ⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐ | ⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ |
 
+## The map
+
+The same table, drawn. [standpoint](https://github.com/warith-harchaoui/standpoint)
+runs a principal component analysis over the nine ratings and lays every tool out
+along the two directions they actually differ on, orienting the map so saggio sits
+top-right. The axis names are the machine's own reading of the loadings; what the
+loadings say is plainer: the further **right**, the more a tool produces sourced,
+committed, per-unit answers; the further **left**, the more it measures live power.
+The further **up**, the more it models a unit of work; the further **down**, the
+more it is something you point at a bill or a form.
+
+<p align="center">
+  <img src="assets/landscape.png" alt="Positioning map of the twelve tools along two principal components, saggio in the top-right corner" width="720">
+</p>
+
+The distances are the table's, not an opinion: two tools sit together because
+their rating rows are close. Regenerate after editing the table with
+`standpoint <table> -r saggio` and commit the refreshed `assets/landscape.png`.
+
 ## The projects
 
 ### [CodeCarbon](https://codecarbon.io/)
