@@ -118,9 +118,14 @@ def test_the_overlay_directory_is_created_on_demand() -> None:
     ("row", "complaint"),
     [
         ({}, "needs a key"),
-        ({"key": "X"}, "source_url"),
-        ({"key": "X", "source_url": "u"}, "retrieved_date"),
-        ({"key": "X", "source_url": "u", "retrieved_date": "yesterday"}, "retrieved_date"),
+        # Provenance is demanded of rows that assert numbers; a pointer row
+        # with no figure of its own (like the bundled service rows) needs none.
+        ({"key": "X", "tdp_w": 400}, "source_url"),
+        ({"key": "X", "tdp_w": 400, "source_url": "u"}, "retrieved_date"),
+        (
+            {"key": "X", "tdp_w": 400, "source_url": "u", "retrieved_date": "yesterday"},
+            "retrieved_date",
+        ),
     ],
 )
 def test_a_row_without_provenance_is_refused(row: dict, complaint: str) -> None:
@@ -199,3 +204,61 @@ def test_the_report_names_what_went_stale(overlay: Path) -> None:
     stale = stale_report(overlay=overlay, today=date(2030, 1, 1))
     assert "country" in stale
     assert "FR" in stale["country"]
+
+
+# --- Holes the second audit found, kept closed ----------------------------------
+
+
+def test_a_partial_overlay_row_keeps_the_columns_it_does_not_restate(tmp_path) -> None:
+    # Refreshing France's electricity price must not silently erase its carbon
+    # intensity and timezones.
+    (tmp_path / "grid.yaml").write_text(
+        'countries:\n  - key: "FR"\n    price_usd_per_kwh: 0.30\n'
+        '    source_url: "https://x.invalid"\n    retrieved_date: "2026-09-01"\n',
+        encoding="utf-8",
+    )
+    row = Catalog.load("grid", overlay=tmp_path).row("countries", "FR")
+    assert row["price_usd_per_kwh"] == 0.30
+    assert row["carbon_gco2e_per_kwh"] is not None
+    assert row["timezones"]
+
+
+def test_an_unquoted_norway_key_is_dropped_with_a_warning_not_silently(tmp_path, capsys) -> None:
+    (tmp_path / "grid.yaml").write_text(
+        "countries:\n  - key: NO\n    price_usd_per_kwh: 0.11\n", encoding="utf-8"
+    )
+    row = Catalog.load("grid", overlay=tmp_path).row("countries", "NO")
+    # The bundled Norway row survives untouched; the boolean-keyed override is
+    # refused out loud rather than absorbed.
+    assert row is not None
+    assert row.get("price_usd_per_kwh") != 0.11
+
+
+def test_an_unquoted_date_in_an_overlay_still_counts_as_fresh() -> None:
+    from datetime import date
+
+    assert days_since(date(2026, 9, 17), today=date(2026, 9, 18)) == 1
+    assert not is_stale(
+        {"tdp_w": 1, "retrieved_date": date(2026, 9, 17)}, "gpu", today=date(2026, 9, 18)
+    )
+
+
+def test_a_future_retrieved_date_reads_as_stale_not_extra_fresh() -> None:
+    from datetime import date
+
+    assert is_stale({"tdp_w": 1, "retrieved_date": "2030-01-01"}, "gpu", today=date(2026, 1, 1))
+
+
+def test_the_price_table_is_fetched_once_per_reader() -> None:
+    from saggio.catalog.pricing import rate_table
+
+    calls = {"n": 0}
+
+    def reader(_url: str, _timeout: float) -> dict:
+        calls["n"] += 1
+        return {"m": {"input_cost_per_token": 1e-06}}
+
+    rate_table("m", fetch=reader)
+    rate_table("m", fetch=reader)
+    rate_table("other", fetch=reader)
+    assert calls["n"] == 1

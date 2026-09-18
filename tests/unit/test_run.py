@@ -208,3 +208,37 @@ def test_the_recorded_command_does_not_carry_a_home_directory(
     # tells every reader of the repository where the author's home is.
     mapping = run_slice(python_command, profile=False).to_mapping()
     assert not any(part.startswith(str(Path.home())) for part in mapping["command"])
+
+
+# --- Holes the second audit found, kept closed ----------------------------------
+
+
+def test_the_timeout_ends_the_whole_process_tree(tmp_path) -> None:
+    # A workload that forks workers must not leave them running as the user
+    # after the "slice was stopped" warning claims otherwise.
+    marker = tmp_path / "grandchild-was-here"
+    script = tmp_path / "spawner.py"
+    script.write_text(
+        "import subprocess, sys, time\n"
+        "subprocess.Popen([sys.executable, '-c',\n"
+        "                  'import sys, time; time.sleep(3); "
+        'open(sys.argv[1], "w").write("x")\',\n'
+        "                  sys.argv[1]])\n"
+        "time.sleep(60)\n",
+        encoding="utf-8",
+    )
+    import time
+
+    result = run_slice(
+        [sys.executable, str(script), str(marker)], timeout_seconds=1.0, profile=False
+    )
+    assert result.truncated
+    time.sleep(3.5)
+    assert not marker.exists()
+
+
+def test_child_processor_time_is_recorded_where_the_platform_reports_it() -> None:
+    result = run_slice([sys.executable, "-c", "sum(range(2_000_000))"], profile=False)
+    if result.cpu_seconds is not None:
+        assert result.cpu_seconds >= 0.0
+        assert "cpu_seconds" in result.to_mapping()

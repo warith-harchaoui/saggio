@@ -666,7 +666,11 @@ def _iter_source_files(root: Path):
     """
     deferred: list[Path] = []
     for path in root.rglob("*"):
-        if any(part in SKIPPED_DIRECTORIES for part in path.parts):
+        # Only the path *inside* the repository decides the skip: a repository
+        # legitimately cloned under ~/build or /tmp/dist must not read as empty
+        # because an ancestor directory happens to share a vendored-tree name.
+        inside = path.relative_to(root) if path.is_relative_to(root) else path
+        if any(part in SKIPPED_DIRECTORIES for part in inside.parts):
             continue
         if not path.is_file():
             continue
@@ -1012,16 +1016,29 @@ def find_work_size(
         except OSError:
             continue
         relative = str(path.relative_to(root))
+        lines = text.splitlines()
         for key in WORK_SIZE_KEYS:
+            # The number may be written 600000, 600_000, or 6e5; stopping at the
+            # mantissa would read 6e5 as six and cap the run at a millionth of
+            # its size while still calling the figure file-sourced.
             pattern = re.compile(
-                rf'(?<![\w.]){re.escape(key)}["\']?\s*[=:]\s*([0-9][0-9_]*)', re.IGNORECASE
+                rf'(?<![\w.]){re.escape(key)}["\']?\s*[=:]\s*'
+                r"([0-9][0-9_]*(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)",
+                re.IGNORECASE,
             )
-            match = pattern.search(text)
-            if not match:
-                continue
-            value = float(match.group(1).replace("_", ""))
-            if value > 0:
-                candidates.append(WorkSizeCandidate(key, value, f"{relative}::{key}"))
+            for line in lines:
+                if _is_prose_line(line):
+                    # A commented-out size is prose about the code. Letting it
+                    # win the precedence contest is exactly the silent-cap
+                    # failure this pass exists to prevent.
+                    continue
+                match = pattern.search(line)
+                if not match:
+                    continue
+                value = float(match.group(1).replace("_", ""))
+                if value > 0:
+                    candidates.append(WorkSizeCandidate(key, value, f"{relative}::{key}"))
+                break
 
     candidates.sort(
         key=lambda item: (
@@ -1142,7 +1159,13 @@ def detect_services(root: Path, *, overlay: Path | None = None) -> tuple[Service
             for key, row in services.items():
                 if key in hits:
                     continue
-                if any(str(hint) in line for hint in (row.get("detect") or [])):
+                # A hint must end at a word boundary: `from openai` naming the
+                # vendor's own package must not also match `from openai_agents`,
+                # which is somebody else's.
+                if any(
+                    re.search(rf"{re.escape(str(hint))}(?![\w-])", line)
+                    for hint in (row.get("detect") or [])
+                ):
                     hits[key] = ServiceHit(
                         key=key,
                         name=str(row.get("name") or key),

@@ -570,10 +570,16 @@ def catalog_add(args: argparse.Namespace) -> int:
         if not name or not raw:
             osh.error(f"--field expects name=value, got {pair!r}.")
             return USAGE
+        # int first, then float, so 400 stays an int but 2.5e-06 — the natural
+        # spelling for a per-token price — lands as a number rather than as the
+        # string "2.5e-06" that would never go stale and never compute.
         try:
-            row[name] = float(raw) if "." in raw else int(raw)
+            row[name] = int(raw)
         except ValueError:
-            row[name] = raw
+            try:
+                row[name] = float(raw)
+            except ValueError:
+                row[name] = raw
     try:
         written = add_row(args.kind, row)
     except ValueError as exc:

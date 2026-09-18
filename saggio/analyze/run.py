@@ -39,9 +39,12 @@ from __future__ import annotations
 
 import cProfile  # noqa: F401 - imported for the -m form used in the child command.
 import json
+import os
 import pstats
+import signal
 import subprocess
 import sys
+import tempfile
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from datetime import date
@@ -50,6 +53,11 @@ from typing import Any, Final
 
 import os_helper as osh
 import platformdirs
+
+try:  # Windows has no resource module; the child CPU time is simply unknown there.
+    import resource
+except ImportError:  # pragma: no cover - POSIX-only dependency.
+    resource = None  # type: ignore[assignment]
 
 from .power import PowerMeter, PowerReading
 
@@ -396,6 +404,8 @@ class SliceResult:
             # Which counters answered, so a reader comparing two models can see
             # whether they are comparing the same hardware boundary.
             mapping["power_sources"] = list(self.power.sources)
+        if self.cpu_seconds is not None:
+            mapping["cpu_seconds"] = round(self.cpu_seconds, 4)
         if self.truncated:
             mapping["truncated"] = True
         if self.hot_path:
@@ -403,6 +413,79 @@ class SliceResult:
         if self.warnings:
             mapping["warnings"] = list(self.warnings)
         return mapping
+
+
+def _children_cpu_seconds() -> float | None:
+    """Return the processor time all reaped children have used so far.
+
+    Returns
+    -------
+    float or None
+        User plus system seconds from ``RUSAGE_CHILDREN``, or ``None`` where
+        the platform does not report it. Two readings bracket one child's run
+        because the counter only advances when a child is reaped.
+
+    Examples
+    --------
+    >>> value = _children_cpu_seconds()
+    >>> value is None or value >= 0.0
+    True
+    """
+    if resource is None:
+        return None
+    usage = resource.getrusage(resource.RUSAGE_CHILDREN)
+    return float(usage.ru_utime + usage.ru_stime)
+
+
+def _end_process_tree(child: subprocess.Popen[Any], grouped: bool) -> None:
+    """Stop a timed-out slice and everything it spawned.
+
+    ``subprocess``'s own timeout kills one PID. A training script that forked
+    dataloader workers, or a server the entry point started, would survive the
+    "slice was stopped" warning and keep running as the user indefinitely.
+
+    Parameters
+    ----------
+    child : subprocess.Popen
+        The direct child.
+    grouped : bool
+        Whether the child was started as its own session, in which case the
+        whole process group is signalled; otherwise only the child can be.
+    """
+    if grouped:
+        try:
+            os.killpg(child.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):  # pragma: no cover - races with exit.
+            child.kill()
+    else:  # pragma: no cover - non-POSIX fallback.
+        child.kill()
+    try:
+        child.wait(timeout=5)
+    except subprocess.TimeoutExpired:  # pragma: no cover - kernel refused the kill.
+        pass
+
+
+def _stderr_tail(sink: Any, lines: int = 3) -> list[str]:
+    """Return the last few lines of a spooled stderr file.
+
+    Parameters
+    ----------
+    sink : file object
+        The temporary file the child's stderr was written to.
+    lines : int, optional
+        How many lines to keep.
+
+    Returns
+    -------
+    list of str
+        The tail, decoded leniently. Only the last few kilobytes are read, so a
+        workload that logged gigabytes costs nothing here.
+    """
+    sink.flush()
+    size = sink.seek(0, os.SEEK_END)
+    sink.seek(max(0, size - 8192))
+    text = sink.read().decode("utf-8", errors="replace")
+    return text.strip().splitlines()[-lines:]
 
 
 def _is_python_command(command: Sequence[str]) -> bool:
@@ -610,23 +693,35 @@ def run_slice(
 
         meter = PowerMeter.start()
         truncated = False
-        with osh.wall_timer() as wall:
+        # The child runs as its own session on POSIX so a timeout can end the
+        # whole tree it may have forked, not just the direct child. Its stdout
+        # is discarded (nothing reads it, and buffering a chatty training loop
+        # in this process's memory could OOM the auditor); stderr spools to
+        # disk, of which only the tail is kept.
+        grouped = os.name == "posix"
+        cpu_before = _children_cpu_seconds()
+        with tempfile.TemporaryFile() as err_sink, osh.wall_timer() as wall:
+            child = subprocess.Popen(  # noqa: S603 - the command is a list, never a shell.
+                to_run,
+                cwd=workdir,
+                stdout=subprocess.DEVNULL,
+                stderr=err_sink,
+                start_new_session=grouped,
+            )
             try:
-                completed = subprocess.run(  # noqa: S603 - the command is a list, never a shell.
-                    to_run,
-                    cwd=workdir,
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout_seconds,
-                    check=False,
-                )
-                exit_code = completed.returncode
-                stderr_tail = (completed.stderr or "").strip().splitlines()[-3:]
+                child.wait(timeout=timeout_seconds)
+                exit_code = child.returncode
+                stderr_tail = _stderr_tail(err_sink)
             except subprocess.TimeoutExpired:
                 truncated = True
                 exit_code = -1
                 stderr_tail = []
+                _end_process_tree(child, grouped)
         seconds = float(wall["seconds"])
+        cpu_after = _children_cpu_seconds()
+        cpu_seconds = (
+            cpu_after - cpu_before if cpu_before is not None and cpu_after is not None else None
+        )
         reading = meter.stop(seconds=seconds)
         hot_path = _read_profile(profile_path) if wrap else ()
 
@@ -658,6 +753,7 @@ def run_slice(
         exit_code=exit_code,
         wall_seconds=seconds,
         power=reading,
+        cpu_seconds=cpu_seconds,
         truncated=truncated,
         fraction_completed=fraction_completed if exit_code == 0 and not truncated else None,
         hot_path=hot_path,

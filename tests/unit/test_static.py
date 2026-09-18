@@ -10,6 +10,7 @@ import pytest
 from saggio.analyze.static import (
     CONFIG_FILE_PRECEDENCE,
     _is_prose_line,
+    _iter_source_files,
     capped_entrypoint_command,
     detect_archetype,
     detect_frameworks,
@@ -421,3 +422,39 @@ def test_a_named_config_file_still_beats_a_training_directory(tmp_path: Path) ->
     write(tmp_path, "train/other.yaml", "epochs: 7\n")
     chosen, _, _ = find_work_size(tmp_path)
     assert chosen is not None and chosen.value == 42.0
+
+
+# --- Holes the second audit found, kept closed ----------------------------------
+
+
+def test_a_scientific_notation_size_is_read_whole(tmp_path) -> None:
+    # 6e5 read as its mantissa would cap the run at a millionth of its size
+    # while still calling the figure file-sourced.
+    (tmp_path / "config.py").write_text("max_iters = 6e5\n", encoding="utf-8")
+    chosen, _, _ = find_work_size(tmp_path)
+    assert chosen is not None
+    assert chosen.value == 600_000.0
+
+
+def test_a_commented_out_size_does_not_win(tmp_path) -> None:
+    (tmp_path / "config.yaml").write_text("# epochs: 9999 (old value)\n", encoding="utf-8")
+    (tmp_path / "train.py").write_text("epochs = 10\n", encoding="utf-8")
+    chosen, _, _ = find_work_size(tmp_path)
+    assert chosen is not None
+    assert chosen.value == 10.0
+
+
+def test_a_repository_under_a_build_ancestor_is_still_read(tmp_path) -> None:
+    # Only the path inside the repository decides the skip; the clone's own
+    # location is the user's business.
+    repo = tmp_path / "build" / "myrepo"
+    repo.mkdir(parents=True)
+    (repo / "app.py").write_text("print('hello')\n", encoding="utf-8")
+    assert any(path.name == "app.py" for path in _iter_source_files(repo))
+
+
+def test_a_lookalike_package_does_not_match_a_service_hint(tmp_path) -> None:
+    (tmp_path / "app.py").write_text("from openai_agents import runner\n", encoding="utf-8")
+    assert all(hit.key != "openai" for hit in detect_services(tmp_path))
+    (tmp_path / "real.py").write_text("from openai import OpenAI\n", encoding="utf-8")
+    assert any(hit.key == "openai" for hit in detect_services(tmp_path))

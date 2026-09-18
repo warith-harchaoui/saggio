@@ -5,9 +5,10 @@
 # exists to prevent. Instead each row records what the service is, how to detect
 # its use in code, and the pricing page where the current number lives. A price
 # is meant to be fetched at audit time and stored with its own retrieved_date in
-# the user's overlay, where the validator watches it for staleness. That fetch is
-# not implemented yet; until it is, the price stays a TODO in the model and this
-# row says where to read it.
+# the user's overlay, where the validator watches it for staleness. Model rates
+# are fetched by saggio.catalog.pricing (aggregator provenance, confirm against
+# the vendor's page); a service without a fetchable source stays a TODO in the
+# model, and this row says where to read the current figure.
 
 schema_version: "2.1"
 

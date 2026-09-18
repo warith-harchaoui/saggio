@@ -21,15 +21,17 @@ What it does instead is walk a ladder, the same shape as the country ladder in
 
 1. a human stated the price, which is an assertion, so ``measured`` / ``stated``;
 2. the vendor publishes a machine-readable price, so ``estimated`` /
-   ``first-party``;
+   ``first-party`` — a rung the taxonomy reserves but this module does not yet
+   implement, because no large language-model vendor publishes a price API to
+   read from;
 3. a structured aggregator publishes somebody's transcription of that, so
    ``estimated`` / ``aggregator``, and the note says to confirm it against the
    vendor's own page;
 4. nothing does, so ``TODO`` carrying the page where the number lives.
 
-Rung three is where the large language-model vendors sit today, because none of
-them publishes a price API. That is stated rather than dressed up: the model
-records ``source_kind: aggregator`` and the report shows it.
+Rung three is therefore where every fetched rate sits today: the code paths here
+produce ``aggregator`` or ``TODO``, and the day a vendor ships a price API, rung
+two gets its implementation and the stronger provenance with it.
 
 A fetched rate is a *rate*, never a cost. How many tokens one unit of work spends
 is not something reading a repository can establish, so it stays ``TODO`` and the
@@ -85,13 +87,6 @@ FETCH_TIMEOUT_SECONDS: Final[float] = 30.0
 #: than in the file, so it is an assumption about the source, and every rate says
 #: so in its notes rather than letting the currency pass as read.
 AGGREGATOR_CURRENCY: Final[str] = "USD"
-
-#: Keys in an aggregator row that are not rates. Everything else whose name says
-#: it is a cost is treated as one, so a unit the source adds next month arrives
-#: without a change here.
-_NOT_A_RATE: Final[frozenset[str]] = frozenset(
-    {"litellm_provider", "mode", "supported_endpoints", "deprecation_date"}
-)
 
 #: Readable units for the handful of rate keys a reader meets most often. A key
 #: that is not here keeps its own spelling, because inventing a normalisation
@@ -163,8 +158,10 @@ def looks_like_a_rate(key: str, value: object) -> bool:
     >>> looks_like_a_rate("supports_vision", True)
     False
     """
-    if key in _NOT_A_RATE:
-        return False
+    # The name has to say it is a money rate, and the value has to be a number.
+    # Together those two tests already reject every metadata key the source
+    # ships (provider, mode, endpoints, dates), so there is no blocklist to
+    # keep in step with the aggregator's schema.
     if not ("cost" in key or "price" in key):
         return False
     return isinstance(value, (int, float)) and not isinstance(value, bool)
@@ -280,6 +277,12 @@ def _fetch_json(url: str, timeout: float) -> Any | None:
 Fetcher = Callable[[str, float], Any]
 
 
+#: Fetched price documents, one per (reader, URL) pair for the process's
+#: lifetime. Keyed by the reader as well so an injected test fetcher never sees
+#: another test's document.
+_DOCUMENT_CACHE: dict[tuple[Any, str], Any] = {}
+
+
 def rate_table(
     model: str,
     *,
@@ -334,7 +337,16 @@ def rate_table(
     True
     """
     reader = fetch if fetch is not None else _fetch_json
-    document = reader(LITELLM_URL, timeout)
+    # One download per reader per process: the table is multi-megabyte and an
+    # audit that detected five models must not fetch it five times, nor stall
+    # five times when the network is down. A failure is cached too — within one
+    # run, retrying per model would just repeat the stall.
+    cache_key = (reader, LITELLM_URL)
+    if cache_key in _DOCUMENT_CACHE:
+        document = _DOCUMENT_CACHE[cache_key]
+    else:
+        document = reader(LITELLM_URL, timeout)
+        _DOCUMENT_CACHE[cache_key] = document
     if not isinstance(document, dict):
         return RateTable(model=model)
 

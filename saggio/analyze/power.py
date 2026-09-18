@@ -137,6 +137,12 @@ _ACCELERATOR_MISSING_NOTE: Final[str] = (
     "No NVIDIA accelerator answered, so nothing outside the processor package is included."
 )
 
+#: Said when the accelerator answered but its counter went backwards mid-run.
+_ACCELERATOR_WRAPPED_NOTE: Final[str] = (
+    "The accelerator's energy counter wrapped or reset during the run, so its draw "
+    "is not included; the board itself did answer."
+)
+
 
 def _query_nvidia_smi(field_name: str) -> list[str] | None:
     """Ask the NVIDIA driver one question about every board, or return ``None``.
@@ -241,6 +247,11 @@ class AcceleratorSampler:
 
     process: subprocess.Popen[str]
     log_path: Path = field(default_factory=Path)
+    #: How many boards answer each tick. The log holds one line per board per
+    #: tick, so the machine's draw is the per-reading mean times this count;
+    #: averaging the raw lines alone would report an eight-board node at the
+    #: wattage of one board.
+    board_count: int = 1
 
     @classmethod
     def start(cls) -> AcceleratorSampler | None:
@@ -257,7 +268,8 @@ class AcceleratorSampler:
         >>> sampler is None or sampler.stop() is not None
         True
         """
-        if _query_nvidia_smi("power.draw") is None:
+        answers = _query_nvidia_smi("power.draw")
+        if answers is None:
             return None
         handle = tempfile.NamedTemporaryFile(
             mode="w", suffix=".watts", prefix="saggio-", delete=False, encoding="utf-8"
@@ -279,7 +291,7 @@ class AcceleratorSampler:
             handle.close()
             log_path.unlink(missing_ok=True)
             return None
-        return cls(process=process, log_path=log_path)
+        return cls(process=process, log_path=log_path, board_count=max(len(answers), 1))
 
     def stop(self) -> tuple[float, int] | None:
         """Stop logging and return the mean board power and how many readings it is.
@@ -322,7 +334,9 @@ class AcceleratorSampler:
                     continue
         if len(readings) < _MINIMUM_SAMPLES:
             return None
-        return sum(readings) / len(readings), len(readings)
+        # One line per board per tick, so the per-reading mean is one board's
+        # draw; the machine draws that times the boards answering each tick.
+        return sum(readings) / len(readings) * self.board_count, len(readings)
 
 
 def read_package_energy_microjoules() -> int | None:
@@ -342,7 +356,11 @@ def read_package_energy_microjoules() -> int | None:
     >>> value is None or value >= 0
     True
     """
-    paths = glob.glob(RAPL_ENERGY_GLOB)
+    # The glob also matches subzones such as intel-rapl:0:0 (core, uncore,
+    # dram), whose energy is already inside the package figure intel-rapl:0;
+    # summing them too would double-count the processor by up to 2x. A package
+    # zone's directory name carries exactly one colon.
+    paths = [path for path in glob.glob(RAPL_ENERGY_GLOB) if Path(path).parent.name.count(":") == 1]
     if not paths:
         return None
     total = 0
@@ -496,8 +514,13 @@ class PowerMeter:
         """Return the mean accelerator power over the run, and how it was obtained."""
         if self.accelerator_started_at is not None:
             ended_at = read_accelerator_energy_millijoules()
-            if ended_at is None or ended_at < self.accelerator_started_at:
+            if ended_at is None:
                 return None, None
+            if ended_at < self.accelerator_started_at:
+                # The board answered; its counter wrapped or was reset. Saying
+                # "no accelerator answered" here would mislabel a measurement
+                # problem as an absence of hardware.
+                return None, _ACCELERATOR_WRAPPED_NOTE
             joules = (ended_at - self.accelerator_started_at) / _MILLIJOULES_PER_JOULE
             return joules / seconds, ACCELERATOR_COUNTER_SCOPE
         if self.sampler is None:
@@ -563,9 +586,11 @@ class PowerMeter:
 
         if accelerator_watts is None:
             # RAPL_SCOPE_NOTE is about what the package counter misses, which is
-            # only worth saying when nothing else made up for it.
+            # only worth saying when nothing else made up for it. When the
+            # accelerator answered but its counter wrapped, that reason arrives
+            # in accelerator_scope and is told instead of the absence line.
             scopes.insert(0, RAPL_SCOPE_NOTE)
-            scopes.append(_ACCELERATOR_MISSING_NOTE)
+            scopes.append(accelerator_scope or _ACCELERATOR_MISSING_NOTE)
         elif package_joules is None:
             scopes.append(_PACKAGE_MISSING_NOTE)
         else:

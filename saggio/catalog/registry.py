@@ -24,7 +24,7 @@ power figure holds for a year, an electricity price for a month.
 Usage example
 -------------
 >>> from saggio.catalog.registry import Catalog
->>> gpus = Catalog.load("hardware").rows("gpus")
+>>> gpus = Catalog.bundled("hardware").rows("gpus")
 >>> gpus["A100"]["tdp_w"]
 400
 
@@ -36,7 +36,7 @@ Warith Harchaoui
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from importlib import resources
 from pathlib import Path
 from typing import Any, Final
@@ -186,14 +186,24 @@ def days_since(retrieved_date: object, *, today: date | None = None) -> int | No
     >>> from datetime import date
     >>> days_since("2026-01-01", today=date(2026, 3, 2))
     60
+    >>> days_since(date(2026, 1, 1), today=date(2026, 3, 2))
+    60
     >>> days_since(None) is None
     True
     """
-    if not isinstance(retrieved_date, str):
-        return None
-    try:
-        then = date.fromisoformat(retrieved_date)
-    except ValueError:
+    # A hand-edited overlay with an unquoted date parses straight to a
+    # datetime.date, which is at least as good as the string form; rejecting
+    # it made perfectly fresh rows read as stale.
+    if isinstance(retrieved_date, datetime):
+        then = retrieved_date.date()
+    elif isinstance(retrieved_date, date):
+        then = retrieved_date
+    elif isinstance(retrieved_date, str):
+        try:
+            then = date.fromisoformat(retrieved_date)
+        except ValueError:
+            return None
+    else:
         return None
     return ((today or date.today()) - then).days
 
@@ -282,11 +292,15 @@ def is_stale(row: dict[str, Any], kind: str, *, today: date | None = None) -> bo
     True
     >>> is_stale({"pricing_source_url": "https://example.invalid"}, "service")
     False
+    >>> is_stale({"tdp_w": 1, "retrieved_date": "2030-01-01"}, "gpu", today=date(2026, 1, 1))
+    True
     """
     if not carries_numbers(row):
         return False
     age = days_since(row.get("retrieved_date"), today=today)
-    if age is None:
+    if age is None or age < 0:
+        # A future date is a typo, not extra freshness; a typo'd year must not
+        # buy the row years of unearned trust.
         return True
     return age > stale_after_days(kind)
 
@@ -302,19 +316,27 @@ def require_provenance(row: dict[str, Any]) -> None:
     Raises
     ------
     ValueError
-        If ``key``, ``source_url``, or ``retrieved_date`` is missing, or if the
-        date is not a calendar date.
+        If ``key`` is missing; or, for a row that asserts numbers, if
+        ``source_url`` or ``retrieved_date`` is missing or the date is not a
+        calendar date. A row asserting no number — a service pointer, say —
+        needs no provenance, because it states nothing that could be sourced;
+        the bundled service rows are shaped exactly this way, and the
+        sanctioned ``saggio catalog add`` flow has to be able to produce their
+        like.
 
     Examples
     --------
     >>> require_provenance({"key": "X", "source_url": "u", "retrieved_date": "2026-01-01"})
-    >>> require_provenance({"key": "X"})
+    >>> require_provenance({"key": "svc", "pricing_source_url": "https://x.invalid"})
+    >>> require_provenance({"key": "X", "tdp_w": 400})
     Traceback (most recent call last):
         ...
     ValueError: A catalogue row needs a source_url saying where its numbers came from.
     """
     if not str(row.get("key") or "").strip():
         raise ValueError("A catalogue row needs a key.")
+    if not carries_numbers(row):
+        return
     if not str(row.get("source_url") or "").strip():
         raise ValueError("A catalogue row needs a source_url saying where its numbers came from.")
     retrieved = row.get("retrieved_date")
@@ -340,7 +362,7 @@ class Catalog:
 
     Examples
     --------
-    >>> Catalog.load("providers").row("providers", "gcp")["pue"]
+    >>> Catalog.bundled("providers").row("providers", "gcp")["pue"]
     1.09
     """
 
@@ -397,6 +419,35 @@ class Catalog:
                 merged[section] = extra if extra is not None else base
         return cls(name=name, data=merged, overlay_path=overlay_file)
 
+    @classmethod
+    def bundled(cls, name: str) -> Catalog:
+        """Return a catalogue exactly as shipped, ignoring any overlay.
+
+        The doctests in this module run on developer machines, where a local
+        ``saggio catalog add`` may have overlaid the very row a doctest asserts
+        on; documentation that fails because the reader once used the tool is
+        documentation lying about the tool. Anything that needs the user's own
+        rows should call :meth:`load`.
+
+        Parameters
+        ----------
+        name : str
+            The catalogue name.
+
+        Returns
+        -------
+        Catalog
+            The bundled rows only, with no overlay path to write back to.
+
+        Examples
+        --------
+        >>> Catalog.bundled("hardware").row("gpus", "A100")["tdp_w"]
+        400
+        """
+        catalog = cls.load(name, overlay=Path("/nonexistent-overlay"))
+        catalog.overlay_path = None
+        return catalog
+
     def sections(self) -> tuple[str, ...]:
         """Return the row sections this catalogue holds.
 
@@ -408,7 +459,7 @@ class Catalog:
 
         Examples
         --------
-        >>> Catalog.load("hardware").sections()
+        >>> Catalog.bundled("hardware").sections()
         ('cpus', 'gpus')
         """
         return tuple(sorted(key for key, value in self.data.items() if isinstance(value, list)))
@@ -429,9 +480,9 @@ class Catalog:
 
         Examples
         --------
-        >>> "A100" in Catalog.load("hardware").rows("gpus")
+        >>> "A100" in Catalog.bundled("hardware").rows("gpus")
         True
-        >>> Catalog.load("hardware").rows("nonexistent")
+        >>> Catalog.bundled("hardware").rows("nonexistent")
         {}
         """
         entries = self.data.get(section)
@@ -461,9 +512,9 @@ class Catalog:
 
         Examples
         --------
-        >>> Catalog.load("grid").row("countries", "FR")["name"]
+        >>> Catalog.bundled("grid").row("countries", "FR")["name"]
         'France'
-        >>> Catalog.load("grid").row("countries", "ZZ") is None
+        >>> Catalog.bundled("grid").row("countries", "ZZ") is None
         True
         """
         return self.rows(section).get(key)
@@ -483,7 +534,7 @@ class Catalog:
 
         Examples
         --------
-        >>> "on-prem" in Catalog.load("providers").keys("providers")
+        >>> "on-prem" in Catalog.bundled("providers").keys("providers")
         True
         """
         return tuple(self.rows(section))
@@ -502,20 +553,32 @@ def _merge_rows(bundled: list[Any], overlay: list[Any]) -> list[dict[str, Any]]:
     Returns
     -------
     list of dict
-        Bundled rows in their original order, each replaced by the overlay row of
-        the same key when there is one, followed by the overlay's new keys. The
-        order matters because it is the order reports and dropdowns read in.
+        Bundled rows in their original order, each updated column by column by
+        the overlay row of the same key when there is one, followed by the
+        overlay's new keys. The order matters because it is the order reports
+        and dropdowns read in.
 
     Examples
     --------
-    >>> _merge_rows([{"key": "a", "v": 1}], [{"key": "a", "v": 2}, {"key": "b"}])
-    [{'key': 'a', 'v': 2}, {'key': 'b'}]
+    >>> _merge_rows([{"key": "a", "v": 1, "w": 9}], [{"key": "a", "v": 2}, {"key": "b"}])
+    [{'key': 'a', 'v': 2, 'w': 9}, {'key': 'b'}]
     """
-    local = {
-        str(row["key"]): row
-        for row in overlay
-        if isinstance(row, dict) and str(row.get("key") or "").strip()
-    }
+    local: dict[str, dict[str, Any]] = {}
+    for row in overlay:
+        if not isinstance(row, dict):
+            continue
+        key = row.get("key")
+        if isinstance(key, bool) or not str(key or "").strip():
+            # YAML 1.1 reads an unquoted NO as the boolean false, at which
+            # point the user's Norway override would vanish without a trace.
+            # Dropping the row is right; dropping it silently is not.
+            osh.warning(
+                f"An overlay row's key reads as {key!r} rather than text; YAML "
+                'turns unquoted NO/YES/ON/OFF into booleans. Quote the key ("NO") '
+                "and the row will load."
+            )
+            continue
+        local[str(key)] = row
     merged: list[dict[str, Any]] = []
     seen: set[str] = set()
     for row in bundled:
@@ -523,7 +586,14 @@ def _merge_rows(bundled: list[Any], overlay: list[Any]) -> list[dict[str, Any]]:
             continue
         key = str(row.get("key") or "")
         seen.add(key)
-        merged.append(local.get(key, row))
+        override = local.get(key)
+        if override is None:
+            merged.append(row)
+        else:
+            # Column-level, not row-level: an overlay that refreshes France's
+            # electricity price must not silently erase its carbon intensity
+            # and timezones because it did not restate them.
+            merged.append({**row, **override})
     for key, row in local.items():
         if key not in seen:
             merged.append(row)
@@ -623,8 +693,9 @@ def stale_report(*, overlay: Path | None = None, today: date | None = None) -> d
     >>> import tempfile, pathlib
     >>> from datetime import date
     >>> with tempfile.TemporaryDirectory() as folder:
-    ...     stale_report(overlay=pathlib.Path(folder), today=date(2020, 1, 1))
-    {}
+    ...     report = stale_report(overlay=pathlib.Path(folder), today=date(2020, 1, 1))
+    >>> "gpu" in report  # a retrieved_date after `today` is a typo, not freshness
+    True
     """
     stale: dict[str, list[str]] = {}
     for kind, (catalog_name, section) in SECTION_OF_KIND.items():

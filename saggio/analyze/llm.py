@@ -47,12 +47,19 @@ DEFAULT_HOST: Final[str] = "http://127.0.0.1:11434"
 HOST_ENVIRONMENT_VARIABLE: Final[str] = "OLLAMA_HOST"
 MODEL_ENVIRONMENT_VARIABLE: Final[str] = "SAGGIO_MODEL"
 
-#: Models preferred for reading code, best first. The first one installed is used.
+#: Models preferred for reading code, best first. The first one installed is
+#: used, and anything installed at all beats none, so this list going stale
+#: costs preference rather than function; refresh it when a new local coder
+#: model becomes the common install.
 PREFERRED_MODELS: Final[tuple[str, ...]] = (
+    "qwen3-coder:latest",
+    "qwen3-coder:30b",
+    "devstral:latest",
     "qwen2.5-coder:7b",
     "qwen2.5-coder:latest",
     "deepseek-coder-v2:latest",
     "codellama:latest",
+    "qwen3:8b",
     "qwen2.5:7b",
     "llama3.1:8b",
 )

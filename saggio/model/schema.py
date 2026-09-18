@@ -76,6 +76,10 @@ BARE_NUMBER_EXEMPT_PREFIXES: Final[tuple[str, ...]] = (
     "dimensions",
     "analysis.language_file_counts",
     "measurement.exit_code",
+    # Diagnostic context about how the run went, not a cost: the runtime that
+    # prices everything is the scenario's quantity, and this is the processor
+    # time beside it so a reader can spot an I/O-bound slice.
+    "measurement.cpu_seconds",
     "measurement.hot_path",
 )
 

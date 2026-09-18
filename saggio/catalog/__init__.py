@@ -12,7 +12,7 @@ matches how fast each kind of fact actually moves.
 Usage example
 -------------
 >>> from saggio.catalog import Catalog
->>> Catalog.load("grid").row("countries", "SE")["carbon_gco2e_per_kwh"]
+>>> Catalog.bundled("grid").row("countries", "SE")["carbon_gco2e_per_kwh"]
 13
 
 Author
