@@ -42,13 +42,14 @@ from typing import Any, Final
 import yaml
 
 from ..catalog.registry import Catalog
+from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
 from ..model.quantity import Quantity, looks_like_quantity
 from ..model.taxonomy import STATUS_MEANING, STATUS_ORDER
 from ..model.validate import overall_status
 from .figures import count_statuses, derivation_chain, honesty_bar, scenario_energy
-from .markdown import NOT_KNOWN, format_quantity
+from .markdown import NOT_KNOWN, ROUTE_LABEL, felt_size, format_number, format_quantity
 
 #: Where the report's own assets live inside the package.
 _ASSET_PACKAGE: Final[str] = "saggio.data.report"
@@ -375,6 +376,80 @@ def _verdict(model: CostModel) -> str:
     )
 
 
+#: What each lead of the felt-size sentence says in English, keyed by (what one
+#: table entry is, what the numbers restate). The i18n key follows the same pair.
+_FELT_SIZE_LEADS: Final[dict[tuple[str, str], str]] = {
+    ("unit", "one"): "One unit emits about",
+    ("unit", "million"): "A million units emit about",
+    ("run", "one"): "One run emits about",
+    ("run", "million"): "A million runs emit about",
+}
+
+
+def _felt_size_paragraph(costs: object, *, per: str = "unit") -> str:
+    """Render the felt-size restatement of a costs block's carbon, or nothing.
+
+    The numbers are baked into the markup and only the labels around them carry
+    ``data-i18n`` attributes, so the language picker changes the words without
+    recomputing anything.
+
+    Parameters
+    ----------
+    costs : object
+        A scenario's or projection's ``costs`` mapping.
+    per : str, optional
+        What one entry of the table is: ``"unit"`` or ``"run"``.
+
+    Returns
+    -------
+    str
+        A paragraph of markup, empty when there is nothing worth restating.
+
+    Examples
+    --------
+    >>> markup = _felt_size_paragraph({"carbon": {"value": 1.4, "unit": "gCO2e",
+    ...                                           "status": "estimated"}})
+    >>> 'data-i18n="equivalence.trees"' in markup
+    True
+    >>> _felt_size_paragraph({"carbon": {"status": "TODO"}})
+    ''
+    """
+    sized = felt_size(costs)
+    if sized is None:
+        return ""
+    scale, named = sized
+    if not (named["tree_months"].is_known() and named["car_km"].is_known()):
+        return ""
+    parts = [
+        f"{format_number(named['tree_months'].value)} "
+        '<span data-i18n="equivalence.trees">tree-months</span>',
+        f"{format_number(named['car_km'].value)} "
+        '<span data-i18n="equivalence.car">km by car (EU average)</span>',
+    ]
+    flight = named["flight"]
+    if flight.is_known():
+        route = (flight.unit or "").removeprefix("flights ").strip()
+        label = ROUTE_LABEL.get(route)
+        fraction = float(flight.value)
+        if label and fraction >= 1.0:
+            parts.append(
+                f"{format_number(fraction)} "
+                f'<span data-i18n="equivalence.flights.{route}">{label} flights</span>'
+            )
+        elif label and fraction >= 0.005:
+            parts.append(
+                f"{fraction:.0%} "
+                f'<span data-i18n="equivalence.flight.{route}">of a {label} flight</span>'
+            )
+    lead = _FELT_SIZE_LEADS[(per, scale)]
+    return (
+        f'<p class="muted equivalences"><span data-i18n="equivalence.{per}.{scale}">{lead}</span> '
+        + " · ".join(parts)
+        + f' — <a href="{GREEN_ALGORITHMS_SOURCE}" data-i18n="equivalence.note">'
+        "estimated restatements, Green Algorithms coefficients</a>.</p>"
+    )
+
+
 def _costs_section(model: CostModel, registry: DimensionRegistry) -> str:
     """Render one table per scenario, one row per dimension.
 
@@ -438,6 +513,7 @@ def _costs_section(model: CostModel, registry: DimensionRegistry) -> str:
             )
             or '<p class="muted">This scenario states no costs yet.</p>'
         )
+        blocks.append(_felt_size_paragraph(costs, per="unit"))
     return "".join(blocks)
 
 
@@ -491,6 +567,7 @@ def _projections_section(model: CostModel) -> str:
                 widths=[18, 20, 11, 51],
             )
         )
+        blocks.append(_felt_size_paragraph(block.get("costs"), per="run"))
         for sentence in (block.get("costs_note"), block.get("held_constant")):
             if sentence:
                 blocks.append(f'<p class="muted">{_escape(sentence)}</p>')

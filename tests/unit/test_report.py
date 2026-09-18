@@ -266,3 +266,57 @@ def test_the_html_report_has_a_projections_section_at_all() -> None:
 def test_the_html_report_names_what_the_projection_held_constant() -> None:
     page = render_html(_model_with_a_projection())
     assert "tariff" in page
+
+
+# --- Felt size: carbon restated so a reader can feel it ------------------------
+
+
+def _scenario_with_carbon(grams: float | None, status: str = "estimated") -> dict[str, Any]:
+    """A minimal model whose one scenario states a carbon figure."""
+    quantity: dict[str, Any] = {"unit": "gCO2e", "status": status}
+    if grams is not None:
+        quantity["value"] = grams
+    return {
+        "schema_version": "2.1",
+        "scenarios": [{"name": "one call", "costs": {"carbon": quantity}}],
+    }
+
+
+def test_a_small_carbon_figure_is_restated_per_million_units() -> None:
+    # A millionth of a tree-month tells the reader nothing, so the sentence
+    # scales up and says that it did.
+    text = render_markdown(_scenario_with_carbon(1.4))
+    assert "A million units emit about" in text
+    assert "tree-months" in text
+    assert "km by car" in text
+
+
+def test_a_large_carbon_figure_is_restated_per_unit() -> None:
+    # The paper's GEANT4-DNA study: 544 kg CO2e reads as thousands of km driven.
+    text = render_markdown(_scenario_with_carbon(544_115.0))
+    assert "One unit emits about" in text
+
+
+def test_an_open_carbon_figure_is_not_restated() -> None:
+    # A TODO restated as trees would still be a TODO; the table already says so.
+    text = render_markdown(_scenario_with_carbon(None, status="TODO"))
+    assert "tree-months" not in text
+
+
+def test_the_restatement_names_its_source() -> None:
+    assert "doi.org/10.1002/advs.202100707" in render_markdown(_scenario_with_carbon(1.4))
+
+
+def test_the_html_report_restates_carbon_with_translatable_labels() -> None:
+    page = render_html(_scenario_with_carbon(1.4))
+    assert 'data-i18n="equivalence.unit.million"' in page
+    assert 'data-i18n="equivalence.trees"' in page
+
+
+def test_every_language_translates_the_equivalence_labels() -> None:
+    # The picker is built from the i18n file, so a missing key would silently
+    # leave one language showing English mid-sentence.
+    for language, table in translations().items():
+        for key in ("equivalence.trees", "equivalence.car", "equivalence.note",
+                    "equivalence.unit.one", "equivalence.unit.million"):
+            assert key in table, f"{language} is missing {key}"

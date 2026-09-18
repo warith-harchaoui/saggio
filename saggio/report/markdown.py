@@ -31,6 +31,7 @@ from __future__ import annotations
 
 from typing import Any, Final
 
+from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE, equivalences
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
 from ..model.quantity import Quantity, looks_like_quantity
@@ -115,6 +116,149 @@ def format_quantity(quantity: Quantity) -> str:
     number = format_number(quantity.value)
     unit = quantity.currency or quantity.unit
     return f"{number} {unit}" if unit and unit != "currency" else number
+
+
+#: Display names for the reference flight routes, keyed as the equivalences
+#: module keys them.
+ROUTE_LABEL: Final[dict[str, str]] = {
+    "paris-london": "Paris–London",  # noqa: RUF001 -- the en dash is the correct typography
+    "new-york-san-francisco": "New York–San Francisco",  # noqa: RUF001
+    "new-york-melbourne": "New York–Melbourne",  # noqa: RUF001
+}
+
+#: Below one kilogram of CO2e per unit, the familiar restatements are fractions
+#: too small to feel, so the sentence scales to a million units and says so.
+_SCALE_THRESHOLD_GCO2E: Final[float] = 1000.0
+
+_MILLION: Final[float] = 1e6
+
+
+def _equivalence_phrase(named: dict[str, Quantity]) -> str | None:
+    """Render a set of equivalences in terms a reader already has a feel for.
+
+    Parameters
+    ----------
+    named : dict of str to Quantity
+        The restatements from :func:`saggio.estimate.equivalences.equivalences`.
+
+    Returns
+    -------
+    str or None
+        Tree-months, car kilometres, and a reference flight, dot-separated, or
+        ``None`` when nothing in the set carries a number. The flight is
+        dropped below half a percent, where it stops meaning anything.
+
+    Examples
+    --------
+    >>> from saggio.estimate.equivalences import equivalences
+    >>> named = equivalences(Quantity(value=1500.0, unit="gCO2e", status="estimated"))
+    >>> phrase = _equivalence_phrase(named)
+    >>> "tree-months" in phrase and "km by car" in phrase
+    True
+    """
+    if not (named["tree_months"].is_known() and named["car_km"].is_known()):
+        return None
+    parts = [
+        f"{format_number(named['tree_months'].value)} tree-months",
+        f"{format_number(named['car_km'].value)} km by car (EU average)",
+    ]
+    flight = named["flight"]
+    if flight.is_known():
+        route = ROUTE_LABEL.get((flight.unit or "").removeprefix("flights ").strip())
+        fraction = float(flight.value)
+        if route and fraction >= 1.0:
+            parts.append(f"{format_number(fraction)} {route} flights")
+        elif route and fraction >= 0.005:
+            parts.append(f"{fraction:.0%} of a {route} flight")
+    return " · ".join(parts)
+
+
+def felt_size(costs: object) -> tuple[str, dict[str, Quantity]] | None:
+    """Return the scale and the equivalences for a costs block's carbon figure.
+
+    An exact figure in grams is honest and unfelt, so both report formats
+    restate it with the Green Algorithms equivalences. This is the shared
+    arithmetic: pick the carbon out of the block, unwrap a projection's
+    ``result`` nesting, and scale to a million units when one unit's carbon is
+    under a kilogram, because a millionth of a tree-month tells the reader
+    nothing. Nothing comes back for an open figure: a ``TODO`` restated as
+    trees would still be a ``TODO``, and the table above already says so.
+
+    Parameters
+    ----------
+    costs : object
+        A scenario's or projection's ``costs`` mapping.
+
+    Returns
+    -------
+    tuple or None
+        ``("one" | "million", equivalences)`` where the first element says what
+        the numbers restate — one entry or a million of them — or ``None`` when
+        there is nothing worth restating.
+
+    Examples
+    --------
+    >>> scale, named = felt_size({"carbon": {"value": 1.4, "unit": "gCO2e",
+    ...                                      "status": "estimated"}})
+    >>> scale, round(named["car_km"].value)
+    ('million', 8000)
+    >>> felt_size({"carbon": {"status": "TODO"}}) is None
+    True
+    """
+    if not isinstance(costs, dict):
+        return None
+    raw = costs.get("carbon")
+    if isinstance(raw, dict) and looks_like_quantity(raw.get("result")):
+        raw = raw["result"]  # a projection nests its number under ``result``
+    if not looks_like_quantity(raw):
+        return None
+    carbon = Quantity.from_mapping(raw)
+    if not carbon.is_known() or (carbon.unit or "") != "gCO2e" or float(carbon.value) <= 0.0:
+        return None
+
+    grams = float(carbon.value)
+    if grams < _SCALE_THRESHOLD_GCO2E:
+        scaled = Quantity(value=grams * _MILLION, unit="gCO2e", status=carbon.status)
+        return "million", equivalences(scaled)
+    return "one", equivalences(carbon)
+
+
+def _felt_size_lines(costs: object, *, per: str = "unit") -> list[str]:
+    """Render the one-line restatement of a costs block's carbon figure.
+
+    Parameters
+    ----------
+    costs : object
+        A scenario's or projection's ``costs`` mapping.
+    per : str, optional
+        What one entry of the table is: ``"unit"`` or ``"run"``, only to word
+        the sentence.
+
+    Returns
+    -------
+    list of str
+        Markdown lines, empty when there is nothing worth restating.
+
+    Examples
+    --------
+    >>> _felt_size_lines({"carbon": {"value": 1.4, "unit": "gCO2e", "status": "estimated"}})[0][:24]
+    '*A million units emit ab'
+    >>> _felt_size_lines({"carbon": {"status": "TODO"}})
+    []
+    """
+    sized = felt_size(costs)
+    if sized is None:
+        return []
+    scale, named = sized
+    phrase = _equivalence_phrase(named)
+    if not phrase:
+        return []
+    lead = f"A million {per}s emit about" if scale == "million" else f"One {per} emits about"
+    return [
+        f"*{lead} {phrase} — estimated restatements, "
+        f"[Green Algorithms]({GREEN_ALGORITHMS_SOURCE}) coefficients.*",
+        "",
+    ]
 
 
 def _escape(text: object) -> str:
@@ -406,6 +550,7 @@ def _scenario_section(
         or "_This scenario states no costs yet._",
         "",
     ]
+    lines += _felt_size_lines(costs, per="unit")
     return lines
 
 
@@ -610,6 +755,7 @@ def _projections_section(model: CostModel) -> list[str]:
             for key, value in costs.items():
                 rows += _projection_rows(key, value)
         lines += [_table(["", "Value", "Status", "Method"], rows), ""]
+        lines += _felt_size_lines(block.get("costs"), per="run")
         held = block.get("held_constant")
         if held:
             lines += [f"*{_escape(held)}*", ""]
