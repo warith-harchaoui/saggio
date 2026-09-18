@@ -29,9 +29,14 @@ def test_a_projection_is_never_stronger_than_estimated() -> None:
     assert project_to_completion(measured(2.0), fraction=0.5).quantity.status == "estimated"
 
 
-def test_a_projection_from_something_weak_stays_weak() -> None:
+def test_a_projection_from_a_smuggled_value_stays_open() -> None:
+    # A placeholder that carries a number is an invalid model. Projecting it
+    # would launder the smuggled value into a result the validator can no
+    # longer see, so the projection stays open and carries no number.
     weak = Quantity(value=2.0, unit="kWh", status="placeholder")
-    assert project_to_completion(weak, fraction=0.5).quantity.status == "placeholder"
+    projected = project_to_completion(weak, fraction=0.5)
+    assert projected.quantity.status == "TODO"
+    assert projected.quantity.value is None
 
 
 @pytest.mark.parametrize("fraction", [0.0, -0.1, 1.5, 2.0])

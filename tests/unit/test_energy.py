@@ -195,3 +195,44 @@ def test_an_unknown_term_opens_the_total_rather_than_counting_as_zero() -> None:
 
 def test_totalling_nothing_is_open() -> None:
     assert total_money().status == "TODO"
+
+
+# --- Holes the first audit found, kept closed ----------------------------------
+
+
+def test_a_smuggled_value_on_a_todo_is_not_computed_with() -> None:
+    # A TODO carrying a number is an invalid model; the estimator must not
+    # launder that number into a result carrying a value.
+    smuggled = Quantity(value=3600.0, status="TODO")
+    result = it_energy_from_runtime(smuggled, q(1000.0))
+    assert result.status == "TODO"
+    assert result.value is None
+
+
+def test_totalling_refuses_a_currencyless_amount_next_to_a_currency() -> None:
+    total = total_money(
+        Quantity(value=1.0, status=MEASURED),
+        Quantity(value=2.0, currency="USD", status=MEASURED),
+    )
+    assert total.status == "TODO"
+    assert "no currency" in str(total.notes)
+
+
+def test_node_power_notes_state_the_arithmetic_that_produced_the_value() -> None:
+    # Zero cores are clamped to one; the note must show the clamped figure, or
+    # the stated formula would not reproduce the number beside it.
+    power = node_power(cpu_key="epyc-7742", physical_cores=0, memory_gb=0)
+    assert "1 cores" in str(power.notes)
+    assert power.value == pytest.approx(3.5)
+
+
+def test_a_negative_runtime_is_a_sign_error_not_a_cost() -> None:
+    result = it_energy_from_runtime(q(-3600.0), q(1000.0))
+    assert result.status == "TODO"
+    assert "sign error" in str(result.notes)
+
+
+def test_a_negative_intensity_does_not_produce_negative_carbon() -> None:
+    result = carbon_from_energy(q(2.0), q(-56.0))
+    assert result.status == "TODO"
+    assert result.value is None

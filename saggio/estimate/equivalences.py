@@ -40,9 +40,7 @@ from typing import Final
 
 from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, TODO, weakest
-
-#: The published source for every coefficient in this module.
-GREEN_ALGORITHMS_SOURCE: Final[str] = "https://doi.org/10.1002/advs.202100707"
+from .energy import GREEN_ALGORITHMS_SOURCE
 
 #: Grams of CO2 a mature tree sequesters in one month. The paper estimates a
 #: mature tree at roughly 11 kg of CO2 per year, giving a tree-month a value
@@ -112,6 +110,10 @@ def tree_months(carbon: Quantity) -> Quantity:
     """
     if not carbon.is_known():
         return _open("tree-months", "The carbon figure is still open, so its restatement is too.")
+    if float(carbon.value) < 0:
+        return _open(
+            "tree-months", "A negative carbon figure is a sign error; fix the model first."
+        )
     return Quantity(
         value=float(carbon.value) / TREE_MONTH_GCO2,
         unit="tree-months",
@@ -157,6 +159,8 @@ def car_km(carbon: Quantity, region: str = "EU") -> Quantity:
         raise ValueError(f"No car emission factor for region {region!r}; have {known}.")
     if not carbon.is_known():
         return _open("km", "The carbon figure is still open, so its restatement is too.")
+    if float(carbon.value) < 0:
+        return _open("km", "A negative carbon figure is a sign error; fix the model first.")
     factor = CAR_GCO2_PER_KM[region]
     return Quantity(
         value=float(carbon.value) / factor,
@@ -207,6 +211,10 @@ def flight_fraction(carbon: Quantity, route: str = "paris-london") -> Quantity:
     if not carbon.is_known():
         return _open(
             f"flights {route}", "The carbon figure is still open, so its restatement is too."
+        )
+    if float(carbon.value) < 0:
+        return _open(
+            f"flights {route}", "A negative carbon figure is a sign error; fix the model first."
         )
     total = FLIGHT_GCO2[route]
     return Quantity(

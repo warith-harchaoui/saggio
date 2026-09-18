@@ -244,3 +244,93 @@ def test_a_model_with_no_quantities_has_no_overall_status() -> None:
 
 def test_validation_accepts_a_wrapped_model(sound_cost_model: CostModel) -> None:
     assert validate(sound_cost_model).ok
+
+
+# --- Holes the first audit found, kept closed ----------------------------------
+
+
+def _one_cost_model(quantity: dict) -> CostModel:
+    from saggio.model.cost_model import CostModel
+
+    return CostModel.from_mapping(
+        {
+            "schema_version": "2.1",
+            "project": {"name": "x"},
+            "unit_of_work": {"name": "one call", "status": "measured"},
+            "scenarios": [{"name": "s", "costs": {"energy": quantity}}],
+        }
+    )
+
+
+def test_a_number_hidden_inside_notes_is_an_error() -> None:
+    report = validate(
+        _one_cost_model({"value": 1, "status": "measured", "notes": {"hidden": 9999.0}})
+    )
+    assert any("should be text" in issue.message for issue in report.errors)
+
+
+def test_a_number_hidden_under_an_unknown_key_is_an_error_not_a_warning() -> None:
+    report = validate(
+        _one_cost_model(
+            {"value": 1, "status": "measured", "sub": {"value": 5, "status": "measured"}}
+        )
+    )
+    assert any("hides numbers" in issue.message for issue in report.errors)
+
+
+def test_an_unknown_key_without_numbers_stays_a_warning() -> None:
+    report = validate(_one_cost_model({"value": 1, "status": "measured", "remark": "cheap"}))
+    assert not any("remark" in issue.message for issue in report.errors)
+    assert any("remark" in issue.message for issue in report.warnings)
+
+
+def test_nan_is_not_a_measured_cost() -> None:
+    report = validate(_one_cost_model({"value": float("nan"), "status": "measured"}))
+    assert any("finite" in issue.message for issue in report.errors)
+
+
+def test_a_string_typed_value_is_named_for_what_it_is() -> None:
+    report = validate(_one_cost_model({"value": "3.14", "status": "TODO"}))
+    assert any("not a number" in issue.message for issue in report.errors)
+
+
+def test_the_template_retrieved_date_does_not_pass_silently() -> None:
+    report = validate(
+        _one_cost_model(
+            {
+                "value": 1,
+                "status": "estimated",
+                "source_url": "https://x.invalid",
+                "retrieved_date": "YYYY-MM-DD",
+            }
+        )
+    )
+    assert any("template" in issue.message for issue in report.warnings)
+
+
+def test_a_currency_with_a_trailing_newline_is_rejected() -> None:
+    report = validate(_one_cost_model({"value": 1, "status": "measured", "currency": "USD\n"}))
+    assert any("ISO 4217" in issue.message for issue in report.errors)
+
+
+def test_scenario_errors_point_at_the_documents_own_index() -> None:
+    from saggio.model.cost_model import CostModel
+
+    model = CostModel.from_mapping(
+        {
+            "schema_version": "2.1",
+            "project": {"name": "x"},
+            "unit_of_work": {"name": "one call", "status": "measured"},
+            "scenarios": ["stray-comment", {"name": "", "costs": {}}],
+        }
+    )
+    report = validate(model)
+    paths = [issue.path for issue in report.errors]
+    assert "scenarios[0]" in paths  # the stray entry itself
+    assert any(path.startswith("scenarios[1]") for path in paths)  # the real scenario's faults
+    assert not any(path == "scenarios[0].name" for path in paths)
+
+
+def test_an_invalid_source_kind_is_an_error() -> None:
+    report = validate(_one_cost_model({"value": 1, "status": "measured", "source_kind": "hearsay"}))
+    assert any("source_kind" in issue.message for issue in report.errors)

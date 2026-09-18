@@ -88,7 +88,10 @@ def local_timezone_name() -> str | None:
     >>> name is None or "/" in name
     True
     """
-    from_env = os.environ.get("TZ", "").strip()
+    # POSIX allows a leading colon (":Europe/Paris") meaning "read this zone
+    # file"; the colon is not part of the IANA name and would make the country
+    # lookup fail on a perfectly resolvable timezone.
+    from_env = os.environ.get("TZ", "").strip().lstrip(":")
     if "/" in from_env:
         return from_env
 
@@ -421,6 +424,14 @@ class DeploymentContext:
             note += (
                 f" {provider_row.get('name')} sells machine-hours rather than kilowatt-hours, "
                 "so the local tariff stands in for the electricity inside that price."
+            )
+        elif not provider_row and self.provider and self.provider != DEFAULT_PROVIDER:
+            # The caller named a provider the catalogue does not know. The
+            # tariff is still the country's, but saying so without naming the
+            # unrecognised provider would make the fallback look deliberate.
+            note += (
+                f" The provider {self.provider!r} is not in the catalogue, so the "
+                "local tariff stands in; add the provider row to price it properly."
             )
         return Quantity(
             value=row["price_usd_per_kwh"],

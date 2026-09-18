@@ -288,22 +288,53 @@ def detect_machine(*, overlay: Path | None = None) -> MachineProfile:
                 f"CPU {cpu_model!r} is not in the catalogue; add it with "
                 f"`saggio catalog add cpu` once you have a datasheet TDP"
             )
-        cpu_key = (
+        fallback = (
             _FALLBACK_SERVER_CPU if physical >= _SERVER_CORE_THRESHOLD else _FALLBACK_DESKTOP_CPU
         )
-        cpu_is_fallback = True
+        if fallback in known_cpus:
+            cpu_key = fallback
+            cpu_is_fallback = True
+        else:
+            # An overlay can remove the generic rows. Handing out a key the
+            # catalogue cannot honour would surface later as a baffling TODO
+            # telling the user to add the *fallback*; better to say now that
+            # even the generic figure is unavailable.
+            cpu_key = None
+            misses.append(
+                f"the generic fallback {fallback!r} is missing from the hardware "
+                "catalogue, so no per-core power can be assumed at all"
+            )
 
     detected_gpus = info.get("gpus") if isinstance(info.get("gpus"), list) else []
     gpu_names = tuple(str(entry.get("name")) for entry in detected_gpus if entry.get("name"))
     gpu_key: str | None = None
+    accelerator_count = 0
     if gpu_names:
-        gpu_key = _match_key(gpu_names[0], _GPU_PATTERNS)
-        if gpu_key is None or gpu_key not in known_gpus:
-            misses.append(
-                f"GPU {gpu_names[0]!r} is not in the catalogue; add it with "
-                f"`saggio catalog add gpu` once you have a datasheet TDP"
-            )
-            gpu_key = None
+        # Each board is matched on its own name: a compute card next to a
+        # display adapter must not be billed as two compute cards. A uniform,
+        # catalogued fleet is counted in full; anything mixed or unrecognised
+        # leaves the key open, so node_power refuses with the full board count
+        # instead of pricing a machine it cannot describe.
+        matched = {name: _match_key(name, _GPU_PATTERNS) for name in gpu_names}
+        keys = set(matched.values())
+        for name, key in matched.items():
+            if key is None or key not in known_gpus:
+                misses.append(
+                    f"GPU {name!r} is not in the catalogue; add it with "
+                    f"`saggio catalog add gpu` once you have a datasheet TDP"
+                )
+        only = next(iter(keys)) if len(keys) == 1 else None
+        if only is not None and only in known_gpus:
+            gpu_key = only
+            accelerator_count = len(gpu_names)
+        else:
+            accelerator_count = len(gpu_names)
+            if len(keys) > 1:
+                listed = ", ".join(sorted(set(gpu_names)))
+                misses.append(
+                    f"this machine mixes accelerators ({listed}); name the shape "
+                    "with --instance so their draw can be summed honestly"
+                )
 
     return MachineProfile(
         platform=str(info.get("platform") or osh.platform_name()),
@@ -315,7 +346,7 @@ def detect_machine(*, overlay: Path | None = None) -> MachineProfile:
         memory_gb=float(info.get("ram_gb") or 0.0),
         gpu_names=gpu_names,
         gpu_key=gpu_key,
-        accelerator_count=len(gpu_names),
+        accelerator_count=accelerator_count,
         apple_chip=str(info["apple_chip"]) if info.get("apple_chip") else None,
         catalog_misses=tuple(misses),
     )

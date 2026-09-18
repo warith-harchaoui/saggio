@@ -44,7 +44,17 @@ from .dimensions import (
     DimensionRegistry,
     registry_for,
 )
-from .quantity import QUANTITY_KEYS, Quantity, looks_like_quantity
+from .quantity import (
+    AGGREGATOR,
+    FIRST_PARTY,
+    QUANTITY_KEYS,
+    SOURCE_KINDS,
+    STATED,
+    Quantity,
+    is_valid_source_kind,
+    looks_like_quantity,
+    source_strength,
+)
 from .results import Issue, Report, Severity
 from .schema import (
     KNOWN_BLOCKS,
@@ -85,6 +95,12 @@ __all__ = [
     # Quantity.
     "Quantity",
     "QUANTITY_KEYS",
+    "SOURCE_KINDS",
+    "STATED",
+    "FIRST_PARTY",
+    "AGGREGATOR",
+    "is_valid_source_kind",
+    "source_strength",
     "looks_like_quantity",
     # Dimensions.
     "Dimension",

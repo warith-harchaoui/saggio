@@ -52,6 +52,7 @@ Warith Harchaoui
 
 from __future__ import annotations
 
+import math
 import re
 from datetime import date
 from typing import Any, Final
@@ -79,7 +80,9 @@ _TEMPLATE_DATE: Final[str] = "YYYY-MM-DD"
 
 #: ISO 4217 codes are three uppercase letters. Checked by shape rather than
 #: against a bundled list, which would go stale and reject legitimate codes.
-_CURRENCY_PATTERN: Final[re.Pattern[str]] = re.compile(r"^[A-Z]{3}$")
+# fullmatch semantics: `$` alone would let "USD\n" through, because re lets
+# `$` match before a trailing newline.
+_CURRENCY_PATTERN: Final[re.Pattern[str]] = re.compile(r"[A-Z]{3}")
 
 
 def _is_calendar_date(value: object) -> bool:
@@ -109,6 +112,39 @@ def _is_calendar_date(value: object) -> bool:
     except ValueError:
         return False
     return True
+
+
+def _contains_number(node: object) -> bool:
+    """Return whether a value holds a bare number anywhere inside it.
+
+    Parameters
+    ----------
+    node : object
+        Any YAML value.
+
+    Returns
+    -------
+    bool
+        ``True`` when the value is a number or nests one, however deeply. A
+        boolean is not a number here, for the same reason it is not one in a
+        quantity.
+
+    Examples
+    --------
+    >>> _contains_number({"a": [{"b": 3.0}]})
+    True
+    >>> _contains_number("three")
+    False
+    """
+    if isinstance(node, bool):
+        return False
+    if isinstance(node, (int, float)):
+        return True
+    if isinstance(node, dict):
+        return any(_contains_number(item) for item in node.values())
+    if isinstance(node, list):
+        return any(_contains_number(item) for item in node)
+    return False
 
 
 def _days_since(value: str, *, today: date | None = None) -> int | None:
@@ -260,12 +296,39 @@ def _check_quantity(path: str, raw: dict[str, Any], model: CostModel, report: Re
     quantity = Quantity.from_mapping(raw)
 
     unknown_keys = sorted(set(raw) - QUANTITY_KEYS)
-    if unknown_keys:
-        report.warning(
-            path,
-            f"carries {', '.join(unknown_keys)}, which a quantity does not define; "
-            "move it to notes or to its own block",
-        )
+    for key in unknown_keys:
+        # An unknown key is untidiness; an unknown key with numbers inside it is
+        # a smuggling route. The first is a warning, the second defeats the one
+        # promise this validator makes, so it is an error.
+        if _contains_number(raw[key]):
+            report.error(
+                path,
+                f"hides numbers under {key!r}, which a quantity does not define; "
+                "a number the walker cannot see is a number outside the rules",
+            )
+        else:
+            report.warning(
+                path,
+                f"carries {key!r}, which a quantity does not define; "
+                "move it to notes or to its own block",
+            )
+
+    for key in (
+        "unit",
+        "currency",
+        "status",
+        "source_kind",
+        "source_url",
+        "retrieved_date",
+        "notes",
+    ):
+        entry = raw.get(key)
+        if isinstance(entry, (dict, list)):
+            report.error(
+                path,
+                f"has a block where {key!r} should be text; "
+                "a number hidden inside it would escape the rules",
+            )
 
     if not quantity.has_valid_status():
         report.error(
@@ -275,16 +338,29 @@ def _check_quantity(path: str, raw: dict[str, Any], model: CostModel, report: Re
         )
         return
 
-    if quantity.is_known():
-        if quantity.value < 0:
+    value = quantity.value
+    if value is not None and not quantity.carries_number():
+        report.error(
+            path,
+            f"has value {value!r}, which is not a number; write numbers unquoted, "
+            "or move prose to notes",
+        )
+    elif quantity.carries_number():
+        if not math.isfinite(value):
             report.error(
                 path,
-                f"is {quantity.value!r}; a cost of running code cannot be negative",
+                f"is {value!r}, which is not a finite number; NaN and infinity "
+                "state nothing a reader can check",
+            )
+        elif value < 0:
+            report.error(
+                path,
+                f"is {value!r}; a cost of running code cannot be negative",
             )
         if not quantity.expects_a_value():
             report.warning(
                 path,
-                f"is status {quantity.status!r} but carries the number {quantity.value!r}; "
+                f"is status {quantity.status!r} but carries the number {value!r}; "
                 "a placeholder or a TODO should have no value",
             )
     elif quantity.expects_a_value():
@@ -301,14 +377,20 @@ def _check_quantity(path: str, raw: dict[str, Any], model: CostModel, report: Re
             f"has source_kind {quantity.source_kind!r}; it must be one of {listed}",
         )
 
-    if quantity.currency is not None and not _CURRENCY_PATTERN.match(quantity.currency):
+    if quantity.currency is not None and not _CURRENCY_PATTERN.fullmatch(str(quantity.currency)):
         report.error(
             path,
             f"has currency {quantity.currency!r}; it must be a three-letter ISO 4217 code",
         )
 
     retrieved = quantity.retrieved_date
-    if retrieved is not None and retrieved != _TEMPLATE_DATE:
+    if retrieved == _TEMPLATE_DATE:
+        report.warning(
+            path,
+            f"has retrieved_date {_TEMPLATE_DATE!r}, still the template's literal; "
+            "write the date the source was actually read",
+        )
+    elif retrieved is not None:
         age = _days_since(str(retrieved))
         if age is None:
             report.error(path, f"has retrieved_date {retrieved!r}, which is not a calendar date")
@@ -466,7 +548,18 @@ def _check_dimensions(model: CostModel, report: Report) -> None:
                     f"{entry_path}.unit", "is empty; say what the numbers are counted in"
                 )
 
-    for index, scenario in enumerate(model.scenarios()):
+    raw_scenarios = model.data.get("scenarios")
+    if isinstance(raw_scenarios, list):
+        for index, entry in enumerate(raw_scenarios):
+            if not isinstance(entry, dict):
+                report.error(
+                    f"scenarios[{index}]",
+                    "is not a mapping; a scenario is a block with a name and costs",
+                )
+
+    # indexed_scenarios keeps the document's own positions: a stray non-mapping
+    # entry must not shift every later error onto the wrong scenario.
+    for index, scenario in model.indexed_scenarios():
         base = model.scenario_path(index)
         if not str(scenario.get("name") or "").strip():
             report.error(f"{base}.name", "is required so reports and diffs can name the scenario")

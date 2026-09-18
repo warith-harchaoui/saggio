@@ -83,6 +83,34 @@ def _combine(*inputs: Quantity) -> str | None:
     return weakest(*(item.status for item in inputs))
 
 
+def _negative(*inputs: Quantity) -> bool:
+    """Return whether any known input carries a negative number.
+
+    A negative runtime, power, tariff, or intensity is not a smaller cost; it
+    is a sign error in the model, and arithmetic done on it would produce a
+    negative carbon figure that the validator downstream rejects anyway. The
+    estimators refuse at the source instead, naming the problem.
+
+    Parameters
+    ----------
+    *inputs : Quantity
+        Quantities already known to carry numbers.
+
+    Returns
+    -------
+    bool
+        ``True`` when at least one value is below zero.
+
+    Examples
+    --------
+    >>> _negative(Quantity(value=-1.0, status="measured"))
+    True
+    >>> _negative(Quantity(value=0.0, status="measured"))
+    False
+    """
+    return any(float(item.value) < 0 for item in inputs)
+
+
 def _unresolved(unit: str, missing: str, *, currency: str | None = None) -> Quantity:
     """Return a ``TODO`` quantity naming the input that was not available.
 
@@ -195,12 +223,17 @@ def node_power(
             "add it with its datasheet TDP before a power figure can be given.",
         )
 
-    cpu_power = float(cpu_row["w_per_core"]) * max(physical_cores, 1) * usage
-    memory_power = max(memory_gb, 0.0) * MEMORY_POWER_W_PER_GB
+    # The clamped figures go into the note as well as the sum: a note stating
+    # "0 cores" above a non-zero wattage would be a formula that does not
+    # reproduce its own number, on a page whose whole point is that it does.
+    cores = max(physical_cores, 1)
+    memory = max(memory_gb, 0.0)
+    cpu_power = float(cpu_row["w_per_core"]) * cores * usage
+    memory_power = memory * MEMORY_POWER_W_PER_GB
     scaled = "" if usage_factor is None else f" x {usage:g} usage"
     parts = [
-        f"{physical_cores} cores x {cpu_row['w_per_core']} W{scaled}",
-        f"{memory_gb:g} GB x {MEMORY_POWER_W_PER_GB} W/GB",
+        f"{cores} cores x {cpu_row['w_per_core']} W{scaled}",
+        f"{memory:g} GB x {MEMORY_POWER_W_PER_GB} W/GB",
     ]
 
     if accelerator_count > 0 and not gpu_key:
@@ -264,6 +297,8 @@ def it_energy_from_runtime(runtime: Quantity, power: Quantity) -> Quantity:
     """
     if not (runtime.is_known() and power.is_known()):
         return _unresolved("kWh", "Needs both a runtime and an average power draw.")
+    if _negative(runtime, power):
+        return _unresolved("kWh", "A negative runtime or power draw is a sign error, not a cost.")
     hours = float(runtime.value) / _SECONDS_PER_HOUR
     return Quantity(
         value=hours * float(power.value) / _WATTS_PER_KILOWATT,
@@ -300,6 +335,10 @@ def facility_energy(it_energy: Quantity, pue: Quantity) -> Quantity:
         return _unresolved(
             "kWh",
             "Needs the machine's own energy and the site's power usage effectiveness.",
+        )
+    if _negative(it_energy, pue):
+        return _unresolved(
+            "kWh", "A negative energy or overhead ratio is a sign error, not a cost."
         )
     return Quantity(
         value=float(it_energy.value) * float(pue.value),
@@ -372,6 +411,8 @@ def carbon_from_energy(energy: Quantity, intensity: Quantity) -> Quantity:
             "gCO2e",
             "Needs the energy drawn and the grid carbon intensity where it runs.",
         )
+    if _negative(energy, intensity):
+        return _unresolved("gCO2e", "A negative energy or intensity is a sign error, not a cost.")
     return Quantity(
         value=float(energy.value) * float(intensity.value),
         unit="gCO2e",
@@ -411,6 +452,8 @@ def water_from_energy(it_energy: Quantity, effectiveness: Quantity) -> Quantity:
             "L",
             "Needs the machine's energy and a published water usage effectiveness.",
         )
+    if _negative(it_energy, effectiveness):
+        return _unresolved("L", "A negative energy or effectiveness is a sign error, not a cost.")
     return Quantity(
         value=float(it_energy.value) * float(effectiveness.value),
         unit="L",
@@ -446,6 +489,12 @@ def money_from_energy(energy: Quantity, price: Quantity) -> Quantity:
         return _unresolved(
             "currency",
             "Needs the energy drawn and a price per kilowatt-hour.",
+            currency=price.currency,
+        )
+    if _negative(energy, price):
+        return _unresolved(
+            "currency",
+            "A negative energy or price is a sign error, not a cost.",
             currency=price.currency,
         )
     return Quantity(
@@ -498,9 +547,12 @@ def total_money(*amounts: Quantity) -> Quantity:
     known = [amount for amount in amounts if amount.is_known()]
     if not known:
         return _unresolved("currency", "No money amount carried a number.")
-    currencies = {amount.currency for amount in known if amount.currency}
+    # None counts as its own currency here: an amount that does not say which
+    # money it is cannot be added to one that does, and dropping it from the
+    # check would sum it into the other's currency silently.
+    currencies = {amount.currency for amount in known}
     if len(currencies) > 1:
-        listed = ", ".join(sorted(currencies))
+        listed = ", ".join(sorted(code or "no currency" for code in currencies))
         return _unresolved(
             "currency",
             f"The amounts are in different currencies ({listed}); "

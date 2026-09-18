@@ -35,6 +35,7 @@ Warith Harchaoui
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Any, Final
 
@@ -228,11 +229,15 @@ class Quantity:
             derived = (raw_derived,)
         else:
             derived = tuple(str(item) for item in raw_derived)
+        # An explicit `status: null` means the author wrote no status, exactly
+        # like a missing key; stringifying it would mint the label "None" and
+        # produce the baffling error "has status 'None'".
+        raw_status = mapping.get("status")
         return cls(
             value=mapping.get("value"),
             unit=mapping.get("unit"),
             currency=mapping.get("currency"),
-            status=str(mapping.get("status", TODO)),
+            status=TODO if raw_status is None else str(raw_status),
             source_kind=mapping.get("source_kind"),
             source_url=mapping.get("source_url"),
             retrieved_date=mapping.get("retrieved_date"),
@@ -289,8 +294,13 @@ class Quantity:
         """
         return is_valid_status(self.status)
 
-    def is_known(self) -> bool:
-        """Return whether this quantity carries a usable number.
+    def carries_number(self) -> bool:
+        """Return whether this quantity's value is literally a number.
+
+        This is the raw fact, with no judgement about whether the number is
+        legitimate: the validator needs it to tell "a TODO smuggling a value"
+        apart from "a TODO with none", which :meth:`is_known` cannot do because
+        it already refuses the smuggled one.
 
         Returns
         -------
@@ -300,14 +310,43 @@ class Quantity:
 
         Examples
         --------
+        >>> Quantity(value=1.0, status="TODO").carries_number()
+        True
+        >>> Quantity(value="3.14", status="measured").carries_number()
+        False
+        """
+        return isinstance(self.value, (int, float)) and not isinstance(self.value, bool)
+
+    def is_known(self) -> bool:
+        """Return whether this quantity carries a number it is entitled to.
+
+        Three things must hold at once: the value is literally a number, the
+        number is finite, and the status is one that promises a number. A
+        ``TODO`` carrying ``4.0`` fails the last test on purpose: the model is
+        invalid, and an estimator or a report that computed with the smuggled
+        number would launder it into results the validator can no longer see.
+
+        Returns
+        -------
+        bool
+            ``True`` when :attr:`value` is a finite real number under a status
+            that expects one. A boolean is rejected even though Python calls it
+            an ``int``: ``True`` is not a measurement.
+
+        Examples
+        --------
         >>> Quantity(value=0.0, status="measured").is_known()
         True
         >>> Quantity(status="TODO").is_known()
         False
         >>> Quantity(value=True, status="measured").is_known()
         False
+        >>> Quantity(value=4.0, status="TODO").is_known()
+        False
+        >>> Quantity(value=float("nan"), status="measured").is_known()
+        False
         """
-        return isinstance(self.value, (int, float)) and not isinstance(self.value, bool)
+        return self.carries_number() and math.isfinite(self.value) and self.expects_a_value()
 
     def is_derived(self) -> bool:
         """Return whether this quantity declares inputs it was computed from.
@@ -333,12 +372,16 @@ class Quantity:
         Returns
         -------
         bool
-            ``True`` when the status is ``measured`` or ``estimated``.
+            ``True`` for any status outside ``placeholder`` and ``TODO`` —
+            including a label the validator will separately reject, because an
+            invalid status makes no promise either way and gets its own error.
 
         Examples
         --------
         >>> Quantity(status="TODO").expects_a_value()
         False
+        >>> Quantity(value=1, status="guessed").expects_a_value()
+        True
         >>> Quantity(value=1, status="measured").expects_a_value()
         True
         """

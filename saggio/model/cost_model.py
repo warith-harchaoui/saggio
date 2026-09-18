@@ -173,6 +173,8 @@ def _split_path(path: str) -> list[str | int]:
     ['scenarios', 0, 'costs', 'energy']
     >>> _split_path("")
     []
+    >>> resolve_path({"a": [1, 2]}, "a[x]") is None
+    True
     """
     steps: list[str | int] = []
     for chunk in path.split("."):
@@ -186,6 +188,12 @@ def _split_path(path: str) -> list[str | int]:
             index, _, rest = rest.partition("]")
             if index.strip().lstrip("-").isdigit():
                 steps.append(int(index))
+            else:
+                # A malformed index such as ``[x]`` names nothing. Dropping it
+                # would resolve the path to the parent list, so the typo in a
+                # derived_from would be reported as the wrong error. Keep a
+                # step no real node satisfies instead.
+                steps.append(f"[{index}]")
             rest = rest.lstrip("[")
     return steps
 
@@ -403,6 +411,35 @@ class CostModel:
         single = self.data.get("scenario")
         if isinstance(single, dict):
             return [single]
+        return []
+
+    def indexed_scenarios(self) -> list[tuple[int, dict[str, Any]]]:
+        """Return the scenarios with their positions in the document.
+
+        :meth:`scenarios` drops entries that are not mappings, which is right
+        for iteration and wrong for addressing: a stray string at position 0
+        would shift every later scenario's reported path by one, so the errors
+        would point at the wrong entry. This keeps the document's own indices.
+
+        Returns
+        -------
+        list of (int, dict)
+            Original position and scenario mapping, in document order.
+
+        Examples
+        --------
+        >>> CostModel.from_mapping(
+        ...     {"scenarios": ["stray", {"name": "real"}]}).indexed_scenarios()
+        [(1, {'name': 'real'})]
+        """
+        scenarios = self.data.get("scenarios")
+        if isinstance(scenarios, list):
+            return [
+                (index, entry) for index, entry in enumerate(scenarios) if isinstance(entry, dict)
+            ]
+        single = self.data.get("scenario")
+        if isinstance(single, dict):
+            return [(0, single)]
         return []
 
     def scenario_path(self, index: int) -> str:

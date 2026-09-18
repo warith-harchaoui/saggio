@@ -452,6 +452,18 @@ def project_to_machine(
     )
 
     if bandwidth_speedup is None:
+        if compute_bound is False:
+            # The caller said this workload is bound by memory, and the one
+            # ratio the catalogue can offer is the compute one. Projecting with
+            # it would be the wrong physics dressed as a discount, so this
+            # refuses rather than quietly switching models.
+            return _refusal(
+                runtime.unit or "s",
+                None,
+                f"the workload was declared memory-bound and the catalogue has no "
+                f"{BANDWIDTH_COLUMN} for one of these parts; add the bandwidth rows "
+                "before projecting a memory-bound run",
+            )
         chosen = compute_speedup
         basis = compute_basis
         bounds = None
