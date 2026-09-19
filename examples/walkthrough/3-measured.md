@@ -44,6 +44,8 @@ One unit of work as this audit found it, on the machine it ran on.
 | Carbon | 2.201e-06 gCO2e | `estimated` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Facility energy x grid carbon intensity, operating emissions only. |
 | Water | not known | `TODO` | `assumptions.machine_energy`, `assumptions.water_usage_effectiveness` | Needs the machine's energy and a published water usage effectiveness. |
 
+*A million units emit about 0.002401 tree-months · 0.01257 km by car (EU average) — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
+
 ## What the numbers rest on
 
 | Assumption | Value | Status | Provenance | Notes |
@@ -69,6 +71,8 @@ What a whole run would cost, from the per-unit costs in scenarios[0]. A whole ru
 | energy | 0.0001965 kWh | `estimated` | Whole run = measured slice / 0.0002. |
 | money | 4.716e-05 USD | `estimated` | Whole run = measured slice / 0.0002. |
 | carbon | 0.011 gCO2e | `estimated` | Whole run = measured slice / 0.0002. |
+
+*A million runs emit about 12 tree-months · 62.87 km by car (EU average) · 22% of a Paris–London flight — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
 
 ## Not counted
 
