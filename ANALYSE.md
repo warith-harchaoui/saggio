@@ -475,7 +475,7 @@ honnêtement porter.
 | Technique | Ce qu'elle rend | Statut admissible | Verdict |
 |---|---|---|---|
 | Taille de travail déclarée, cadriciels, lieux d'appel de services | Une preuve avec fichier et ligne | `estimated` au plus, souvent aucun nombre | **Livré.** C'est à cela que sert la passe statique. |
-| Exposant d'échelle empirique par tranches répétées | Le `b` de `y = a·x^b`, avec R² | `measured` sur la plage parcourue ; toute projection au-delà reste `estimated` | **À adopter.** La plus grande valeur de tout ce document. |
+| Exposant d'échelle empirique par tranches répétées | Le `b` de `y = a·x^b`, avec R² | `measured` sur la plage parcourue ; toute projection au-delà reste `estimated` | **Livré**, sous `saggio audit --scaling-steps N`. Voir ci-dessous. |
 | Compteurs d'énergie, lus deux fois, à basse cadence | Des joules, avec un périmètre | `measured` | **Livré.** Garder les échantillonneurs lents ; préférer les compteurs cumulatifs. |
 | Comptes d'instructions sous Cachegrind | Un indicateur de travail déterministe | `measured` comme compte ; jamais converti en énergie | **À adopter plus tard**, pour les barrières `diff`. Linux seulement, refus ailleurs. |
 | FLOPs analytiques depuis paramètres et jetons déclarés | `FLOPs ≈ 6·N·D` | `estimated`, avec la source du coefficient | **À adopter** là où le dépôt déclare les deux. |
@@ -486,35 +486,55 @@ honnêtement porter.
 | Constats de catalogue de règles (façon creedengo) | Pratique nommée, fichier, ligne | aucun nombre | **Reprendre la forme, pas le score**, si tant est qu'on l'adopte. |
 | Complexité prédite par un modèle de langage | Une étiquette de classe | aucun | **Refus.** Un nombre que personne ne peut vérifier. |
 
-### Le seul changement qui vaille
+### Le seul changement qui vaille, désormais fait
 
-`project_to_completion` met aujourd'hui à l'échelle une tranche mesurée vers une
-exécution complète et consigne l'hypothèse sur laquelle elle repose : que le
-travail est uniforme. Rien ne vérifie cette hypothèse, et quand elle est fausse,
-elle l'est d'une puissance, pas d'une marge.
+`project_to_completion` mettait à l'échelle une tranche mesurée vers une exécution
+complète et consignait l'hypothèse sur laquelle elle reposait : que le travail est
+uniforme. Rien ne vérifiait cette hypothèse, et quand elle est fausse, elle l'est
+d'une puissance, pas d'une marge.
 
-La méthode de trend-prof la rend vérifiable, et le dépôt fournit déjà
-l'ingrédient manquant. La passe statique lit la taille de travail déclarée ; une
-tranche peut donc être exécutée à **trois tailles ou plus** plutôt qu'à une, et
-le temps d'horloge ajusté contre la taille comme `y = a·x^b` :
+La méthode de trend-prof la rend vérifiable, et le dépôt fournissait déjà
+l'ingrédient manquant : la passe statique lit la taille de travail déclarée, donc
+une tranche peut être exécutée à plusieurs tailles plutôt qu'à une. C'est ce que
+fait désormais `--scaling-steps N`, et l'arithmétique est une généralisation
+stricte de ce qui existait :
 
-- `b ≈ 1` confirme l'hypothèse d'uniformité et la projection existante tient,
-  désormais avec une preuve derrière elle ;
-- `b ≈ 2` dit que la projection sous-estime l'exécution complète du rapport des
-  tailles, et de combien exactement ;
-- un mauvais ajustement dit que la tranche n'est pas représentative, ce qui est
-  un constat, et la projection devrait refuser plutôt qu'extrapoler une courbe à
-  laquelle personne ne croit.
+```
+exécution complète = tranche mesurée / fraction ** exposant
+```
 
-L'exposant est `measured` sur les tailles réellement parcourues. La projection
-au-delà reste `estimated`, comme elle l'a toujours été. Le coût est une poignée
-d'exécutions courtes supplémentaires, la preuve la moins chère de tout ce
-document — et c'est la seule technique ici qui transforme une hypothèse
-permanente de ce paquet en un nombre muni d'une qualité d'ajustement.
+À un exposant de un, c'est la division qu'elle a toujours été. Les pièces :
+
+| Où | Ce que ça fait |
+|---|---|
+| `saggio.analyze.static.scaling_ladder` | Construit N commandes plafonnées espacées d'un facteur quatre, la plus grande étant la tranche qui aurait été exécutée de toute façon. Les barreaux inférieurs ajoutent environ un tiers au temps. |
+| `saggio.analyze.run.run_scaling_series` | Les exécute de la plus petite à la plus grande, sans profileur, avec une seule ligne de base pour la série. Écarte tout barreau échoué ou tronqué. |
+| `saggio.estimate.scaling.fit_power_law` | Moindres carrés de `log(secondes)` sur `log(taille)`, l'ajustement qu'une loi de puissance *est* sur ces axes. Rend l'exposant, le coefficient, le R², et les exécutions ajustées. |
+| `saggio.estimate.extrapolate.project_to_completion` | Divise par `fraction ** exposant`, et nomme la plage sur laquelle l'exposant a été mesuré ainsi que la distance parcourue au-delà. |
+
+Et les refus, qui sont la partie qui rend la chose utile. Moins de trois tailles,
+une plage de tailles sous un facteur quatre, une taille ou une durée non
+strictement positive, ou un ajustement expliquant moins de 95 % de la variation
+sur des axes log-log : chacun rend un refus nommant ce qui le lèverait, plutôt
+qu'un exposant plausible.
+
+Le dernier change une réponse au lieu de la retenir. Un ajustement aussi mauvais
+est un constat — la tranche n'est pas représentative de l'exécution dont elle a
+été coupée — donc la projection vers l'exécution complète est refusée avec lui, et
+la raison remonte au lecteur. Avoir mesuré la mise à l'échelle et échoué n'est pas
+la même chose que n'avoir jamais regardé, et les deux restent distincts : pas de
+série signifie l'hypothèse linéaire, consignée comme hypothèse ; une série échouée
+signifie aucune projection.
+
+L'exposant est `measured`, sur les tailles parcourues et nulle part ailleurs. La
+projection reste `estimated`, comme elle l'a toujours été : la mesure de quelque
+chose de plus petit n'est pas la mesure de ceci. [`EXEMPLES.md`](EXEMPLES.md)
+montre la commande, le YAML et les refus.
 
 ```bash
 saggio power --seconds 5                                   # ce que cette machine acceptera de dire
 saggio audit . --country FR --run -o cost_of_running.yaml  # le lire, puis exécuter une tranche plafonnée
+saggio audit . --country FR --run --scaling-steps 3 -o cost_of_running.yaml
 saggio measure --units 1000 --fraction 0.01 -- python train.py --steps 100
 ```
 

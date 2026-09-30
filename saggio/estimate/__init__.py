@@ -9,7 +9,8 @@ is; :mod:`context` resolves where the code runs and what that place charges and
 emits; :mod:`energy` applies the Green Algorithms chain from power and time to
 energy, carbon, water, and money; :mod:`equivalences` restates a carbon figure
 in tree-months, car kilometres, and reference flights so a reader can feel its
-size; :mod:`extrapolate` projects a measured slice to a whole run, and one
+size; :mod:`scaling` measures how the cost grows with the size of the job;
+:mod:`extrapolate` projects a measured slice to a whole run, and one
 machine's run to another's.
 
 Usage example
@@ -67,12 +68,23 @@ from .extrapolate import (
     project_to_processor,
 )
 from .machine import MachineProfile, detect_machine
+from .scaling import (
+    DEFAULT_MINIMUM_R_SQUARED,
+    MINIMUM_OBSERVATIONS,
+    MINIMUM_SIZE_RATIO,
+    Observation,
+    ScalingFit,
+    fit_power_law,
+)
 
 __all__ = [
     "CAR_GCO2_PER_KM",
     "CATALOG_CURRENCY",
     "COUNTRY_ENVIRONMENT_VARIABLE",
     "DEFAULT_PRECISION",
+    "MINIMUM_SIZE_RATIO",
+    "MINIMUM_OBSERVATIONS",
+    "DEFAULT_MINIMUM_R_SQUARED",
     "DEFAULT_PROVIDER",
     "FLIGHT_GCO2",
     "GREEN_ALGORITHMS_SOURCE",
@@ -81,7 +93,9 @@ __all__ = [
     "TREE_MONTH_GCO2",
     "DeploymentContext",
     "MachineProfile",
+    "Observation",
     "Projection",
+    "ScalingFit",
     "car_km",
     "carbon_from_energy",
     "country_from_timezone",
@@ -90,6 +104,7 @@ __all__ = [
     "equivalences",
     "flight_fraction",
     "facility_energy",
+    "fit_power_law",
     "it_energy_from_runtime",
     "local_timezone_name",
     "money_from_energy",

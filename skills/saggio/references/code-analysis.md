@@ -28,7 +28,7 @@ energy model for the target processor, which no laptop, server, or GPU has.
 | Wall time, CPU time of a slice | Seconds | `measured` |
 | Energy counter read twice, with a named scope | Joules | `measured` |
 | `FLOPs ≈ 6 · N · D`, when parameters and tokens are both declared | Operations | `estimated`, with the coefficient's source |
-| Scaling exponent `b` from `y = a · x^b` over three or more slice sizes | An exponent and an R² | `measured` over the sizes run |
+| Scaling exponent `b` from `y = a · x^b` over three or more slice sizes (`--scaling-steps N`) | An exponent and an R² | `measured` over the sizes run |
 | Instruction count under Cachegrind | A count | `measured`; never converted to energy |
 
 ## May not produce a number, ever
@@ -62,10 +62,27 @@ projection onto another accelerator is a bracket and not a number.
 time that every downstream figure multiplies. A run taken with the profiler
 attached says so.
 
-## The open improvement
+## Measuring the scaling, when you have the chance
 
-`project_to_completion` assumes the work is uniform and records the assumption.
-Running the slice at three or more sizes read from the repository's own
-configuration, and fitting `y = a · x^b`, turns that assumption into a measured
-exponent with a goodness-of-fit. A poor fit is a finding: the slice is not
-representative, and the projection should refuse rather than extrapolate.
+`saggio audit --scaling-steps 3` runs the slice at three sizes a factor of four
+apart and fits `seconds = a · size^b`. The exponent replaces the assumption that
+the work is uniform, and the projection becomes
+`whole = slice / fraction ** exponent` — which is the old division when the
+exponent is one.
+
+Use it whenever the repository states its own work size and the run is worth
+projecting from. It costs about a third more than the single slice.
+
+What to write, and what not to:
+
+- The exponent is `measured` over the sizes that were run. Say so, with the range.
+- The whole-run projection stays `estimated`. A measurement of something smaller
+  is not a measurement of this.
+- R² and the observations travel with the exponent. An exponent without its
+  goodness of fit is an assertion.
+- A refused fit refuses the projection. Do not fall back to dividing by the
+  fraction: having measured the scaling and failed is not the same as never
+  having looked, and the second licenses the linear assumption while the first
+  contradicts it.
+- A series runs without the profiler, so there is no hot path in that model. Say
+  that too, and say the runtime is not inflated either.

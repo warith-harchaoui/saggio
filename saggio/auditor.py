@@ -45,12 +45,19 @@ from typing import Any, Final
 import os_helper as osh
 
 from .analyze import llm
-from .analyze.run import DEFAULT_TIMEOUT_SECONDS, SliceResult, require_consent, run_slice
+from .analyze.run import (
+    DEFAULT_TIMEOUT_SECONDS,
+    SliceResult,
+    require_consent,
+    run_scaling_series,
+    run_slice,
+)
 from .analyze.static import (
     DEFAULT_CAP_FRACTION,
     RepositoryReading,
     capped_entrypoint_command,
     read_repository,
+    scaling_ladder,
 )
 from .catalog.pricing import open_price, rate_table
 from .catalog.registry import Catalog
@@ -69,6 +76,12 @@ from .estimate.extrapolate import (
     project_to_machine,
 )
 from .estimate.machine import MachineProfile, detect_machine
+from .estimate.scaling import (
+    MINIMUM_OBSERVATIONS,
+    Observation,
+    ScalingFit,
+    fit_power_law,
+)
 from .model.cost_model import CostModel
 from .model.quantity import Quantity
 from .model.results import Report
@@ -150,6 +163,14 @@ class AuditOptions:
     precision : str
         Numeric precision the workload runs in, which decides whether the
         catalogue's throughput figures apply to it at all.
+    scaling_steps : int
+        How many differently sized slices to run in order to measure how the
+        work grows with the job. One, the default, runs the single slice this
+        package has always run and keeps the linear assumption, recorded as an
+        assumption. Three or more replaces that assumption with a fitted
+        exponent and the goodness of its fit, at about 1.3 times the cost of
+        the single slice, and refuses to project at all when the fit says the
+        slices are not measuring one consistent behaviour.
     fetch_prices : bool
         Whether to look up published rates for the models the code names. Off by
         default, because it is the only thing in an audit that reaches the
@@ -174,6 +195,7 @@ class AuditOptions:
     source_accelerator: str | None = None
     target_accelerator: str | None = None
     precision: str = DEFAULT_PRECISION
+    scaling_steps: int = 1
     fetch_prices: bool = False
     overlay: Path | None = None
 
@@ -470,8 +492,21 @@ def _service_blocks(reading: RepositoryReading) -> list[dict[str, Any]]:
 
 def _run_a_slice(
     reading: RepositoryReading, options: AuditOptions
-) -> tuple[SliceResult | None, list[str]]:
+) -> tuple[SliceResult | None, ScalingFit | None, list[str]]:
     """Run a bounded slice, if the user allows it and there is one to run.
+
+    With ``scaling_steps`` above one this runs a ladder of differently sized
+    slices instead of a single one, so that how the work grows with the job is
+    measured rather than assumed. The largest rung is the slice that would have
+    been run anyway, and it is the one every cost figure comes from; the smaller
+    rungs exist only to fit the exponent, and together they add about a third to
+    the time the single slice took.
+
+    A ladder is run without the profiler, for a reason that is in
+    :func:`saggio.analyze.run.run_scaling_series`: ``cProfile`` charges per call
+    and would put its own growth curve into the fit. The trade is that a scaling
+    series reports no hot path, and in exchange every cost figure comes from an
+    unprofiled run rather than an inflated one.
 
     Parameters
     ----------
@@ -483,22 +518,26 @@ def _run_a_slice(
     Returns
     -------
     tuple
-        The result, or ``None``, and any notes for the reader.
+        The result, or ``None``; the scaling fit, or ``None`` when no series was
+        run; and any notes for the reader.
 
     Examples
     --------
     >>> _run_a_slice(RepositoryReading(root=Path(".")), AuditOptions(run=False))[0] is None
     True
+    >>> _run_a_slice(RepositoryReading(root=Path(".")), AuditOptions(run=False))[1] is None
+    True
     """
     notes: list[str] = []
     if not options.run:
-        return None, notes
+        return None, None, notes
 
     # What would run is decided before consent is asked: prompting a person for
     # permission — and persisting their answer — over a repository with nothing
     # safe to run would spend their trust on a no-op.
     command, fraction = capped_entrypoint_command(reading, cap_fraction=options.cap_fraction)
     fallback_note: str | None = None
+    ladder: tuple[tuple[tuple[str, ...], float, float], ...] = ()
     if command is None:
         if not reading.has_tests:
             notes.append(
@@ -506,22 +545,71 @@ def _run_a_slice(
                 "size, and no test suite. Measure your own command with "
                 "`saggio measure`."
             )
-            return None, notes
+            return None, None, notes
         command, fraction = reading.test_command, None
         fallback_note = (
             "No entry point with a stated work size was found, so the repository's "
             "own test suite was run instead. It covers an unknown share of a real "
             "workload, so no whole-run projection follows from it."
         )
+    elif options.scaling_steps > 1:
+        ladder = scaling_ladder(
+            reading,
+            cap_fraction=options.cap_fraction,
+            steps=options.scaling_steps,
+        )
+        if len(ladder) < MINIMUM_OBSERVATIONS:
+            notes.append(
+                f"A scaling series of {options.scaling_steps} sizes was asked for, but "
+                f"{reading.work_size.key if reading.work_size else 'the work size'} "
+                f"cuts into only {len(ladder)} distinct size(s) at this cap. One slice "
+                "was run instead, and the projection keeps the linear assumption."
+            )
+            ladder = ()
 
     if not require_consent():
         notes.append(
             "Running the code was declined, so every number below comes from "
             "reading it and from the catalogues, never from a measurement."
         )
-        return None, notes
+        return None, None, notes
     if fallback_note:
         notes.append(fallback_note)
+
+    if ladder:
+        osh.info(f"Running a scaling series of {len(ladder)} sizes")
+        series = run_scaling_series(
+            ladder,
+            working_directory=reading.root,
+            timeout_seconds=options.timeout_seconds,
+        )
+        if not series:
+            notes.append(
+                "Every rung of the scaling series failed or ran out of time, so "
+                "nothing was measured. The warnings from the largest attempt "
+                "explain why; `saggio measure` runs one command with the same "
+                "machinery and reports it directly."
+            )
+            return None, None, notes
+        primary = series[-1][1]
+        notes.extend(primary.warnings)
+        notes.append(
+            "The slice was run without the profiler, because a scaling series "
+            "needs every rung timed the same way and cProfile charges per call. "
+            "There is no hot path below; the runtime is not inflated either."
+        )
+        if len(series) < MINIMUM_OBSERVATIONS:
+            notes.append(
+                f"Only {len(series)} of {len(ladder)} rungs completed, which is fewer "
+                f"than the {MINIMUM_OBSERVATIONS} a scaling exponent needs, so the "
+                "projection keeps the linear assumption."
+            )
+            return primary, None, notes
+        fit = fit_power_law(
+            [Observation(size=size, seconds=result.wall_seconds) for size, result in series]
+        )
+        notes.append(fit.reading if fit.usable() else str(fit.exponent.notes))
+        return primary, fit, notes
 
     osh.info(f"Running a slice: {' '.join(command)}")
     result = run_slice(
@@ -532,7 +620,7 @@ def _run_a_slice(
         profile=True,
     )
     notes.extend(result.warnings)
-    return result, notes
+    return result, None, notes
 
 
 def _projections(
@@ -544,6 +632,7 @@ def _projections(
     *,
     compute_bound: bool | None = None,
     site: dict[str, Quantity] | None = None,
+    scaling: ScalingFit | None = None,
 ) -> tuple[dict[str, Any], list[str]]:
     """Build whatever projections the evidence supports, and say what it does not.
 
@@ -562,6 +651,10 @@ def _projections(
     compute_bound : bool or None, optional
         Whether the read established that arithmetic rather than memory limits
         this workload. It decides which end of the speed-up bracket is reported.
+    scaling : ScalingFit or None, optional
+        How the cost was measured to grow with the size of the job. ``None``
+        keeps the linear assumption. A fit that refused refuses the whole-run
+        projection with it, and the reason reaches the reader as a note.
     site : dict or None, optional
         The deployment's overhead, tariff and grid intensity, used to turn a
         projected runtime on another accelerator into what that run would cost.
@@ -585,19 +678,31 @@ def _projections(
 
     if slice_result is not None and slice_result.may_project():
         whole: dict[str, Any] = {}
+        refusals: list[str] = []
         for key, cost in scenario_costs.items():
             projection = project_to_completion(
-                cost, fraction=float(slice_result.fraction_completed)
+                cost, fraction=float(slice_result.fraction_completed), scaling=scaling
             )
-            if not projection.refused:
+            if projection.refused:
+                refusals.append(str(projection.quantity.notes))
+            else:
                 whole[key] = projection.to_mapping()
         if whole:
-            block["whole_run"] = {
-                "description": (
-                    "What the whole run would cost, projected from the slice that was measured."
-                ),
-                "costs": whole,
-            }
+            description = (
+                "What the whole run would cost, projected from the slice that was measured."
+            )
+            if scaling is not None and scaling.usable():
+                description = (
+                    "What the whole run would cost, projected from the slice that was "
+                    "measured and from the exponent by which its cost was measured to "
+                    "grow with the size of the job."
+                )
+            block["whole_run"] = {"description": description, "costs": whole}
+        elif refusals:
+            # One refusal reaches the reader rather than five copies of it: every
+            # cost in a scenario is projected the same way, so they all fail for
+            # the same reason.
+            notes.append(refusals[0])
     elif options.run:
         notes.append(
             "No whole-run projection was made: the share of the work the slice "
@@ -816,7 +921,7 @@ def audit(
             "intensity and tariff stay open. Add it with `saggio catalog add country`."
         )
 
-    slice_result, slice_notes = _run_a_slice(reading, settings)
+    slice_result, scaling, slice_notes = _run_a_slice(reading, settings)
     notes.extend(slice_notes)
 
     analysis = reading.to_mapping()
@@ -870,6 +975,7 @@ def audit(
             "grid_carbon_intensity": grid,
             "water_usage_effectiveness": wue,
         },
+        scaling=scaling,
     )
     notes.extend(projection_notes)
 
@@ -930,6 +1036,11 @@ def audit(
         data["models_called"] = _model_blocks(reading, settings)
     if slice_result is not None:
         data["measurement"] = slice_result.to_mapping()
+        if scaling is not None:
+            # The exponent travels with the measurement rather than with the
+            # projection that used it, because it is a fact about the workload
+            # and stays true if nobody ever projects from it.
+            data["measurement"]["scaling"] = scaling.to_mapping()
     if projections:
         data["projections"] = projections
 

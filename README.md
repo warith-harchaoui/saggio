@@ -84,9 +84,13 @@ prices: sourced YAML catalogues, each row carrying the URL it came from and the
 date somebody read it, each one going stale on a schedule that matches how fast
 that kind of fact actually moves.
 
-**Projects, and says what it assumed.** From a measured slice to a whole run.
+**Projects, and says what it assumed — or measures the assumption away.** From a
+measured slice to a whole run.
 From one accelerator to another, and all the way to money and carbon rather than
-stopping at a duration. That second projection is a bracket, not a number: work is
+stopping at a duration. The first projection rests on the work being uniform, and `--scaling-steps 3`
+replaces that assumption with a number: three slices of different sizes, a fitted
+exponent, and a refusal to project at all when the fit says the slices are not
+measuring one consistent behaviour. That second projection is a bracket, not a number: work is
 limited by arithmetic throughput or by memory bandwidth, the two ratios differ by
 more than a factor of two between an A100 and an H100, and reporting the compute
 ratio alone would understate the bill by a third. It refuses outright when the

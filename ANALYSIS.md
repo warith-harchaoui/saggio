@@ -445,7 +445,7 @@ carry.
 | Technique | What it yields | Status it may carry | Verdict |
 |---|---|---|---|
 | Declared work size, frameworks, service call sites | Evidence with a file and a line | `estimated` at most, usually no number at all | **Shipped.** This is what the static pass is for. |
-| Empirical scaling exponent from repeated slices | `b` in `y = a·x^b`, with R² | `measured` over the range run; any projection beyond it stays `estimated` | **Adopt.** Highest value of anything in this document. |
+| Empirical scaling exponent from repeated slices | `b` in `y = a·x^b`, with R² | `measured` over the range run; any projection beyond it stays `estimated` | **Shipped**, as `saggio audit --scaling-steps N`. See below. |
 | Energy counters, read twice, at low rates | Joules, with a scope | `measured` | **Shipped.** Keep samplers slow; prefer accumulating counters. |
 | Instruction counts under Cachegrind | A deterministic work proxy | `measured` as a count; never converted to energy | **Adopt later**, for `diff` gates. Linux-only, refuse elsewhere. |
 | Analytic FLOPs from declared parameters and tokens | `FLOPs ≈ 6·N·D` | `estimated`, with the coefficient's source | **Adopt** where the repository declares both. |
@@ -456,33 +456,52 @@ carry.
 | Rule-catalogue findings (creedengo-style) | Named practice, file, line | no number | **Adopt the shape, not the score**, if adopted at all. |
 | Complexity predicted by a language model | A class label | none | **Refuse.** A number nobody can check. |
 
-### The one change worth making
+### The one change worth making, now made
 
-`project_to_completion` currently scales a measured slice to a whole run and
-records the assumption it rests on — that the work is uniform. Nothing checks
-that assumption, and when it is wrong it is wrong by a power, not by a margin.
+`project_to_completion` used to scale a measured slice to a whole run and record
+the assumption it rested on — that the work is uniform. Nothing checked that
+assumption, and when it is wrong it is wrong by a power, not by a margin.
 
-trend-prof's method turns it into something checkable, and the repository
-already supplies the missing ingredient. The static pass reads the declared work
-size; a slice can therefore be run at **three or more sizes** rather than one,
-and wall time fitted against size as `y = a·x^b`:
+trend-prof's method turns it into something checkable, and the repository already
+supplied the missing ingredient: the static pass reads the declared work size, so
+a slice can be run at several sizes rather than one. That is now what
+`--scaling-steps N` does, and the arithmetic is a strict generalisation of what
+was there before:
 
-- `b ≈ 1` confirms the uniformity assumption and the existing projection stands,
-  now with evidence behind it;
-- `b ≈ 2` says the projection understates the whole run by the ratio of the
-  sizes, and by how much exactly;
-- a poor fit says the slice is not representative, which is a finding, and the
-  projection should refuse rather than extrapolate a curve nobody believes.
+```
+whole run = measured slice / fraction ** exponent
+```
 
-The exponent is `measured` over the sizes actually run. The projection beyond
-them stays `estimated`, because it always was. The cost is a handful of extra
-short runs, which is the cheapest evidence in this entire document — and it is
-the only technique here that turns one of this package's standing assumptions
-into a number with a goodness-of-fit attached.
+At an exponent of one this is the division it has always been. The pieces:
+
+| Where | What it does |
+|---|---|
+| `saggio.analyze.static.scaling_ladder` | Builds N capped commands a factor of four apart, the largest being the slice that would have been run anyway. The rungs below add about a third to the time. |
+| `saggio.analyze.run.run_scaling_series` | Runs them smallest first, without the profiler, with one baseline for the series. Drops any rung that failed or was truncated. |
+| `saggio.estimate.scaling.fit_power_law` | Least squares of `log(seconds)` on `log(size)`, the fit a power law *is* on those axes. Returns the exponent, the coefficient, R², and the runs it was fitted to. |
+| `saggio.estimate.extrapolate.project_to_completion` | Divides by `fraction ** exponent`, and names the range the exponent was measured over and how far past it the projection reached. |
+
+And the refusals, which are the part that makes it worth having. Fewer than three
+sizes, a size range under a factor of four, a non-positive size or duration, or a
+fit explaining less than 95% of the variation on log-log axes: each returns a
+refusal naming what would resolve it rather than a plausible exponent.
+
+The last of those changes an answer rather than withholding one. A fit that poor
+is a finding — the slice is not representative of the run it was cut from — so the
+whole-run projection is refused with it, and the reason reaches the reader. Having
+measured the scaling and failed is not the same as never having looked, and the
+two are kept apart: no series means the linear assumption, recorded as an
+assumption; a failed series means no projection.
+
+The exponent is `measured`, over the sizes that were run and nowhere else. The
+projection remains `estimated`, because it always was: a measurement of something
+smaller is not a measurement of this. [`EXAMPLES.md`](EXAMPLES.md) shows the
+command, the YAML, and the refusals.
 
 ```bash
 saggio power --seconds 5                                   # what this machine will tell you
 saggio audit . --country FR --run -o cost_of_running.yaml  # read it, then run a capped slice
+saggio audit . --country FR --run --scaling-steps 3 -o cost_of_running.yaml
 saggio measure --units 1000 --fraction 0.01 -- python train.py --steps 100
 ```
 

@@ -62,8 +62,11 @@ which `help()` will show you.
 | `car_km(carbon: 'Quantity', region: 'str' = 'EU') -> 'Quantity'` | Restate a carbon figure as kilometres driven in an average passenger car. |
 | `flight_fraction(carbon: 'Quantity', route: 'str' = 'paris-london') -> 'Quantity'` | Restate a carbon figure as a fraction of a reference flight. |
 | `equivalences(carbon: 'Quantity') -> 'dict[str, Quantity]'` | Return the full set of restatements for one carbon figure. |
+| `Observation` | One run, of a known size, that took a known time. |
 | `Projection` | The result of a projection: a number, its method, and its limits. |
-| `project_to_completion(measured: 'Quantity', *, fraction: 'float') -> 'Projection'` | Project a measured slice of a run to the whole of it. |
+| `ScalingFit` | A measured power law, or a refusal to report one. |
+| `fit_power_law(observations: 'list[Observation] \| tuple[Observation, ...]', *, minimum_r_squared: 'float' = 0.95, status: 'str' = 'measured') -> 'ScalingFit'` | Fit ``seconds = a * size ** b`` and say how well it fits. |
+| `project_to_completion(measured: 'Quantity', *, fraction: 'float', scaling: 'ScalingFit \| None' = None) -> 'Projection'` | Project a measured slice of a run to the whole of it. |
 | `project_to_machine(*, runtime: 'Quantity', source_key: 'str', target_key: 'str', precision: 'str' = 'bf16', compute_bound: 'bool \| None' = None, overlay_catalog: 'Catalog \| None' = None) -> 'Projection'` | Project a runtime measured on one accelerator onto another. |
 | `project_to_processor(*, runtime: 'Quantity', source_key: 'str', target_key: 'str', parallelism: 'float \| None' = None, overlay_catalog: 'Catalog \| None' = None) -> 'Projection'` | Project a runtime measured on one processor onto another. |
 

@@ -280,3 +280,178 @@ def test_nothing_safe_to_run_is_reported(tmp_path: Path, monkeypatch: pytest.Mon
 def test_cloning_something_that_is_not_a_repository_says_why() -> None:
     with pytest.raises(RuntimeError, match=r"clone|git"):
         audit_git_url("https://example.invalid/not-a-repository.git", options=static_options())
+
+
+# --- Measuring how the work grows --------------------------------------------
+
+
+def _synthetic_series(exponent: float, sizes=(25.0, 100.0, 400.0)):
+    """Rungs with times that follow a known power law exactly.
+
+    The arithmetic of the fit is checked against synthetic observations in
+    `tests/unit/test_scaling.py`. What these tests check is the wiring: that an
+    exponent measured by the series reaches the model, the projection, and the
+    validator. Real timings would make the same assertions flaky for reasons
+    that have nothing to do with the code under test — a shared runner, a cache
+    warming, thirty milliseconds of interpreter start-up on the smallest rung.
+    """
+    from saggio.analyze.power import PowerReading
+    from saggio.analyze.run import SliceResult
+
+    return tuple(
+        (
+            size,
+            SliceResult(
+                command=("python", "train.py", "--max_iters", str(int(size))),
+                exit_code=0,
+                wall_seconds=1e-4 * size**exponent,
+                power=PowerReading(None, None, "n/a"),
+                fraction_completed=size / 400000.0,
+            ),
+        )
+        for size in sizes
+    )
+
+
+def test_a_scaling_series_puts_a_measured_exponent_in_the_model(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
+    monkeypatch.setattr("saggio.auditor.run_scaling_series", lambda *a, **k: _synthetic_series(2.0))
+    result = audit(
+        training_repository, options=static_options(run=True, country="FR", scaling_steps=3)
+    )
+
+    scaling = result.model.get("measurement.scaling")
+    assert scaling is not None
+    assert scaling["exponent"]["value"] == pytest.approx(2.0)
+    assert scaling["exponent"]["status"] == "measured"
+    assert len(scaling["observations"]) == 3
+    assert validate(result.model).ok, validate(result.model).to_text()
+
+
+def test_the_exponent_changes_the_whole_run_projection_it_feeds(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
+    monkeypatch.setattr("saggio.auditor.run_scaling_series", lambda *a, **k: _synthetic_series(2.0))
+    result = audit(
+        training_repository, options=static_options(run=True, country="FR", scaling_steps=3)
+    )
+
+    whole = result.model.get("projections.whole_run")
+    assert whole is not None
+    assert "^2.000" in whole["costs"]["energy"]["method"]
+    assert "measured to" in whole["description"]
+
+
+def test_a_linear_series_leaves_the_projection_where_it_was(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The generalisation has to reduce to the special case end to end, not just
+    # in the arithmetic.
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
+    monkeypatch.setattr("saggio.auditor.run_scaling_series", lambda *a, **k: _synthetic_series(1.0))
+    result = audit(
+        training_repository, options=static_options(run=True, country="FR", scaling_steps=3)
+    )
+    assert "^1.000" in result.model.get("projections.whole_run")["costs"]["energy"]["method"]
+    assert any("proportion" in note for note in result.notes)
+
+
+def test_a_series_that_cannot_be_fitted_refuses_to_project_and_says_why(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from saggio.analyze.power import PowerReading
+    from saggio.analyze.run import SliceResult
+
+    scattered = tuple(
+        (
+            size,
+            SliceResult(
+                command=("python", "train.py"),
+                exit_code=0,
+                wall_seconds=seconds,
+                power=PowerReading(None, None, "n/a"),
+                fraction_completed=size / 400000.0,
+            ),
+        )
+        for size, seconds in ((25.0, 5.0), (100.0, 0.5), (400.0, 40.0))
+    )
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
+    monkeypatch.setattr("saggio.auditor.run_scaling_series", lambda *a, **k: scattered)
+    result = audit(
+        training_repository, options=static_options(run=True, country="FR", scaling_steps=3)
+    )
+
+    assert result.model.get("projections.whole_run") is None
+    assert any("not measuring one consistent behaviour" in note for note in result.notes)
+    assert result.model.get("measurement.scaling")["refused"] is True
+    assert validate(result.model).ok
+
+
+def test_too_few_rungs_completing_keeps_the_linear_assumption(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.run_scaling_series", lambda *a, **k: _synthetic_series(2.0, sizes=(400.0,))
+    )
+    result = audit(
+        training_repository, options=static_options(run=True, country="FR", scaling_steps=3)
+    )
+    assert result.model.get("measurement.scaling") is None
+    assert result.model.get("projections.whole_run") is not None
+    assert any("rungs completed" in note for note in result.notes)
+
+
+def test_every_rung_failing_leaves_no_measurement_at_all(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
+    monkeypatch.setattr("saggio.auditor.run_scaling_series", lambda *a, **k: ())
+    result = audit(
+        training_repository, options=static_options(run=True, country="FR", scaling_steps=3)
+    )
+    assert result.slice_result is None
+    assert any("ran out of time" in note for note in result.notes)
+    assert result.report.ok
+
+
+def test_a_stated_size_too_small_to_cut_falls_back_to_one_slice(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = tmp_path / "tiny"
+    root.mkdir()
+    (root / "config.py").write_text("epochs = 2\n", encoding="utf-8")
+    (root / "train.py").write_text(
+        "import argparse\n"
+        "parser = argparse.ArgumentParser()\n"
+        'parser.add_argument("--epochs", type=int, default=2)\n'
+        "parser.parse_args()\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
+    result = audit(root, options=static_options(run=True, country="FR", scaling_steps=3))
+    assert any("distinct size" in note for note in result.notes)
+
+
+@pytest.mark.slow
+def test_a_real_repository_really_runs_the_whole_ladder(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # No assertion on the exponent: over a range this short, interpreter start-up
+    # is a real part of every rung and the fit says so. What is asserted is that
+    # three rungs ran, that whatever came out is honest about itself, and that
+    # the model still passes its own rules either way.
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
+    result = audit(
+        training_repository,
+        options=static_options(run=True, country="FR", timeout_seconds=120.0, scaling_steps=3),
+    )
+    scaling = result.model.get("measurement.scaling")
+    assert scaling is not None
+    assert len(scaling["observations"]) == 3
+    assert scaling["exponent"]["status"] in {"measured", "TODO"}
+    assert validate(result.model).ok, validate(result.model).to_text()
+    assert any("without the profiler" in note for note in result.notes)

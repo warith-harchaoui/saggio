@@ -290,6 +290,18 @@ def _add_audit(verbs: argparse._SubParsersAction) -> None:
         help=f"Seconds a slice may run. Default {DEFAULT_TIMEOUT_SECONDS:g}.",
     )
     parser.add_argument(
+        "--scaling-steps",
+        type=int,
+        default=1,
+        metavar="N",
+        help=(
+            "Run N differently sized slices and measure how the cost grows with "
+            "the size of the job, instead of assuming it grows in proportion. "
+            "Three is the fewest that can be checked, and costs about 1.3 times "
+            "one slice. Default 1, which keeps the assumption and says so."
+        ),
+    )
+    parser.add_argument(
         "--source-accelerator",
         default=None,
         help=(

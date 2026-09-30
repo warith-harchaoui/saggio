@@ -411,6 +411,121 @@ When there is no entry point with a stated size, the repository's own test suite
 run instead. It covers an unknown share of a real workload, so no whole-run
 projection follows from it, and the audit says exactly that.
 
+### Measuring how the work grows, instead of assuming it
+
+The projection above divides by `0.001` because the slice covered a thousandth of
+the run. That is right when the work is uniform, and when it is not, it is wrong
+by a *power* rather than by a margin: a step that is quadratic in the batch turns
+a thousandth of a run into a millionth of its cost, and the projection understates
+the bill by three orders of magnitude while looking exactly as confident as a
+correct one.
+
+Nothing used to check that assumption. This does:
+
+```bash
+saggio audit . --country FR --run --scaling-steps 3 -o cost_of_running.yaml
+```
+
+Three slices are run instead of one, at sizes a factor of four apart, and the
+largest of them is the slice that would have been run anyway. The two below it
+add about a third to the time — a quarter and a sixteenth of the top rung — and
+in exchange the exponent stops being an assumption:
+
+```yaml
+measurement:
+  scaling:
+    method: "Least squares of log(seconds) on log(size) over 3 runs: seconds = 0.0001 × size^2.000."
+    reading: The work grew faster than the size, by a power of 2.00. Doubling the job
+      multiplies the cost by 4.00 rather than by 2, so a projection that divided by
+      the size ratio would understate the whole run.
+    exponent:
+      value: 2.0
+      unit: exponent
+      status: measured
+      notes: Fitted over 3 runs of sizes 37 to 600, R² = 1.000.
+    r_squared: 1.0
+    observations:
+      - {size: 37.0, seconds: 0.1369}
+      - {size: 150.0, seconds: 2.25}
+      - {size: 600.0, seconds: 36.0}
+```
+
+The exponent is `measured`, because it is a summary of three readings off a clock,
+in the same way that watts from an energy counter over a duration is a
+measurement. What it is *not* is a law: it is `measured` **over the sizes that were
+run**, and every projection that uses it says how far past them it reached.
+
+The projection that follows divides by `0.001^2.000` rather than by `0.001`, which
+on this workload is a factor of a thousand:
+
+```yaml
+projections:
+  whole_run:
+    description: What the whole run would cost, projected from the slice that was
+      measured and from the exponent by which its cost was measured to grow with
+      the size of the job.
+    costs:
+      energy:
+        method: "Whole run = measured slice / 0.001^2.000. Least squares of log(seconds) on log(size) over 3 runs: …"
+        result:
+          value: 1.6
+          unit: kWh
+          status: estimated
+          notes: Projected from a slice covering 0.1% of the run, with a measured
+            scaling exponent of 2.000.
+        limits:
+          - The exponent holds between sizes 37 and 600, and the whole run is about
+            6e+05 at the same scale, which is 1e+03 times the largest size actually run.
+```
+
+#### When it refuses, and why that is the useful answer
+
+A measurement that comes back saying *I cannot tell* is worth more than an
+exponent nobody can check, so the series refuses in four situations and each
+refusal names what would resolve it:
+
+| Situation | Why | What it says |
+|---|---|---|
+| Fewer than three sizes ran | Two points fit a straight line exactly, so they rule nothing out | Asks for three, and says why two is not two-thirds of an answer |
+| The sizes span less than a factor of four | Over a narrow range every exponent fits about as well as every other | Names the ratio it got and the one it needs |
+| A size or a duration is not above zero | A power law is fitted on logarithms | Says a run too short for the clock needs a *larger* slice |
+| The fit explains less than 95% of the variation | The slices are not measuring one consistent behaviour | Names the R² and the usual causes — a cache warming, a schedule that changes shape, a busy machine |
+
+The last one matters most, because it is the one that changes an answer. When the
+fit is that poor, the finding is that **the slice is not representative of the run
+it was cut from**, and a projection made anyway would assert a proportionality the
+runs on hand contradict. So the whole-run block is not written at all, the reason
+travels to the reader as a note, and the refusal is recorded in the model:
+
+```yaml
+measurement:
+  scaling:
+    refused: true
+    exponent:
+      status: TODO
+      notes: A power law explains only 0.42 of the variation across 3 runs, below
+        the 0.95 required. The slices are not measuring one consistent behaviour …
+```
+
+Having measured the scaling and failed is not the same as never having looked,
+and the model distinguishes them: without `--scaling-steps` the projection keeps
+the linear assumption and records it as an assumption; with it, an unfittable
+workload gets no projection.
+
+Two more things worth knowing before you use it. A scaling series runs **without
+the profiler**, because `cProfile` charges per call and would put its own growth
+curve into the fit — so there is no hot path in the model, and in exchange every
+cost figure comes from an unprofiled run rather than an inflated one. And a
+repository whose stated size is too small to cut three distinct ways falls back
+to a single slice and says so.
+
+The method is not new. It is [Goldsmith, Aiken and Wilkerson's *Measuring
+Empirical Computational Complexity*](https://theory.stanford.edu/~aiken/publications/papers/fse07.pdf)
+(FSE 2007) — run over sizes spanning orders of magnitude, fit a power law, report
+the goodness of fit — with this package's refusals attached.
+[`ANALYSIS.md`](ANALYSIS.md) is the survey of that literature and of what the
+alternatives can and cannot deliver.
+
 ## Projecting onto other hardware
 
 Most cost models are written on a laptop. Projecting from one needs you to say

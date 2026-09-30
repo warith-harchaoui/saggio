@@ -86,9 +86,13 @@ des catalogues YAML sourcés, chaque ligne portant l'URL d'où elle vient et la 
 à laquelle quelqu'un l'a lue, chacune périmant selon un délai adapté à la vitesse
 à laquelle ce genre de fait bouge vraiment.
 
-**Il projette, et il dit ce qu'il a supposé.** D'une tranche mesurée à une
-exécution complète. D'un accélérateur à un autre, et jusqu'à l'argent et au
-carbone plutôt que de s'arrêter à une durée. Cette seconde projection est un
+**Il projette, et il dit ce qu'il a supposé — ou il mesure l'hypothèse.** D'une
+tranche mesurée à une exécution complète. D'un accélérateur à un autre, et jusqu'à
+l'argent et au carbone plutôt que de s'arrêter à une durée. La première projection
+repose sur l'uniformité du travail, et `--scaling-steps 3` remplace cette
+hypothèse par un nombre : trois tranches de tailles différentes, un exposant
+ajusté, et un refus net de projeter quand l'ajustement dit que les tranches ne
+mesurent pas un comportement cohérent. Cette seconde projection est un
 encadrement, pas un nombre : une charge est limitée par le débit arithmétique ou
 par la bande passante mémoire, les deux rapports diffèrent de plus du double entre
 une A100 et une H100, et ne rapporter que le rapport de calcul sous-estimerait la

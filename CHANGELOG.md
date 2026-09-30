@@ -7,6 +7,44 @@ release of that line.
 
 ## Unreleased
 
+### The whole-run projection stops assuming the work is uniform
+
+- `saggio audit --scaling-steps N` runs the slice at N sizes a factor of four
+  apart instead of once, and fits `seconds = a × size^b` by least squares on
+  log-log axes. The projection to a whole run becomes
+  `slice / fraction ** exponent`, which is the division it always was when the
+  exponent is one and is a factor of a thousand different when the work is
+  quadratic and the slice was a thousandth.
+- The exponent is `measured`, over the sizes that were run and nowhere else: it
+  summarises readings off a clock, the way watts from an energy counter over a
+  duration do. The projection stays `estimated`, because a measurement of
+  something smaller was never a measurement of this. R² and every run the fit
+  used travel with it in `measurement.scaling`, so a reader can redo the
+  arithmetic instead of taking the exponent on trust.
+- The refusals are the point. Fewer than three sizes — two points fit a straight
+  line exactly and rule nothing out — a size range under a factor of four, a
+  size or duration that has no logarithm, or a fit explaining less than 95% of
+  the variation: each returns a refusal naming what would resolve it.
+- A fit that poor changes an answer rather than withholding one. It means the
+  slice is not representative of the run it was cut from, so the whole-run block
+  is not written at all and the reason reaches the reader. Having measured the
+  scaling and failed is kept distinct from never having looked: without the flag
+  the projection keeps the linear assumption and records it, and now also
+  records that nothing checked it.
+- The ladder is cheap on purpose. Its top rung is the slice that would have been
+  run anyway, and the rungs below it add a quarter and a sixteenth of it, so the
+  series costs about 1.3 times the single slice. It runs without the profiler,
+  because cProfile charges per call and would fit its own growth curve; the
+  trade is no hot path, and in exchange every cost figure comes from an
+  unprofiled run rather than an inflated one.
+- New: `saggio.estimate.scaling` (`Observation`, `ScalingFit`, `fit_power_law`),
+  `saggio.analyze.static.scaling_ladder`,
+  `saggio.analyze.run.run_scaling_series`, and a `scaling` keyword on
+  `project_to_completion`. Exported at the top level. `EXAMPLES.md` and
+  `EXEMPLES.md` show the command, the YAML, and the refusals; `ANALYSIS.md` and
+  `ANALYSE.md` record why this was the one change worth making.
+
+
 ### What reading code, and running it, can each be asked
 
 - `ANALYSIS.md` and `ANALYSE.md`: the investigation behind the package's

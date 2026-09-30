@@ -45,6 +45,7 @@ from typing import Any, Final
 from ..catalog.registry import Catalog
 from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, TODO, status_strength, weakest
+from .scaling import ScalingFit
 
 #: Which catalogue column quotes peak throughput at which precision. The relative
 #: advantage between two chips changes with precision — an H100 pulls much further
@@ -220,8 +221,19 @@ def _refusal(unit: str | None, currency: str | None, reason: str) -> Projection:
     )
 
 
-def project_to_completion(measured: Quantity, *, fraction: float) -> Projection:
+def project_to_completion(
+    measured: Quantity,
+    *,
+    fraction: float,
+    scaling: ScalingFit | None = None,
+) -> Projection:
     """Project a measured slice of a run to the whole of it.
+
+    The arithmetic is ``whole = slice / fraction ** exponent``, and the exponent
+    is one unless something measured it. At one this is the division it has
+    always been; above one it says the whole run costs more than the ratio of
+    sizes suggests, which is the case a linear projection gets wrong by a power
+    rather than by a margin.
 
     Parameters
     ----------
@@ -230,6 +242,18 @@ def project_to_completion(measured: Quantity, *, fraction: float) -> Projection:
     fraction : float
         How much of the whole run the slice represents, in the interval ``(0, 1]``.
         A fraction of ``0.001`` means the slice was a thousandth of the work.
+    scaling : ScalingFit or None, optional
+        A measured power law relating cost to size, from
+        :func:`saggio.estimate.scaling.fit_power_law`. ``None`` keeps the linear
+        assumption and records it, which is what a single slice licenses.
+
+        A *refused* fit is not the same as no fit, and is not treated as one: it
+        means somebody ran the slice at several sizes in order to check the
+        assumption, and the check came back saying the slice is not
+        representative. Projecting anyway would assert a linearity the evidence
+        on hand contradicts, so the projection is refused too, carrying the fit's
+        reason. Pass ``None`` when no series was attempted; pass the refusal when
+        one was.
 
     Returns
     -------
@@ -240,6 +264,8 @@ def project_to_completion(measured: Quantity, *, fraction: float) -> Projection:
 
     Examples
     --------
+    A quarter of a run, projected the way it always was:
+
     >>> whole = project_to_completion(Quantity(value=2.0, unit="kWh", status="measured"),
     ...                               fraction=0.25)
     >>> whole.quantity.value
@@ -247,6 +273,23 @@ def project_to_completion(measured: Quantity, *, fraction: float) -> Projection:
     >>> project_to_completion(Quantity(value=1.0, status="measured"), fraction=0.0).refused
     True
     >>> project_to_completion(Quantity(value=1.0, status="measured"), fraction=1.5).refused
+    True
+
+    The same quarter, once the work has been measured as quadratic. Sixteen
+    rather than eight, and the method says why:
+
+    >>> from saggio.estimate.scaling import Observation, fit_power_law
+    >>> fit = fit_power_law([Observation(n, 1e-6 * n * n) for n in (50, 200, 800)])
+    >>> whole = project_to_completion(Quantity(value=2.0, unit="kWh", status="measured"),
+    ...                               fraction=0.25, scaling=fit)
+    >>> round(whole.quantity.value, 6)
+    32.0
+
+    And a fit that refused refuses the projection with it:
+
+    >>> refused = fit_power_law([Observation(1.0, 1.0), Observation(2.0, 2.0)])
+    >>> project_to_completion(Quantity(value=1.0, status="measured"),
+    ...                       fraction=0.5, scaling=refused).refused
     True
     """
     if not measured.is_known():
@@ -262,27 +305,76 @@ def project_to_completion(measured: Quantity, *, fraction: float) -> Projection:
             f"A completed fraction of {fraction!r} is outside (0, 1]; "
             "it must be the share of the whole run that was actually executed.",
         )
+    if scaling is not None and not scaling.usable():
+        return _refusal(
+            measured.unit,
+            measured.currency,
+            "The scaling of this workload was measured and the measurement "
+            f"refused to report an exponent: {scaling.exponent.notes} Until that "
+            "is resolved, projecting by the ratio of sizes would assert a "
+            "proportionality that the runs available do not support.",
+        )
 
     percent = fraction * 100.0
+    if scaling is None:
+        return Projection(
+            quantity=Quantity(
+                value=float(measured.value) / fraction,
+                unit=measured.unit,
+                currency=measured.currency,
+                status=_cap(measured.status),
+                notes=f"Projected from a slice covering {percent:g}% of the run.",
+            ),
+            method=f"Whole run = measured slice / {fraction:g}.",
+            assumptions=(
+                "The remaining work costs the same per unit as the slice that was run.",
+                "Warm-up, checkpointing, and data loading are spread evenly across the run.",
+            ),
+            limits=(
+                "A run whose later stages differ in shape, such as a learning-rate "
+                "schedule that changes batch size, will not scale linearly.",
+                "One-off costs paid entirely inside the slice are counted as though "
+                "they recurred throughout.",
+                "Nothing here checked that the work is uniform. Measuring a few "
+                "slices of different sizes would turn that assumption into an "
+                "exponent; see saggio.estimate.scaling.",
+            ),
+        )
+
+    exponent = float(scaling.exponent.value)
+    divisor = fraction**exponent
+    measured_range = scaling.size_range()
+    limits = [
+        *scaling.limits,
+        "Beyond the largest size measured, the exponent is an extrapolation: it "
+        "describes how the work grew where it was watched growing, not a law.",
+    ]
+    if measured_range is not None:
+        smallest, largest = measured_range
+        limits.insert(
+            0,
+            f"The exponent holds between sizes {smallest:g} and {largest:g}, and the "
+            f"whole run is about {largest / fraction:.3g} at the same scale, which is "
+            f"{1.0 / fraction:.3g} times the largest size actually run.",
+        )
     return Projection(
         quantity=Quantity(
-            value=float(measured.value) / fraction,
+            value=float(measured.value) / divisor,
             unit=measured.unit,
             currency=measured.currency,
-            status=_cap(measured.status),
-            notes=f"Projected from a slice covering {percent:g}% of the run.",
+            status=weakest(_cap(measured.status), scaling.exponent.status),
+            notes=(
+                f"Projected from a slice covering {percent:g}% of the run, with a "
+                f"measured scaling exponent of {exponent:.3f}."
+            ),
         ),
-        method=f"Whole run = measured slice / {fraction:g}.",
+        method=(f"Whole run = measured slice / {fraction:g}^{exponent:.3f}. {scaling.method}"),
         assumptions=(
-            "The remaining work costs the same per unit as the slice that was run.",
-            "Warm-up, checkpointing, and data loading are spread evenly across the run.",
+            "The workload keeps the scaling it was measured to have over the sizes that were run.",
+            "Warm-up, checkpointing, and data loading grow with the size the same "
+            "way the measured slices did.",
         ),
-        limits=(
-            "A run whose later stages differ in shape, such as a learning-rate "
-            "schedule that changes batch size, will not scale linearly.",
-            "One-off costs paid entirely inside the slice are counted as though "
-            "they recurred throughout.",
-        ),
+        limits=tuple(limits),
     )
 
 

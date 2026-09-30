@@ -888,3 +888,82 @@ def run_slice(
         warnings=tuple(warnings),
         baseline=baseline,
     )
+
+
+def run_scaling_series(
+    ladder: Sequence[tuple[Sequence[str], float, float]],
+    *,
+    working_directory: str | Path | None = None,
+    timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+    baseline_seconds: float = DEFAULT_BASELINE_SECONDS,
+) -> tuple[tuple[float, SliceResult], ...]:
+    """Run each rung of a ladder and return what each size cost in time.
+
+    A scaling series exists to answer one question — does the work grow in
+    proportion to the job — and everything about how it runs follows from that.
+
+    The profiler is off, and not as an option. ``cProfile`` charges per call, so
+    a profiled run's wall time is inflated by an amount that grows with the
+    calls; the inflation partly cancels in an exponent and does not cancel at
+    all in the coefficient, and a series where some rungs were profiled and
+    others were not would produce a curve that is about the profiler. Off for
+    every rung is the only setting with a defensible meaning, and the hot path
+    is read from the primary slice anyway.
+
+    The baseline is taken once, before the first rung, rather than before each.
+    The rungs run back to back on the same machine within seconds of each other,
+    so a fresh baseline per rung measures the same idle three times and charges
+    three seconds for it.
+
+    Rungs are run smallest first, so a repository that cannot finish the largest
+    one inside the time limit still returns the rungs that did finish, and a
+    ladder that is going to be hopeless is hopeless quickly.
+
+    Parameters
+    ----------
+    ladder : sequence of tuple
+        ``(command, fraction, size)`` triples, as built by
+        :func:`saggio.analyze.static.scaling_ladder`. Only the command and the
+        size are used here; the fraction travels with the result for the caller.
+    working_directory : str or pathlib.Path or None, optional
+        Where to run them.
+    timeout_seconds : float, optional
+        How long to allow *each* rung. A rung that hits the limit is truncated,
+        and a truncated rung is dropped from the series rather than reported as
+        a run of its intended size, because its duration is the limit rather
+        than the work.
+    baseline_seconds : float, optional
+        How long to watch the machine before the first rung.
+
+    Returns
+    -------
+    tuple of tuple
+        One ``(size, SliceResult)`` pair per rung that ran to completion,
+        smallest first. A rung that failed or was truncated is left out, so the
+        caller may receive fewer pairs than there were rungs — or none — and the
+        fit refuses on its own when too few survive.
+
+    Examples
+    --------
+    >>> run_scaling_series([])
+    ()
+    """
+    collected: list[tuple[float, SliceResult]] = []
+    for index, (command, fraction, size) in enumerate(ladder):
+        result = run_slice(
+            command,
+            working_directory=working_directory,
+            timeout_seconds=timeout_seconds,
+            fraction_completed=fraction,
+            profile=False,
+            baseline_seconds=baseline_seconds if index == 0 else 0.0,
+        )
+        if result.succeeded() and not result.truncated:
+            collected.append((float(size), result))
+        else:
+            osh.info(
+                f"Scaling rung of size {size:g} did not complete "
+                f"(exit {result.exit_code}, truncated={result.truncated}); "
+                "it is left out of the fit."
+            )
+    return tuple(collected)

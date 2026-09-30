@@ -85,6 +85,12 @@ BARE_NUMBER_EXEMPT_PREFIXES: Final[tuple[str, ...]] = (
     # reader needs it to see how much of the total was the machine itself.
     "measurement.idle_watts",
     "measurement.hot_path",
+    # The evidence behind a measured scaling exponent. The exponent itself is a
+    # quantity and is checked like one; these are the runs it was fitted to and
+    # how well the fit worked, which is what lets a reader redo the arithmetic
+    # rather than take the exponent on trust.
+    "measurement.scaling.r_squared",
+    "measurement.scaling.observations",
 )
 
 

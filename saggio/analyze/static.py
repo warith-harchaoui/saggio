@@ -1428,6 +1428,104 @@ def capped_entrypoint_command(
     return command, fraction
 
 
+#: How many differently sized slices a scaling series runs by default. Three is
+#: the fewest that can produce a goodness of fit, and the fit is the whole point:
+#: an exponent nobody can check is worth less than the assumption it replaced.
+DEFAULT_SCALING_STEPS: Final[int] = 3
+
+#: How much bigger each rung of the ladder is than the one below it. Four rather
+#: than two for two reasons at once: it spans a factor of sixteen over three
+#: rungs instead of four, which is what makes a curve distinguishable from a
+#: line, and it costs less — the rungs below the top add 1/4 + 1/16 of it, so the
+#: whole series is about 1.3 times the single slice it replaces.
+DEFAULT_SCALING_GROWTH: Final[float] = 4.0
+
+
+def scaling_ladder(
+    reading: RepositoryReading,
+    *,
+    cap_fraction: float = DEFAULT_CAP_FRACTION,
+    steps: int = DEFAULT_SCALING_STEPS,
+    growth: float = DEFAULT_SCALING_GROWTH,
+) -> tuple[tuple[tuple[str, ...], float, float], ...]:
+    """Build several capped commands of increasing size, to measure the scaling.
+
+    The top rung is the slice that would have been run anyway, so nothing about
+    the cost figures changes by asking for a ladder: the rungs below it exist
+    only to establish how the work grows, and they are small by construction.
+
+    Sizes are integers because they are passed to somebody else's flag, so two
+    rungs can collide after rounding on a repository whose stated size is small.
+    Colliding rungs are dropped rather than run twice, which means a short ladder
+    is a possible answer and the caller has to be ready for one: fewer than three
+    distinct sizes licenses no exponent.
+
+    Parameters
+    ----------
+    reading : RepositoryReading
+        The static reading, which must carry a work size and an entry point.
+    cap_fraction : float, optional
+        The share of the whole run the largest rung aims for.
+    steps : int, optional
+        How many rungs to build, before collisions are dropped.
+    growth : float, optional
+        The factor between one rung and the next.
+
+    Returns
+    -------
+    tuple
+        One ``(command, fraction, size)`` triple per rung, smallest first, or an
+        empty tuple when there is no entry point or no stated size to cap
+        against.
+
+    Examples
+    --------
+    >>> reading = RepositoryReading(
+    ...     root=Path("."), entrypoint="train.py",
+    ...     work_size=WorkSizeCandidate("max_iters", 600000.0, "config.py::max_iters"))
+    >>> ladder = scaling_ladder(reading)
+    >>> [size for _, _, size in ladder]
+    [37.0, 150.0, 600.0]
+    >>> ladder[-1][0][-2:]
+    ('--max_iters', '600')
+
+    A repository whose whole run is tiny cannot be cut three ways, and says so
+    by returning fewer rungs than were asked for:
+
+    >>> tiny = RepositoryReading(
+    ...     root=Path("."), entrypoint="train.py",
+    ...     work_size=WorkSizeCandidate("epochs", 2.0, "config.yaml::epochs"))
+    >>> [size for _, _, size in scaling_ladder(tiny)]
+    [1.0]
+
+    >>> scaling_ladder(RepositoryReading(root=Path(".")))
+    ()
+    """
+    if reading.entrypoint is None or reading.work_size is None:
+        return ()
+    if steps < 1 or growth <= 1.0:
+        return ()
+
+    total = reading.work_size.value
+    rungs: dict[int, tuple[tuple[str, ...], float, float]] = {}
+    for step in reversed(range(steps)):
+        share = cap_fraction / (growth**step)
+        capped = max(1, int(total * share))
+        if capped in rungs:
+            continue
+        rungs[capped] = (
+            (
+                sys.executable,
+                str(reading.root / reading.entrypoint),
+                f"--{reading.work_size.key}",
+                str(capped),
+            ),
+            min(capped / total, 1.0),
+            float(capped),
+        )
+    return tuple(rungs[size] for size in sorted(rungs))
+
+
 def read_repository(path: str | Path, *, overlay: Path | None = None) -> RepositoryReading:
     """Read a repository and return everything the static pass established.
 

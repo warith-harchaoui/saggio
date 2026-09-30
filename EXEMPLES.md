@@ -422,6 +422,125 @@ tests du dépôt qui est exécutée. Elle couvre une part inconnue d'une vraie c
 de travail, donc aucune projection sur l'exécution complète n'en découle, et
 l'audit le dit exactement.
 
+### Mesurer comment le travail croît, au lieu de le supposer
+
+La projection ci-dessus divise par `0,001` parce que la tranche couvrait un
+millième de l'exécution. C'est juste quand le travail est uniforme, et quand il ne
+l'est pas, c'est faux d'une *puissance* et non d'une marge : une étape quadratique
+en la taille du lot transforme un millième d'exécution en un millionième de son
+coût, et la projection sous-estime la facture de trois ordres de grandeur avec
+exactement l'assurance d'une projection correcte.
+
+Rien ne vérifiait cette hypothèse. Ceci la vérifie :
+
+```bash
+saggio audit . --country FR --run --scaling-steps 3 -o cost_of_running.yaml
+```
+
+Trois tranches sont exécutées au lieu d'une, à des tailles espacées d'un facteur
+quatre, et la plus grande est la tranche qui aurait été exécutée de toute façon.
+Les deux en dessous ajoutent environ un tiers au temps — un quart et un seizième
+du barreau supérieur — et en échange l'exposant cesse d'être une hypothèse :
+
+```yaml
+measurement:
+  scaling:
+    method: "Least squares of log(seconds) on log(size) over 3 runs: seconds = 0.0001 × size^2.000."
+    reading: The work grew faster than the size, by a power of 2.00. Doubling the job
+      multiplies the cost by 4.00 rather than by 2, so a projection that divided by
+      the size ratio would understate the whole run.
+    exponent:
+      value: 2.0
+      unit: exponent
+      status: measured
+      notes: Fitted over 3 runs of sizes 37 to 600, R² = 1.000.
+    r_squared: 1.0
+    observations:
+      - {size: 37.0, seconds: 0.1369}
+      - {size: 150.0, seconds: 2.25}
+      - {size: 600.0, seconds: 36.0}
+```
+
+L'exposant est `measured`, parce qu'il résume trois lectures d'horloge, de la même
+manière que des watts tirés d'un compteur d'énergie sur une durée sont une mesure.
+Ce qu'il n'est *pas*, c'est une loi : il est `measured` **sur les tailles qui ont
+été exécutées**, et chaque projection qui l'utilise dit de combien elle est allée
+au-delà.
+
+La projection qui suit divise par `0,001^2,000` plutôt que par `0,001`, ce qui sur
+cette charge fait un facteur mille :
+
+```yaml
+projections:
+  whole_run:
+    description: What the whole run would cost, projected from the slice that was
+      measured and from the exponent by which its cost was measured to grow with
+      the size of the job.
+    costs:
+      energy:
+        method: "Whole run = measured slice / 0.001^2.000. Least squares of log(seconds) on log(size) over 3 runs: …"
+        result:
+          value: 1.6
+          unit: kWh
+          status: estimated
+          notes: Projected from a slice covering 0.1% of the run, with a measured
+            scaling exponent of 2.000.
+        limits:
+          - The exponent holds between sizes 37 and 600, and the whole run is about
+            6e+05 at the same scale, which is 1e+03 times the largest size actually run.
+```
+
+#### Quand elle refuse, et pourquoi c'est la réponse utile
+
+Une mesure qui revient en disant *je ne peux pas savoir* vaut mieux qu'un exposant
+que personne ne peut vérifier. La série refuse donc dans quatre situations, et
+chaque refus nomme ce qui le lèverait :
+
+| Situation | Pourquoi | Ce qu'elle dit |
+|---|---|---|
+| Moins de trois tailles ont abouti | Deux points ajustent exactement une droite, donc n'excluent rien | Elle en demande trois, et dit pourquoi deux ne valent pas les deux tiers d'une réponse |
+| Les tailles couvrent moins d'un facteur quatre | Sur une plage étroite, tous les exposants s'ajustent à peu près aussi bien | Elle nomme le rapport obtenu et celui qu'il faudrait |
+| Une taille ou une durée n'est pas strictement positive | Une loi de puissance s'ajuste sur des logarithmes | Elle dit qu'une exécution trop courte pour l'horloge demande une tranche *plus grande* |
+| L'ajustement explique moins de 95 % de la variation | Les tranches ne mesurent pas un comportement cohérent | Elle nomme le R² et les causes habituelles — un cache qui chauffe, un planning qui change de forme, une machine occupée |
+
+La dernière compte le plus, parce que c'est celle qui change une réponse. Quand
+l'ajustement est aussi mauvais, le constat est que **la tranche n'est pas
+représentative de l'exécution dont elle a été coupée**, et une projection faite
+malgré tout affirmerait une proportionnalité que les exécutions disponibles
+contredisent. Le bloc whole_run n'est donc pas écrit du tout, la raison remonte au
+lecteur sous forme de note, et le refus est consigné dans le modèle :
+
+```yaml
+measurement:
+  scaling:
+    refused: true
+    exponent:
+      status: TODO
+      notes: A power law explains only 0.42 of the variation across 3 runs, below
+        the 0.95 required. The slices are not measuring one consistent behaviour …
+```
+
+Avoir mesuré la mise à l'échelle et échoué n'est pas la même chose que n'avoir
+jamais regardé, et le modèle distingue les deux : sans `--scaling-steps`, la
+projection garde l'hypothèse linéaire et la consigne comme une hypothèse ; avec,
+une charge inajustable n'obtient aucune projection.
+
+Deux choses encore avant de l'utiliser. Une série de mise à l'échelle s'exécute
+**sans le profileur**, parce que `cProfile` facture à l'appel et injecterait sa
+propre courbe de croissance dans l'ajustement — il n'y a donc pas de chemin chaud
+dans le modèle, et en échange chaque chiffre de coût provient d'une exécution non
+profilée plutôt que gonflée. Et un dépôt dont la taille annoncée est trop petite
+pour être coupée en trois tailles distinctes retombe sur une tranche unique et le
+dit.
+
+La méthode n'est pas neuve. C'est celle de [Goldsmith, Aiken et Wilkerson,
+*Measuring Empirical Computational
+Complexity*](https://theory.stanford.edu/~aiken/publications/papers/fse07.pdf)
+(FSE 2007) — exécuter sur des tailles étalées sur plusieurs ordres de grandeur,
+ajuster une loi de puissance, rapporter la qualité de l'ajustement — avec les
+refus de ce paquet attachés. [`ANALYSE.md`](ANALYSE.md) est l'étude de cette
+littérature et de ce que les autres approches peuvent ou ne peuvent pas donner.
+
 ## Projeter sur un autre matériel
 
 La plupart des modèles de coût sont écrits sur un portable. Projeter depuis un
