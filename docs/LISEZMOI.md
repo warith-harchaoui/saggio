@@ -14,6 +14,7 @@ main sauf [`api.md`](api.md), qui est dérivé des docstrings.
 | [`../GALERIE.md`](../GALERIE.md) | Que dit-il vraiment sur de vrais dépôts ? |
 | [`../TRIGGERS.md`](../TRIGGERS.md) | Est-ce le bon outil pour ce que je demande ? (en anglais) |
 | [`../PAYSAGE.md`](../PAYSAGE.md) | Que vaut-il face à CodeCarbon, Scaphandre et les autres ? |
+| [`../MESURER.md`](../MESURER.md) | Quels compteurs cette machine me laissera-t-elle lire, et que couvrent-ils ? |
 
 ## Référence
 

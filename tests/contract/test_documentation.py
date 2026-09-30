@@ -25,6 +25,8 @@ DOCUMENTS = [
     "LISEZMOI.md",
     "EXAMPLES.md",
     "EXEMPLES.md",
+    "MEASURING.md",
+    "MESURER.md",
     "TRIGGERS.md",
     "GALLERY.md",
     "GALERIE.md",
@@ -126,6 +128,7 @@ def test_the_version_in_the_changelog_is_the_installed_one() -> None:
 BILINGUAL_PAIRS: list[tuple[str, str]] = [
     ("README.md", "LISEZMOI.md"),
     ("EXAMPLES.md", "EXEMPLES.md"),
+    ("MEASURING.md", "MESURER.md"),
     ("GALLERY.md", "GALERIE.md"),
     ("CONTRIBUTING.md", "CONTRIBUER.md"),
     ("LANDSCAPE.md", "PAYSAGE.md"),
@@ -296,4 +299,79 @@ def test_every_link_in_the_documentation_map_resolves(page: str) -> None:
     for target in re.findall(r"\]\((?!https?:)([^)#]+)\)", path.read_text(encoding="utf-8")):
         assert (path.parent / target).resolve().exists(), (
             f"{page} links to {target}, which is not there"
+        )
+
+
+#: Every markdown page this repository ships, wherever it lives. The link checks
+#: below run over all of them rather than over ``docs/`` alone: a dead link in
+#: the README is exactly as broken as a dead link in the map, and the reader who
+#: followed it trusted it just as much.
+MARKDOWN_PAGES = sorted(
+    str(path.relative_to(ROOT))
+    for path in [*ROOT.glob("*.md"), *(ROOT / "docs").glob("*.md")]
+)
+
+#: A markdown link that points somewhere in this repository rather than out on
+#: the web. ``mailto:`` and the two URL schemes are somebody else's to keep alive.
+_RELATIVE_LINK = re.compile(r"\]\((?!https?:|mailto:)([^)]+)\)")
+
+#: A setext- or atx-style heading, which is what an anchor is derived from.
+_HEADING = re.compile(r"^#{1,6}\s+(.*)$", re.MULTILINE)
+
+
+def _anchor_of(heading: str) -> str:
+    """Return the fragment a heading can be linked by.
+
+    Follows the rule the forges use: drop the inline markup, lowercase, drop
+    punctuation but keep letters in every alphabet, and hyphenate the spaces.
+    Accented letters survive, which is why the French half's anchors work.
+
+    >>> _anchor_of("## The four states")
+    'the-four-states'
+    >>> _anchor_of("Du compteur au coût")
+    'du-compteur-au-coût'
+    >>> _anchor_of("`saggio power`, and what it says")
+    'saggio-power-and-what-it-says'
+    """
+    text = re.sub(r"^#+\s*", "", heading.strip())
+    text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
+    text = re.sub(r"[`*_]", "", text).strip().lower()
+    text = re.sub(r"[^\w\s-]", "", text, flags=re.UNICODE)
+    return re.sub(r"\s+", "-", text)
+
+
+def _anchors_in(path: Path) -> set[str]:
+    """Return every fragment a page offers to be linked by."""
+    return {_anchor_of(heading) for heading in _HEADING.findall(path.read_text(encoding="utf-8"))}
+
+
+@pytest.mark.parametrize("page", MARKDOWN_PAGES)
+def test_every_relative_link_in_every_page_resolves(page: str) -> None:
+    # A link that goes nowhere is worse than no link, because the reader trusted
+    # it. This covers the pages a reader actually lands on first, not only the
+    # map that sends them there.
+    path = ROOT / page
+    for target in _RELATIVE_LINK.findall(path.read_text(encoding="utf-8")):
+        destination = target.partition("#")[0]
+        if not destination:
+            continue
+        assert (path.parent / destination).resolve().exists(), (
+            f"{page} links to {destination}, which is not there"
+        )
+
+
+@pytest.mark.parametrize("page", MARKDOWN_PAGES)
+def test_every_link_to_a_section_lands_on_a_heading(page: str) -> None:
+    # The way a table of contents rots is that a heading gets reworded and the
+    # entry above it keeps the old wording. The link still looks like a link.
+    path = ROOT / page
+    for target in _RELATIVE_LINK.findall(path.read_text(encoding="utf-8")):
+        destination, _, anchor = target.partition("#")
+        if not anchor:
+            continue
+        landing = (path.parent / destination).resolve() if destination else path
+        if landing.suffix != ".md" or not landing.exists():
+            continue
+        assert anchor.lower() in _anchors_in(landing), (
+            f"{page} links to #{anchor} in {landing.name}, which has no such heading"
         )

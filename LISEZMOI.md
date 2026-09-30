@@ -185,10 +185,11 @@ print(saggio.render_markdown(resultat.model))
 ```
 
 [`EXEMPLES.md`](EXEMPLES.md) est le livre de recettes,
-[`GALERIE.md`](GALERIE.md) montre ce qu'il dit de nanoGPT, Whisper, DINOv2,
-FastAPI et Airflow, fichiers commités à l'appui, [`docs/api.md`](docs/api.md)
-liste tout ce que `import saggio` donne, et [`docs/`](docs/LISEZMOI.md) est la
-carte du reste.
+[`MESURER.md`](MESURER.md) dit quels compteurs cette machine vous laissera lire
+et ce que chacun couvre, [`GALERIE.md`](GALERIE.md) montre ce qu'il dit de
+nanoGPT, Whisper, DINOv2, FastAPI et Airflow, fichiers commités à l'appui,
+[`docs/api.md`](docs/api.md) liste tout ce que `import saggio` donne, et
+[`docs/`](docs/LISEZMOI.md) est la carte du reste.
 
 ## Exécuter votre code, et ce que ça implique
 

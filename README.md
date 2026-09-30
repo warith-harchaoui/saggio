@@ -181,10 +181,12 @@ print(result.report.summary())
 print(saggio.render_markdown(result.model))
 ```
 
-[`EXAMPLES.md`](EXAMPLES.md) is the cookbook, [`GALLERY.md`](GALLERY.md) is what
-it says about nanoGPT, Whisper, DINOv2, FastAPI and Airflow with the files
-committed beside it, [`docs/api.md`](docs/api.md) is every name `import saggio`
-gives you, and [`docs/`](docs/README.md) is the map of the rest.
+[`EXAMPLES.md`](EXAMPLES.md) is the cookbook, [`MEASURING.md`](MEASURING.md) is
+which counters this machine will let you read and what each of them covers,
+[`GALLERY.md`](GALLERY.md) is what it says about nanoGPT, Whisper, DINOv2,
+FastAPI and Airflow with the files committed beside it,
+[`docs/api.md`](docs/api.md) is every name `import saggio` gives you, and
+[`docs/`](docs/README.md) is the map of the rest.
 
 ## Running your code, and what that means
 

@@ -14,6 +14,7 @@ hand except [`api.md`](api.md), which is derived from the docstrings.
 | [`../GALLERY.md`](../GALLERY.md) | What does it actually say about real repositories? |
 | [`../TRIGGERS.md`](../TRIGGERS.md) | Is this the right tool for what I am asking? |
 | [`../LANDSCAPE.md`](../LANDSCAPE.md) | How does it compare to CodeCarbon, Scaphandre, and the rest? |
+| [`../MEASURING.md`](../MEASURING.md) | Which counters will this machine let me read, and what do they cover? |
 
 ## Reference
 

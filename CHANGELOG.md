@@ -62,6 +62,21 @@ release of that line.
 - `saggio power --json` prints the same thing as data, including the exact
   filesystem paths that would be read.
 
+### A page about measuring, in both languages
+
+- `MEASURING.md` / `MESURER.md`: which counters exist on each platform, which
+  ones this machine will let *you* read, what each of them covers and leaves
+  out, what happens to the number afterwards, and how to check any of it by
+  hand. Every claim links to the interface it describes — the kernel's powercap
+  and hwmon ABIs, the `xe` sysfs documentation, NVML, Microsoft's Energy Meter
+  Interface, Redfish — and the reason the Linux counter is shut links to the
+  attack that shut it.
+- Two contract tests now walk every markdown page in the repository rather than
+  the documentation map alone: a relative link that points nowhere fails the
+  build, and so does a link to a section heading that no longer exists. A table
+  of contents rots by having a heading reworded underneath it, and that is now
+  caught rather than noticed.
+
 ## 1.1.0 — 2026-09-18
 
 ### Carbon is restated in terms a reader can feel
