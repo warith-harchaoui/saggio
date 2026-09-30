@@ -188,6 +188,11 @@ FastAPI and Airflow with the files committed beside it,
 [`docs/api.md`](docs/api.md) is every name `import saggio` gives you, and
 [`docs/`](docs/README.md) is the map of the rest.
 
+[`ANALYSIS.md`](ANALYSIS.md) is the investigation behind the division of labour
+above: what static and dynamic analysis have actually been shown to deliver for
+complexity and for consumption, which of it belongs here, and which of it is
+refused and why.
+
 ## Running your code, and what that means
 
 Measuring what code costs to run means running it. There is no sandbox here and

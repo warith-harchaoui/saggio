@@ -15,6 +15,7 @@ hand except [`api.md`](api.md), which is derived from the docstrings.
 | [`../TRIGGERS.md`](../TRIGGERS.md) | Is this the right tool for what I am asking? |
 | [`../LANDSCAPE.md`](../LANDSCAPE.md) | How does it compare to CodeCarbon, Scaphandre, and the rest? |
 | [`../MEASURING.md`](../MEASURING.md) | Which counters will this machine let me read, and what do they cover? |
+| [`../ANALYSIS.md`](../ANALYSIS.md) | Can reading the code, or running it, tell me its complexity and its cost? |
 
 ## Reference
 
@@ -24,6 +25,7 @@ hand except [`api.md`](api.md), which is derived from the docstrings.
 | [`../skills/saggio/references/schema.md`](../skills/saggio/references/schema.md) | What may a cost model contain? |
 | [`../skills/saggio/references/honesty-taxonomy.md`](../skills/saggio/references/honesty-taxonomy.md) | What do the four statuses mean, exactly? |
 | [`../skills/saggio/references/green-algorithms.md`](../skills/saggio/references/green-algorithms.md) | Where does the arithmetic come from? |
+| [`../skills/saggio/references/code-analysis.md`](../skills/saggio/references/code-analysis.md) | Which analyses may produce a number, and which may not? |
 | [`../CHANGELOG.md`](../CHANGELOG.md) | What changed, and does it affect me? |
 
 The schema and taxonomy references live under `skills/` because an agent reads

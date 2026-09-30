@@ -15,6 +15,7 @@ main sauf [`api.md`](api.md), qui est dérivé des docstrings.
 | [`../TRIGGERS.md`](../TRIGGERS.md) | Est-ce le bon outil pour ce que je demande ? (en anglais) |
 | [`../PAYSAGE.md`](../PAYSAGE.md) | Que vaut-il face à CodeCarbon, Scaphandre et les autres ? |
 | [`../MESURER.md`](../MESURER.md) | Quels compteurs cette machine me laissera-t-elle lire, et que couvrent-ils ? |
+| [`../ANALYSE.md`](../ANALYSE.md) | Lire le code, ou l'exécuter, peut-il dire sa complexité et son coût ? |
 
 ## Référence
 
@@ -24,6 +25,7 @@ main sauf [`api.md`](api.md), qui est dérivé des docstrings.
 | [`../skills/saggio/references/schema.md`](../skills/saggio/references/schema.md) | Que peut contenir un modèle de coût ? (en anglais) |
 | [`../skills/saggio/references/honesty-taxonomy.md`](../skills/saggio/references/honesty-taxonomy.md) | Que veulent dire exactement les quatre statuts ? (en anglais) |
 | [`../skills/saggio/references/green-algorithms.md`](../skills/saggio/references/green-algorithms.md) | D'où vient l'arithmétique ? (en anglais) |
+| [`../skills/saggio/references/code-analysis.md`](../skills/saggio/references/code-analysis.md) | Quelles analyses ont le droit de produire un nombre ? (en anglais) |
 | [`../CHANGELOG.md`](../CHANGELOG.md) | Qu'est-ce qui a changé, et est-ce que ça me concerne ? (en anglais) |
 
 Le schéma et la taxonomie vivent sous `skills/` parce qu'un agent les lit aussi,

@@ -7,6 +7,33 @@ release of that line.
 
 ## Unreleased
 
+### What reading code, and running it, can each be asked
+
+- `ANALYSIS.md` and `ANALYSE.md`: the investigation behind the package's
+  division of labour between the static pass and the measured one. What static
+  cost-bound analysis (COSTA, RaML, KoAT) and static energy analysis (worst-case
+  energy consumption on an instruction set) actually require, why neither reaches
+  a Python repository on a machine with an accelerator, and what static analysis
+  is genuinely good for here.
+- The refusals are argued rather than asserted, and the central one is now
+  sourced: static source metrics predict measured energy with an R² near zero on
+  their own, rising to 0.46 once execution time is added. A cyclomatic complexity
+  figure may therefore never appear in a cost model, in any status, because it
+  would look exactly like a checked number.
+- The empirical side is the useful half. trend-prof's method — run over sizes
+  spanning orders of magnitude, fit `y = a·x^b`, report the goodness of fit —
+  would turn `project_to_completion`'s standing assumption that work is uniform
+  into a measured exponent, using a work size the static pass already reads.
+  Recorded as the one change worth making.
+- The measurement discipline the package already follows is now backed by its
+  sources: the gap between a counter and the wall is not a constant offset
+  (regression slopes of 1.17 and 1.18, varying per node), and a sampler polling
+  at 1 kHz distorts the wall time every downstream figure multiplies.
+- `skills/saggio/references/code-analysis.md` is the short form an agent applies:
+  which analyses may produce a number and under which status, and which may not,
+  ever.
+
+
 ### macOS measures power now, and asks nobody for a password
 
 - `saggio.analyze.apple` reads an Apple Silicon chip's own energy counters

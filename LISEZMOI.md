@@ -191,6 +191,11 @@ nanoGPT, Whisper, DINOv2, FastAPI et Airflow, fichiers commités à l'appui,
 [`docs/api.md`](docs/api.md) liste tout ce que `import saggio` donne, et
 [`docs/`](docs/LISEZMOI.md) est la carte du reste.
 
+[`ANALYSE.md`](ANALYSE.md) est l'enquête derrière cette division du travail : ce
+que l'analyse statique et l'analyse dynamique ont réellement démontré pour la
+complexité et pour la consommation, ce qui de tout cela a sa place ici, et ce
+qui est refusé, avec les raisons.
+
 ## Exécuter votre code, et ce que ça implique
 
 Mesurer ce que coûte l'exécution d'un code, c'est l'exécuter. Il n'y a pas de bac

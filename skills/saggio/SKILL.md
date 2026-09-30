@@ -188,5 +188,7 @@ of how much difference it would make. Something like:
   like, field by field.
 - [`references/green-algorithms.md`](references/green-algorithms.md) — the
   arithmetic, and the distinction between machine and facility energy.
+- [`references/code-analysis.md`](references/code-analysis.md) — which analyses
+  may produce a number, under which status, and which may not, ever.
 - [`references/landscape.md`](references/landscape.md) — when another tool is the
   right answer.

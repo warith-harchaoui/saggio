@@ -132,6 +132,7 @@ BILINGUAL_PAIRS: list[tuple[str, str]] = [
     ("GALLERY.md", "GALERIE.md"),
     ("CONTRIBUTING.md", "CONTRIBUER.md"),
     ("LANDSCAPE.md", "PAYSAGE.md"),
+    ("ANALYSIS.md", "ANALYSE.md"),
     ("docs/README.md", "docs/LISEZMOI.md"),
 ]
 
