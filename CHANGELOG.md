@@ -62,6 +62,25 @@ release of that line.
 - `saggio power --json` prints the same thing as data, including the exact
   filesystem paths that would be read.
 
+### A run can be projected onto another processor, using what was measured
+
+- `project_to_processor` scales a measured runtime from one processor to
+  another. A processor has two speeds that do not move together — one thread on
+  one core, and every core busy at once — so a part with many slow cores wins
+  the second and loses the first, and the two speeds are the two ends of a
+  bracket rather than one number.
+- Which end applies is measured, not assumed. `SliceResult.cores_busy()` is
+  processor-seconds over wall-clock seconds: near one the run follows the
+  single-threaded ratio and a many-core target makes it *slower*; near the
+  machine's core count it follows the throughput ratio; between the two nothing
+  is settled and the slower end is quoted.
+- The catalogue gains `cores` on the processor rows whose own notes already
+  stated it, and the two score columns the projection reads. The scores ship
+  empty on purpose: a processor publishes no peak figure worth scaling by, so
+  the refusal explains how to take one from a published result, divide it by the
+  system's socket count, and record which benchmark it was. A score of one
+  benchmark is never divided by a score of another — that is refused by name.
+
 ### A measurement now has a floor under it
 
 - A counter measures the machine, not your program. `saggio measure` watches the

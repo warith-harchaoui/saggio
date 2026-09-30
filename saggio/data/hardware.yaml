@@ -14,6 +14,23 @@
 # carry no memory_gb on purpose: their memory is unified with the host and chosen
 # per machine, so it is a property of a laptop rather than of a part.
 #
+# For a processor, `cores`, `single_thread_score` and `throughput_score` are what
+# make a projection onto another part possible at all. A processor publishes no
+# peak figure worth scaling by: clock speed and core count do not give one,
+# because the work done per cycle differs between parts. A published benchmark
+# does, and a processor has two speeds that do not move together — one thread on
+# one core, and every core busy at once — so both scores are wanted and the two
+# of them bracket the answer. `benchmark` names which benchmark they came from,
+# and a projection refuses to divide a score of one thing by a score of another.
+#
+# The scores ship empty. Filling one in means taking a published result — for
+# example SPECrate2017_int_base from a result page on spec.org — dividing it by
+# that system's socket count so two parts are compared one socket against one
+# socket, and recording the result's own URL and the date it was read, like every
+# other row here. `cores` is per socket, and where it is absent the row's own
+# notes did not state it unambiguously; a part with both performance and
+# efficiency cores needs a decision about what to count before it gets one.
+#
 # memory_bandwidth_gbps is what makes a projection onto another accelerator
 # honest rather than optimistic. A workload that waits on memory gains the ratio
 # of bandwidths, not the ratio of peak FLOP/s, and the two differ by more than a
@@ -214,21 +231,25 @@ gpus:
 cpus:
   - key: xeon-platinum-8175
     w_per_core: 10.0
+    cores: 24
     source_url: "https://www.intel.com/content/www/us/en/products/sku/120504/"
     retrieved_date: "2026-07-27"
     notes: "240 W TDP / 24 cores."
   - key: xeon-gold-6248
     w_per_core: 7.5
+    cores: 20
     source_url: "https://www.intel.com/content/www/us/en/products/sku/192446/"
     retrieved_date: "2026-07-27"
     notes: "150 W TDP / 20 cores."
   - key: epyc-7742
     w_per_core: 3.5
+    cores: 64
     source_url: "https://www.amd.com/en/products/cpu/amd-epyc-7742"
     retrieved_date: "2026-07-27"
     notes: "225 W TDP / 64 cores."
   - key: epyc-9654
     w_per_core: 3.75
+    cores: 96
     source_url: "https://www.amd.com/en/products/cpu/amd-epyc-9654"
     retrieved_date: "2026-07-27"
     notes: "360 W TDP / 96 cores."
@@ -249,6 +270,7 @@ cpus:
     notes: "Generic fallback for an unrecognised desktop or laptop CPU."
   - key: apple-m2-max
     w_per_core: 4.0
+    cores: 12
     source_url: "https://www.apple.com/newsroom/2023/01/apple-unveils-m2-pro-and-m2-max-next-generation-chips-for-next-level-workflows/"
     retrieved_date: "2026-09-12"
     notes: "12 cores; approximate active power per performance core on an integrated SoC."
@@ -267,6 +289,7 @@ cpus:
     notes: "125 W base TDP over 8 performance cores; 253 W at turbo."
   - key: ryzen-9-7950x
     w_per_core: 10.6
+    cores: 16
     source_url: "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7950x.html"
     retrieved_date: "2026-09-12"
     notes: "170 W TDP over 16 cores."

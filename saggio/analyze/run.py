@@ -380,6 +380,33 @@ class SliceResult:
         difference = self.power.watts - self.baseline.watts
         return difference if difference > 0.0 else None
 
+    def cores_busy(self) -> float | None:
+        """Return how many cores the slice kept busy on average, or ``None``.
+
+        Processor-seconds over wall-clock seconds. Near one, the run did one
+        thing at a time; near the machine's core count, it used the whole chip.
+        It is the measured answer to the question a cross-machine projection
+        otherwise has to assume, which is why
+        :func:`~saggio.estimate.extrapolate.project_to_processor` takes it.
+
+        Returns
+        -------
+        float or None
+            Cores busy on average, or ``None`` when the platform did not report
+            processor time or the run was too short to divide by.
+
+        Examples
+        --------
+        >>> SliceResult(("x",), 0, 10.0, PowerReading(None, None, ""),
+        ...             cpu_seconds=40.0).cores_busy()
+        4.0
+        >>> SliceResult(("x",), 0, 10.0, PowerReading(None, None, "")).cores_busy() is None
+        True
+        """
+        if self.cpu_seconds is None or self.wall_seconds <= 0.0:
+            return None
+        return self.cpu_seconds / self.wall_seconds
+
     def succeeded(self) -> bool:
         """Return whether the slice ran to a clean finish.
 

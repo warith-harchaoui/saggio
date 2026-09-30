@@ -243,6 +243,31 @@ autre chose, et toutes deux disent ce qu'elles ont supposé :
   donnent des rapports différents — 3,2 et 2,2 entre un A100 et un H100 — et
   qu'une vraie exécution tombe entre les deux. Elle refuse net quand le catalogue
   n'a pas de débit pour cette précision.
+- **Vers un autre processeur** : un processeur a *deux* vitesses, et elles ne
+  bougent pas ensemble. Un fil sur un cœur est la première ; tous les cœurs
+  occupés à la fois est la seconde. Une puce à nombreux cœurs lents gagne la
+  seconde et perd la première : « la puce la plus rapide » n'est donc pas une
+  question à une seule réponse, et les deux vitesses sont les deux bouts de
+  l'encadrement.
+
+Lequel des deux s'applique est la seule chose ici qui n'ait pas à être supposée.
+La mesure bas-niveau y répond déjà : secondes processeur sur secondes horloge
+donne le nombre de cœurs que l'exécution a tenus occupés en moyenne. Proche de
+un, elle suit le rapport monofil, et une cible à nombreux cœurs la rend *plus
+lente*. Proche du nombre de cœurs de la machine, elle suit le rapport de débit.
+Entre les deux, rien n'est tranché, et c'est le bout le plus lent qui est cité —
+l'exécution la plus longue, la facture la plus grosse, le nombre qu'on ne regrette
+pas d'avoir cru.
+
+Un processeur ne publie par ailleurs aucun chiffre crête digne d'être mis à
+l'échelle. La fréquence et le nombre de cœurs n'en donnent pas, parce que le
+travail fait par cycle diffère d'une puce à l'autre : le catalogue veut donc un
+*benchmark publié* — `single_thread_score`, `throughput_score`, et le `benchmark`
+dont ils viennent. Ces colonnes sont livrées vides : en remplir une, c'est
+prendre un résultat sur [spec.org](https://www.spec.org/cpu2017/results/), le
+diviser par le nombre de sockets du système pour comparer une socket à une
+socket, et consigner l'URL et la date comme pour toute autre ligne. Un score d'un
+benchmark n'est jamais divisé par le score d'un autre : c'est refusé nommément.
 
 Le débit crête est une donnée de fiche technique, pas un benchmark. Une vraie
 exécution en atteint une fraction, et la fraction diffère selon la puce ; une

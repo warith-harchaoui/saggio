@@ -73,6 +73,7 @@ from .estimate import (
     node_power,
     project_to_completion,
     project_to_machine,
+    project_to_processor,
     tree_months,
     water_from_energy,
 )
@@ -138,6 +139,7 @@ __all__ = [
     "Projection",
     "project_to_completion",
     "project_to_machine",
+    "project_to_processor",
     # Reading and running a repository.
     "RepositoryReading",
     "read_repository",

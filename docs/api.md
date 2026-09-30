@@ -65,6 +65,7 @@ which `help()` will show you.
 | `Projection` | The result of a projection: a number, its method, and its limits. |
 | `project_to_completion(measured: 'Quantity', *, fraction: 'float') -> 'Projection'` | Project a measured slice of a run to the whole of it. |
 | `project_to_machine(*, runtime: 'Quantity', source_key: 'str', target_key: 'str', precision: 'str' = 'bf16', compute_bound: 'bool \| None' = None, overlay_catalog: 'Catalog \| None' = None) -> 'Projection'` | Project a runtime measured on one accelerator onto another. |
+| `project_to_processor(*, runtime: 'Quantity', source_key: 'str', target_key: 'str', parallelism: 'float \| None' = None, overlay_catalog: 'Catalog \| None' = None) -> 'Projection'` | Project a runtime measured on one processor onto another. |
 
 
 ## Reading and running a repository

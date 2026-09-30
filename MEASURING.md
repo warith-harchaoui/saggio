@@ -233,6 +233,29 @@ something else, and both say what they assumed:
   bandwidth give different ratios — 3.2 and 2.2 between an A100 and an H100 — and
   a real run lands between them. It refuses outright when the catalogue has no
   throughput figure for that precision.
+- **To another processor**: a processor has *two* speeds and they do not move
+  together. One thread on one core is the first; every core busy at once is the
+  second. A part with many slow cores wins the second and loses the first, so
+  "the faster chip" is not a question with one answer, and the two speeds are the
+  two ends of the bracket.
+
+Which end applies is the one thing here that does not have to be assumed. The
+low-level measurement already answers it: processor-seconds over wall-clock
+seconds is how many cores the run kept busy on average. Near one, the run follows
+the single-threaded ratio and a many-core target makes it *slower*. Near the
+machine's core count, it follows the throughput ratio. Between the two, nothing
+is settled, and the slower end is quoted — the longer run, the larger bill, the
+number a reader is not harmed by having believed.
+
+A processor also publishes no peak figure worth scaling by. Clock speed and core
+count do not give one, because the work done per cycle differs between parts, so
+the catalogue wants a *published benchmark* instead — `single_thread_score`,
+`throughput_score`, and the `benchmark` they came from. Those columns ship empty:
+filling one in means taking a result from [spec.org](https://www.spec.org/cpu2017/results/),
+dividing it by that system's socket count so two parts are compared one socket
+against one socket, and recording the URL and the date like every other row. A
+score of one benchmark is never divided by a score of another; that is refused
+by name.
 
 Peak throughput is a datasheet figure, not a benchmark. A real run reaches a
 fraction of it, and the fraction differs by chip; a workload bound by storage, by

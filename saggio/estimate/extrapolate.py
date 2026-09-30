@@ -531,3 +531,317 @@ def project_to_machine(
         limits=tuple(limits),
         bounds=bounds,
     )
+
+
+#: The catalogue column holding a published single-threaded benchmark score, and
+#: the one holding an all-core throughput score. A processor has two speeds that
+#: matter and they do not move together: a part with many slow cores wins the
+#: second and loses the first. Which of them a workload follows is a property of
+#: the workload, and it is one this package can *measure* rather than assume.
+SINGLE_THREAD_COLUMN: Final[str] = "single_thread_score"
+THROUGHPUT_COLUMN: Final[str] = "throughput_score"
+
+#: Which benchmark those scores came from. Two scores are only a ratio when they
+#: are scores of the same thing, so a row quoting SPEC and a row quoting anything
+#: else are refused rather than divided.
+BENCHMARK_COLUMN: Final[str] = "benchmark"
+
+#: The catalogue column holding the part's core count, which is what turns a
+#: measured parallelism into a statement about how much of the chip was busy.
+CORES_COLUMN: Final[str] = "cores"
+
+#: At or below this many processor-seconds per wall-clock second, a run was doing
+#: one thing at a time. Not exactly one, because a runtime's own threads —
+#: garbage collection, a data loader, the profiler — add a fraction of a core
+#: without making the work parallel.
+SINGLE_THREAD_CEILING: Final[float] = 1.5
+
+#: The share of the source's cores a run has to keep busy before its speed is
+#: taken to follow the throughput score rather than the single-threaded one.
+SATURATION_SHARE: Final[float] = 0.75
+
+
+def project_to_processor(
+    *,
+    runtime: Quantity,
+    source_key: str,
+    target_key: str,
+    parallelism: float | None = None,
+    overlay_catalog: Catalog | None = None,
+) -> Projection:
+    """Project a runtime measured on one processor onto another.
+
+    A processor has two speeds and they do not move together. One thread on one
+    core is the first; every core busy at once is the second. A part with many
+    slow cores wins the second and loses the first, which is why scaling a
+    measured runtime by "the faster chip" is not a question with one answer.
+
+    Which speed a workload follows is a property of the workload — and it is one
+    that was *measured*, not assumed, whenever the slice reported its processor
+    time. Processor-seconds divided by wall-clock seconds is how many cores the
+    run kept busy on average: near one, it follows the single-threaded ratio;
+    near the machine's core count, it follows the throughput ratio. That
+    measurement is what ``parallelism`` carries, and it decides which end of the
+    bracket is quoted. Without it, the slower end is quoted, because the slower
+    end is the longer run and the number a reader is not harmed by having
+    believed.
+
+    Parameters
+    ----------
+    runtime : Quantity
+        Seconds measured on the source processor.
+    source_key : str
+        Catalogue key of the processor the measurement came from.
+    target_key : str
+        Catalogue key of the processor to project onto.
+    parallelism : float or None, optional
+        Processor-seconds per wall-clock second over the measured run, which
+        :class:`~saggio.analyze.run.SliceResult` reports as ``cpu_seconds``
+        divided by ``wall_seconds``. ``None`` means nobody measured it.
+    overlay_catalog : Catalog or None, optional
+        A pre-loaded hardware catalogue.
+
+    Returns
+    -------
+    Projection
+        The projected runtime with its bracket, or a refusal naming exactly what
+        is missing.
+
+    Examples
+    --------
+    >>> from saggio.catalog.registry import Catalog
+    >>> rows = {"cpus": [
+    ...     {"key": "old", "single_thread_score": 100.0, "throughput_score": 400.0,
+    ...      "benchmark": "SPEC CPU 2017 rate base, per socket", "cores": 8},
+    ...     {"key": "new", "single_thread_score": 150.0, "throughput_score": 1600.0,
+    ...      "benchmark": "SPEC CPU 2017 rate base, per socket", "cores": 64},
+    ... ]}
+    >>> catalog = Catalog("hardware", rows)
+    >>> one = project_to_processor(
+    ...     runtime=Quantity(value=100.0, unit="s", status="measured"),
+    ...     source_key="old", target_key="new", parallelism=1.0,
+    ...     overlay_catalog=catalog)
+    >>> round(one.quantity.value, 2)
+    66.67
+    >>> many = project_to_processor(
+    ...     runtime=Quantity(value=100.0, unit="s", status="measured"),
+    ...     source_key="old", target_key="new", parallelism=8.0,
+    ...     overlay_catalog=catalog)
+    >>> round(many.quantity.value, 2)
+    25.0
+    >>> unknown = project_to_processor(
+    ...     runtime=Quantity(value=100.0, unit="s", status="measured"),
+    ...     source_key="old", target_key="new", overlay_catalog=catalog)
+    >>> round(unknown.quantity.value, 2)
+    66.67
+    """
+    if not runtime.is_known():
+        return _refusal(
+            runtime.unit, None, "The runtime carries no number, so there is nothing to project."
+        )
+
+    catalog = overlay_catalog if overlay_catalog is not None else Catalog.load("hardware")
+    rows = catalog.rows("cpus")
+    missing = [key for key in (source_key, target_key) if key not in rows]
+    if missing:
+        listed = ", ".join(sorted(rows))
+        return _refusal(
+            runtime.unit,
+            None,
+            f"{' and '.join(repr(key) for key in missing)} not in the hardware catalogue. "
+            f"Known processors: {listed}. Add the missing one with `saggio catalog add cpu`.",
+        )
+
+    source_row, target_row = rows[source_key], rows[target_key]
+    source_benchmark = source_row.get(BENCHMARK_COLUMN)
+    target_benchmark = target_row.get(BENCHMARK_COLUMN)
+    if source_benchmark and target_benchmark and source_benchmark != target_benchmark:
+        # A SPEC score over a Geekbench score is a number with no meaning, and it
+        # would look exactly like a number with one.
+        return _refusal(
+            runtime.unit,
+            None,
+            f"{source_key} is scored against {source_benchmark!r} and {target_key} "
+            f"against {target_benchmark!r}. Two scores are a ratio only when they "
+            "are scores of the same benchmark, run the same way; re-score one of "
+            "them against the other's before projecting.",
+        )
+
+    ratios = _processor_ratios(source_row, target_row)
+    if not ratios:
+        return _refusal(
+            runtime.unit,
+            None,
+            f"The catalogue has no {SINGLE_THREAD_COLUMN} and no {THROUGHPUT_COLUMN} "
+            f"for both {source_key!r} and {target_key!r}, so there is no ratio to "
+            "scale by. Unlike an accelerator, a processor publishes no peak figure "
+            "worth scaling by — clock speed and core count do not give one, because "
+            "the work done per cycle differs between parts. A published benchmark "
+            "does: take SPECrate2017_int_base from a result on spec.org, divide it "
+            "by the number of sockets so two parts are compared one socket against "
+            "one socket, and record which benchmark it was in "
+            f"`{BENCHMARK_COLUMN}` so nothing is ever divided by a score of "
+            "something else.",
+        )
+
+    chosen, basis, assumption = _choose_processor_ratio(
+        ratios, parallelism=parallelism, source_row=source_row
+    )
+    assumptions = [
+        "Both processors reach a similar share of their own benchmark score on "
+        "this workload, which is a stronger assumption for a benchmark than for a "
+        "datasheet and still an assumption.",
+        "The same memory, storage, and interconnect around both parts.",
+    ]
+    if assumption:
+        assumptions.insert(0, assumption)
+    limits = [
+        "A published benchmark score is one result on one system, with one "
+        "compiler and one set of options. Another result for the same part can "
+        "differ by a fifth, and a workload unlike the benchmark's by more.",
+        "A workload bound by storage, by the network, or by a lock will not "
+        "follow either ratio and may gain nothing at all.",
+    ]
+
+    bounds = None
+    if len(ratios) == 2:
+        fastest, slowest = max(ratios.values()), min(ratios.values())
+        bounds = (
+            Quantity(
+                value=float(runtime.value) / fastest,
+                unit=runtime.unit or "s",
+                status=_cap(weakest(runtime.status, ESTIMATED)),
+                notes=f"Best case: the run gains the full {fastest:.2f}x.",
+            ),
+            Quantity(
+                value=float(runtime.value) / slowest,
+                unit=runtime.unit or "s",
+                status=_cap(weakest(runtime.status, ESTIMATED)),
+                notes=f"Worst case within the bracket: {slowest:.2f}x.",
+            ),
+        )
+    else:
+        limits.insert(
+            0,
+            "Only one of the two scores is in the catalogue for these parts, so "
+            "nothing brackets this. Add the other before quoting it as a range.",
+        )
+
+    return Projection(
+        quantity=Quantity(
+            value=float(runtime.value) / chosen,
+            unit=runtime.unit or "s",
+            status=_cap(weakest(runtime.status, ESTIMATED)),
+            source_url=target_row.get("source_url"),
+            retrieved_date=target_row.get("retrieved_date"),
+            notes=f"Scaled from {source_key} to {target_key} by {chosen:.2f}x, taken from {basis}.",
+        ),
+        method=(
+            f"Runtime on {target_key} = runtime on {source_key} / {chosen:.2f}, "
+            f"where {chosen:.2f} is {basis}."
+        ),
+        assumptions=tuple(assumptions),
+        limits=tuple(limits),
+        bounds=bounds,
+    )
+
+
+def _processor_ratios(source_row: dict[str, Any], target_row: dict[str, Any]) -> dict[str, float]:
+    """Return the speed-up ratios both rows can support, keyed by which speed.
+
+    Parameters
+    ----------
+    source_row, target_row : dict
+        Catalogue rows for the two parts.
+
+    Returns
+    -------
+    dict
+        ``{"single": ratio}``, ``{"throughput": ratio}``, both, or empty. A ratio
+        is only offered when *both* parts carry that column, because half a ratio
+        is not one.
+
+    Examples
+    --------
+    >>> _processor_ratios({"single_thread_score": 2.0}, {"single_thread_score": 3.0})
+    {'single': 1.5}
+    >>> _processor_ratios({"single_thread_score": 2.0}, {})
+    {}
+    """
+    ratios: dict[str, float] = {}
+    for name, column in (("single", SINGLE_THREAD_COLUMN), ("throughput", THROUGHPUT_COLUMN)):
+        source_score, target_score = source_row.get(column), target_row.get(column)
+        if source_score and target_score:
+            ratios[name] = float(target_score) / float(source_score)
+    return ratios
+
+
+def _choose_processor_ratio(
+    ratios: dict[str, float],
+    *,
+    parallelism: float | None,
+    source_row: dict[str, Any],
+) -> tuple[float, str, str | None]:
+    """Return which ratio to quote, what to call it, and what that assumed.
+
+    Parameters
+    ----------
+    ratios : dict
+        What :func:`_processor_ratios` returned.
+    parallelism : float or None
+        Cores kept busy on average over the measured run.
+    source_row : dict
+        The source part's catalogue row, read for its core count.
+
+    Returns
+    -------
+    tuple of (float, str, str or None)
+        The ratio, a phrase naming it, and the assumption it rests on.
+
+    Examples
+    --------
+    >>> _choose_processor_ratio({"single": 1.5}, parallelism=None, source_row={})[0]
+    1.5
+    >>> _choose_processor_ratio({"single": 1.5, "throughput": 4.0},
+    ...                         parallelism=None, source_row={})[0]
+    1.5
+    """
+    if len(ratios) == 1:
+        name, ratio = next(iter(ratios.items()))
+        which = "single-threaded" if name == "single" else "all-core throughput"
+        return ratio, f"the {which} score ratio, the only one the catalogue can support", None
+
+    single, throughput = ratios["single"], ratios["throughput"]
+    cores = source_row.get(CORES_COLUMN)
+
+    if parallelism is not None and parallelism <= SINGLE_THREAD_CEILING:
+        return (
+            single,
+            f"the single-threaded score ratio, the run having kept {parallelism:.1f} "
+            "cores busy on average",
+            "The projected run is as single-threaded as the measured one was.",
+        )
+    if parallelism is not None and cores and parallelism >= SATURATION_SHARE * float(cores):
+        return (
+            throughput,
+            f"the all-core throughput score ratio, the run having kept {parallelism:.1f} "
+            f"of {float(cores):g} cores busy on average",
+            f"The projected run spreads across the target's cores as it did across "
+            f"the source's {float(cores):g}, which a part with many more cores may "
+            "not let it do.",
+        )
+
+    slower = min(single, throughput)
+    which = "single-threaded" if slower == single else "all-core throughput"
+    if parallelism is None:
+        measured = "nothing having measured how many cores the run kept busy"
+    else:
+        measured = (
+            f"the run having kept {parallelism:.1f} cores busy, which is neither "
+            "one core nor most of them"
+        )
+    return (
+        slower,
+        f"the slower of the two ratios (the {which} one), {measured}",
+        None,
+    )

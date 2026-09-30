@@ -9,6 +9,7 @@ from saggio.estimate.extrapolate import (
     Projection,
     project_to_completion,
     project_to_machine,
+    project_to_processor,
 )
 from saggio.model import Quantity
 
@@ -249,3 +250,183 @@ def test_a_larger_target_board_says_nothing_about_memory() -> None:
         runtime=measured(100.0, "s"), source_key="RTX-4090", target_key="H100"
     )
     assert not any("not start" in limit for limit in projection.limits)
+
+
+# --- Onto another processor --------------------------------------------------
+#
+# A processor has two speeds and they do not move together: one thread on one
+# core, and every core busy at once. A part with many slow cores wins the second
+# and loses the first, so "the faster chip" is not a question with one answer.
+# Which speed a workload follows is measurable — processor-seconds over
+# wall-clock seconds — and these tests are about that measurement deciding.
+
+_BENCHMARK = "SPEC CPU 2017 rate base, per socket"
+
+
+def _cpus(**overrides: object) -> Catalog:
+    """A two-row processor catalogue: few fast cores against many slow ones."""
+    rows = {
+        "cpus": [
+            {
+                "key": "few-fast",
+                "single_thread_score": 100.0,
+                "throughput_score": 400.0,
+                "benchmark": _BENCHMARK,
+                "cores": 8,
+            },
+            {
+                "key": "many-slow",
+                "single_thread_score": 80.0,
+                "throughput_score": 1600.0,
+                "benchmark": _BENCHMARK,
+                "cores": 64,
+            },
+        ]
+    }
+    for key, value in overrides.items():
+        for row in rows["cpus"]:
+            if value is None:
+                row.pop(key, None)
+            else:
+                row[key] = value
+    return Catalog("hardware", rows)
+
+
+def _project(**kwargs: object) -> object:
+    return project_to_processor(
+        runtime=Quantity(value=100.0, unit="s", status="measured"),
+        source_key="few-fast",
+        target_key="many-slow",
+        overlay_catalog=_cpus(),
+        **kwargs,  # type: ignore[arg-type]
+    )
+
+
+def test_a_single_threaded_run_follows_the_single_threaded_score() -> None:
+    # The target's cores are slower one at a time. A run using one of them gets
+    # *worse*, and the projection says so rather than promising the 4x the
+    # throughput score would suggest.
+    projected = _project(parallelism=1.0)
+    assert projected.quantity.value == pytest.approx(125.0)
+    assert "single-threaded score ratio" in projected.method
+
+
+def test_a_run_that_saturates_the_chip_follows_the_throughput_score() -> None:
+    projected = _project(parallelism=7.0)
+    assert projected.quantity.value == pytest.approx(25.0)
+    assert "all-core throughput" in projected.method
+
+
+def test_an_unmeasured_parallelism_takes_the_slower_end() -> None:
+    # The slower ratio is the longer run and the larger bill: the number a
+    # reader is not harmed by having believed.
+    projected = _project()
+    assert projected.quantity.value == pytest.approx(125.0)
+    assert "nothing having measured" in projected.method
+
+
+def test_a_half_busy_chip_settles_nothing_and_says_so() -> None:
+    projected = _project(parallelism=4.0)
+    assert projected.quantity.value == pytest.approx(125.0)
+    assert "neither one core nor most of them" in projected.method
+
+
+def test_the_bracket_holds_both_ends() -> None:
+    projected = _project(parallelism=1.0)
+    assert projected.bounds is not None
+    fastest, slowest = projected.bounds
+    assert fastest.value == pytest.approx(25.0)
+    assert slowest.value == pytest.approx(125.0)
+
+
+def test_a_processor_projection_is_never_stronger_than_estimated() -> None:
+    assert _project(parallelism=1.0).quantity.status == "estimated"
+
+
+def test_two_different_benchmarks_are_refused_rather_than_divided() -> None:
+    # A SPEC score over a Geekbench score is a number with no meaning, and it
+    # would look exactly like a number with one.
+    catalog = _cpus()
+    catalog.data["cpus"][1]["benchmark"] = "Geekbench 6 multi-core"
+    projected = project_to_processor(
+        runtime=Quantity(value=100.0, unit="s", status="measured"),
+        source_key="few-fast",
+        target_key="many-slow",
+        overlay_catalog=catalog,
+    )
+    assert projected.refused
+    assert "scores of the same benchmark" in str(projected.quantity.notes)
+
+
+def test_no_scores_at_all_is_refused_with_the_recipe_for_fixing_it() -> None:
+    catalog = _cpus(single_thread_score=None, throughput_score=None)
+    projected = project_to_processor(
+        runtime=Quantity(value=100.0, unit="s", status="measured"),
+        source_key="few-fast",
+        target_key="many-slow",
+        overlay_catalog=catalog,
+    )
+    assert projected.refused
+    notes = str(projected.quantity.notes)
+    assert "clock speed and core count do not give one" in notes
+    assert "spec.org" in notes
+    assert "divide it by the number of sockets" in notes
+
+
+def test_one_score_projects_but_admits_it_brackets_nothing() -> None:
+    catalog = _cpus(throughput_score=None)
+    projected = project_to_processor(
+        runtime=Quantity(value=100.0, unit="s", status="measured"),
+        source_key="few-fast",
+        target_key="many-slow",
+        overlay_catalog=catalog,
+    )
+    assert not projected.refused
+    assert projected.bounds is None
+    assert any("brackets this" in limit for limit in projected.limits)
+
+
+def test_half_a_ratio_is_not_a_ratio() -> None:
+    # The source has a score and the target does not. Dividing by the one that
+    # exists would be scaling by nothing.
+    catalog = _cpus()
+    catalog.data["cpus"][1].pop("single_thread_score")
+    catalog.data["cpus"][1].pop("throughput_score")
+    projected = project_to_processor(
+        runtime=Quantity(value=100.0, unit="s", status="measured"),
+        source_key="few-fast",
+        target_key="many-slow",
+        overlay_catalog=catalog,
+    )
+    assert projected.refused
+
+
+def test_an_unknown_processor_names_the_ones_that_are_known() -> None:
+    projected = project_to_processor(
+        runtime=Quantity(value=100.0, unit="s", status="measured"),
+        source_key="few-fast",
+        target_key="not-a-cpu",
+        overlay_catalog=_cpus(),
+    )
+    assert projected.refused
+    assert "'not-a-cpu'" in str(projected.quantity.notes)
+    assert "few-fast" in str(projected.quantity.notes)
+
+
+def test_a_runtime_with_no_number_projects_onto_no_processor_either() -> None:
+    projected = project_to_processor(
+        runtime=Quantity(status="TODO"),
+        source_key="few-fast",
+        target_key="many-slow",
+        overlay_catalog=_cpus(),
+    )
+    assert projected.refused
+
+
+def test_the_bundled_catalogue_carries_core_counts_where_it_states_them() -> None:
+    # The projection reads `cores` to decide whether a measured parallelism
+    # means "most of the chip". A row whose own notes state the count should
+    # carry it as a field rather than as prose.
+    rows = Catalog.bundled("hardware").rows("cpus")
+    assert rows["epyc-9654"]["cores"] == 96
+    assert rows["xeon-gold-6248"]["cores"] == 20

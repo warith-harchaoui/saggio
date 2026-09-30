@@ -64,6 +64,7 @@ from .extrapolate import (
     Projection,
     project_to_completion,
     project_to_machine,
+    project_to_processor,
 )
 from .machine import MachineProfile, detect_machine
 
@@ -95,6 +96,7 @@ __all__ = [
     "node_power",
     "project_to_completion",
     "project_to_machine",
+    "project_to_processor",
     "total_money",
     "tree_months",
     "water_from_energy",
