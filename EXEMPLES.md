@@ -202,6 +202,76 @@ que hors ligne, tarifs laissés ouverts.
 
 ## Mesurer au lieu de deviner
 
+### Ce que cette machine accepte de vous dire
+
+Avant qu'une mesure vaille quoi que ce soit, il faut savoir ce que la machine
+accepte de dire, et à qui.
+
+```bash
+saggio power
+```
+
+```
+[reads] Linux powercap (RAPL)
+    covers: the processor package and its memory
+    Zones answering: dram, package-0, package-1.
+
+[reads] NVIDIA driver (nvidia-smi)
+    covers: the whole accelerator board
+    The board keeps an accumulated energy counter, which is read exactly.
+
+[absent] Linux graphics driver (amdgpu, i915, xe)
+    covers: the graphics device
+    No graphics device here publishes a power sensor through sysfs.
+
+[root-only] Baseboard controller (IPMI, DCMI, Redfish)
+    covers: the whole node, including fans, storage, and the power supply's losses
+    ...
+```
+
+Quatre états, et un seul est une question qui vous revient. `absent` est une
+propriété de la machine, pas un échec. `root-only` est un compteur que ce paquet
+refuse d'aller chercher, délibérément. `reads` ne demande rien à personne.
+`blocked` est le cas intéressant : le compteur est là et il vous est fermé — ce
+qui, sous Linux, est le défaut depuis la 5.10, parce que l'échantillonner assez
+vite permet de reconstituer ce que calculent les autres processus : l'attaque
+PLATYPUS, CVE-2020-8694. Le remède est donc affiché plutôt qu'exécuté, avec sa
+raison à côté :
+
+```
+[blocked] Linux powercap (RAPL)
+    covers: the processor package, and the memory where a zone exists for it
+    2 zone(s) are here and closed to you. Linux has kept this counter root-only
+    since 5.10 on purpose: sampled fast enough it leaks what other processes are
+    computing (CVE-2020-8694, the PLATYPUS attack). Opening it to a group is a
+    judgement about who shares this machine, which is why it is printed here
+    rather than done for you.
+    to open it: Until the next reboot:  sudo chmod a+r /sys/class/powercap/*/energy_uj
+        Across reboots, a udev rule that touches the energy files and nothing else.
+```
+
+Rien ici n'escalade. Pas de `sudo`, pas de demande de mot de passe, pas de repli
+silencieux sur un outil qui en réclamerait un. Rouvrir un canal auxiliaire publié
+sur une machine que vous partagez peut-être est une décision : elle reste la
+vôtre.
+
+Pour voir les compteurs fonctionner avant qu'une exécution en dépende, demandez
+une mesure de la machine elle-même :
+
+```bash
+saggio power --seconds 2
+```
+
+```
+Over 2s this machine drew 27.2 W (54.3 J) through system-on-chip, memory.
+```
+
+Ce chiffre est celui de la *machine*, pas de votre programme : tout ce qui tourne
+par ailleurs y est. Un portable qui tire 27 W sans rien faire pour vous, c'est
+exactement pourquoi une tranche chronométrée sur une machine occupée n'est pas le
+coût propre de cette tranche — et pourquoi chaque chiffre imprimé ici dit ce
+qu'il couvre.
+
 ### Une commande à vous
 
 ```bash
@@ -217,21 +287,29 @@ Average power: 96.3 W (measured)
      2.106 s  dataloader.py:41(__next__)
 ```
 
-La puissance est mesurée là où la machine veut bien la dire, à partir de deux
-compteurs et non d'un seul. Sous Linux avec un processeur Intel, le compteur
-d'énergie du paquet donne le processeur. Sur toute machine portant une carte
-NVIDIA, le pilote donne l'accélérateur sans aucun privilège, soit par un compteur
-d'énergie cumulée, soit, sur les cartes qui n'en tiennent pas, par la moyenne de
-relevés pris toutes les demi-secondes pendant la course. C'est l'accélérateur qui
-compte : un processeur qui tire 50 W à côté d'une carte qui en tire 300 est une
-machine à 350 W, et un modèle qui rapporterait les 50 W se tromperait d'un facteur
-sept.
+La puissance est mesurée à partir des compteurs que cette machine publie — ceux
+que `saggio power` vient d'énumérer. Sous Linux, c'est l'arborescence powercap :
+chaque paquet, la zone `psys` de préférence aux paquets qu'elle contient, et la
+zone mémoire à côté, dont l'énergie n'est *pas* dans le chiffre du paquet. Sur un
+Mac Apple Silicon, ce sont les compteurs de la puce : cœurs du processeur, cœurs
+graphiques, moteur neuronal et mémoire, lus sans mot de passe. Sur toute machine
+portant une carte NVIDIA, le pilote répond, soit par un compteur d'énergie
+cumulée, soit, sur les cartes qui n'en tiennent pas, par la moyenne de relevés
+pris toutes les demi-secondes pendant la course ; quand ce n'est pas NVIDIA qui
+est présent, les pilotes `amdgpu`, `i915` et `xe` de Linux publient la même chose
+par sysfs, à un utilisateur ordinaire.
+
+C'est en général l'accélérateur qui compte : un processeur qui tire 50 W à côté
+d'une carte qui en tire 300 est une machine à 350 W, et un modèle qui rapporterait
+les 50 W se tromperait d'un facteur sept.
 
 Ce qui a répondu est nommé dans le rapport, et ce qui n'a pas répondu aussi. Les
 deux compteurs donnent un chiffre qui dit ce qu'il laisse de côté ; l'accélérateur
 seul dit que le processeur manque ; si aucun ne répond, le rapport affiche
-`not measured` et le modèle retombe sur une estimation étiquetée comme telle. Sous
-macOS, aucun compteur n'est lisible sans privilèges, d'un côté comme de l'autre.
+`not measured` et le modèle retombe sur une estimation étiquetée comme telle. Un
+compteur qui a franchi son plafond une fois pendant la course est déplié par sa
+plage publiée, et le chiffre porte la puissance au-delà de laquelle ce
+redressement aurait été faux.
 
 Les deux lignes sous le total sont le profil par fonction, et elles se paient.
 `cProfile` facture à l'appel : une charge riche en appels peut mettre presque deux

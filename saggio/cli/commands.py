@@ -33,11 +33,14 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
 import os_helper as osh
 
+from ..analyze.capability import measurable, paths_read, probe, summary
+from ..analyze.power import PowerMeter
 from ..analyze.run import record_consent, run_slice
 from ..auditor import AuditOptions, audit, audit_git_url
 from ..catalog.registry import SECTION_OF_KIND, Catalog, add_row, stale_report
@@ -671,6 +674,112 @@ def machine(args: argparse.Namespace) -> int:
         for miss in profile.catalog_misses:
             osh.warning(miss)
     return OK
+
+
+def power(args: argparse.Namespace) -> int:
+    """Print which energy counters this machine will let this user read.
+
+    The question this answers is not "can power be measured here" but "what is
+    in the way, and is it something you can decide about". A counter that is
+    absent, one that is closed to you, and one that lives behind a password are
+    three different answers, and only the middle one has a remedy.
+
+    Nothing is escalated. A remedy is printed with the reason the counter is
+    shut beside it, and running it stays the reader's decision.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        With ``json`` and ``seconds``.
+
+    Returns
+    -------
+    int
+        :data:`~saggio.cli.exit_codes.OK` when at least one counter reads,
+        :data:`~saggio.cli.exit_codes.OK` otherwise too: a machine without
+        counters is not a broken machine, and a script that gates on this
+        should read the states rather than the exit code.
+
+    Examples
+    --------
+    >>> import contextlib, io
+    >>> with contextlib.redirect_stdout(io.StringIO()):
+    ...     verdict = power(argparse.Namespace(json=True, seconds=0.0))
+    >>> verdict
+    0
+    """
+    interfaces = probe()
+    if args.json:
+        payload: dict[str, Any] = {
+            "measurable": measurable(),
+            "paths_read": list(paths_read()),
+            "interfaces": [
+                {
+                    "name": interface.name,
+                    "covers": interface.covers,
+                    "state": interface.state,
+                    "detail": interface.detail,
+                    "remedy": interface.remedy,
+                }
+                for interface in interfaces
+            ],
+        }
+        if args.seconds > 0.0:
+            payload["measurement"] = _measure_idle(args.seconds)
+        _emit(payload, as_json=True)
+        return OK
+
+    print(summary(), end="")
+    for path in paths_read():
+        print(f"reads: {path}")
+    if args.seconds > 0.0:
+        reading = _measure_idle(args.seconds)
+        print()
+        if reading["watts"] is None:
+            print(f"Over {args.seconds:g}s: nothing measured. {reading['scope']}")
+        else:
+            print(
+                f"Over {args.seconds:g}s this machine drew {reading['watts']:.1f} W "
+                f"({reading['joules']:.1f} J) through {', '.join(reading['sources'])}."
+            )
+            print(f"    {reading['scope']}")
+    return OK
+
+
+def _measure_idle(seconds: float) -> dict[str, Any]:
+    """Measure the machine's own draw for a while, and return it as a mapping.
+
+    This measures the *machine*, not any particular program: whatever else is
+    running is in the figure. That is the point — a reader who sees an idle
+    machine drawing thirty watts has learned why a slice measured on a busy
+    laptop is not the slice's own cost.
+
+    Parameters
+    ----------
+    seconds : float
+        How long to watch.
+
+    Returns
+    -------
+    dict
+        Watts, joules, the counters that answered, and what they cover.
+
+    Examples
+    --------
+    >>> sorted(_measure_idle(0.0))
+    ['joules', 'scope', 'seconds', 'sources', 'watts']
+    """
+    meter = PowerMeter.start()
+    if seconds > 0.0:
+        time.sleep(seconds)
+    reading = meter.stop(seconds=seconds)
+    return {
+        "seconds": seconds,
+        "watts": reading.watts,
+        "joules": reading.joules,
+        "sources": list(reading.sources),
+        "scope": reading.scope,
+    }
 
 
 def consent(args: argparse.Namespace) -> int:

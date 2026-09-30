@@ -68,10 +68,15 @@ full run performs, which paid APIs you call and on which line. All of it
 deterministic, all of it quoting its evidence.
 
 **Runs a slice of it, if you let it.** With `--run`, and after you have agreed
-once, it executes a capped slice of your real entry point, times it, reads the
-processor's and the accelerator's power counters where the machine offers them,
-and profiles where the time went. The size the slice covers is read from your own configuration, so
-projecting to a whole run is arithmetic rather than a guess.
+once, it executes a capped slice of your real entry point, times it, reads
+whatever energy counters the machine publishes to an ordinary user, and profiles
+where the time went. On Linux that is the powercap tree, memory zone included,
+and the graphics driver's own sensor; on an Apple Silicon Mac it is the chip's
+own counters, read without a password; on any machine with an NVIDIA board it is
+the driver. `saggio power` says which of them answer here, and prints what it
+would take to open the ones that do not — without ever opening them itself. The
+size the slice covers is read from your own configuration, so projecting to a
+whole run is arithmetic rather than a guess.
 
 **Looks things up rather than assuming them.** What a GPU draws, what a kilowatt
 hour emits in Poland, what overhead a datacenter adds, where an API publishes its

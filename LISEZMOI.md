@@ -70,10 +70,15 @@ quantité de travail d'une exécution complète, quelles API payantes vous appel
 
 **Il en exécute une tranche, si vous l'autorisez.** Avec `--run`, et après votre
 accord donné une fois, il lance une tranche plafonnée de votre vrai point
-d'entrée, la chronomètre, lit les compteurs de puissance du processeur et de
-l'accélérateur quand la machine en offre, et profile où le temps est passé. La part du
-travail que couvre la tranche est lue dans votre propre configuration : projeter
-sur une exécution complète relève donc de l'arithmétique, pas de la devinette.
+d'entrée, la chronomètre, lit les compteurs d'énergie que la machine publie à un
+utilisateur ordinaire, et profile où le temps est passé. Sous Linux, c'est
+l'arborescence powercap, zone mémoire comprise, et le capteur du pilote
+graphique ; sur un Mac Apple Silicon, ce sont les compteurs de la puce elle-même,
+lus sans mot de passe ; sur toute machine dotée d'une carte NVIDIA, c'est le
+pilote. `saggio power` dit lesquels répondent ici, et affiche ce qu'il faudrait
+pour ouvrir les autres — sans jamais les ouvrir lui-même. La part du travail que
+couvre la tranche est lue dans votre propre configuration : projeter sur une
+exécution complète relève donc de l'arithmétique, pas de la devinette.
 
 **Il cherche plutôt que de supposer.** Ce que consomme un GPU, ce qu'émet un
 kilowattheure en Pologne, ce qu'ajoute un datacenter, où une API publie ses tarifs :

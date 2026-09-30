@@ -23,6 +23,8 @@ Warith Harchaoui
 
 from __future__ import annotations
 
+from .apple import SocEnergy, SocMeter
+from .capability import Interface, measurable, paths_read, probe, summary
 from .llm import (
     WORKLOAD_KINDS,
     Classification,
@@ -33,8 +35,12 @@ from .llm import (
 )
 from .power import (
     RAPL_SCOPE_NOTE,
+    GraphicsSampler,
     PowerMeter,
     PowerReading,
+    read_graphics_energy_microjoules,
+    read_graphics_watts,
+    read_memory_energy_microjoules,
     read_package_energy_microjoules,
     unavailable_reason,
 )
@@ -83,9 +89,22 @@ __all__ = [
     # Power.
     "PowerMeter",
     "PowerReading",
+    "GraphicsSampler",
     "RAPL_SCOPE_NOTE",
     "read_package_energy_microjoules",
+    "read_memory_energy_microjoules",
+    "read_graphics_energy_microjoules",
+    "read_graphics_watts",
     "unavailable_reason",
+    # Apple Silicon, read without privileges.
+    "SocMeter",
+    "SocEnergy",
+    # What this machine will let you read, and what it would take.
+    "Interface",
+    "probe",
+    "measurable",
+    "summary",
+    "paths_read",
     # Running.
     "SliceResult",
     "ProfileEntry",

@@ -198,6 +198,73 @@ same model it produces offline, with the prices left open.
 
 ## Measuring instead of guessing
 
+### What this machine will let you read
+
+Before a measurement is worth anything, it is worth knowing what this machine is
+willing to say, and to whom.
+
+```bash
+saggio power
+```
+
+```
+[reads] Linux powercap (RAPL)
+    covers: the processor package and its memory
+    Zones answering: dram, package-0, package-1.
+
+[reads] NVIDIA driver (nvidia-smi)
+    covers: the whole accelerator board
+    The board keeps an accumulated energy counter, which is read exactly.
+
+[absent] Linux graphics driver (amdgpu, i915, xe)
+    covers: the graphics device
+    No graphics device here publishes a power sensor through sysfs.
+
+[root-only] Baseboard controller (IPMI, DCMI, Redfish)
+    covers: the whole node, including fans, storage, and the power supply's losses
+    ...
+```
+
+Four states, and only one of them is a question for you. `absent` is a property
+of the machine, not a failure. `root-only` is a counter this package will not
+reach for, on purpose. `reads` needs nothing from anybody. `blocked` is the
+interesting one: the counter is here and closed to *you*, which on Linux since
+5.10 is the default, because sampling it fast enough recovers what other
+processes are computing — the PLATYPUS attack, CVE-2020-8694. So the remedy is
+printed rather than run, with the reason beside it:
+
+```
+[blocked] Linux powercap (RAPL)
+    covers: the processor package, and the memory where a zone exists for it
+    2 zone(s) are here and closed to you. Linux has kept this counter root-only
+    since 5.10 on purpose: sampled fast enough it leaks what other processes are
+    computing (CVE-2020-8694, the PLATYPUS attack). Opening it to a group is a
+    judgement about who shares this machine, which is why it is printed here
+    rather than done for you.
+    to open it: Until the next reboot:  sudo chmod a+r /sys/class/powercap/*/energy_uj
+        Across reboots, a udev rule that touches the energy files and nothing else.
+```
+
+Nothing here escalates. No `sudo`, no password prompt, no quiet fall-back to a
+tool that would ask for one. Whether to reopen a published side channel on a
+machine you may share is a decision, and it stays yours.
+
+To watch the counters work before a run depends on them, ask for a measurement
+of the machine itself:
+
+```bash
+saggio power --seconds 2
+```
+
+```
+Over 2s this machine drew 27.2 W (54.3 J) through system-on-chip, memory.
+```
+
+That figure is the *machine*, not your program: everything else running is in
+it. A laptop drawing 27 W while doing nothing of yours is exactly why a slice
+timed on a busy machine is not the slice's own cost, and why every figure this
+package prints says what it covers.
+
 ### One command of yours
 
 ```bash
@@ -213,20 +280,28 @@ Average power: 96.3 W (measured)
      2.106 s  dataloader.py:41(__next__)
 ```
 
-Power is measured where the machine will say, from two counters rather than one.
-On Linux with an Intel processor, the package energy counter gives the processor.
-On any machine with an NVIDIA board, the driver gives the accelerator without
-needing privileges, either as an accumulated energy counter or, on boards that
-keep no running total, as the mean of readings taken every half second across the
-run. The accelerator is the one that matters: a processor drawing 50 W beside a
-board drawing 300 W is a 350 W machine, and a model that reported the 50 W would
-be wrong by a factor of seven.
+Power is measured from whichever counters this machine publishes, which
+`saggio power` above has already listed. On Linux that is the powercap tree —
+every package, the `psys` zone in preference to the packages it contains, and the
+memory zone beside them, whose energy is *not* inside the package figure. On an
+Apple Silicon Mac it is the chip's own counters: processor cores, graphics cores,
+neural engine, and memory, read without a password. On any machine with an NVIDIA
+board the driver answers, either as an accumulated energy counter or, on boards
+that keep no running total, as the mean of readings taken every half second
+across the run; where NVIDIA is not the board present, Linux's own `amdgpu`,
+`i915`, and `xe` drivers publish the same thing through sysfs to an ordinary
+user.
+
+The accelerator is usually the one that matters: a processor drawing 50 W beside
+a board drawing 300 W is a 350 W machine, and a model that reported the 50 W
+would be wrong by a factor of seven.
 
 Whatever answered is named in the report, and so is whatever did not. Both
 counters give a figure that says what it leaves out; the accelerator alone says
 the processor is missing; neither says so, the report says `not measured` and the
-model falls back to an estimate labelled as one. On macOS there is no
-unprivileged counter on either side.
+model falls back to an estimate labelled as one. A counter that passed its
+ceiling once during the run is unwrapped by its published range, and the figure
+carries the wattage above which that recovery would have been wrong.
 
 The two lines under the total are the function-level profile, and they cost
 something to obtain. `cProfile` charges per call, so a call-heavy workload can

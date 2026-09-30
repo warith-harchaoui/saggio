@@ -5,6 +5,63 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
+## Unreleased
+
+### macOS measures power now, and asks nobody for a password
+
+- `saggio.analyze.apple` reads an Apple Silicon chip's own energy counters
+  through `IOReport`, as an ordinary user. Processor cores, graphics cores,
+  neural engine, and memory, as monotonic counters in units the library labels
+  itself, so a measurement is a difference between two reads rather than a mean
+  of samples. Every Mac in this package's history reported `not measured` and
+  fell back to a datasheet; that was a limitation of the code, not of macOS.
+- The figures carry what they are: the chip's own energy model rather than a
+  meter on the power rail, and Apple's own warning that they do not compare
+  across machines. Which is true of Intel's RAPL too, on every part that is not
+  a Haswell server chip.
+
+### The Linux counters are read by name, and the memory beside them is no longer lost
+
+- Powercap zones are read by the name each zone gives itself rather than by the
+  shape of its directory. That is what tells a package apart from the `psys`
+  zone that already contains it — now preferred when present, never added to the
+  packages — and from the `dram` zone beside it, whose energy is **not** inside
+  the package figure and was therefore missing from every reading this package
+  ever took on a machine that publishes it.
+- `amd-rapl` zones are read like `intel-rapl` ones. `intel-rapl-mmio`, which is
+  the same package through a second interface, is still left alone.
+- A counter that passed its ceiling once during a run is unwrapped by its
+  published `max_energy_range_uj` instead of voiding the measurement, and the
+  figure carries the wattage above which that recovery would have been wrong. A
+  counter that was *reset* rather than wrapped is still refused.
+- Where NVIDIA is not the board present, Linux's own `amdgpu`, `i915`, and `xe`
+  drivers are read through sysfs — an accumulated microjoule counter where the
+  driver keeps one, sampled instantaneous watts where it does not. No vendor
+  tool, no privileges.
+
+### `saggio power` says what this machine will let you read, and never opens it for you
+
+- A new verb reports every energy interface relevant to this platform in one of
+  four states: `reads`, `blocked`, `root-only`, `absent`. The distinction is the
+  point. A counter that is absent and a counter that is present but closed to
+  you are different situations, and "could not measure power" told a reader
+  nothing they could act on.
+- `blocked` is the only state with a remedy, and the remedy is printed rather
+  than run, with the reason the counter is shut beside it: Linux has kept
+  `energy_uj` root-only since 5.10 because sampling it fast enough recovers what
+  other processes are computing — CVE-2020-8694, the PLATYPUS attack. Reopening
+  a published side channel on a shared machine is a judgement, and it stays the
+  reader's.
+- Nothing in this package escalates: no `sudo`, no password prompt, no quiet
+  fall-back to a tool that would ask for one. `powermetrics` and the baseboard
+  controller are named as `root-only` and left alone.
+- `saggio power --seconds N` measures the machine itself for N seconds, so the
+  counters can be seen working before a run depends on them — and so a reader
+  meets, early, the fact that a machine-wide counter measures the machine and
+  not their program.
+- `saggio power --json` prints the same thing as data, including the exact
+  filesystem paths that would be read.
+
 ## 1.1.0 — 2026-09-18
 
 ### Carbon is restated in terms a reader can feel

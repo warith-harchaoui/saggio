@@ -55,6 +55,7 @@ _HANDLERS: Final[dict[str, Callable[[argparse.Namespace], int]]] = {
     "measure": commands.measure,
     "diff": commands.difference,
     "machine": commands.machine,
+    "power": commands.power,
     "consent": commands.consent,
     "catalog list": commands.catalog_list,
     "catalog add": commands.catalog_add,
@@ -112,6 +113,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_measure(verbs)
     _add_diff(verbs)
     _add_machine(verbs)
+    _add_power(verbs)
     _add_consent(verbs)
     _add_catalog(verbs)
     return parser
@@ -424,6 +426,42 @@ def _add_machine(verbs: argparse._SubParsersAction) -> None:
         "machine", help="Show what this machine is and whether the catalogue knows it."
     )
     parser.add_argument("--json", action="store_true", help="Print it as JSON.")
+
+
+def _add_power(verbs: argparse._SubParsersAction) -> None:
+    """Attach the ``power`` verb.
+
+    Parameters
+    ----------
+    verbs : argparse._SubParsersAction
+        The sub-parser collection.
+
+    Examples
+    --------
+    >>> build_parser().parse_args(["power"]).verb
+    'power'
+    >>> build_parser().parse_args(["power", "--seconds", "2"]).seconds
+    2.0
+    """
+    parser = verbs.add_parser(
+        "power",
+        help="Show which energy counters this machine will let you read.",
+        epilog=(
+            "Nothing here is run as another user. Where a counter needs "
+            "administrator rights, the command that would open it is printed "
+            "and not executed, together with the reason it is shut."
+        ),
+    )
+    parser.add_argument("--json", action="store_true", help="Print it as JSON.")
+    parser.add_argument(
+        "--seconds",
+        type=float,
+        default=0.0,
+        help=(
+            "Also measure the machine's own draw for this many seconds, so the "
+            "counters can be seen working before a run depends on them."
+        ),
+    )
 
 
 def _add_consent(verbs: argparse._SubParsersAction) -> None:

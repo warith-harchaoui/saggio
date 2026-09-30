@@ -8,15 +8,23 @@ counter is a fact about a run. This module is the thin layer over whatever the
 operating system will tell us, and its whole contract is that it returns ``None``
 rather than a plausible number when it cannot tell.
 
-Linux exposes Intel's running average power limit counters through sysfs as an
-accumulating microjoule total, readable without privileges once the files are.
-Two readings and a duration give an average. The counter covers the processor
-package only, so on a GPU workload it undercounts, and the caller says so.
+Linux publishes energy through the powercap tree as accumulating microjoule
+totals, one zone per thing that can be metered. Each zone is read by the name it
+gives itself rather than by the shape of its directory, which is what separates
+a package from the ``psys`` zone that already contains it and from the memory
+zone beside it, whose energy is *not* inside the package figure and was
+therefore missing from every reading this module took before. Since Linux 5.10
+those files are root-only by default, because sampling them quickly is a side
+channel; a machine that keeps them shut is told apart from a machine that has no
+counters at all, and :mod:`saggio.analyze.capability` prints what it would take to
+open them without ever opening them itself.
 
-macOS exposes the same kind of figure through ``powermetrics``, which requires
-administrator rights and therefore cannot be a library call; Windows exposes
-nothing comparable without a vendor driver. On both, this module reports that it
-could not measure, and the estimate that follows is labelled as an estimate.
+macOS was the platform this module used to give up on. It should not have been:
+the counters ``powermetrics`` prints are published by ``IOReport``, which answers
+an ordinary user, and :mod:`saggio.analyze.apple` reads them — processor cores,
+graphics cores, neural engine, and memory, as monotonic counters in units the
+library labels itself. Windows still publishes no vendor-neutral processor
+counter to an unprivileged process, and says so rather than estimating quietly.
 
 The processor is rarely the expensive part. On the workloads this package exists
 for, the accelerator draws several times what the package does, and NVIDIA's
@@ -26,7 +34,10 @@ sampled across the run. Both paths are read here, the counter first because it i
 a counter, and whichever one answers says so in the scope it carries. A machine
 that answers on one side and not the other reports the side it measured and names
 the side it did not, because a package figure presented as the cost of a training
-run would be wrong by an order of magnitude.
+run would be wrong by an order of magnitude. Where NVIDIA's driver is not the one
+present, Linux's own graphics drivers publish the same thing through sysfs —
+``amdgpu`` as instantaneous watts, ``i915`` and ``xe`` as an accumulating
+counter — to an ordinary user and with no vendor tool involved.
 
 Usage example
 -------------
@@ -47,17 +58,56 @@ import glob
 import shutil
 import subprocess
 import tempfile
+import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
 
 import os_helper as osh
 
+from . import apple
+
+#: Where Linux publishes its energy zones. The pattern covers ``intel-rapl`` and
+#: the ``amd-rapl`` control type newer kernels register on AMD parts, and stops
+#: short of ``intel-rapl-mmio``, which is the *same* package published through a
+#: second interface: adding both would count one processor twice.
+RAPL_ZONE_GLOB: Final[str] = "/sys/class/powercap/[ai]*-rapl:*"
+
 #: Where Linux publishes the processor package energy counters.
 RAPL_ENERGY_GLOB: Final[str] = "/sys/class/powercap/intel-rapl:*/energy_uj"
 
 #: Microjoules in a joule, spelled out so the unit conversion reads as physics.
 _MICROJOULES_PER_JOULE: Final[float] = 1_000_000.0
+
+#: Microwatts in a watt. The graphics drivers publish power in microwatts.
+_MICROWATTS_PER_WATT: Final[float] = 1_000_000.0
+
+#: Where the graphics drivers hang their hardware-monitoring nodes.
+GRAPHICS_HWMON_GLOB: Final[str] = "/sys/class/drm/card*/device/hwmon/hwmon*"
+
+#: The drivers that publish power there, by the name they write in ``name``.
+#: ``amdgpu`` is AMD's; ``i915`` and ``xe`` are Intel's older and newer ones.
+GRAPHICS_DRIVERS: Final[frozenset[str]] = frozenset({"amdgpu", "i915", "xe"})
+
+#: The accumulating energy counter, in microjoules, where a driver keeps one.
+GRAPHICS_ENERGY_FILE: Final[str] = "energy1_input"
+
+#: The instantaneous board power, in microwatts, where a driver publishes that
+#: instead of a total.
+GRAPHICS_POWER_FILE: Final[str] = "power1_average"
+
+#: The zone covering the whole system-on-chip rather than the processor alone.
+#: When a machine publishes it, it is the better figure and it already contains
+#: the packages, so the packages are not added to it.
+_PSYS_ZONE: Final[str] = "psys"
+
+#: How a package zone names itself: ``package-0``, ``package-1``, one per socket.
+_PACKAGE_PREFIX: Final[str] = "package"
+
+#: How the memory zone names itself. It is a *subzone* of a package in the sysfs
+#: tree but its energy is not inside the package figure, so it is read
+#: separately and added rather than skipped as a double count.
+_DRAM_ZONE: Final[str] = "dram"
 
 #: What the counter covers, carried into the model so a reader knows the boundary.
 RAPL_SCOPE_NOTE: Final[str] = (
@@ -77,8 +127,8 @@ _UNAVAILABLE_REASON: Final[dict[str, str]] = {
         "is estimated from the hardware catalogue rather than measured."
     ),
     "linux": (
-        "No readable Intel RAPL counter was found: this is an AMD or ARM machine, "
-        "a container without the sysfs files, or the files are not world-readable."
+        "No readable RAPL counter was found: this is an ARM machine, a container "
+        "without the sysfs files, or the files are not world-readable."
     ),
 }
 
@@ -125,6 +175,18 @@ _BOTH_MEASURED_NOTE: Final[str] = (
     "outside the package, storage, fans, and the power supply's own losses."
 )
 
+#: What the graphics counter covers, when Linux's own driver keeps a total.
+GRAPHICS_COUNTER_SCOPE: Final[str] = (
+    "the graphics device, from the driver's own accumulated energy counter in "
+    "sysfs, which needs neither a vendor tool nor administrator rights"
+)
+
+#: What the sampled graphics figure covers, and how it was obtained.
+GRAPHICS_SAMPLED_SCOPE: Final[str] = (
+    "the graphics device, as the mean of {count} readings of instantaneous board "
+    "power taken from sysfs every {interval:g} seconds across the run"
+)
+
 #: Said when the accelerator was measured and the processor was not, so that
 #: nobody reads an accelerator figure as the draw of the whole machine.
 _PACKAGE_MISSING_NOTE: Final[str] = (
@@ -141,6 +203,24 @@ _ACCELERATOR_MISSING_NOTE: Final[str] = (
 _ACCELERATOR_WRAPPED_NOTE: Final[str] = (
     "The accelerator's energy counter wrapped or reset during the run, so its draw "
     "is not included; the board itself did answer."
+)
+
+#: Said when the memory counter answered, so a reader knows the figure includes
+#: what Green Algorithms would otherwise have estimated from installed capacity.
+_MEMORY_MEASURED_NOTE: Final[str] = (
+    "Memory is measured rather than estimated here: the machine publishes its own "
+    "memory energy counter, so the figure is what the memory drew rather than what "
+    "its installed capacity suggests it would draw."
+)
+
+#: Said when a package counter passed its ceiling once and was recovered. The
+#: sentence carries the wattage above which a *second* wrap would have happened,
+#: because that is the one fact that decides whether the recovery is exact.
+_WRAP_RECOVERED_NOTE: Final[str] = (
+    "The processor energy counter passed its ceiling once during the run and was "
+    "unwrapped by its published range. That recovery is exact as long as the "
+    "processor averaged under {ceiling:.0f} W, above which the counter would have "
+    "passed the ceiling twice and this figure would understate the run."
 )
 
 
@@ -339,11 +419,212 @@ class AcceleratorSampler:
         return sum(readings) / len(readings) * self.board_count, len(readings)
 
 
-def read_package_energy_microjoules() -> int | None:
-    """Return the accumulated processor package energy, or ``None``.
+def _read_integer(path: Path) -> int | None:
+    """Return the integer a sysfs file holds, or ``None``.
 
-    Every package domain present is summed, so a two-socket machine is counted
-    whole rather than by half.
+    Parameters
+    ----------
+    path : pathlib.Path
+        The file to read.
+
+    Returns
+    -------
+    int or None
+        Its contents as an integer, or ``None`` when it is absent, unreadable,
+        or not a number.
+
+    Examples
+    --------
+    >>> _read_integer(Path("/nonexistent/energy_uj")) is None
+    True
+    """
+    try:
+        return int(path.read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        return None
+
+
+def _read_text(path: Path) -> str | None:
+    """Return a sysfs file's contents, stripped, or ``None``.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        The file to read.
+
+    Returns
+    -------
+    str or None
+        Its contents without surrounding whitespace, or ``None`` when it is
+        absent or unreadable.
+
+    Examples
+    --------
+    >>> _read_text(Path("/nonexistent/name")) is None
+    True
+    """
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+
+
+def _zones() -> list[tuple[str, Path]]:
+    """Return every readable energy zone on this machine, named as it names itself.
+
+    Reading each zone's own ``name`` file is what separates a package from the
+    memory beside it and from the ``psys`` zone above it. The alternative, taking
+    the shape of the directory name, cannot tell a memory subzone — whose energy
+    sits *outside* the package figure — from a core subzone, whose energy sits
+    inside it.
+
+    Returns
+    -------
+    list of (str, pathlib.Path)
+        The zone's own name and its directory, in sysfs order.
+
+    Examples
+    --------
+    >>> all(isinstance(name, str) for name, _ in _zones())
+    True
+    """
+    found: list[tuple[str, Path]] = []
+    for directory in sorted(glob.glob(RAPL_ZONE_GLOB)):
+        path = Path(directory)
+        try:
+            name = (path / "name").read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if name and (path / "energy_uj").exists():
+            found.append((name, path))
+    return found
+
+
+def _sum_zones(wanted: list[Path], filename: str) -> int | None:
+    """Return the sum of one sysfs file across several zones, or ``None``."""
+    total = 0
+    read_any = False
+    for path in wanted:
+        value = _read_integer(path / filename)
+        if value is None:
+            # One unreadable zone should not void a readable one; if none read,
+            # the caller is told there was no measurement rather than half of one.
+            continue
+        total += value
+        read_any = True
+    return total if read_any else None
+
+
+def _compute_zones() -> list[Path]:
+    """Return the zones that make up the processor's own draw.
+
+    ``psys`` covers the whole system-on-chip and already contains the packages,
+    so when a machine publishes it, it is used alone. Otherwise every package is
+    summed, which counts a two-socket machine whole rather than by half.
+
+    Returns
+    -------
+    list of pathlib.Path
+        The directories to read, possibly empty.
+
+    Examples
+    --------
+    >>> isinstance(_compute_zones(), list)
+    True
+    """
+    zones = _zones()
+    system = [path for name, path in zones if name == _PSYS_ZONE]
+    if system:
+        return system
+    return [path for name, path in zones if name.startswith(_PACKAGE_PREFIX)]
+
+
+@dataclass(slots=True)
+class GraphicsSampler:
+    """A thread reading what the graphics device is drawing, for the length of a run.
+
+    AMD's driver publishes instantaneous board power rather than a running
+    total, so the honest figure over a run is a mean of readings taken across
+    it. Reading a file every half second costs nothing next to the run being
+    watched, and unlike the accelerator sampler it needs no second process:
+    the file is already open to this user.
+
+    Parameters
+    ----------
+    thread : threading.Thread
+        The reader, running until the measured run is over.
+    stopping : threading.Event
+        Set to ask it to finish.
+    readings : list of float
+        Watts, one per tick, appended by the thread.
+
+    Examples
+    --------
+    >>> sampler = GraphicsSampler.start()
+    >>> sampler is None or sampler.stop() is None or True
+    True
+    """
+
+    thread: threading.Thread
+    stopping: threading.Event
+    readings: list[float] = field(default_factory=list)
+
+    @classmethod
+    def start(cls) -> GraphicsSampler | None:
+        """Begin reading, or return ``None`` when there is nothing to read.
+
+        Returns
+        -------
+        GraphicsSampler or None
+            A running sampler, or ``None`` when no graphics device publishes
+            instantaneous power.
+
+        Examples
+        --------
+        >>> GraphicsSampler.start() is None or True
+        True
+        """
+        if read_graphics_watts() is None:
+            return None
+        stopping = threading.Event()
+        readings: list[float] = []
+
+        def read_until_stopped() -> None:
+            while not stopping.is_set():
+                watts = read_graphics_watts()
+                if watts is not None:
+                    readings.append(watts)
+                stopping.wait(_SAMPLE_INTERVAL_MS / 1000.0)
+
+        thread = threading.Thread(target=read_until_stopped, daemon=True)
+        thread.start()
+        return cls(thread=thread, stopping=stopping, readings=readings)
+
+    def stop(self) -> tuple[float, int] | None:
+        """Stop reading and return the mean board power and how many readings it is.
+
+        Returns
+        -------
+        tuple of (float, int), or None
+            Mean watts and the number of readings behind it, or ``None`` when
+            too few arrived to average.
+
+        Examples
+        --------
+        >>> sampler = GraphicsSampler.start()
+        >>> sampler is None or sampler.stop() is None or True
+        True
+        """
+        self.stopping.set()
+        self.thread.join(timeout=_QUERY_TIMEOUT_SECONDS)
+        readings = list(self.readings)
+        if len(readings) < _MINIMUM_SAMPLES:
+            return None
+        return sum(readings) / len(readings), len(readings)
+
+
+def read_package_energy_microjoules() -> int | None:
+    """Return the accumulated processor energy, or ``None``.
 
     Returns
     -------
@@ -356,25 +637,122 @@ def read_package_energy_microjoules() -> int | None:
     >>> value is None or value >= 0
     True
     """
-    # The glob also matches subzones such as intel-rapl:0:0 (core, uncore,
-    # dram), whose energy is already inside the package figure intel-rapl:0;
-    # summing them too would double-count the processor by up to 2x. A package
-    # zone's directory name carries exactly one colon.
-    paths = [path for path in glob.glob(RAPL_ENERGY_GLOB) if Path(path).parent.name.count(":") == 1]
-    if not paths:
-        return None
-    total = 0
-    read_any = False
-    for path in paths:
-        try:
-            with open(path, encoding="utf-8") as handle:
-                total += int(handle.read().strip())
-            read_any = True
-        except (OSError, ValueError):
-            # One unreadable domain should not void a readable one. If none read,
-            # the check below returns None and the caller estimates instead.
-            continue
-    return total if read_any else None
+    return _sum_zones(_compute_zones(), "energy_uj")
+
+
+def package_wrap_range_microjoules() -> int | None:
+    """Return how much energy the processor counters hold before they wrap.
+
+    The counter is a fixed-width accumulator: it counts up, reaches its ceiling,
+    and starts again from zero. Knowing the ceiling turns a difference that came
+    out negative from a void measurement into an exact one, as long as the run
+    was short enough that the counter passed that ceiling only once.
+
+    Returns
+    -------
+    int or None
+        Microjoules, or ``None`` when the kernel does not publish the ceiling.
+
+    Examples
+    --------
+    >>> value = package_wrap_range_microjoules()
+    >>> value is None or value > 0
+    True
+    """
+    total = _sum_zones(_compute_zones(), "max_energy_range_uj")
+    return total if total and total > 0 else None
+
+
+def read_memory_energy_microjoules() -> int | None:
+    """Return the accumulated memory energy, or ``None``.
+
+    The memory zone sits under a package in the sysfs tree but its energy is not
+    part of that package's figure, so a machine that publishes it has been
+    reporting less than it drew every time this package read the package alone.
+    Where the counter exists it replaces the memory term Green Algorithms
+    estimates from how much memory is installed, which is the same quantity
+    reached by a much shorter route.
+
+    Returns
+    -------
+    int or None
+        Microjoules since boot across every memory zone, or ``None``.
+
+    Examples
+    --------
+    >>> value = read_memory_energy_microjoules()
+    >>> value is None or value >= 0
+    True
+    """
+    return _sum_zones([path for name, path in _zones() if name == _DRAM_ZONE], "energy_uj")
+
+
+def _graphics_hwmon_directories() -> list[Path]:
+    """Return the monitoring directories the graphics drivers publish.
+
+    Linux hangs a hardware-monitoring node off every graphics device that has
+    one, and the driver puts its own name in it: ``amdgpu`` for AMD, ``i915`` or
+    ``xe`` for Intel. Both publish power there, and both publish it to an
+    ordinary user, which makes this the one accelerator counter on Linux that
+    needs neither a vendor tool nor administrator rights.
+
+    Returns
+    -------
+    list of pathlib.Path
+        One directory per graphics device that publishes power, possibly empty.
+
+    Examples
+    --------
+    >>> isinstance(_graphics_hwmon_directories(), list)
+    True
+    """
+    found: list[Path] = []
+    for directory in sorted(glob.glob(GRAPHICS_HWMON_GLOB)):
+        path = Path(directory)
+        name = _read_text(path / "name")
+        if name in GRAPHICS_DRIVERS:
+            found.append(path)
+    return found
+
+
+def read_graphics_energy_microjoules() -> int | None:
+    """Return the graphics devices' accumulated energy, or ``None``.
+
+    Intel's drivers keep a running total in microjoules, which is the same kind
+    of evidence as the processor's counter and needs no sampling. AMD's driver
+    publishes what the board is drawing now instead, and is read elsewhere.
+
+    Returns
+    -------
+    int or None
+        Microjoules since the driver loaded, summed across devices, or ``None``
+        when no device keeps a total.
+
+    Examples
+    --------
+    >>> value = read_graphics_energy_microjoules()
+    >>> value is None or value >= 0
+    True
+    """
+    return _sum_zones(_graphics_hwmon_directories(), GRAPHICS_ENERGY_FILE)
+
+
+def read_graphics_watts() -> float | None:
+    """Return what the graphics devices are drawing right now, or ``None``.
+
+    Returns
+    -------
+    float or None
+        Watts, summed across devices, or ``None`` when none publishes it.
+
+    Examples
+    --------
+    >>> value = read_graphics_watts()
+    >>> value is None or value >= 0.0
+    True
+    """
+    total = _sum_zones(_graphics_hwmon_directories(), GRAPHICS_POWER_FILE)
+    return None if total is None else total / _MICROWATTS_PER_WATT
 
 
 def unavailable_reason() -> str:
@@ -392,7 +770,9 @@ def unavailable_reason() -> str:
     True
     """
     if osh.macos():
-        return _UNAVAILABLE_REASON["darwin"]
+        # An Apple Silicon Mac has its own counters and its own reasons for not
+        # answering; only an Intel Mac falls back to the powermetrics sentence.
+        return apple.unavailable_reason() or _UNAVAILABLE_REASON["darwin"]
     if osh.windows():
         return _UNAVAILABLE_REASON["windows"]
     return _UNAVAILABLE_REASON["linux"]
@@ -446,6 +826,53 @@ class PowerReading:
         return self.watts is not None
 
 
+def _soc_reading(energy: apple.SocEnergy, *, seconds: float) -> PowerReading:
+    """Turn an Apple chip's counters into a reading, naming what was read.
+
+    Parameters
+    ----------
+    energy : saggio.analyze.apple.SocEnergy
+        What the chip drew over the run, by subsystem.
+    seconds : float
+        Wall-clock duration, which the caller timed.
+
+    Returns
+    -------
+    PowerReading
+        Average watts over the run, with the channels that produced it named so
+        the figure can be reproduced by anybody with the same machine.
+
+    Examples
+    --------
+    >>> from saggio.analyze.apple import SocEnergy
+    >>> reading = _soc_reading(
+    ...     SocEnergy(20.0, 4.0, {"cpu": 18.0, "gpu": 2.0, "memory": 4.0},
+    ...               ("CPU Energy", "GPU Energy", "DRAM0")),
+    ...     seconds=2.0)
+    >>> reading.watts, reading.sources
+    (12.0, ('system-on-chip', 'memory'))
+    """
+    joules = energy.compute_joules + (energy.memory_joules or 0.0)
+    sources = ["system-on-chip"]
+    scopes = [
+        f"The figure covers {apple.SOC_SCOPE}, read from the {', '.join(energy.channels)} counters."
+    ]
+    if energy.memory_joules is not None:
+        sources.append("memory")
+        scopes[0] = (
+            f"The figure covers {apple.SOC_SCOPE} and {apple.SOC_MEMORY_SCOPE}, "
+            f"read from the {', '.join(energy.channels)} counters."
+        )
+        scopes.append(_MEMORY_MEASURED_NOTE)
+    scopes.append(apple.SOC_MODEL_NOTE)
+    return PowerReading(
+        watts=joules / seconds,
+        joules=joules,
+        scope=" ".join(scopes),
+        sources=tuple(sources),
+    )
+
+
 @dataclass(slots=True)
 class PowerMeter:
     """The counters on this machine, read before and after a run.
@@ -461,6 +888,22 @@ class PowerMeter:
     sampler : AcceleratorSampler or None
         A driver process logging board power, started only when no accumulated
         counter was available to read instead.
+    memory_started_at : int or None
+        The memory counter when the run began, or ``None`` when this machine
+        publishes no such counter. Its energy is outside the package figure, so
+        a machine that has it has been reporting less than it drew until now.
+    wrap_range : int or None
+        How much the processor counters hold before they start again from zero,
+        which turns one wrap from a void measurement into an exact one.
+    soc : saggio.analyze.apple.SocMeter or None
+        An open subscription to an Apple chip's own energy counters, on the
+        machines that have them.
+    graphics_started_at : int or None
+        The graphics driver's accumulated energy when the run began, read from
+        sysfs, or ``None`` when NVIDIA already answered or no driver keeps one.
+    graphics_sampler : GraphicsSampler or None
+        A thread reading instantaneous graphics power, started only when no
+        accumulated counter was available to read instead.
 
     Examples
     --------
@@ -471,6 +914,11 @@ class PowerMeter:
     started_at: int | None
     accelerator_started_at: int | None = None
     sampler: AcceleratorSampler | None = None
+    memory_started_at: int | None = None
+    wrap_range: int | None = None
+    soc: apple.SocMeter | None = None
+    graphics_started_at: int | None = None
+    graphics_sampler: GraphicsSampler | None = None
 
     @classmethod
     def start(cls) -> PowerMeter:
@@ -492,26 +940,105 @@ class PowerMeter:
         True
         """
         accelerator_started_at = read_accelerator_energy_millijoules()
+        started_at = read_package_energy_microjoules()
+        sampler = None if accelerator_started_at is not None else AcceleratorSampler.start()
+        # The graphics drivers are only consulted when NVIDIA's did not answer:
+        # two readings of the same board added together would double it.
+        nvidia_answered = accelerator_started_at is not None or sampler is not None
+        graphics_started_at = None if nvidia_answered else read_graphics_energy_microjoules()
         return cls(
-            started_at=read_package_energy_microjoules(),
+            started_at=started_at,
             accelerator_started_at=accelerator_started_at,
-            sampler=None if accelerator_started_at is not None else AcceleratorSampler.start(),
+            sampler=sampler,
+            memory_started_at=read_memory_energy_microjoules(),
+            wrap_range=package_wrap_range_microjoules() if started_at is not None else None,
+            soc=apple.SocMeter.start(),
+            graphics_started_at=graphics_started_at,
+            graphics_sampler=(
+                None
+                if nvidia_answered or graphics_started_at is not None
+                else GraphicsSampler.start()
+            ),
         )
 
-    def _package_joules(self) -> tuple[float | None, str | None]:
-        """Return the package energy over the run, or the reason there is none."""
+    def _package_joules(self, *, seconds: float) -> tuple[float | None, str | None]:
+        """Return the package energy over the run, or the reason there is none.
+
+        Parameters
+        ----------
+        seconds : float
+            Wall-clock duration, needed only to phrase the ceiling above which a
+            recovered wrap would have been two wraps.
+        """
         if self.started_at is None:
             return None, unavailable_reason()
         ended_at = read_package_energy_microjoules()
-        if ended_at is None or ended_at < self.started_at:
+        if ended_at is None:
             return None, (
-                "The package energy counter wrapped or reset during the run, "
-                "so the difference is not a measurement."
+                "The package energy counter stopped answering during the run, "
+                "so there is no difference to take."
             )
-        return (ended_at - self.started_at) / _MICROJOULES_PER_JOULE, None
+        if ended_at >= self.started_at:
+            return (ended_at - self.started_at) / _MICROJOULES_PER_JOULE, None
+        if self.wrap_range is None:
+            return None, (
+                "The package energy counter wrapped or reset during the run and "
+                "the kernel publishes no range for it, so the difference is not a "
+                "measurement."
+            )
+        recovered = (self.wrap_range + ended_at - self.started_at) / _MICROJOULES_PER_JOULE
+        if recovered < 0.0:
+            # The counter did not wrap: it was reset, by a suspend or by another
+            # reader. Two unknowable totals do not make a difference.
+            return None, (
+                "The package energy counter was reset rather than wrapped during "
+                "the run, so the difference is not a measurement."
+            )
+        ceiling = self.wrap_range / _MICROJOULES_PER_JOULE / seconds
+        return recovered, _WRAP_RECOVERED_NOTE.format(ceiling=ceiling)
+
+    def _memory_joules(self) -> float | None:
+        """Return what the memory drew over the run, or ``None``."""
+        if self.memory_started_at is None:
+            return None
+        ended_at = read_memory_energy_microjoules()
+        if ended_at is None or ended_at < self.memory_started_at:
+            return None
+        return (ended_at - self.memory_started_at) / _MICROJOULES_PER_JOULE
+
+    def _graphics_watts(self, *, seconds: float) -> tuple[float | None, str | None]:
+        """Return the mean graphics power over the run, and how it was obtained.
+
+        This is the driver-published path that needs no vendor tool and no
+        administrator rights: Intel keeps a running total, AMD publishes what
+        the board is drawing now and is sampled.
+        """
+        if self.graphics_started_at is not None:
+            ended_at = read_graphics_energy_microjoules()
+            if ended_at is None or ended_at < self.graphics_started_at:
+                return None, None
+            joules = (ended_at - self.graphics_started_at) / _MICROJOULES_PER_JOULE
+            return joules / seconds, GRAPHICS_COUNTER_SCOPE
+        if self.graphics_sampler is None:
+            return None, None
+        sampled = self.graphics_sampler.stop()
+        if sampled is None:
+            return None, None
+        mean_watts, count = sampled
+        return mean_watts, GRAPHICS_SAMPLED_SCOPE.format(
+            count=count, interval=_SAMPLE_INTERVAL_MS / 1000.0
+        )
 
     def _accelerator_watts(self, *, seconds: float) -> tuple[float | None, str | None]:
-        """Return the mean accelerator power over the run, and how it was obtained."""
+        """Return the mean accelerator power over the run, and how it was obtained.
+
+        NVIDIA's driver is asked first because it is the one this package was
+        written for; the graphics drivers Linux ships answer for everybody else,
+        and they answer an ordinary user, which the vendor tool on a locked-down
+        machine may not.
+        """
+        if self.accelerator_started_at is None and self.sampler is None:
+            return self._graphics_watts(seconds=seconds)
         if self.accelerator_started_at is not None:
             ended_at = read_accelerator_energy_millijoules()
             if ended_at is None:
@@ -563,11 +1090,24 @@ class PowerMeter:
         if seconds <= 0.0:
             if self.sampler is not None:
                 self.sampler.stop()
+            if self.graphics_sampler is not None:
+                self.graphics_sampler.stop()
+            if self.soc is not None:
+                self.soc.stop()
             return PowerReading(
                 None, None, "The run was too short to divide energy by its duration."
             )
 
-        package_joules, package_reason = self._package_joules()
+        if self.soc is not None:
+            # An Apple chip has no RAPL zone and can host no NVIDIA board, so
+            # when its counters answer they are the whole of what this machine
+            # will say, and the rest of this method has nothing to add.
+            soc_energy = self.soc.stop()
+            if soc_energy is not None:
+                return _soc_reading(soc_energy, seconds=seconds)
+
+        package_joules, package_reason = self._package_joules(seconds=seconds)
+        memory_joules = self._memory_joules()
         accelerator_watts, accelerator_scope = self._accelerator_watts(seconds=seconds)
 
         sources: list[str] = []
@@ -576,6 +1116,9 @@ class PowerMeter:
         if package_joules is not None:
             sources.append("processor package")
             watts += package_joules / seconds
+        if memory_joules is not None:
+            sources.append("memory")
+            watts += memory_joules / seconds
         if accelerator_watts is not None:
             sources.append("accelerator")
             scopes.append(f"The accelerator figure covers {accelerator_scope}.")
@@ -595,6 +1138,13 @@ class PowerMeter:
             scopes.append(_PACKAGE_MISSING_NOTE)
         else:
             scopes.insert(0, _BOTH_MEASURED_NOTE)
+        if memory_joules is not None:
+            scopes.append(_MEMORY_MEASURED_NOTE)
+        if package_reason is not None and package_joules is not None:
+            # A recovered wrap is a measurement with a condition attached, and
+            # the condition travels with the number rather than being dropped
+            # because the number turned out to exist.
+            scopes.append(package_reason)
 
         return PowerReading(
             watts=watts,
