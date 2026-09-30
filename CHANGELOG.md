@@ -62,6 +62,23 @@ release of that line.
 - `saggio power --json` prints the same thing as data, including the exact
   filesystem paths that would be read.
 
+### A measurement now has a floor under it
+
+- A counter measures the machine, not your program. `saggio measure` watches the
+  machine for a second before the slice starts and reports three figures: what
+  the machine drew during the run, what it drew at rest before it, and the
+  difference — which is the only one of the three that is about the slice.
+  `--baseline 0` skips it on a machine known to be quiet.
+- The subtraction assumes the rest of the machine kept doing what it was doing,
+  and that assumption is written into the model beside the number rather than
+  left for the reader to supply. The floor itself is recorded as
+  `measurement.idle_watts`, diagnostic like `cpu_seconds` rather than a cost.
+- Two cases are said out loud instead of subtracted quietly. A machine already
+  drawing more than half the total is called out as busy, with both numbers in
+  the warning. A machine that grew *quieter* during the slice yields no marginal
+  figure at all: whatever else was running stopped, so the baseline was never
+  this slice's floor and nothing follows from it.
+
 ### A page about measuring, in both languages
 
 - `MEASURING.md` / `MESURER.md`: which counters exist on each platform, which

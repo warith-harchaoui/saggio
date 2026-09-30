@@ -383,12 +383,15 @@ def measure(args: argparse.Namespace) -> int:
         timeout_seconds=args.timeout,
         fraction_completed=args.fraction,
         profile=not args.no_profile,
+        baseline_seconds=args.baseline,
     )
     payload = {
         "command": list(result.command),
         "exit_code": result.exit_code,
         "wall_seconds": round(result.wall_seconds, 4),
         "watts": result.power.watts,
+        "idle_watts": result.baseline.watts if result.baseline else None,
+        "marginal_watts": result.marginal_watts(),
         "power_scope": result.power.scope,
         "truncated": result.truncated,
         "hot_path": [entry.to_mapping() for entry in result.hot_path],
@@ -402,6 +405,16 @@ def measure(args: argparse.Namespace) -> int:
         print(f"Wall-clock: {result.wall_seconds:.3f} s")
         if result.power.measured():
             print(f"Average power: {result.power.watts:.1f} W (measured)")
+            if result.baseline is not None and result.baseline.measured():
+                print(f"  machine at rest before it: {result.baseline.watts:.1f} W")
+                marginal = result.marginal_watts()
+                # The counter measured the machine. What the slice added is the
+                # difference, and it is the figure worth quoting for the slice.
+                print(
+                    f"  added by this slice: {marginal:.1f} W"
+                    if marginal is not None
+                    else "  added by this slice: not established"
+                )
         else:
             print("Average power: not measured")
         for entry in result.hot_path[:5]:

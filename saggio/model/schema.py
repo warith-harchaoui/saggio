@@ -80,6 +80,10 @@ BARE_NUMBER_EXEMPT_PREFIXES: Final[tuple[str, ...]] = (
     # prices everything is the scenario's quantity, and this is the processor
     # time beside it so a reader can spot an I/O-bound slice.
     "measurement.cpu_seconds",
+    # What the machine drew before the slice started. Also diagnostic: it is the
+    # floor the run was measured above, not a cost anybody is charged for, and a
+    # reader needs it to see how much of the total was the machine itself.
+    "measurement.idle_watts",
     "measurement.hot_path",
 )
 

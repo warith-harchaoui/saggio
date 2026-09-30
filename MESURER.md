@@ -20,6 +20,7 @@ quatre remèdes différents — et une seule est une question qui revient au lec
 - [Les quatre états](#les-quatre-états)
 - [La règle sur les privilèges](#la-règle-sur-les-privilèges)
 - [Ce que chaque chiffre laisse de côté](#ce-que-chaque-chiffre-laisse-de-côté)
+- [Le plancher contre lequel une mesure se lit](#le-plancher-contre-lequel-une-mesure-se-lit)
 - [Du compteur au coût](#du-compteur-au-coût)
 - [De cette machine à une autre](#de-cette-machine-à-une-autre)
 - [Vérifier par vous-même](#vérifier-par-vous-même)
@@ -159,6 +160,45 @@ dans le rapport. Les frontières méritent d'être énoncées une fois, claireme
   exécution est déplié depuis sa plage publiée, et le chiffre porte la puissance
   au-delà de laquelle ce redressement aurait été faux. Un compteur *remis à zéro*
   plutôt que bouclé est refusé net.
+
+## Le plancher contre lequel une mesure se lit
+
+Tous les compteurs de cette page mesurent la **machine**. Aucun ne mesure votre
+programme. Sur un serveur partagé, cette distinction fait tout ; sur un portable
+avec un navigateur et un indexeur qui tournent, elle fait encore l'essentiel.
+
+`saggio measure` observe donc la machine une seconde avant le début de la
+tranche, et rapporte trois chiffres au lieu d'un :
+
+```
+Average power: 96.3 W (measured)
+  machine at rest before it: 18.7 W
+  added by this slice: 77.6 W
+```
+
+Le troisième est celui qu'il faut citer, et c'est une soustraction : elle suppose
+donc quelque chose que personne n'a vérifié, à savoir que le reste de la machine
+a continué à faire ce qu'il faisait. Cette hypothèse est écrite dans le modèle à
+côté du nombre, plutôt que laissée au lecteur.
+
+Deux cas sont dits à voix haute au lieu d'être soustraits en silence :
+
+- **La machine était déjà occupée.** Au-delà de la moitié du total, le chiffre a
+  cessé de parler de la tranche pour parler de la machine où elle a été prise, et
+  un avertissement le dit avec les deux nombres.
+- **La machine est devenue plus calme.** Si elle tirait plus avant la tranche que
+  pendant, c'est que ce qui tournait par ailleurs s'est arrêté. La ligne de base
+  n'a jamais été le plancher de cette tranche : aucun chiffre marginal n'en
+  découle, et aucun n'est proposé.
+
+`--baseline 0` passe outre sur une machine que vous savez calme.
+
+L'étape suivante après une ligne de base est l'attribution — répartir l'énergie
+d'un nœud entre ce qui y a tourné, au prorata de ce que chacun a consommé, ce que
+fait [Kepler](https://sustainable-computing.io/) pour les pods et ce que fait
+`GreenAlgorithms4HPC` depuis la comptabilité d'un ordonnanceur. Ce paquet mesure
+le temps processeur de sa propre tranche, et ne le divise pas encore par celui de
+la machine.
 
 ## Du compteur au coût
 

@@ -283,8 +283,30 @@ Ran: python train.py --steps 100
 Exit code: 0
 Wall-clock: 12.481 s
 Average power: 96.3 W (measured)
+  machine at rest before it: 18.7 W
+  added by this slice: 77.6 W
      8.204 s  train.py:88(train_step)
      2.106 s  dataloader.py:41(__next__)
+```
+
+Trois chiffres de puissance, parce qu'un compteur mesure la *machine* et non
+votre programme. La machine est observée une seconde avant le début de la
+tranche, et la différence est ce que la tranche a ajouté. Sur un portable avec un
+navigateur et un indexeur qui tournent, cette différence est le seul des trois
+chiffres qui mérite d'être cité.
+
+La soustraction suppose quelque chose que personne n'a vérifié — que le reste de
+la machine a continué à faire ce qu'il faisait — donc l'hypothèse est écrite dans
+le modèle à côté du nombre. Deux cas sont dits à voix haute plutôt que
+soustraits : une machine qui tirait déjà plus de la moitié du total est signalée
+comme occupée, et une machine devenue *plus calme* pendant la tranche ne donne
+aucun chiffre marginal, parce que ce qui tournait par ailleurs s'est arrêté et
+que la ligne de base n'a jamais été le plancher de cette tranche.
+
+Sur une machine que vous savez calme, passez outre et gagnez la seconde :
+
+```bash
+saggio measure --baseline 0 -- python train.py --steps 100
 ```
 
 La puissance est mesurée à partir des compteurs que cette machine publie — ceux

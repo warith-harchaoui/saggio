@@ -7,8 +7,10 @@ from pathlib import Path
 
 import pytest
 
+from saggio.analyze.power import PowerReading
 from saggio.analyze.run import (
     CONSENT_WORD,
+    SliceResult,
     _can_profile,
     _is_python_command,
     _read_profile,
@@ -242,3 +244,119 @@ def test_child_processor_time_is_recorded_where_the_platform_reports_it() -> Non
     if result.cpu_seconds is not None:
         assert result.cpu_seconds >= 0.0
         assert "cpu_seconds" in result.to_mapping()
+
+
+# --- The floor a measurement is read against ---------------------------------
+#
+# A counter measures the machine, not the program. On a laptop with a browser
+# open, most of what it reports was never the slice's, and a tool that quoted
+# the total as the slice's cost would be wrong by whatever else happened to be
+# running. So the machine is watched before the slice starts, and the difference
+# is what the slice added — with every way that subtraction can go wrong named.
+
+
+def _result(total: float | None, idle: float | None, **extra: object) -> SliceResult:
+    """A finished slice with the two power figures set, and nothing else real."""
+    return SliceResult(
+        command=("x",),
+        exit_code=0,
+        wall_seconds=1.0,
+        power=PowerReading(total, total, "during the run"),
+        baseline=None if idle is None else PowerReading(idle, idle, "before it"),
+        **extra,  # type: ignore[arg-type]
+    )
+
+
+def test_the_slices_own_draw_is_the_difference() -> None:
+    assert _result(120.0, 20.0).marginal_watts() == pytest.approx(100.0)
+
+
+def test_a_machine_that_grew_quieter_yields_no_marginal_figure() -> None:
+    # Whatever else was busy stopped. Subtracting that would credit the slice
+    # for somebody else's work ending.
+    assert _result(20.0, 120.0).marginal_watts() is None
+
+
+def test_without_a_baseline_there_is_no_difference_to_take() -> None:
+    assert _result(120.0, None).marginal_watts() is None
+
+
+def test_without_a_measurement_there_is_no_difference_either() -> None:
+    assert _result(None, 20.0).marginal_watts() is None
+
+
+def test_the_floor_is_recorded_in_the_model_with_its_caveat() -> None:
+    mapping = _result(120.0, 20.0).to_mapping()
+    assert mapping["idle_watts"] == pytest.approx(20.0)
+    assert "100.0 W as the slice's own draw" in mapping["power_note"]
+    # The subtraction assumes the rest of the machine kept doing what it did.
+    # Nobody checked that, so the assumption travels with the number.
+    assert "only if the rest of the machine did the same thing" in mapping["power_note"]
+
+
+def test_no_baseline_means_no_floor_in_the_model() -> None:
+    assert "idle_watts" not in _result(120.0, None).to_mapping()
+
+
+class _FixedMeter:
+    """A meter that reports a wattage decided by the test."""
+
+    watts = 0.0
+
+    @classmethod
+    def start(cls) -> _FixedMeter:
+        return cls()
+
+    def stop(self, *, seconds: float) -> PowerReading:
+        return PowerReading(self.watts, self.watts * seconds, "during the run")
+
+
+def _with_power(monkeypatch: pytest.MonkeyPatch, *, idle: float, during: float) -> None:
+    """Pin both power figures so the arithmetic between them can be tested."""
+    monkeypatch.setattr(
+        "saggio.analyze.run.measure_for",
+        lambda seconds: PowerReading(idle, idle * seconds, "before it"),
+    )
+    _FixedMeter.watts = during
+    monkeypatch.setattr("saggio.analyze.run.PowerMeter", _FixedMeter)
+
+
+def test_a_busy_machine_is_called_out(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Above half, the total has stopped being a figure about the slice and
+    # started being a figure about the machine it was measured on.
+    _with_power(monkeypatch, idle=60.0, during=100.0)
+    result = run_slice([sys.executable, "-c", "pass"], profile=False, baseline_seconds=0.01)
+    joined = " ".join(result.warnings)
+    assert "already drawing 60.0 W" in joined
+    assert "40.0 W, is what the slice added" in joined
+    assert result.marginal_watts() == pytest.approx(40.0)
+
+
+def test_a_quiet_machine_earns_no_warning(monkeypatch: pytest.MonkeyPatch) -> None:
+    _with_power(monkeypatch, idle=5.0, during=100.0)
+    result = run_slice([sys.executable, "-c", "pass"], profile=False, baseline_seconds=0.01)
+    assert not any("already drawing" in warning for warning in result.warnings)
+    assert result.marginal_watts() == pytest.approx(95.0)
+
+
+def test_a_machine_that_went_quiet_says_so_rather_than_subtracting(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _with_power(monkeypatch, idle=120.0, during=20.0)
+    result = run_slice([sys.executable, "-c", "pass"], profile=False, baseline_seconds=0.01)
+    joined = " ".join(result.warnings)
+    assert "grew quieter while the slice ran" in joined
+    assert result.marginal_watts() is None
+
+
+def test_the_baseline_can_be_skipped() -> None:
+    # An audit on a machine known to be quiet should not pay a second for a
+    # figure it does not need.
+    result = run_slice([sys.executable, "-c", "pass"], profile=False, baseline_seconds=0.0)
+    assert result.baseline is None
+    assert "idle_watts" not in result.to_mapping()
+
+
+def test_the_baseline_is_taken_when_asked_for() -> None:
+    result = run_slice([sys.executable, "-c", "pass"], profile=False, baseline_seconds=0.05)
+    assert result.baseline is not None

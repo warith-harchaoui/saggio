@@ -59,6 +59,7 @@ import shutil
 import subprocess
 import tempfile
 import threading
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
@@ -871,6 +872,35 @@ def _soc_reading(energy: apple.SocEnergy, *, seconds: float) -> PowerReading:
         scope=" ".join(scopes),
         sources=tuple(sources),
     )
+
+
+def measure_for(seconds: float) -> PowerReading:
+    """Measure what this machine draws over a fixed interval.
+
+    This measures the *machine*, not any particular program: whatever else is
+    running is in the figure. That is what makes it useful as a baseline — the
+    draw a run has to be compared against before any of it can be called the
+    run's own cost.
+
+    Parameters
+    ----------
+    seconds : float
+        How long to watch. Zero or less measures nothing.
+
+    Returns
+    -------
+    PowerReading
+        The average over the interval, or a reading that says why there is none.
+
+    Examples
+    --------
+    >>> measure_for(0.0).measured()
+    False
+    """
+    meter = PowerMeter.start()
+    if seconds > 0.0:
+        time.sleep(seconds)
+    return meter.stop(seconds=seconds)
 
 
 @dataclass(slots=True)

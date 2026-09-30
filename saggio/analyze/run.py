@@ -59,7 +59,7 @@ try:  # Windows has no resource module; the child CPU time is simply unknown the
 except ImportError:  # pragma: no cover - POSIX-only dependency.
     resource = None  # type: ignore[assignment]
 
-from .power import PowerMeter, PowerReading
+from .power import PowerMeter, PowerReading, measure_for
 
 #: Application name used to locate the consent record.
 _APP_NAME: Final[str] = "saggio"
@@ -328,6 +328,11 @@ class SliceResult:
         Where the time went.
     warnings : tuple of str
         Everything a reader needs to know to interpret the numbers above.
+    baseline : PowerReading or None
+        What the machine drew in the moments before the slice started, when
+        anything here measures power at all. A counter measures the machine, not
+        the program, so without this the browser, the indexer, and the other
+        tenant are all charged to the slice.
 
     Examples
     --------
@@ -345,6 +350,35 @@ class SliceResult:
     fraction_completed: float | None = None
     hot_path: tuple[ProfileEntry, ...] = field(default_factory=tuple)
     warnings: tuple[str, ...] = field(default_factory=tuple)
+    baseline: PowerReading | None = None
+
+    def marginal_watts(self) -> float | None:
+        """Return what the slice added to the machine's draw, or ``None``.
+
+        Returns
+        -------
+        float or None
+            The measured total minus the measured baseline, or ``None`` when
+            either was not measured, or when the subtraction came out negative
+            — which means the machine grew *quieter* while the slice ran, so the
+            baseline was never the slice's floor and the difference is not the
+            slice's cost.
+
+        Examples
+        --------
+        >>> quiet = PowerReading(10.0, 10.0, "idle")
+        >>> busy = PowerReading(60.0, 60.0, "run")
+        >>> SliceResult(("x",), 0, 1.0, busy, baseline=quiet).marginal_watts()
+        50.0
+        >>> SliceResult(("x",), 0, 1.0, quiet, baseline=busy).marginal_watts() is None
+        True
+        >>> SliceResult(("x",), 0, 1.0, busy).marginal_watts() is None
+        True
+        """
+        if self.power.watts is None or self.baseline is None or self.baseline.watts is None:
+            return None
+        difference = self.power.watts - self.baseline.watts
+        return difference if difference > 0.0 else None
 
     def succeeded(self) -> bool:
         """Return whether the slice ran to a clean finish.
@@ -406,6 +440,16 @@ class SliceResult:
             mapping["power_sources"] = list(self.power.sources)
         if self.cpu_seconds is not None:
             mapping["cpu_seconds"] = round(self.cpu_seconds, 4)
+        if self.baseline is not None and self.baseline.watts is not None:
+            # Diagnostic context, like cpu_seconds: the power that prices the run
+            # is the scenario's quantity, and this is the floor it was measured
+            # above, so a reader can see how much of it was the machine itself.
+            mapping["idle_watts"] = round(self.baseline.watts, 2)
+            marginal = self.marginal_watts()
+            if marginal is not None:
+                mapping["power_note"] = _BASELINE_NOTE.format(
+                    idle=self.baseline.watts, marginal=marginal
+                )
         if self.truncated:
             mapping["truncated"] = True
         if self.hot_path:
@@ -620,6 +664,32 @@ def _read_profile(profile_path: Path, *, top: int = PROFILE_TOP_N) -> tuple[Prof
     return tuple(entries[:top])
 
 
+#: How long to watch the machine before the slice starts, so that what the slice
+#: added can be told apart from what the machine was already drawing. One second
+#: is long enough for a counter difference to mean something and short enough to
+#: disappear next to any run worth measuring. Zero skips it.
+DEFAULT_BASELINE_SECONDS: Final[float] = 1.0
+
+#: Said when the machine was already drawing a large share of what it drew during
+#: the run. Not an error — a laptop with a browser open is a normal place to
+#: measure — but the total stops being a figure about the slice at that point.
+_BUSY_MACHINE_WARNING: Final[str] = (
+    "The machine was already drawing {idle:.1f} W before the slice started, "
+    "against {total:.1f} W while it ran, so most of the measured power was not "
+    "this slice's. The difference, {marginal:.1f} W, is what the slice added if "
+    "nothing else changed in between; measure on a quiet machine if the total is "
+    "what you need."
+)
+
+#: Said whenever a baseline was taken, because subtracting it assumes something
+#: that nobody checked: that the rest of the machine kept doing what it was doing.
+_BASELINE_NOTE: Final[str] = (
+    "Machine at rest before the slice: {idle:.1f} W. Subtracting it gives "
+    "{marginal:.1f} W as the slice's own draw, which holds only if the rest of "
+    "the machine did the same thing during the run as it did just before it."
+)
+
+
 def run_slice(
     command: Sequence[str],
     *,
@@ -627,6 +697,7 @@ def run_slice(
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     fraction_completed: float | None = None,
     profile: bool = True,
+    baseline_seconds: float = DEFAULT_BASELINE_SECONDS,
 ) -> SliceResult:
     """Run a command, time it, measure what it drew, and see where the time went.
 
@@ -643,6 +714,12 @@ def run_slice(
         repository's own configuration.
     profile : bool, optional
         Whether to wrap a Python command in the profiler.
+    baseline_seconds : float, optional
+        How long to watch the machine before starting, so that what the slice
+        added can be told apart from what the machine was already drawing. A
+        counter measures the machine rather than the program, and on a laptop
+        with a browser open most of what it reports was never the slice's. Zero
+        skips the baseline and the run is reported without a floor.
 
     Returns
     -------
@@ -690,6 +767,11 @@ def run_slice(
                 "this runtime inherits that. Treat it as an upper bound, and measure "
                 "again with --no-profile for the figure a cost model should carry."
             )
+
+        # Taken before the meter, and before the child exists, so that nothing
+        # of the slice is inside it. Anything else on the machine still is,
+        # which is the point: that is the floor the run has to be read against.
+        baseline = measure_for(baseline_seconds) if baseline_seconds > 0.0 else None
 
         meter = PowerMeter.start()
         truncated = False
@@ -748,6 +830,25 @@ def run_slice(
     if not reading.measured():
         warnings.append(reading.scope)
 
+    if baseline is not None and baseline.measured() and reading.measured():
+        idle, total = float(baseline.watts or 0.0), float(reading.watts or 0.0)
+        if idle >= total:
+            # The machine grew quieter while the slice ran, so whatever else was
+            # busy stopped. Subtracting that would credit the slice for somebody
+            # else's work ending, so nothing is subtracted and the reader is told.
+            warnings.append(
+                f"The machine drew {idle:.1f} W before the slice and {total:.1f} W "
+                "during it, so it grew quieter while the slice ran. Whatever else "
+                "was busy stopped, the baseline was never this slice's floor, and "
+                "no marginal figure follows from it."
+            )
+        elif idle > total / 2.0:
+            # Half is the line where the total stops being a figure about the
+            # slice and starts being a figure about the machine it was taken on.
+            warnings.append(
+                _BUSY_MACHINE_WARNING.format(idle=idle, total=total, marginal=total - idle)
+            )
+
     return SliceResult(
         command=command,
         exit_code=exit_code,
@@ -758,4 +859,5 @@ def run_slice(
         fraction_completed=fraction_completed if exit_code == 0 and not truncated else None,
         hot_path=hot_path,
         warnings=tuple(warnings),
+        baseline=baseline,
     )

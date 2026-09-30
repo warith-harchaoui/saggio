@@ -307,8 +307,7 @@ def test_every_link_in_the_documentation_map_resolves(page: str) -> None:
 #: the README is exactly as broken as a dead link in the map, and the reader who
 #: followed it trusted it just as much.
 MARKDOWN_PAGES = sorted(
-    str(path.relative_to(ROOT))
-    for path in [*ROOT.glob("*.md"), *(ROOT / "docs").glob("*.md")]
+    str(path.relative_to(ROOT)) for path in [*ROOT.glob("*.md"), *(ROOT / "docs").glob("*.md")]
 )
 
 #: A markdown link that points somewhere in this repository rather than out on

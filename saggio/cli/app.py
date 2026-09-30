@@ -29,7 +29,7 @@ from typing import Final
 import os_helper as osh
 
 from .. import __version__
-from ..analyze.run import DEFAULT_TIMEOUT_SECONDS
+from ..analyze.run import DEFAULT_BASELINE_SECONDS, DEFAULT_TIMEOUT_SECONDS
 from ..catalog.registry import SECTION_OF_KIND
 from ..diff import DEFAULT_DRIFT_THRESHOLD_PERCENT
 from ..estimate.extrapolate import DEFAULT_PRECISION
@@ -350,6 +350,17 @@ def _add_measure(verbs: argparse._SubParsersAction) -> None:
     )
     parser.add_argument(
         "--no-profile", action="store_true", help="Skip the function-level profile."
+    )
+    parser.add_argument(
+        "--baseline",
+        type=float,
+        default=DEFAULT_BASELINE_SECONDS,
+        metavar="SECONDS",
+        help=(
+            "Watch the machine for this long before starting, so what the slice "
+            "added can be told apart from what the machine was already drawing. "
+            "0 skips it."
+        ),
     )
     parser.add_argument(
         "--into",

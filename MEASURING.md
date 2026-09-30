@@ -20,6 +20,7 @@ question for the reader.
 - [The four states](#the-four-states)
 - [The rule about privileges](#the-rule-about-privileges)
 - [What each figure leaves out](#what-each-figure-leaves-out)
+- [The floor a measurement is read against](#the-floor-a-measurement-is-read-against)
 - [From a counter to a cost](#from-a-counter-to-a-cost)
 - [From this machine to another](#from-this-machine-to-another)
 - [Checking it yourself](#checking-it-yourself)
@@ -154,6 +155,43 @@ report. The boundaries are worth stating once, plainly:
   its published range, and the figure carries the wattage above which that
   recovery would have been wrong. A counter that was *reset* rather than wrapped
   is refused outright.
+
+## The floor a measurement is read against
+
+Every counter on this page measures the **machine**. None of them measures your
+program. On a shared server that distinction is the whole ballgame; on a laptop
+with a browser and an indexer running it is still most of it.
+
+So `saggio measure` watches the machine for a second before the slice starts,
+and reports three figures rather than one:
+
+```
+Average power: 96.3 W (measured)
+  machine at rest before it: 18.7 W
+  added by this slice: 77.6 W
+```
+
+The third is the one worth quoting, and it is a subtraction, which means it
+assumes something nobody checked: that the rest of the machine kept doing what
+it was doing. That assumption is written into the model beside the number rather
+than left for the reader to supply.
+
+Two cases are said out loud instead of being quietly subtracted:
+
+- **The machine was already busy.** Above half the total, the figure has stopped
+  being about the slice and started being about the machine it was taken on, and
+  a warning says so with both numbers in it.
+- **The machine grew quieter.** If it drew more before the slice than during it,
+  whatever else was running stopped. The baseline was never this slice's floor,
+  so no marginal figure follows from it and none is offered.
+
+`--baseline 0` skips the whole thing on a machine you know is quiet.
+
+The next step beyond a baseline is attribution — splitting a node's energy
+between the things that ran on it in proportion to what each used, which is what
+[Kepler](https://sustainable-computing.io/) does for pods and what
+`GreenAlgorithms4HPC` does from a scheduler's accounting. This package measures
+the processor time its own slice used, and does not yet divide by the machine's.
 
 ## From a counter to a cost
 

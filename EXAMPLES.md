@@ -276,8 +276,28 @@ Ran: python train.py --steps 100
 Exit code: 0
 Wall-clock: 12.481 s
 Average power: 96.3 W (measured)
+  machine at rest before it: 18.7 W
+  added by this slice: 77.6 W
      8.204 s  train.py:88(train_step)
      2.106 s  dataloader.py:41(__next__)
+```
+
+Three power figures, because a counter measures the *machine* and not your
+program. The machine is watched for a second before the slice starts, and the
+difference is what the slice added. On a laptop with a browser and an indexer
+running, that difference is the only one of the three worth quoting.
+
+The subtraction assumes something nobody checked — that the rest of the machine
+kept doing what it was doing — so the assumption is written into the model
+beside the number. Two cases get said out loud instead: a machine already
+drawing more than half of the total is called out as busy, and a machine that
+grew *quieter* during the slice yields no marginal figure at all, because
+whatever else was running stopped and the baseline was never the slice's floor.
+
+On a machine you know is quiet, skip it and save the second:
+
+```bash
+saggio measure --baseline 0 -- python train.py --steps 100
 ```
 
 Power is measured from whichever counters this machine publishes, which
