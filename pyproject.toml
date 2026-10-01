@@ -143,5 +143,10 @@ testpaths = ["tests", "saggio"]
 addopts = "-q --doctest-modules"
 filterwarnings = ["error::DeprecationWarning"]
 markers = [
+    # Run by default, deliberately. Three tests that spawn a real subprocess are
+    # exactly the ones a package about measuring real subprocesses should not
+    # skip, and the whole suite still finishes in minutes. The marker is here so
+    # that somebody iterating on an unrelated file can say `-m "not slow"` and
+    # mean it, not so that the default run is quieter than it should be.
     "slow: exercises a real subprocess and takes seconds rather than milliseconds",
 ]

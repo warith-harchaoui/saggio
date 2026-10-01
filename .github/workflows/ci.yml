@@ -65,3 +65,21 @@ jobs:
         run: python -m pip install --upgrade pip && python -m pip install -e .
       - name: Which numbers has nobody checked lately
         run: saggio catalog freshness
+
+      # An alarm with no exit is half a mechanism. When the step above fails,
+      # this one says what to run, so the remedy is in the same log as the
+      # complaint rather than somewhere in the documentation.
+      - name: What to do about it
+        if: failure()
+        run: |
+          echo "A grid intensity above is stale or about to expire."
+          echo
+          echo "Refresh it from Ember, read-only first:"
+          echo "    EMBER_API_KEY=... saggio catalog refresh grid"
+          echo
+          echo "Read the diff, then write it and commit:"
+          echo "    EMBER_API_KEY=... saggio catalog refresh grid --write saggio/data/grid.yaml"
+          echo
+          echo "A free key comes from https://ember-energy.org/data/ ."
+          echo "Do not substitute OWID: its series is lifecycle, not operating."
+
