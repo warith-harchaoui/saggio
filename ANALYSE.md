@@ -18,10 +18,13 @@ place dans `saggio`. C'est une référence, pas une liste de fonctionnalités. L
 où une technique est refusée, le refus est argumenté plutôt qu'asséné.
 
 ```mermaid
+%% Les couleurs sont celles d'Okabe et Ito, sûres pour les déficiences de la
+%% vision des couleurs — la même palette que les rapports et le site. Chacune
+%% accompagne une étiquette écrite : la couleur porte l'emphase, jamais le sens.
 flowchart TB
     subgraph S["Statique — le code est lu"]
         S1["Compter<br/>langages, tailles, imports, appels"]
-        S2["Bornes<br/>COSTA · CoFloCo · KoAT · RAML"]
+        S2["Bornes<br/>COSTA · CoFloCo · KoAT · RaML"]
         S3["Modèles d'énergie<br/>WCEC sur un jeu d'instructions"]
         S4["Métriques<br/>cyclomatique · Halstead · cognitive"]
         S5["Catalogues de règles<br/>creedengo · EcoSonar"]
@@ -29,13 +32,24 @@ flowchart TB
     subgraph D["Dynamique — le code est exécuté"]
         D1["Compteurs<br/>RAPL · NVML · IOReport"]
         D2["Profils<br/>cProfile · Scalene · callgrind"]
-        D3["Complexité empirique<br/>trend-prof · aprof"]
-        D4["Pire cas par recherche<br/>SlowFuzz · Singularity"]
+        D3["Complexité empirique<br/>trend-prof · aprof · un exposant ajusté"]
+        D4["Pire cas par recherche<br/>SlowFuzz · PerfFuzz · Singularity"]
     end
     S -->|"formes, tailles, preuves"| M["Un nombre qui dit<br/>jusqu'où lui faire confiance"]
     D -->|"durées, joules, exposants"| M
     S4 -.->|"R² ≈ 0,005 seul"| X["Refusé comme prédicteur"]
-    style X stroke-dasharray: 4 4
+
+    classDef read fill:#E7F1F8,stroke:#0072B2,stroke-width:1.5px,color:#0B2A3A
+    classDef run fill:#E3F3EF,stroke:#006E5C,stroke-width:1.5px,color:#06281F
+    classDef kept fill:#0072B2,stroke:#003C5D,stroke-width:1.5px,color:#FFFFFF
+    classDef refused fill:#FBEBE4,stroke:#B43C0F,stroke-width:1.5px,color:#5A1E07
+    class S1,S2,S3,S4,S5 read
+    class D1,D2,D3,D4 run
+    class M kept
+    class X refused
+    style S fill:#F6FAFD,stroke:#A9CFE4,color:#0B2A3A
+    style D fill:#F3FAF8,stroke:#9ED3C6,color:#06281F
+    style X stroke-dasharray: 5 4
 ```
 
 ## 1. Ce qu'on peut, et ne peut pas, demander à l'analyse statique

@@ -18,10 +18,13 @@ for **consumption**, with the numbers and the papers, and what of it belongs in
 the refusal is argued rather than asserted.
 
 ```mermaid
+%% Colours are Okabe & Ito's colour-vision-deficiency-safe set, the same palette
+%% the reports and the website use. Each one is paired with a written label, so
+%% the colour carries emphasis and never the meaning on its own.
 flowchart TB
     subgraph S["Static — the code is read"]
         S1["Counting<br/>languages, sizes, imports, call sites"]
-        S2["Bounds<br/>COSTA · CoFloCo · KoAT · RAML"]
+        S2["Bounds<br/>COSTA · CoFloCo · KoAT · RaML"]
         S3["Energy models<br/>WCEC on an ISA"]
         S4["Metrics<br/>cyclomatic · Halstead · cognitive"]
         S5["Rule catalogues<br/>creedengo · EcoSonar"]
@@ -29,13 +32,24 @@ flowchart TB
     subgraph D["Dynamic — the code is run"]
         D1["Counters<br/>RAPL · NVML · IOReport"]
         D2["Profiles<br/>cProfile · Scalene · callgrind"]
-        D3["Empirical complexity<br/>trend-prof · aprof"]
-        D4["Worst case by search<br/>SlowFuzz · Singularity"]
+        D3["Empirical complexity<br/>trend-prof · aprof · a fitted exponent"]
+        D4["Worst case by search<br/>SlowFuzz · PerfFuzz · Singularity"]
     end
     S -->|"shapes, sizes, evidence"| M["A number that says<br/>how far it can be trusted"]
     D -->|"durations, joules, exponents"| M
     S4 -.->|"R² ≈ 0.005 alone"| X["Refused as a predictor"]
-    style X stroke-dasharray: 4 4
+
+    classDef read fill:#E7F1F8,stroke:#0072B2,stroke-width:1.5px,color:#0B2A3A
+    classDef run fill:#E3F3EF,stroke:#006E5C,stroke-width:1.5px,color:#06281F
+    classDef kept fill:#0072B2,stroke:#003C5D,stroke-width:1.5px,color:#FFFFFF
+    classDef refused fill:#FBEBE4,stroke:#B43C0F,stroke-width:1.5px,color:#5A1E07
+    class S1,S2,S3,S4,S5 read
+    class D1,D2,D3,D4 run
+    class M kept
+    class X refused
+    style S fill:#F6FAFD,stroke:#A9CFE4,color:#0B2A3A
+    style D fill:#F3FAF8,stroke:#9ED3C6,color:#06281F
+    style X stroke-dasharray: 5 4
 ```
 
 ## 1. What static analysis can and cannot be asked

@@ -9,14 +9,14 @@ par unité de travail, sur plusieurs dimensions, où chaque chiffre dit jusqu'o�
 peut lui faire confiance**. Un outil conçu pour un autre travail n'est pas pénalisé
 d'être bon à ce travail-là ; la note ne dit que l'adéquation à cette niche.
 
-Chiffres vérifiés le 2026-09-13. Les projets bougent ; si quelque chose ici a
+Chiffres vérifiés le 2026-10-01. Les projets bougent ; si quelque chose ici a
 vieilli, [dites-le](CONTRIBUTING.md).
 
 ## Vue d'ensemble
 
 | | Modèle par unité | Provenance sur chaque chiffre | Multi-dimension | Artefact versionné | Mesure la puissance | Estime sans exécuter | Barrière de dérive | Rapports lisibles | Hors ligne |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **saggio** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **saggio** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | CodeCarbon | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
 | Calculateur Green Algorithms | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ |
 | Scaphandre | ⭐ | ⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
@@ -34,12 +34,14 @@ vieilli, [dites-le](CONTRIBUTING.md).
 Le même tableau, dessiné. [standpoint](https://github.com/warith-harchaoui/standpoint)
 passe une analyse en composantes principales sur les neuf notes et dispose chaque
 outil le long des deux directions qui les distinguent vraiment, en orientant la
-carte pour que saggio soit en haut à droite. Les noms d'axes sont la lecture que
-la machine fait des loadings ; ce que les loadings disent est plus simple : plus
-on va à **droite**, plus l'outil produit des réponses sourcées, versionnées, par
-unité de travail ; plus on va à **gauche**, plus il mesure la puissance en direct.
-Plus on monte, plus il modélise une unité de travail ; plus on descend, plus c'est
-quelque chose qu'on pointe vers une facture ou un formulaire.
+carte pour que saggio soit en haut à droite. Deux axes gardent environ 80 % de ce
+qui sépare ces outils : 55 % horizontalement, 25 % verticalement. Les noms d'axes
+sont la lecture que la machine fait des loadings ; ce que les loadings disent est
+plus simple : plus on va à **droite**, plus l'outil produit des réponses sourcées,
+versionnées, par unité de travail ; plus on va à **gauche**, plus il mesure la
+puissance en direct. Plus on **monte**, plus il tourne sur votre propre machine et
+la lit ; plus on **descend**, plus c'est quelque chose qu'on pointe vers une
+facture ou un formulaire.
 
 <p align="center">
   <img src="assets/landscape.png" alt="Carte de positionnement des douze outils le long de deux composantes principales, saggio en haut à droite" width="720">
@@ -47,8 +49,8 @@ quelque chose qu'on pointe vers une facture ou un formulaire.
 
 Les distances sont celles du tableau, pas une opinion : deux outils sont voisins
 parce que leurs lignes de notes le sont. Après une mise à jour du tableau,
-régénérez avec `standpoint <table> -r saggio` et commitez le
-`assets/landscape.png` rafraîchi.
+régénérez avec `standpoint <table> -r saggio --model qwen3:8b` et commitez les
+`assets/landscape.png` et `assets/landscape.svg` rafraîchis.
 
 ## Les projets
 
@@ -61,7 +63,10 @@ intensité carbone régionale, et écrit un CSV.
 
 Ce qui diffère : CodeCarbon mesure un *épisode*. Il répond « qu'a émis cette
 exécution », pas « que coûte une requête », et sa sortie est un journal plutôt
-qu'un artefact relu. Il produit un chiffre que les entrées le justifient ou non,
+qu'un artefact relu. Son échantillonnage est grossier par conception, et cela a un
+prix mesuré : une étude 2026 d'outils fondés sur RAPL sondant à 1 kHz situe le
+surcoût en temps de CodeCarbon entre 5,4 % et 46,8 % — ce qui plaide pour son
+intervalle par défaut, pas contre l'outil. Il produit un chiffre que les entrées le justifient ou non,
 ce qui est le bon choix pour de la télémétrie et le mauvais pour un chiffre que
 quelqu'un citera dans un rapport. **Prenez CodeCarbon pour mesurer passivement des
 entraînements. Prenez celui-ci pour un chiffre par unité que vous êtes prêt à
@@ -95,8 +100,12 @@ doit vouloir dire quelque chose pour un lecteur.**
 
 ### [Kepler](https://sustainable-computing.io/)
 
-Attribution de puissance et de carbone pour des charges Kubernetes, via eBPF et
-compteurs matériels, exportée vers Prometheus. Fort sur son terrain.
+Attribution de puissance et de carbone pour des charges Kubernetes, depuis les
+compteurs matériels, exportée vers Prometheus. Fort sur son terrain. En 2026 il a
+réécrit sa collecte pour lire `/proc` et `/sys` au lieu d'eBPF, abandonnant les
+`CAP_BPF` et `CAP_SYSADMIN` dont il avait besoin — la même direction de moindre
+privilège que prend ce paquet quand il imprime le remède pour un compteur réservé
+à root au lieu d'acquérir les droits de le lire.
 
 Ce qui diffère : c'est de l'infrastructure de cluster. Il répond « quels pods
 consomment en ce moment », pas « que coûte une unité de travail », et il lui faut
@@ -157,13 +166,23 @@ vous a été facturé, ce qui est exactement une dimension d'une question, aprè
 
 Autant être honnête sur les manques, puisque c'est toute la prémisse de l'outil.
 
-- **La mesure de puissance est mince.** Le compteur du paquet processeur sous
-  Linux, et rien sous macOS ni Windows, où aucun compteur n'est lisible sans
-  privilèges. Scaphandre, PowerAPI et Kepler mesurent bien mieux. La force de ce
-  paquet est ce qu'il fait d'une mesure, pas la façon dont il la prend.
-- **Pas de mesure de puissance GPU.** Le compteur du paquet processeur n'inclut pas
-  un accélérateur discret : une charge GPU mesurée ici est sous-comptée, et le
-  rapport le dit. Lire la puissance via `nvidia-smi` est l'étape suivante évidente.
+- **Rien n'est attribué à un processus.** Chaque compteur ici mesure la *machine*,
+  et une ligne de base prise avant la tranche est la seule chose qui sépare
+  l'exécution du navigateur à côté. Scaphandre, PowerAPI et Kepler modélisent la
+  consommation par processus et par conteneur ; ce paquet ne le fait pas, et le dit
+  dans le périmètre que porte chaque lecture. C'est le manque qui compte le plus
+  sur une machine partagée.
+- **Windows ne mesure rien.** Il ne publie aucun compteur processeur indépendant du
+  fabricant à un processus sans privilèges : une exécution Windows retombe sur une
+  fiche technique et le modèle dit `estimated`. Linux et macOS lisent désormais tous
+  deux de vrais compteurs — zones powercap par leur nom, `IOReport` sur Apple
+  Silicon, NVML et les interfaces sysfs `amdgpu` / `i915` / `xe` pour
+  l'accélérateur — ce qui change par rapport aux versions antérieures de cette page.
+- **Un compteur n'est pas la prise murale.** Ventilateurs, stockage, réseau et
+  alimentation sont hors RAPL et hors NVML par construction, et l'écart n'est pas
+  une constante qu'on pourrait rajouter : mesuré face à des wattmètres physiques,
+  c'est une pente d'environ 1,17, variable d'un nœud à l'autre. Chaque chiffre ici
+  est le périmètre qu'il nomme, jamais la machine.
 - **Pas de suivi continu.** Une tranche bornée, une fois. Si vous voulez une série
   temporelle, ce n'est pas la bonne forme d'outil.
 - **Pas de carbone incorporé.** La fabrication du matériel est réelle, importante,
@@ -185,3 +204,9 @@ dans un budget, et qu'on lui demandera six mois plus tard d'où ça vient. C'est
 cas que ces outils, pour la plupart, ne servent pas : ils produisent des chiffres,
 et celui-ci produit des chiffres qui viennent avec leur propre piste d'audit et
 qui refusent d'exister quand il faudrait les inventer.
+
+C'est aussi le seul outil de ce tableau qui *mesure comment le coût croît avec la
+taille du travail* : trois tranches de tailles différentes, un exposant ajusté, une
+qualité d'ajustement, et un refus net de projeter quand l'ajustement dit que les
+tranches ne mesurent pas un comportement cohérent. Tous les autres ici projettent
+au prorata des tailles, ou ne projettent pas.

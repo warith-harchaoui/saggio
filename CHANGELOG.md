@@ -7,6 +7,37 @@ release of that line.
 
 ## Unreleased
 
+### The landscape, read again against what shipped
+
+- `LANDSCAPE.md` and `PAYSAGE.md`: the self-criticism had gone out of date in the
+  direction that flatters, which is the worse direction for a page whose premise
+  is honesty. "Nothing on macOS or Windows" and "no GPU power measurement" were
+  both true when written and are not now, so they are replaced by the gaps that
+  remain: nothing is attributed to a *process*, Windows still publishes no
+  unprivileged counter, and a counter is not the wall — the gap to a physical
+  meter is a slope of about 1.17 that varies per node, not a constant anyone
+  could add back.
+- One rating moves, and only because something checkable shipped: **Measures
+  power** goes from three stars to four. Not five, because the fifth is
+  per-process attribution and Scaphandre, PowerAPI and Kepler have it.
+- Kepler's entry notes its 2026 move off eBPF to `/proc` and `/sys`, dropping
+  `CAP_BPF` and `CAP_SYSADMIN`. CodeCarbon's notes the measured price of its
+  sampling: 5.4% to 46.8% time overhead at 1 kHz in a 2026 study of RAPL-based
+  tools, which argues for its default interval rather than against the tool.
+- The positioning map is regenerated from the refreshed table. The axes come out
+  as *Efficient ↔ Transparent* (55%) and *Accessible ↔ Robust* (25%), 80%
+  together, and the placement tells the same story as before — which is the
+  point of regenerating rather than redrawing.
+
+### The diagrams carry colour
+
+- The Mermaid diagram in `ANALYSIS.md` and `ANALYSE.md` is coloured with Okabe
+  and Ito's colour-vision-deficiency-safe set, the palette the reports and the
+  website already use: blue for what is read, green for what is run, the kept
+  answer filled, the refusal dashed in vermillion. Every colour sits beside a
+  written label, so it carries emphasis and never the meaning on its own.
+
+
 ### The whole-run projection stops assuming the work is uniform
 
 - `saggio audit --scaling-steps N` runs the slice at N sizes a factor of four

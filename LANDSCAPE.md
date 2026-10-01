@@ -9,14 +9,14 @@ several dimensions, where every number states how far it can be trusted**. A too
 built for a different job is not penalised for being good at that job instead; the
 score says fit to this niche, nothing more.
 
-Figures were checked on 2026-09-13. Projects move; if something here is out of
+Figures were checked on 2026-10-01. Projects move; if something here is out of
 date, [say so](CONTRIBUTING.md).
 
 ## At a glance
 
 | | Per-unit model | Provenance on every number | Multi-dimension | Committed artefact | Measures power | Estimates without running | Drift gate | Reports for people | Offline |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **saggio** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **saggio** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | CodeCarbon | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
 | Green Algorithms calculator | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ |
 | Scaphandre | ⭐ | ⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
@@ -34,11 +34,13 @@ date, [say so](CONTRIBUTING.md).
 The same table, drawn. [standpoint](https://github.com/warith-harchaoui/standpoint)
 runs a principal component analysis over the nine ratings and lays every tool out
 along the two directions they actually differ on, orienting the map so saggio sits
-top-right. The axis names are the machine's own reading of the loadings; what the
-loadings say is plainer: the further **right**, the more a tool produces sourced,
-committed, per-unit answers; the further **left**, the more it measures live power.
-The further **up**, the more it models a unit of work; the further **down**, the
-more it is something you point at a bill or a form.
+top-right. Two axes keep about 80% of what
+separates these tools: 55% horizontally, 25% vertically. The axis names are the
+machine's own reading of the loadings; what the loadings say is plainer: the
+further **right**, the more a tool produces sourced, committed, per-unit answers;
+the further **left**, the more it measures live power. The further **up**, the
+more it runs on your own machine and reads it; the further **down**, the more it
+is something you point at a bill or a form.
 
 <p align="center">
   <img src="assets/landscape.png" alt="Positioning map of the twelve tools along two principal components, saggio in the top-right corner" width="720">
@@ -46,7 +48,8 @@ more it is something you point at a bill or a form.
 
 The distances are the table's, not an opinion: two tools sit together because
 their rating rows are close. Regenerate after editing the table with
-`standpoint <table> -r saggio` and commit the refreshed `assets/landscape.png`.
+`standpoint <table> -r saggio --model qwen3:8b` and commit the refreshed
+`assets/landscape.png` and `assets/landscape.svg`.
 
 ## The projects
 
@@ -59,7 +62,10 @@ intensity, and writes a CSV.
 
 Where it differs: CodeCarbon measures an *episode*. It answers "what did this run
 emit", not "what does one request cost", and its output is a log rather than a
-reviewed artefact. It emits a number whether or not the inputs justify one, which
+reviewed artefact. Its sampling is coarse by design, and that has a measured
+price: a 2026 study of RAPL-based tools polling at 1 kHz put CodeCarbon's own time
+overhead between 5.4% and 46.8%, which is the argument for its default interval
+rather than against the tool. It emits a number whether or not the inputs justify one, which
 is the right call for telemetry and the wrong one for a figure somebody will quote
 in a report. **Use CodeCarbon when you want passive measurement of training runs.
 Use this when you want a per-unit figure you are prepared to defend.**
@@ -90,8 +96,12 @@ model like this one when you need it to mean something to a reader.**
 
 ### [Kepler](https://sustainable-computing.io/)
 
-Power and carbon attribution for Kubernetes workloads, using eBPF and hardware
-counters, exported to Prometheus. Strong at what it does.
+Power and carbon attribution for Kubernetes workloads, from hardware counters,
+exported to Prometheus. Strong at what it does. In 2026 it rewrote its collection
+to read `/proc` and `/sys` instead of eBPF, dropping the `CAP_BPF` and
+`CAP_SYSADMIN` it used to need — the same least-privilege direction this package
+takes when it prints the remedy for a root-only counter rather than acquiring the
+rights to read it.
 
 Where it differs: it is cluster infrastructure. It answers "which pods are drawing
 power right now", not "what does one unit of work cost", and it needs a cluster to
@@ -147,13 +157,21 @@ were charged, which is exactly one dimension of one question, after the fact.
 
 Being honest about the gaps, since that is the whole premise of the tool.
 
-- **Power measurement is thin.** The package energy counter on Linux, and nothing
-  on macOS or Windows, where no unprivileged counter exists. Scaphandre, PowerAPI,
-  and Kepler measure far better. This package's strength is what it does with a
-  measurement, not how it takes one.
-- **No GPU power measurement.** The processor package counter does not include a
-  discrete accelerator, so a GPU workload measured here is undercounted, and the
-  report says so. Reading `nvidia-smi` power is a clear next step.
+- **Nothing is attributed to a process.** Every counter here measures the
+  *machine*, and a baseline taken before the slice is the only thing separating
+  the run from the browser beside it. Scaphandre, PowerAPI and Kepler model
+  per-process and per-container draw; this package does not, and says so in the
+  scope every reading carries. That is the gap that matters most on a shared box.
+- **Windows measures nothing.** It publishes no vendor-neutral processor counter
+  to an unprivileged process, so a Windows run falls back to a datasheet and the
+  model says `estimated`. Linux and macOS both read real counters now — powercap
+  zones by name, `IOReport` on Apple Silicon, NVML and the `amdgpu` / `i915` /
+  `xe` sysfs interfaces for the accelerator — which is a change from earlier
+  versions of this page.
+- **A counter is not the wall.** Fans, storage, network and the power supply sit
+  outside RAPL and NVML by construction, and the gap is not a constant that could
+  be added back: measured against physical meters it is a slope of about 1.17,
+  varying per node. Every figure here is the scope it names, never the machine.
 - **No continuous monitoring.** One bounded slice, once. If you want a time series,
   this is the wrong shape of tool.
 - **No embodied carbon.** Manufacturing the hardware is real, large, and excluded,
@@ -174,3 +192,9 @@ budget, and will be asked six months later where it came from. That is the case
 these tools mostly do not serve: they produce numbers, and this one produces
 numbers that come with their own audit trail and refuse to exist when they would
 have to be invented.
+
+It is also the only tool in this table that will *measure how the cost grows with
+the size of the job*: three slices of different sizes, a fitted exponent, a
+goodness of fit, and a refusal to project at all when the fit says the slices are
+not measuring one consistent behaviour. Every other tool here projects by the
+ratio of sizes, or does not project.
