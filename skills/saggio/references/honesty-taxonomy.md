@@ -34,6 +34,42 @@ and the validator follows those paths and compares. A value claiming more than i
 inputs allow is an error, not a warning, because the central proposition of this
 package is that a number says how far it can be trusted.
 
+## The derivation is checked, not just declared
+
+`derived_from` used to buy a status check and nothing else. A value could name
+its inputs correctly and state a number four orders of magnitude away from what
+they multiply to, and pass — which was the worst shape the gap could take, since
+a wrong number carrying a correct derivation looks *better* founded than
+anything else on the page.
+
+The validator now multiplies the inputs back together where it recognises the
+relationship, which it does by **units** rather than by field name:
+
+| Inputs | Give |
+|---|---|
+| seconds × watts | kilowatt-hours, over 3 600 000 |
+| anything × a dimensionless ratio | that anything |
+| kilowatt-hours × *something*/kWh | that something |
+| one input restated in its own unit | itself |
+
+A stated value more than 1% from the recomputed one is an **error**. A unit the
+inputs cannot possibly produce — a duration times a plain number can give a
+duration, never a mass of carbon dioxide — is an **error** too, and a cheaper one
+to be sure of.
+
+And where the relationship is none of these, the validator says **nothing**. A
+dimension a project registered this morning must not become an error because the
+package has not heard of it. Silence is the honest answer to "I cannot tell",
+here as everywhere else.
+
+## `measured` has to say what measured it
+
+`estimated` must name a source. `measured` — the stronger status — asked for
+nothing, which was the wrong way round. A value claiming `measured` now has to be
+derived, or carry a note, or sit in a model with a `measurement` block. A
+*warning*, not an error: somebody may genuinely have measured it with their own
+wattmeter, and refusing their model would be refusing the truth.
+
 ## The mistakes that matter
 
 **Writing a plausible default.** The most common failure, and the most damaging,

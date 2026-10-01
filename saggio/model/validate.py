@@ -58,6 +58,7 @@ from datetime import date
 from typing import Any, Final
 
 from .cost_model import CostModel, walk_bare_numbers
+from .derivation import combine, disagrees, unreachable
 from .dimensions import CANONICAL_DIMENSIONS
 from .quantity import (
     QUANTITY_KEYS,
@@ -67,7 +68,12 @@ from .quantity import (
     looks_like_quantity,
 )
 from .results import Report
-from .schema import REQUIRED_BLOCKS, SCHEMA_VERSION, is_bare_number_exempt, schema_major
+from .schema import (
+    REQUIRED_BLOCKS,
+    SCHEMA_VERSION,
+    is_bare_number_exempt,
+    schema_major,
+)
 from .taxonomy import ESTIMATED, MEASURED, is_valid_status, overclaims, weakest
 
 #: Provenance older than this is warned about: a price or a grid intensity from
@@ -402,6 +408,7 @@ def _check_quantity(path: str, raw: dict[str, Any], model: CostModel, report: Re
             )
 
     _check_derivation(path, quantity, model, report)
+    _check_measured_is_attributable(path, quantity, model, report)
 
 
 def _check_derivation(path: str, quantity: Quantity, model: CostModel, report: Report) -> None:
@@ -437,6 +444,7 @@ def _check_derivation(path: str, quantity: Quantity, model: CostModel, report: R
         return
 
     input_statuses: list[str | None] = []
+    inputs: list[dict[str, Any]] = []
     for reference in quantity.derived_from:
         if reference == path:
             report.error(path, "lists itself in derived_from")
@@ -456,6 +464,7 @@ def _check_derivation(path: str, quantity: Quantity, model: CostModel, report: R
             )
             continue
         input_statuses.append(str(node.get("status")) if node.get("status") is not None else None)
+        inputs.append(node)
 
     ceiling = weakest(*input_statuses)
     if overclaims(quantity.status, ceiling):
@@ -463,6 +472,129 @@ def _check_derivation(path: str, quantity: Quantity, model: CostModel, report: R
             path,
             f"claims {quantity.status!r} but its weakest input is {ceiling!r}; "
             "a derived value cannot outrank the numbers it came from",
+        )
+
+    _check_arithmetic(path, quantity, inputs, report)
+
+
+def _check_measured_is_attributable(
+    path: str, quantity: Quantity, model: CostModel, report: Report
+) -> None:
+    """Report a ``measured`` value that does not say what measured it.
+
+    ``estimated`` has to name a source. ``measured`` — the strongest status in
+    the taxonomy — asked for nothing at all, which is the wrong way round. A
+    human writing a model by hand could put ``measured`` on any number and
+    nothing in the file would say which instrument, or whether one existed.
+
+    Three things count as saying. The quantity is derived, and its provenance is
+    its derivation. It carries a note, which is where the auditor writes the
+    command it timed and the counters that answered. Or the model carries a
+    ``measurement`` block, which is what this package writes when it did the
+    measuring itself.
+
+    A warning rather than an error: somebody may genuinely have measured this
+    with their own wattmeter, and refusing their model would be refusing the
+    truth. But an unattributed measurement should not pass in silence.
+
+    Parameters
+    ----------
+    path : str
+        Dotted path of the quantity.
+    quantity : Quantity
+        The value under check.
+    model : CostModel
+        The whole model, to look for a measurement block.
+    report : Report
+        Accumulator for the verdict.
+
+    Examples
+    --------
+    >>> report = Report()
+    >>> bare = Quantity(value=1.0, unit="s", status="measured")
+    >>> _check_measured_is_attributable("r", bare, CostModel.from_mapping({}), report)
+    >>> "what measured it" in report.to_text()
+    True
+    """
+    if quantity.status != MEASURED or not quantity.is_known():
+        return
+    if quantity.is_derived() or quantity.notes or quantity.source_url:
+        return
+    if isinstance(model.data.get("measurement"), dict) and model.data["measurement"]:
+        return
+    report.warning(
+        path,
+        "is measured but nothing says what measured it: no note, no derivation, "
+        "and no measurement block in this model. `estimated` has to name a source; "
+        "the stronger status should not ask for less",
+    )
+
+
+def _check_arithmetic(
+    path: str, quantity: Quantity, inputs: list[dict[str, Any]], report: Report
+) -> None:
+    """Report a derived value that does not follow from the inputs it names.
+
+    The check `derived_from` was always supposed to earn. A reader seeing a list
+    of inputs concludes the number came from them; until this existed, nothing
+    said so. A value wrong by four orders of magnitude, carrying a perfectly
+    correct derivation, looked better founded than anything else on the page.
+
+    Only relationships recognisable from the units are checked, and silence is
+    the ordinary answer: a dimension a project registered this morning must not
+    become an error because this does not know it.
+
+    Parameters
+    ----------
+    path : str
+        Dotted path of the derived quantity.
+    quantity : Quantity
+        The derived value.
+    inputs : list of dict
+        The quantities it named, already resolved.
+    report : Report
+        Accumulator for the verdict.
+
+    Examples
+    --------
+    >>> report = Report()
+    >>> wrong = Quantity(value=0.00004, unit="kWh", status="estimated",
+    ...                  derived_from=("a", "b"))
+    >>> _check_arithmetic("e", wrong, [{"value": 3600.0, "unit": "s"},
+    ...                                {"value": 400.0, "unit": "W"}], report)
+    >>> "does not follow" in report.to_text()
+    True
+    """
+    if not quantity.is_known():
+        return
+    pairs: list[tuple[float, str | None]] = []
+    for node in inputs:
+        value = node.get("value")
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            return
+        pairs.append((float(value), node.get("unit")))
+
+    impossible = unreachable(pairs, quantity.unit)
+    if impossible is not None:
+        report.error(
+            path,
+            f"is written in {quantity.unit!r}, which cannot come from the inputs it "
+            f"names: {impossible}. The derivation and the unit disagree",
+        )
+        return
+
+    expected = combine(pairs, quantity.unit)
+    if expected is None:
+        # Not a relationship this knows. Saying something here would be inventing
+        # a rule; saying nothing is what the house does when it cannot tell.
+        return
+    if disagrees(float(quantity.value), expected):
+        report.error(
+            path,
+            f"states {quantity.value!r} but does not follow from the inputs it "
+            f"names, which multiply to {expected:.6g} {quantity.unit}. Either the "
+            "number or the derivation is wrong; naming inputs a value did not come "
+            "from is the one mistake this field exists to make impossible",
         )
 
 

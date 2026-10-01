@@ -5,7 +5,44 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
-## Unreleased
+## 1.3.0 — 2026-10-02
+
+### A derivation is checked, not just declared
+
+- `derived_from` bought a status check and nothing else. A value could name its
+  inputs correctly and state a number four orders of magnitude from what they
+  multiply to, and validate. That was the worst shape the gap could take: a
+  wrong number carrying a correct derivation reads as *better* founded than
+  anything else on the page.
+- `saggio.model.derivation` multiplies the inputs back together where it
+  recognises the relationship — by **units**, not by field name, so a dimension
+  a project registered this morning is treated like carbon rather than as a
+  special case. Seconds times watts give kilowatt-hours; anything times a
+  dimensionless ratio keeps its unit; kilowatt-hours times *something* per
+  kilowatt-hour give that something.
+- More than 1% from the recomputed value is an **error**. A unit the inputs
+  cannot produce — a duration times a plain number gives a duration, never a
+  mass of carbon dioxide — is an error too, and cheaper to be sure of.
+- Where the relationship is none of those, the validator says **nothing**.
+  Silence is the honest answer to "I cannot tell", here as everywhere else.
+- It found a wrong number on its first run, inside a test fixture named
+  `sound_model`: 0.05 kWh where 3600 s at 100 W is 0.1. All nine committed
+  example models passed.
+
+### `measured` has to say what measured it
+
+- `estimated` must name a source; `measured`, the stronger status, asked for
+  nothing. A value claiming it must now be derived, carry a note, or sit in a
+  model with a `measurement` block. A **warning**, not an error: somebody may
+  genuinely have measured it with their own wattmeter, and refusing their model
+  would be refusing the truth.
+
+### Breaking
+
+- `import saggio` raises on a platform that is not Linux or macOS. Windows is
+  out of scope deliberately; see `MEASURING.md`.
+- `saggio catalog freshness --json` returns `{"stale": …, "expiring": …}` rather
+  than the bare stale mapping.
 
 ### The gallery demonstrates a measurement
 

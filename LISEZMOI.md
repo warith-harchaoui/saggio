@@ -50,6 +50,15 @@ entrées. Mesurez la durée et l'énergie devient mesurée toute seule. Laissez 
 non renseigné et le chiffre carbone reste ouvert, parce que personne ne le connaît
 encore.
 
+Et la dérivation est **vérifiée, pas seulement déclarée**. Le validateur
+remultiplie les apports nommés partout où il reconnaît la relation aux unités, et
+une valeur à plus d'un pour cent de ce qu'ils donnent est une erreur. L'erreur
+ainsi fermée est celle qui a la plus belle allure : un nombre faux de quatre
+ordres de grandeur, portant la liste parfaitement exacte des apports dont il est
+censé venir, paraît mieux fondé que tout le reste de la page. Là où la relation
+n'est pas reconnue — une dimension que vous avez enregistrée ce matin — il ne dit
+rien plutôt que d'inventer une règle.
+
 Trois propriétés en découlent, et ce sont elles qui justifient le dessin :
 
 - **Rien ne peut se cacher.** Le validateur parcourt tout le fichier. Un nombre

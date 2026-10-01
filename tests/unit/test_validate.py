@@ -182,7 +182,10 @@ def test_a_derived_assumption_needs_no_source(sound_model: dict[str, Any]) -> No
     # Its provenance is its derivation; asking for a URL as well would be asking
     # where a multiplication was published.
     sound_model["assumptions"]["machine_energy"] = {
-        "value": 0.05,
+        # 3600 s at 100 W is 0.1 kWh. This said 0.05 until the validator learned
+        # to multiply, which is a fair measure of how easy the mistake is: the
+        # wrong number sat inside a fixture named `sound_model`.
+        "value": 0.1,
         "unit": "kWh",
         "status": "estimated",
         "derived_from": ["scenarios[0].runtime", "assumptions.power_draw"],
