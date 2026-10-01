@@ -141,6 +141,7 @@ nothing to a committed model, in the order a maintainer actually does it.
 | 2 | [`2-measured.json`](examples/walkthrough/2-measured.json) | A real `saggio measure` run over a 500-sample slice. |
 | 3 | [`3-measured.yaml`](examples/walkthrough/3-measured.yaml) | The measurement folded in, and a whole run projected from it. |
 | 4 | [`4-diff.txt`](examples/walkthrough/4-diff.txt) | What `saggio diff` reports between the first and the third. |
+| 5 | [`5-run.yaml`](examples/walkthrough/5-run.yaml) | `saggio audit --run --scaling-steps 3`: reading, measuring and fitting in one command. |
 
 ```bash
 saggio audit examples/walkthrough/counter --country FR --no-llm -o examples/walkthrough/1-as-read.yaml
@@ -158,17 +159,45 @@ work, so the recorded figure is per unit. `saggio audit --run` does the reading
 and the running in one step instead, and asks for consent first, because that path
 executes the repository's own code.
 
-The lesson is in the diff:
+The lesson is in the diff, and the first line of it is the one to read twice:
 
 ```
-scenarios[0].runtime: no number -> 0.00112596, TODO -> measured
-scenarios[0].costs.energy: no number -> 3.92961e-08, TODO -> estimated
+assumptions.power_draw: 83.76 -> 31.1047 (-62.9%), estimated -> measured
+assumptions.machine_energy: no number -> 1.141e-08, TODO -> measured
+scenarios[0].runtime: no number -> 0.00132057, TODO -> measured
+scenarios[0].costs.energy: no number -> 2.03e-08, TODO -> estimated
 ```
 
-The runtime is `measured`, because a stopwatch was held around it. The energy is
-`estimated`, because it is the runtime multiplied by a power draw that came from a
-datasheet. The weakest-link rule is not a policy applied afterwards; it is what
-the arithmetic produces.
+**A datasheet said 83.76 W. The counter said 31.10 W.** The nameplate was wrong
+by a factor of two and a half for this workload, which is the whole argument for
+reading a counter rather than a specification — and the figure only moved because
+the machine would answer, which it does on Linux and on Apple Silicon.
+
+Then the rule computes itself, in four steps anybody can follow. The runtime is
+`measured`, because a stopwatch was held around it. The power is `measured`,
+because a counter was read. The **machine** energy is therefore `measured` too,
+with no decision taken by anybody: both of its inputs are. And the **facility**
+energy is `estimated`, because it is the machine energy multiplied by a datacenter
+overhead that nobody here measured. The weakest-link rule is not a policy applied
+afterwards; it is what the arithmetic produces.
+
+Stage five does the same thing in one command, and is the more interesting file
+of the two because of what it refuses:
+
+```bash
+saggio audit examples/walkthrough/counter --country FR --no-llm --run --scaling-steps 3 \
+  -o examples/walkthrough/5-run.yaml
+```
+
+> The work grew more slowly than the size, by a power of 0.69. Over these sizes
+> the run is dominated by costs that do not grow with the job — start-up,
+> imports, loading a model — so the slices are mostly measuring overhead and a
+> projection from them would overstate the whole run.
+
+That exponent is `measured`, over the three sizes that were run, with an R² of
+0.999. It is also *bad news about the measurement*, which is the point: a slice
+this small is mostly Python starting up, and the tool says so rather than
+projecting from it with a straight face.
 
 ## What these files caught, and what is still wrong
 

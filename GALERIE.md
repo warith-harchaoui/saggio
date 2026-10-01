@@ -150,6 +150,7 @@ jusqu'à un modèle commité, dans l'ordre où un mainteneur le fait vraiment.
 | 2 | [`2-measured.json`](examples/walkthrough/2-measured.json) | Une vraie mesure `saggio measure` sur une tranche de 500 échantillons. |
 | 3 | [`3-measured.yaml`](examples/walkthrough/3-measured.yaml) | La mesure intégrée, et une exécution complète projetée à partir d'elle. |
 | 4 | [`4-diff.txt`](examples/walkthrough/4-diff.txt) | Ce que `saggio diff` rapporte entre le premier et le troisième. |
+| 5 | [`5-run.yaml`](examples/walkthrough/5-run.yaml) | `saggio audit --run --scaling-steps 3` : lire, mesurer et ajuster en une commande. |
 
 ```bash
 saggio audit examples/walkthrough/counter --country FR --no-llm -o examples/walkthrough/1-as-read.yaml
@@ -167,17 +168,47 @@ cinq cents unités de travail : le chiffre enregistré est donc par unité.
 `saggio audit --run` fait la lecture et l'exécution en une seule étape, et demande
 votre accord d'abord, parce que ce chemin-là exécute le code du dépôt étudié.
 
-La leçon est dans le diff :
+La leçon est dans le diff, et sa première ligne mérite d'être lue deux fois :
 
 ```
-scenarios[0].runtime: no number -> 0.00112596, TODO -> measured
-scenarios[0].costs.energy: no number -> 3.92961e-08, TODO -> estimated
+assumptions.power_draw: 83.76 -> 31.1047 (-62.9%), estimated -> measured
+assumptions.machine_energy: no number -> 1.141e-08, TODO -> measured
+scenarios[0].runtime: no number -> 0.00132057, TODO -> measured
+scenarios[0].costs.energy: no number -> 2.03e-08, TODO -> estimated
 ```
 
-La durée est `measured`, parce qu'on a tenu un chronomètre autour. L'énergie est
-`estimated`, parce que c'est cette durée multipliée par une puissance qui vient
-d'une fiche technique. La règle du maillon faible n'est pas une politique appliquée
-après coup : c'est ce que l'arithmétique produit.
+**Une fiche technique disait 83,76 W. Le compteur dit 31,10 W.** La plaque du
+fabricant se trompait d'un facteur deux et demi sur cette charge — c'est tout
+l'argument de lire un compteur plutôt qu'une spécification, et le chiffre n'a
+bougé que parce que la machine veut bien répondre, ce qu'elle fait sous Linux et
+sur Apple Silicon.
+
+Ensuite la règle se calcule toute seule, en quatre pas vérifiables. La durée est
+`measured`, parce qu'on a tenu un chronomètre autour. La puissance est
+`measured`, parce qu'on a lu un compteur. L'énergie **machine** est donc
+`measured` elle aussi, sans que personne n'ait rien décidé : ses deux apports le
+sont. Et l'énergie **du site** reste `estimated`, parce que c'est l'énergie
+machine multipliée par un surcoût de centre de données que personne ici n'a
+mesuré. La règle du maillon faible n'est pas une politique appliquée après coup :
+c'est ce que l'arithmétique produit.
+
+L'étape cinq fait la même chose en une commande, et c'est le plus intéressant des
+deux fichiers à cause de ce qu'il refuse :
+
+```bash
+saggio audit examples/walkthrough/counter --country FR --no-llm --run --scaling-steps 3 \
+  -o examples/walkthrough/5-run.yaml
+```
+
+> The work grew more slowly than the size, by a power of 0.69. Over these sizes
+> the run is dominated by costs that do not grow with the job — start-up,
+> imports, loading a model — so the slices are mostly measuring overhead and a
+> projection from them would overstate the whole run.
+
+Cet exposant est `measured`, sur les trois tailles exécutées, avec un R² de
+0,999. C'est aussi *une mauvaise nouvelle sur la mesure*, et c'est le propos :
+une tranche aussi petite est surtout du démarrage de Python, et l'outil le dit
+au lieu de projeter à partir d'elle sans sourciller.
 
 ## Ce que ces fichiers ont attrapé, et ce qui ne va toujours pas
 

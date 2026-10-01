@@ -6,18 +6,22 @@
     "500"
   ],
   "exit_code": 0,
-  "wall_seconds": 0.563,
-  "watts": null,
-  "power_scope": "macOS publishes package power only through powermetrics, which needs administrator rights and so cannot be read from a library call.",
+  "wall_seconds": 0.6603,
+  "watts": 31.10468175364349,
+  "idle_watts": 26.353760428,
+  "marginal_watts": 4.750921325643489,
+  "power_scope": "The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses.",
   "truncated": false,
   "hot_path": [],
   "warnings": [
-    "macOS publishes package power only through powermetrics, which needs administrator rights and so cannot be read from a library call."
+    "The machine was already drawing 26.4 W before the slice started, against 31.1 W while it ran, so most of the measured power was not this slice's. The difference, 4.8 W, is what the slice added if nothing else changed in between; measure on a quiet machine if the total is what you need.",
+    "Two ways of separating this slice from the machine it ran on disagree: subtracting the idle baseline gives 4.8 W, and attributing the measured draw by the slice's 11% share of the machine's processor work gives 3.0 W. The first assumes the rest of the machine held still, the second that the draw divides the way the work does; on a busy machine the second is usually the better of the two. Treat them as the ends of a bracket."
   ]
 }
-  runtime: not known -> 0.00112596 s, TODO -> measured
-  time: not known -> 0.00112596 s, TODO -> measured
-  energy: not known -> 3.92961e-08 kWh, TODO -> estimated
-  money: not known -> 9.43107e-09 USD, TODO -> estimated
-  carbon: not known -> 2.20058e-06 gCO2e, TODO -> estimated
+  runtime: not known -> 0.00132057 s, TODO -> measured
+  power draw: 83.76 W -> 31.1047 W, estimated -> measured
+  time: not known -> 0.00132057 s, TODO -> measured
+  energy: not known -> 1.71149e-08 kWh, TODO -> estimated
+  money: not known -> 4.10759e-09 USD, TODO -> estimated
+  carbon: not known -> 9.58437e-07 gCO2e, TODO -> estimated
   whole run: projected from the per-unit costs above

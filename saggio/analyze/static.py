@@ -308,6 +308,13 @@ _TRAINING_KEYS: Final[frozenset[str]] = frozenset(
 #: Entry points to try for a capped slice of the real workload, in priority order.
 ENTRYPOINT_NAMES: Final[tuple[str, ...]] = ("train.py", "main.py", "run.py", "benchmark.py")
 
+#: What a script that is meant to be run looks like from the outside. The guard
+#: is the one honest signal: a module written to be imported does not have it,
+#: and a module that has it was written to be executed.
+_RUNS_ITSELF: Final[re.Pattern[str]] = re.compile(
+    r"""^if\s+__name__\s*==\s*['"]__main__['"]""", re.MULTILINE
+)
+
 #: Share of the total work a capped slice aims for. A thousandth is small enough
 #: to finish on a laptop and large enough to get past start-up cost.
 DEFAULT_CAP_FRACTION: Final[float] = 0.001
@@ -1351,8 +1358,37 @@ def detect_tests(root: Path) -> tuple[bool, tuple[str, ...]]:
     return True, (sys.executable, "-m", "pytest", "-q", "-x")
 
 
+def _read_head(path: Path, limit: int = _CONFIG_READ_BYTES) -> str:
+    """Return the first bytes of a file as text, or an empty string.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        The file to look at.
+    limit : int, optional
+        How much to read. A main guard is at the end of a script, but scripts
+        this reads are small; a file larger than the cap is read up to it and
+        the guard is simply not found, which errs towards refusing rather than
+        towards picking the wrong script.
+
+    Returns
+    -------
+    str
+        The text, or ``""`` when it cannot be read.
+
+    Examples
+    --------
+    >>> _read_head(Path("/nonexistent/file.py"))
+    ''
+    """
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")[:limit]
+    except OSError:
+        return ""
+
+
 def find_entrypoint(root: Path) -> str | None:
-    """Return the script a capped slice of the real workload would run.
+    r"""Return the script a capped slice of the real workload would run.
 
     Parameters
     ----------
@@ -1372,11 +1408,40 @@ def find_entrypoint(root: Path) -> str | None:
     ...     _ = (Path(folder) / "main.py").write_text("pass", encoding="utf-8")
     ...     find_entrypoint(Path(folder))
     'main.py'
+
+    A repository with no conventionally named script but exactly one that runs
+    itself has an unambiguous entry point anyway:
+
+    >>> with tempfile.TemporaryDirectory() as folder:
+    ...     _ = (Path(folder) / "config.py").write_text("size = 10", encoding="utf-8")
+    ...     _ = (Path(folder) / "predict.py").write_text(
+    ...         'if __name__ == "__main__":\n    pass\n', encoding="utf-8")
+    ...     find_entrypoint(Path(folder))
+    'predict.py'
+
+    Two of them is not unambiguous, so neither is chosen:
+
+    >>> with tempfile.TemporaryDirectory() as folder:
+    ...     for name in ("first.py", "second.py"):
+    ...         _ = (Path(folder) / name).write_text(
+    ...             'if __name__ == "__main__":\n    pass\n', encoding="utf-8")
+    ...     find_entrypoint(Path(folder)) is None
+    True
     """
     for name in ENTRYPOINT_NAMES:
         if (root / name).is_file():
             return name
-    return None
+    # Nothing conventionally named. A repository can still have one obvious
+    # script: exactly one file at the root that runs itself. Picking it when
+    # there is one is not a guess, and refusing when there are two is not
+    # timidity — a slice of the wrong script measures the wrong thing, and the
+    # reader would have no way to tell from the number.
+    runnable = sorted(
+        path.name
+        for path in root.glob("*.py")
+        if path.is_file() and _RUNS_ITSELF.search(_read_head(path))
+    )
+    return runnable[0] if len(runnable) == 1 else None
 
 
 def capped_entrypoint_command(

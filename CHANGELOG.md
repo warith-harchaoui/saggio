@@ -7,6 +7,43 @@ release of that line.
 
 ## Unreleased
 
+### The gallery demonstrates a measurement
+
+- Counted before this change: **0 measured, 24 estimated, 144 TODO** across the
+  six committed examples. The package's whole proposition is that `measured`
+  means a counter said so, and the most visible artefact it ships demonstrated
+  none of it.
+- The walkthrough was re-run and now does. Its power comes off a counter rather
+  than a datasheet, which the diff reports in the line worth reading twice:
+  `assumptions.power_draw: 83.76 -> 31.1047 (-62.9%), estimated -> measured`.
+  The nameplate was wrong by a factor of two and a half.
+- With the power measured, `machine_energy` rises to `measured` on its own —
+  both of its inputs are — while the **facility** energy stays `estimated`,
+  because the datacenter overhead is still an assumption. The weakest-link rule
+  computing itself, in four steps, in a committed file.
+- A fifth stage, `5-run.yaml`: `saggio audit --run --scaling-steps 3` in one
+  command, with a **measured scaling exponent of 0.687 at R² = 0.999**. It is
+  also bad news about the measurement, which is the point — the exponent says
+  the slice is mostly Python starting up, so a projection from it would
+  overstate the run, and the tool says so rather than projecting anyway.
+- The walkthrough leads the website's gallery grid, where the honesty figure now
+  shows a green `measured` segment instead of six bars of estimate and TODO.
+- The toy workload's `num_samples` goes from 5,000 to 400,000, with the reason
+  in the file: at a thousandth of five thousand, three slices a factor of four
+  apart round to two, and the workload was too small to demonstrate something
+  the tool can do.
+
+### One unambiguous script is an entry point
+
+- `find_entrypoint` knew four names — `train.py`, `main.py`, `run.py`,
+  `benchmark.py` — and returned nothing for a repository whose single script is
+  called anything else. The walkthrough's own toy workload was one: a stated
+  work size, one runnable file, and "there was nothing safe to run".
+- It now falls back to the one Python file at the root that runs itself, when
+  there is exactly one. Two is not unambiguous and still returns nothing: a
+  slice of the wrong script measures the wrong thing, and the reader would have
+  no way to tell from the number.
+
 ### The CI ran two jobs that could only fail
 
 - The workflow matrix still listed `windows-latest` after Windows was excluded,

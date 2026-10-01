@@ -2,15 +2,15 @@
 
 **This model is only as good as its weakest number, which is `TODO`.** A human must supply this before the model can be trusted.
 
-Last updated 2026-09-14. Schema 2.1.
+Last updated 2026-10-01. Schema 2.1.
 
 ## Honesty
 
 | Status | Count | Meaning |
 |---|---|---|
-| `measured` | 2 | Recorded from an actual run on the target system. |
-| `estimated` | 12 | Computed from a sourced assumption or a published formula. |
-| `TODO` | 2 | A human must supply this before the model can be trusted. |
+| `measured` | 4 | Recorded from an actual run on the target system. |
+| `estimated` | 10 | Computed from a sourced assumption or a published formula. |
+| `TODO` | 5 | A human must supply this before the model can be trusted. |
 
 ## One unit of work
 
@@ -38,24 +38,27 @@ One unit of work as this audit found it, on the machine it ran on.
 
 | Dimension | Per unit | Status | Derived from | Notes |
 |---|---|---|---|---|
-| Money | 9.431e-09 USD | `estimated` | `scenarios[0].costs.energy`, `assumptions.electricity_price` | Facility energy x price per kilowatt-hour; hardware and staff are not included. |
-| Time | 0.001126 s | `measured` | `scenarios[0].runtime` | Timed with `saggio measure`: python predict.py --num_samples 500. The command performed 500 units of work, so the figure is the wall-clock time divided by 500. |
-| Energy | 3.93e-08 kWh | `estimated` | `assumptions.machine_energy`, `assumptions.pue` | Machine energy x power usage effectiveness: what the building draws. |
-| Carbon | 2.201e-06 gCO2e | `estimated` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Facility energy x grid carbon intensity, operating emissions only. |
+| Money | 4.108e-09 USD | `estimated` | `scenarios[0].costs.energy`, `assumptions.electricity_price` | Facility energy x price per kilowatt-hour; hardware and staff are not included. |
+| Time | 0.001321 s | `measured` | `scenarios[0].runtime` | Timed with `saggio measure`: python predict.py --num_samples 500. The command performed 500 units of work, so the figure is the wall-clock time divided by 500. |
+| Energy | 1.711e-08 kWh | `estimated` | `assumptions.machine_energy`, `assumptions.pue` | Machine energy x power usage effectiveness: what the building draws. |
+| Carbon | 9.584e-07 gCO2e | `estimated` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Facility energy x grid carbon intensity, operating emissions only. |
+| Embodied carbon | not known | `TODO` | `assumptions.hardware_embodied_carbon`, `assumptions.hardware_lifetime`, `scenarios[0].runtime` | No product carbon footprint is on file for this hardware, so the carbon of building it is open. Nobody has read one for this part; that is not the same as it having been free to build. Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was read. |
 | Water | not known | `TODO` | `assumptions.machine_energy`, `assumptions.water_usage_effectiveness` | Needs the machine's energy and a published water usage effectiveness. |
 
-*A million units emit about 0.002401 tree-months · 0.01257 km by car (EU average) — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
+*A million units emit about 0.001046 tree-months · 0.005477 km by car (EU average) — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
 
 ## What the numbers rest on
 
 | Assumption | Value | Status | Provenance | Notes |
 |---|---|---|---|---|
-| `power_draw` | 83.76 W | `estimated` | [source](https://doi.org/10.1002/advs.202100707), read 2026-09-12 | Nameplate sum, Green Algorithms method: 12 cores x 4.0 W + 96 GB x 0.3725 W/GB |
+| `power_draw` | 31.1 W | `measured` | — | Read from the machine while the command ran. The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses. |
 | `pue` | 1.5 ratio | `estimated` | [source](https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024), read 2026-09-12 | Power usage effectiveness published by On-premises. |
 | `electricity_price` | 0.24 USD | `estimated` | [source](https://ember-energy.org/data/electricity-data-explorer/), read 2026-09-12 | Indicative tariff for France. |
 | `grid_carbon_intensity` | 56 gCO2e/kWh | `estimated` | [source](https://ember-energy.org/data/electricity-data-explorer/), read 2026-09-12 | Annual average for France. |
 | `water_usage_effectiveness` | not known | `TODO` | — | On-premises publishes no water usage effectiveness. Leave this open rather than inventing a figure. |
-| `machine_energy` | 2.62e-08 kWh | `estimated` | [source](https://doi.org/10.1002/advs.202100707) | runtime in hours x average power in watts / 1000. |
+| `hardware_embodied_carbon` | not known | `TODO` | — | No accelerator was identified, so the carbon of building one is not this model's to carry. A processor's own footprint is not in the catalogue yet; it is excluded rather than assumed to be zero. |
+| `hardware_lifetime` | not known | `TODO` | — | How long this hardware stays in service, which only you know. The published footprints are cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster between three and six years; choosing within that range moves the embodied carbon by a factor of two, which is why this is asked rather than assumed. |
+| `machine_energy` | 1.141e-08 kWh | `measured` | [source](https://doi.org/10.1002/advs.202100707) | runtime in hours x average power in watts / 1000. |
 
 ## Projections
 
@@ -63,16 +66,16 @@ A projection is not a measurement of the thing it projects to.
 
 ### whole run
 
-What a whole run would cost, from the per-unit costs in scenarios[0]. A whole run performs 5000 num_samples, as config.py::num_samples states. This assumes one unit of work is one num_sample; if the model's unit of work means something else, restate this.
+What a whole run would cost, from the per-unit costs in scenarios[0]. A whole run performs 400000 num_samples, as config.py::num_samples states. This assumes one unit of work is one num_sample; if the model's unit of work means something else, restate this.
 
 |  | Value | Status | Method |
 |---|---|---|---|
-| time | 5.63 s | `estimated` | Whole run = measured slice / 0.0002. |
-| energy | 0.0001965 kWh | `estimated` | Whole run = measured slice / 0.0002. |
-| money | 4.716e-05 USD | `estimated` | Whole run = measured slice / 0.0002. |
-| carbon | 0.011 gCO2e | `estimated` | Whole run = measured slice / 0.0002. |
+| time | 528.2 s | `estimated` | Whole run = measured slice / 2.5e-06. |
+| energy | 0.006846 kWh | `estimated` | Whole run = measured slice / 2.5e-06. |
+| money | 0.001643 USD | `estimated` | Whole run = measured slice / 2.5e-06. |
+| carbon | 0.3834 gCO2e | `estimated` | Whole run = measured slice / 2.5e-06. |
 
-*A million runs emit about 12 tree-months · 62.87 km by car (EU average) · 22% of a Paris–London flight — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
+*A million runs emit about 418.2 tree-months · 2191 km by car (EU average) · 7.667 Paris–London flights — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
 
 ## Not counted
 

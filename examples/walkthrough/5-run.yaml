@@ -1,0 +1,321 @@
+schema_version: '2.1'
+date_updated: '2026-10-01'
+project:
+  name: counter
+  audited_from: ~/saggio/examples/walkthrough/counter
+unit_of_work:
+  name: one inference on a median-sized input
+  description: 'Proposed from the repository''s shape, which reads as inference. Confirm or replace it:
+    every number below is per one of these, so the whole model means whatever this sentence means.'
+  status: placeholder
+  out_of_scope: []
+deployment:
+  provider: on-prem
+  country: FR
+  country_provenance: Stated by the caller.
+  operating_system: darwin
+  logical_cores: 12
+  physical_cores: 12
+  cpu: Apple M2 Max
+assumptions:
+  power_draw:
+    value: 31.88190750117324
+    status: measured
+    unit: W
+    notes: 'Read from the machine while the slice ran. The figure covers the chip''s processor cores,
+      graphics cores, and neural engine, from the system-on-chip''s own energy counters and the chip''s
+      memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters.
+      Memory is measured rather than estimated here: the machine publishes its own memory energy counter,
+      so the figure is what the memory drew rather than what its installed capacity suggests it would
+      draw. These are the chip''s own energy counters, which are a model inside the silicon rather than
+      a meter on the power rail, and Apple says they are not a basis for comparing one machine against
+      another. Left out of them: the display, storage, networking, the fans, and the power supply''s own
+      losses.'
+  pue:
+    value: 1.5
+    status: estimated
+    unit: ratio
+    source_url: https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024
+    retrieved_date: '2026-09-12'
+    notes: Power usage effectiveness published by On-premises.
+  electricity_price:
+    value: 0.24
+    status: estimated
+    unit: USD/kWh
+    currency: USD
+    source_url: https://ember-energy.org/data/electricity-data-explorer/
+    retrieved_date: '2026-09-12'
+    notes: Indicative tariff for France.
+  grid_carbon_intensity:
+    value: 56
+    status: estimated
+    unit: gCO2e/kWh
+    source_url: https://ember-energy.org/data/electricity-data-explorer/
+    retrieved_date: '2026-09-12'
+    notes: Annual average for France.
+  water_usage_effectiveness:
+    value: null
+    status: TODO
+    unit: L/kWh
+    notes: On-premises publishes no water usage effectiveness. Leave this open rather than inventing a
+      figure.
+  hardware_embodied_carbon:
+    value: null
+    status: TODO
+    unit: kgCO2e
+    notes: No accelerator was identified, so the carbon of building one is not this model's to carry.
+      A processor's own footprint is not in the catalogue yet; it is excluded rather than assumed to be
+      zero.
+  hardware_lifetime:
+    value: null
+    status: TODO
+    unit: years
+    notes: How long this hardware stays in service, which only you know. The published footprints are
+      cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster
+      between three and six years; choosing within that range moves the embodied carbon by a factor of
+      two, which is why this is asked rather than assumed.
+  machine_energy:
+    value: 4.376109516666666e-06
+    status: measured
+    unit: kWh
+    source_url: https://doi.org/10.1002/advs.202100707
+    derived_from:
+    - scenarios[0].runtime
+    - assumptions.power_draw
+    notes: runtime in hours x average power in watts / 1000.
+scenarios:
+- name: as-audited
+  description: One unit of work as this audit found it, on the machine it ran on.
+  runtime:
+    value: 0.4941358750074869
+    status: measured
+    unit: s
+    notes: Wall-clock time of `python3.13 predict.py --num_samples 400`.
+  costs:
+    time:
+      value: 0.4941358750074869
+      status: measured
+      unit: s
+      derived_from:
+      - scenarios[0].runtime
+      notes: Wall-clock time of `python3.13 predict.py --num_samples 400`.
+    energy:
+      value: 6.564164274999999e-06
+      status: estimated
+      unit: kWh
+      source_url: https://doi.org/10.1002/advs.202100707
+      derived_from:
+      - assumptions.machine_energy
+      - assumptions.pue
+      notes: 'Machine energy x power usage effectiveness: what the building draws.'
+    money:
+      value: 1.5753994259999998e-06
+      status: estimated
+      unit: USD
+      currency: USD
+      derived_from:
+      - scenarios[0].costs.energy
+      - assumptions.electricity_price
+      notes: Facility energy x price per kilowatt-hour; hardware and staff are not included.
+    carbon:
+      value: 0.0003675931993999999
+      status: estimated
+      unit: gCO2e
+      source_url: https://doi.org/10.1002/advs.202100707
+      derived_from:
+      - scenarios[0].costs.energy
+      - assumptions.grid_carbon_intensity
+      notes: Facility energy x grid carbon intensity, operating emissions only.
+    embodied_carbon:
+      value: null
+      status: TODO
+      unit: gCO2e
+      derived_from:
+      - assumptions.hardware_embodied_carbon
+      - assumptions.hardware_lifetime
+      - scenarios[0].runtime
+      notes: No product carbon footprint is on file for this hardware, so the carbon of building it is
+        open. Nobody has read one for this part; that is not the same as it having been free to build.
+        Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was
+        read.
+    water:
+      value: null
+      status: TODO
+      unit: L
+      derived_from:
+      - assumptions.machine_energy
+      - assumptions.water_usage_effectiveness
+      notes: Needs the machine's energy and a published water usage effectiveness.
+projections:
+  whole_run:
+    description: What the whole run would cost, projected from the slice that was measured and from the
+      exponent by which its cost was measured to grow with the size of the job.
+    costs:
+      time:
+        method: 'Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size)
+          over 3 runs: seconds = 0.007966 × size^0.687.'
+        result:
+          value: 56.80513200607686
+          status: estimated
+          unit: s
+          notes: Projected from a slice covering 0.1% of the run, with a measured scaling exponent of
+            0.687.
+        assumptions:
+        - The workload keeps the scaling it was measured to have over the sizes that were run.
+        - Warm-up, checkpointing, and data loading grow with the size the same way the measured slices
+          did.
+        limits:
+        - The exponent holds between sizes 25 and 400, and the whole run is about 4e+05 at the same scale,
+          which is 1e+03 times the largest size actually run.
+        - The exponent was measured between sizes 25 and 400. Outside that range it is an extrapolation
+          like any other.
+        - A cost that changes shape partway through a real run — a learning-rate schedule that changes
+          batch size, a dataset that stops fitting in memory — is not visible in slices that all ran before
+          it.
+        - 'Beyond the largest size measured, the exponent is an extrapolation: it describes how the work
+          grew where it was watched growing, not a law.'
+      energy:
+        method: 'Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size)
+          over 3 runs: seconds = 0.007966 × size^0.687.'
+        result:
+          value: 0.0007546066517540325
+          status: estimated
+          unit: kWh
+          notes: Projected from a slice covering 0.1% of the run, with a measured scaling exponent of
+            0.687.
+        assumptions:
+        - The workload keeps the scaling it was measured to have over the sizes that were run.
+        - Warm-up, checkpointing, and data loading grow with the size the same way the measured slices
+          did.
+        limits:
+        - The exponent holds between sizes 25 and 400, and the whole run is about 4e+05 at the same scale,
+          which is 1e+03 times the largest size actually run.
+        - The exponent was measured between sizes 25 and 400. Outside that range it is an extrapolation
+          like any other.
+        - A cost that changes shape partway through a real run — a learning-rate schedule that changes
+          batch size, a dataset that stops fitting in memory — is not visible in slices that all ran before
+          it.
+        - 'Beyond the largest size measured, the exponent is an extrapolation: it describes how the work
+          grew where it was watched growing, not a law.'
+      money:
+        method: 'Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size)
+          over 3 runs: seconds = 0.007966 × size^0.687.'
+        result:
+          value: 0.0001811055964209678
+          status: estimated
+          unit: USD
+          currency: USD
+          notes: Projected from a slice covering 0.1% of the run, with a measured scaling exponent of
+            0.687.
+        assumptions:
+        - The workload keeps the scaling it was measured to have over the sizes that were run.
+        - Warm-up, checkpointing, and data loading grow with the size the same way the measured slices
+          did.
+        limits:
+        - The exponent holds between sizes 25 and 400, and the whole run is about 4e+05 at the same scale,
+          which is 1e+03 times the largest size actually run.
+        - The exponent was measured between sizes 25 and 400. Outside that range it is an extrapolation
+          like any other.
+        - A cost that changes shape partway through a real run — a learning-rate schedule that changes
+          batch size, a dataset that stops fitting in memory — is not visible in slices that all ran before
+          it.
+        - 'Beyond the largest size measured, the exponent is an extrapolation: it describes how the work
+          grew where it was watched growing, not a law.'
+      carbon:
+        method: 'Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size)
+          over 3 runs: seconds = 0.007966 × size^0.687.'
+        result:
+          value: 0.04225797249822581
+          status: estimated
+          unit: gCO2e
+          notes: Projected from a slice covering 0.1% of the run, with a measured scaling exponent of
+            0.687.
+        assumptions:
+        - The workload keeps the scaling it was measured to have over the sizes that were run.
+        - Warm-up, checkpointing, and data loading grow with the size the same way the measured slices
+          did.
+        limits:
+        - The exponent holds between sizes 25 and 400, and the whole run is about 4e+05 at the same scale,
+          which is 1e+03 times the largest size actually run.
+        - The exponent was measured between sizes 25 and 400. Outside that range it is an extrapolation
+          like any other.
+        - A cost that changes shape partway through a real run — a learning-rate schedule that changes
+          batch size, a dataset that stops fitting in memory — is not visible in slices that all ran before
+          it.
+        - 'Beyond the largest size measured, the exponent is an extrapolation: it describes how the work
+          grew where it was watched growing, not a law.'
+analysis:
+  evidence_source: static
+  archetype: inference
+  languages:
+  - Python
+  language_file_counts:
+    Python: 2
+  total_work:
+    unit: num_samples
+    stated_as: '400000'
+    source: config.py::num_samples
+  entrypoint: predict.py
+  has_tests: false
+measurement:
+  command:
+  - ~/miniconda3/bin/python3.13
+  - ~/saggio/examples/walkthrough/counter/predict.py
+  - --num_samples
+  - '400'
+  exit_code: 0
+  measured_on: '2026-10-01'
+  power_scope: 'The figure covers the chip''s processor cores, graphics cores, and neural engine, from
+    the system-on-chip''s own energy counters and the chip''s memory, from its own energy counter, read
+    from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here:
+    the machine publishes its own memory energy counter, so the figure is what the memory drew rather
+    than what its installed capacity suggests it would draw. These are the chip''s own energy counters,
+    which are a model inside the silicon rather than a meter on the power rail, and Apple says they are
+    not a basis for comparing one machine against another. Left out of them: the display, storage, networking,
+    the fans, and the power supply''s own losses.'
+  power_sources:
+  - system-on-chip
+  - memory
+  cpu_seconds: 0.4714
+  power_by_domain:
+    cpu: 28.525
+    gpu: 0.123
+    ane: 0.0
+    memory: 3.234
+  cpu_share:
+    share: 0.100948
+    run_cpu_seconds: 0.471
+    machine_cpu_seconds: 4.67
+  attributed_watts: 2.88
+  attributed_scope: the processor cores alone, which is the only part a share of processor work can price
+  scaling:
+    method: 'Least squares of log(seconds) on log(size) over 3 runs: seconds = 0.007966 × size^0.687.'
+    reading: The work grew more slowly than the size, by a power of 0.69. Over these sizes the run is
+      dominated by costs that do not grow with the job — start-up, imports, loading a model — so the slices
+      are mostly measuring overhead and a projection from them would overstate the whole run.
+    exponent:
+      value: 0.6868470626474811
+      status: measured
+      unit: exponent
+      notes: Fitted over 3 runs of sizes 25 to 400, R² = 0.999.
+    r_squared: 0.999494
+    observations:
+    - size: 25.0
+      seconds: 0.07358683299389668
+    - size: 100.0
+      seconds: 0.18373870798677672
+    - size: 400.0
+      seconds: 0.4941358750074869
+    limits:
+    - The exponent was measured between sizes 25 and 400. Outside that range it is an extrapolation like
+      any other.
+    - A cost that changes shape partway through a real run — a learning-rate schedule that changes batch
+      size, a dataset that stops fitting in memory — is not visible in slices that all ran before it.
+exclusions:
+- Making the hardware. Only the electricity to run it is counted.
+- The people. Salaries, offices, and travel are out of scope.
+- Idle capacity. This is the cost of one unit of work, not of being ready.
+provenance_rules:
+- Every sourced value carries source_url and retrieved_date.
+- A derived value names its inputs and never outranks the weakest of them.
+- The country is stated by a human, never inferred from a developer's locale.

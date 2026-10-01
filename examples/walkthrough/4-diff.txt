@@ -1,11 +1,12 @@
-assumptions.machine_energy: no number -> 2.61974e-08, TODO -> estimated
-scenarios[0].runtime: no number -> 0.00112596, TODO -> measured
-scenarios[0].costs.time: no number -> 0.00112596, TODO -> measured
-scenarios[0].costs.energy: no number -> 3.92961e-08, TODO -> estimated
-scenarios[0].costs.money: no number -> 9.43107e-09, TODO -> estimated
-scenarios[0].costs.carbon: no number -> 2.20058e-06, TODO -> estimated
+assumptions.power_draw: 83.76 -> 31.1047 (-62.9%), estimated -> measured
+assumptions.machine_energy: no number -> 1.141e-08, TODO -> measured
+scenarios[0].runtime: no number -> 0.00132057, TODO -> measured
+scenarios[0].costs.time: no number -> 0.00132057, TODO -> measured
+scenarios[0].costs.energy: no number -> 1.71149e-08, TODO -> estimated
+scenarios[0].costs.money: no number -> 4.10759e-09, unit currency -> USD: the numbers are not comparable, TODO -> estimated
+scenarios[0].costs.carbon: no number -> 9.58437e-07, TODO -> estimated
 projections.whole_run.costs.time.result: appeared, estimated
 projections.whole_run.costs.energy.result: appeared, estimated
 projections.whole_run.costs.money.result: appeared, estimated
 projections.whole_run.costs.carbon.result: appeared, estimated
-10 change(s), 0 past the 10% gate.
+11 change(s), 0 past the 10% gate.

@@ -1,5 +1,5 @@
 schema_version: '2.1'
-date_updated: '2026-09-14'
+date_updated: '2026-10-01'
 project:
   name: counter
   audited_from: ~/saggio/examples/walkthrough/counter
@@ -19,12 +19,18 @@ deployment:
   cpu: Apple M2 Max
 assumptions:
   power_draw:
-    value: 83.75999999999999
-    status: estimated
+    value: 31.10468175364349
+    status: measured
     unit: W
-    source_url: https://doi.org/10.1002/advs.202100707
-    retrieved_date: '2026-09-12'
-    notes: 'Nameplate sum, Green Algorithms method: 12 cores x 4.0 W + 96 GB x 0.3725 W/GB'
+    notes: 'Read from the machine while the command ran. The figure covers the chip''s processor cores,
+      graphics cores, and neural engine, from the system-on-chip''s own energy counters and the chip''s
+      memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters.
+      Memory is measured rather than estimated here: the machine publishes its own memory energy counter,
+      so the figure is what the memory drew rather than what its installed capacity suggests it would
+      draw. These are the chip''s own energy counters, which are a model inside the silicon rather than
+      a meter on the power rail, and Apple says they are not a basis for comparing one machine against
+      another. Left out of them: the display, storage, networking, the fans, and the power supply''s own
+      losses.'
   pue:
     value: 1.5
     status: estimated
@@ -53,9 +59,24 @@ assumptions:
     unit: L/kWh
     notes: On-premises publishes no water usage effectiveness. Leave this open rather than inventing a
       figure.
+  hardware_embodied_carbon:
+    value: null
+    status: TODO
+    unit: kgCO2e
+    notes: No accelerator was identified, so the carbon of building one is not this model's to carry.
+      A processor's own footprint is not in the catalogue yet; it is excluded rather than assumed to be
+      zero.
+  hardware_lifetime:
+    value: null
+    status: TODO
+    unit: years
+    notes: How long this hardware stays in service, which only you know. The published footprints are
+      cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster
+      between three and six years; choosing within that range moves the embodied carbon by a factor of
+      two, which is why this is asked rather than assumed.
   machine_energy:
-    value: 2.6197405799967234e-08
-    status: estimated
+    value: 1.1409963358333333e-08
+    status: measured
     unit: kWh
     source_url: https://doi.org/10.1002/advs.202100707
     derived_from:
@@ -66,14 +87,14 @@ scenarios:
 - name: as-audited
   description: One unit of work as this audit found it, on the machine it ran on.
   runtime:
-    value: 0.0011259629999985918
+    value: 0.0013205686660076026
     status: measured
     unit: s
     notes: 'Timed with `saggio measure`: python predict.py --num_samples 500. The command performed 500
       units of work, so the figure is the wall-clock time divided by 500.'
   costs:
     time:
-      value: 0.0011259629999985918
+      value: 0.0013205686660076026
       status: measured
       unit: s
       derived_from:
@@ -81,7 +102,7 @@ scenarios:
       notes: 'Timed with `saggio measure`: python predict.py --num_samples 500. The command performed
         500 units of work, so the figure is the wall-clock time divided by 500.'
     energy:
-      value: 3.929610869995085e-08
+      value: 1.71149450375e-08
       status: estimated
       unit: kWh
       source_url: https://doi.org/10.1002/advs.202100707
@@ -90,7 +111,7 @@ scenarios:
       - assumptions.pue
       notes: 'Machine energy x power usage effectiveness: what the building draws.'
     money:
-      value: 9.431066087988204e-09
+      value: 4.107586809e-09
       status: estimated
       unit: USD
       currency: USD
@@ -99,7 +120,7 @@ scenarios:
       - assumptions.electricity_price
       notes: Facility energy x price per kilowatt-hour; hardware and staff are not included.
     carbon:
-      value: 2.2005820871972474e-06
+      value: 9.584369221e-07
       status: estimated
       unit: gCO2e
       source_url: https://doi.org/10.1002/advs.202100707
@@ -107,6 +128,18 @@ scenarios:
       - scenarios[0].costs.energy
       - assumptions.grid_carbon_intensity
       notes: Facility energy x grid carbon intensity, operating emissions only.
+    embodied_carbon:
+      value: null
+      status: TODO
+      unit: gCO2e
+      derived_from:
+      - assumptions.hardware_embodied_carbon
+      - assumptions.hardware_lifetime
+      - scenarios[0].runtime
+      notes: No product carbon footprint is on file for this hardware, so the carbon of building it is
+        open. Nobody has read one for this part; that is not the same as it having been free to build.
+        Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was
+        read.
     water:
       value: null
       status: TODO
@@ -118,16 +151,16 @@ scenarios:
 projections:
   whole_run:
     description: What a whole run would cost, from the per-unit costs in scenarios[0]. A whole run performs
-      5000 num_samples, as config.py::num_samples states. This assumes one unit of work is one num_sample;
+      400000 num_samples, as config.py::num_samples states. This assumes one unit of work is one num_sample;
       if the model's unit of work means something else, restate this.
     costs:
       time:
-        method: Whole run = measured slice / 0.0002.
+        method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 5.629814999992959
+          value: 528.227466403041
           status: estimated
           unit: s
-          notes: Projected from a slice covering 0.02% of the run.
+          notes: Projected from a slice covering 0.00025% of the run.
         assumptions:
         - The remaining work costs the same per unit as the slice that was run.
         - Warm-up, checkpointing, and data loading are spread evenly across the run.
@@ -135,13 +168,15 @@ projections:
         - A run whose later stages differ in shape, such as a learning-rate schedule that changes batch
           size, will not scale linearly.
         - One-off costs paid entirely inside the slice are counted as though they recurred throughout.
+        - Nothing here checked that the work is uniform. Measuring a few slices of different sizes would
+          turn that assumption into an exponent; see saggio.estimate.scaling.
       energy:
-        method: Whole run = measured slice / 0.0002.
+        method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 0.00019648054349975422
+          value: 0.006845978014999999
           status: estimated
           unit: kWh
-          notes: Projected from a slice covering 0.02% of the run.
+          notes: Projected from a slice covering 0.00025% of the run.
         assumptions:
         - The remaining work costs the same per unit as the slice that was run.
         - Warm-up, checkpointing, and data loading are spread evenly across the run.
@@ -149,14 +184,16 @@ projections:
         - A run whose later stages differ in shape, such as a learning-rate schedule that changes batch
           size, will not scale linearly.
         - One-off costs paid entirely inside the slice are counted as though they recurred throughout.
+        - Nothing here checked that the work is uniform. Measuring a few slices of different sizes would
+          turn that assumption into an exponent; see saggio.estimate.scaling.
       money:
-        method: Whole run = measured slice / 0.0002.
+        method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 4.715533043994102e-05
+          value: 0.0016430347235999998
           status: estimated
           unit: USD
           currency: USD
-          notes: Projected from a slice covering 0.02% of the run.
+          notes: Projected from a slice covering 0.00025% of the run.
         assumptions:
         - The remaining work costs the same per unit as the slice that was run.
         - Warm-up, checkpointing, and data loading are spread evenly across the run.
@@ -164,13 +201,15 @@ projections:
         - A run whose later stages differ in shape, such as a learning-rate schedule that changes batch
           size, will not scale linearly.
         - One-off costs paid entirely inside the slice are counted as though they recurred throughout.
+        - Nothing here checked that the work is uniform. Measuring a few slices of different sizes would
+          turn that assumption into an exponent; see saggio.estimate.scaling.
       carbon:
-        method: Whole run = measured slice / 0.0002.
+        method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 0.011002910435986236
+          value: 0.38337476883999994
           status: estimated
           unit: gCO2e
-          notes: Projected from a slice covering 0.02% of the run.
+          notes: Projected from a slice covering 0.00025% of the run.
         assumptions:
         - The remaining work costs the same per unit as the slice that was run.
         - Warm-up, checkpointing, and data loading are spread evenly across the run.
@@ -178,6 +217,8 @@ projections:
         - A run whose later stages differ in shape, such as a learning-rate schedule that changes batch
           size, will not scale linearly.
         - One-off costs paid entirely inside the slice are counted as though they recurred throughout.
+        - Nothing here checked that the work is uniform. Measuring a few slices of different sizes would
+          turn that assumption into an exponent; see saggio.estimate.scaling.
 analysis:
   evidence_source: static
   archetype: inference
@@ -187,8 +228,9 @@ analysis:
     Python: 2
   total_work:
     unit: num_samples
-    stated_as: '5000'
+    stated_as: '400000'
     source: config.py::num_samples
+  entrypoint: predict.py
   has_tests: false
 exclusions:
 - Making the hardware. Only the electricity to run it is counted.
