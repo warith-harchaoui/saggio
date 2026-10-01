@@ -56,6 +56,16 @@ release of that line.
   line exactly and rule nothing out — a size range under a factor of four, a
   size or duration that has no logarithm, or a fit explaining less than 95% of
   the variation: each returns a refusal naming what would resolve it.
+- A fit whose exponent comes out *negative* is refused too, and separately from
+  the goodness of fit, because a downward line through three points fits
+  beautifully and means nothing. Work does not shrink when there is more of it:
+  larger runs finishing sooner says something other than the work decided the
+  durations — start-up dominating every rung, a cache warming, another process
+  on the machine — and the refusal says so and suggests `saggio power`. Zero is
+  still an answer: constant cost is what it looks like. Found by the audit test
+  failing on a machine that had another job on it, where the exponent came out
+  at -0.08 and the validator rejected it as a negative cost, failing the whole
+  audit instead of leaving one figure open.
 - A fit that poor changes an answer rather than withholding one. It means the
   slice is not representative of the run it was cut from, so the whole-run block
   is not written at all and the reason reaches the reader. Having measured the

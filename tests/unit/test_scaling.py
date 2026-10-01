@@ -332,3 +332,32 @@ def test_the_command_passes_the_size_as_the_repository_own_flag() -> None:
 @pytest.mark.parametrize(("steps", "growth"), [(0, 4.0), (-1, 4.0), (3, 1.0), (3, 0.5)])
 def test_a_ladder_nobody_can_build_is_empty_rather_than_wrong(steps: int, growth: float) -> None:
     assert scaling_ladder(reading_with(600000.0), steps=steps, growth=growth) == ()
+
+
+def test_work_that_shrank_as_it_grew_is_refused_rather_than_reported() -> None:
+    # The larger runs finished sooner. That is not how work grows; it is a
+    # measurement of something else deciding the durations — start-up over a
+    # short range, a cache warming, another process on the machine. A downward
+    # line through three points fits beautifully, so the R-squared guard cannot
+    # catch this and the sign is checked on its own.
+    fit = fit_power_law([Observation(100, 1.2), Observation(400, 1.1), Observation(1600, 1.0)])
+    assert fit.refused
+    assert "Work does not shrink when there is more of it" in fit.exponent.notes
+    assert "saggio power" in fit.exponent.notes
+
+
+def test_a_refused_fit_leaves_the_model_valid() -> None:
+    # This is the failure it was found by: a negative exponent written into the
+    # model is rejected by the validator as a negative cost, which fails the
+    # whole audit rather than reporting an open figure.
+    fit = fit_power_law([Observation(100, 1.2), Observation(400, 1.1), Observation(1600, 1.0)])
+    assert fit.exponent.status == "TODO"
+    assert fit.exponent.value is None
+
+
+def test_a_flat_set_of_durations_is_a_real_answer() -> None:
+    # Constant cost is not a refusal: an exponent of zero is what it looks like,
+    # and zero is not negative.
+    fit = fit_power_law([Observation(size, 2.0) for size in (100, 400, 1600)])
+    assert not fit.refused
+    assert fit.exponent.value == pytest.approx(0.0)

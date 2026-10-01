@@ -459,6 +459,23 @@ def fit_power_law(
     exponent = covariance / variance
     intercept = mean_y - exponent * mean_x
 
+    if exponent < 0.0:
+        # More work took less time. That is not a statement about how the work
+        # grows; it is a statement that something other than the work decided
+        # the durations — interpreter start-up over a range this short, a cache
+        # warming, or another process on the machine. A good fit does not save
+        # it: a downward line through three points fits beautifully and means
+        # nothing, so the sign is checked separately from the R-squared.
+        return _refusal(
+            f"The fit came out with an exponent of {exponent:.3f}: the larger "
+            "runs finished sooner than the smaller ones. Work does not shrink "
+            "when there is more of it, so this is a measurement of something "
+            "else — start-up that dominates every rung, a cache warming up, or "
+            "another process on the machine. Run larger slices on a quieter "
+            "machine, or check what the machine was doing with `saggio power`.",
+            kept,
+        )
+
     residual = sum(
         (y - (intercept + exponent * x)) ** 2 for x, y in zip(log_sizes, log_seconds, strict=True)
     )
