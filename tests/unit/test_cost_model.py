@@ -82,7 +82,7 @@ def test_scenarios_flatten_whichever_spelling(sound_model: dict[str, Any]) -> No
 def test_a_registry_picks_up_the_models_own_dimensions() -> None:
     model = CostModel.from_mapping({"dimensions": [{"key": "egress", "unit": "GB"}]})
     assert "egress" in model.registry
-    assert len(model.registry) == 6
+    assert len(model.registry) == 7
 
 
 def test_a_dimension_that_duplicates_a_canonical_one_is_skipped_not_fatal() -> None:

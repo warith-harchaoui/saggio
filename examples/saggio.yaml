@@ -1,5 +1,5 @@
 schema_version: '2.1'
-date_updated: '2026-09-14'
+date_updated: '2026-10-01'
 project:
   name: saggio
   audited_from: ~/saggio
@@ -53,6 +53,21 @@ assumptions:
     unit: L/kWh
     notes: On-premises publishes no water usage effectiveness. Leave this open rather than inventing a
       figure.
+  hardware_embodied_carbon:
+    value: null
+    status: TODO
+    unit: kgCO2e
+    notes: No accelerator was identified, so the carbon of building one is not this model's to carry.
+      A processor's own footprint is not in the catalogue yet; it is excluded rather than assumed to be
+      zero.
+  hardware_lifetime:
+    value: null
+    status: TODO
+    unit: years
+    notes: How long this hardware stays in service, which only you know. The published footprints are
+      cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster
+      between three and six years; choosing within that range moves the embodied carbon by a factor of
+      two, which is why this is asked rather than assumed.
   machine_energy:
     value: null
     status: TODO
@@ -78,7 +93,7 @@ external_services:
       open because a price copied today is wrong by next quarter.
 models_called:
 - model: gpt-4o
-  detected_at: tests/unit/test_static.py:306
+  detected_at: tests/unit/test_static.py:307
   evidence: '''reply = client.chat.completions.create(model="gpt-4o")\n'', encoding="utf-8"'
   caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
     before pricing it.
@@ -88,7 +103,7 @@ models_called:
     notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
       a real call, or state it.
 - model: claude-3-5-sonnet
-  detected_at: tests/unit/test_static.py:316
+  detected_at: tests/unit/test_static.py:317
   evidence: (tmp_path / "a.py").write_text('model_name = "claude-3-5-sonnet"\n', encoding="utf-8")
   caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
     before pricing it.
@@ -98,7 +113,7 @@ models_called:
     notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
       a real call, or state it.
 - model: mistral-large-latest
-  detected_at: tests/unit/test_static.py:317
+  detected_at: tests/unit/test_static.py:318
   evidence: '(tmp_path / "b.py").write_text(''{"model": "mistral-large-latest"}\n'', encoding="utf-8")'
   caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
     before pricing it.
@@ -149,6 +164,18 @@ scenarios:
       - scenarios[0].costs.energy
       - assumptions.grid_carbon_intensity
       notes: Needs the energy drawn and the grid carbon intensity where it runs.
+    embodied_carbon:
+      value: null
+      status: TODO
+      unit: gCO2e
+      derived_from:
+      - assumptions.hardware_embodied_carbon
+      - assumptions.hardware_lifetime
+      - scenarios[0].runtime
+      notes: No product carbon footprint is on file for this hardware, so the carbon of building it is
+        open. Nobody has read one for this part; that is not the same as it having been free to build.
+        Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was
+        read.
     water:
       value: null
       status: TODO
@@ -164,8 +191,8 @@ analysis:
   - Python
   - JavaScript
   language_file_counts:
-    Python: 66
-    JavaScript: 5
+    Python: 78
+    JavaScript: 2
   frameworks:
   - ffmpeg
   total_work:

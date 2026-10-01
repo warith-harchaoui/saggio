@@ -99,6 +99,16 @@ une A100 et une H100, et ne rapporter que le rapport de calcul sous-estimerait l
 facture d'un tiers. Il refuse net quand le catalogue n'a aucun chiffre de débit
 pour la précision dans laquelle le travail tourne.
 
+**Il compte le matériel, pas seulement l'électricité.** Fabriquer une carte mère
+HGX H100 émet 1 312 kgCO2e avant qu'elle ne calcule quoi que ce soit, et un
+modèle qui ne rapporte que l'énergie affirme que ce chiffre est zéro. La
+dimension `embodied_carbon` amortit une empreinte carbone produit publiée sur la
+part de vie du matériel qu'une unité de travail a réservée — ce qui complète les
+quatre termes d'[ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/),
+la norme Software Carbon Intensity, dont ce paquet avait déjà la forme.
+[`NORMES.md`](NORMES.md) dit quelle part est satisfaite et quelle part reste la
+vôtre à fournir.
+
 **Il écrit des rapports qui se lisent.** Du Markdown pour une pull request. Une
 page HTML autonome pour tous les autres : hors ligne, clair et sombre, anglais et
 français, avec un panneau qui recalcule le modèle pour un autre pays dans le

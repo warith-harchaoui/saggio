@@ -68,7 +68,7 @@ def test_a_malformed_declaration_never_breaks_the_registry(declared: object) -> 
 
 def test_a_registry_is_iterable_sized_and_searchable() -> None:
     registry = DimensionRegistry()
-    assert len(registry) == 5
+    assert len(registry) == 6
     assert "carbon" in registry
     assert next(iter(registry)).key == "money"
     with pytest.raises(KeyError):

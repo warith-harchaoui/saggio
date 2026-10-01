@@ -23,7 +23,7 @@ which `help()` will show you.
 | `Quantity` | One number with its unit, honesty status, provenance, and derivation. |
 | `Dimension` | One measurable axis of the cost of running a unit of work. |
 | `DimensionRegistry` | An ordered collection of the dimensions one cost model reports. |
-| `CANONICAL_DIMENSIONS` | `money`, `time`, `energy`, `carbon`, `water` |
+| `CANONICAL_DIMENSIONS` | `money`, `time`, `energy`, `carbon`, `embodied_carbon`, `water` |
 | `SCHEMA_VERSION` | `'2.1'` |
 | `MEASURED` | `'measured'` |
 | `ESTIMATED` | `'estimated'` |
@@ -65,8 +65,10 @@ which `help()` will show you.
 | `Observation` | One run, of a known size, that took a known time. |
 | `Projection` | The result of a projection: a number, its method, and its limits. |
 | `ScalingFit` | A measured power law, or a refusal to report one. |
+| `embodied_carbon(*, embodied: 'Quantity', lifetime: 'Quantity', runtime: 'Quantity', resource_share: 'Quantity \| None' = None) -> 'Quantity'` | Return the manufacturing carbon one unit of work is answerable for. |
 | `fit_power_law(observations: 'list[Observation] \| tuple[Observation, ...]', *, minimum_r_squared: 'float' = 0.95, status: 'str' = 'measured') -> 'ScalingFit'` | Fit ``seconds = a * size ** b`` and say how well it fits. |
 | `project_to_completion(measured: 'Quantity', *, fraction: 'float', scaling: 'ScalingFit \| None' = None) -> 'Projection'` | Project a measured slice of a run to the whole of it. |
+| `software_carbon_intensity(*, operational: 'Quantity', embodied: 'Quantity') -> 'Quantity'` | Return the SCI score: operational plus embodied, per unit of work. |
 | `project_to_machine(*, runtime: 'Quantity', source_key: 'str', target_key: 'str', precision: 'str' = 'bf16', compute_bound: 'bool \| None' = None, overlay_catalog: 'Catalog \| None' = None) -> 'Projection'` | Project a runtime measured on one accelerator onto another. |
 | `project_to_processor(*, runtime: 'Quantity', source_key: 'str', target_key: 'str', parallelism: 'float \| None' = None, overlay_catalog: 'Catalog \| None' = None) -> 'Projection'` | Project a runtime measured on one processor onto another. |
 
@@ -113,4 +115,4 @@ which `help()` will show you.
 
 ---
 
-Generated from the docstrings by `docs/sync_api.py`. saggio 1.1.0.
+Generated from the docstrings by `docs/sync_api.py`. saggio 1.2.0.

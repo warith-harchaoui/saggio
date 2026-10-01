@@ -96,6 +96,16 @@ more than a factor of two between an A100 and an H100, and reporting the compute
 ratio alone would understate the bill by a third. It refuses outright when the
 catalogue has no throughput figure for the precision the work runs in.
 
+**Counts the hardware, not only the electricity.** Manufacturing one HGX H100
+baseboard emits 1,312 kgCO2e before it computes anything, and a model that
+reports only the energy is claiming that figure is zero. The `embodied_carbon`
+dimension amortises a published product carbon footprint over the share of the
+hardware's life one unit of work reserved — which completes the four terms of
+[ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/), the
+Software Carbon Intensity standard, whose shape this package already had.
+[`STANDARDS.md`](STANDARDS.md) says which part of it is satisfied and which part
+is still yours to supply.
+
 **Writes reports that people read.** Markdown for a pull request. A single
 self-contained HTML page for everyone else: offline, light and dark, English and
 French, with a panel that recomputes the model for a different country in the

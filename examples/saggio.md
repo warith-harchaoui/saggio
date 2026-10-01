@@ -2,14 +2,14 @@
 
 **This model is only as good as its weakest number, which is `TODO`.** A human must supply this before the model can be trusted.
 
-Last updated 2026-09-14. Schema 2.1.
+Last updated 2026-10-01. Schema 2.1.
 
 ## Honesty
 
 | Status | Count | Meaning |
 |---|---|---|
 | `estimated` | 4 | Computed from a sourced assumption or a published formula. |
-| `TODO` | 12 | A human must supply this before the model can be trusted. |
+| `TODO` | 15 | A human must supply this before the model can be trusted. |
 
 ## One unit of work
 
@@ -41,6 +41,7 @@ One unit of work as this audit found it, on the machine it ran on.
 | Time | not known | `TODO` | `scenarios[0].runtime` | No run was measured. Measure the real command with `saggio measure`, or audit again with --run. |
 | Energy | not known | `TODO` | `assumptions.machine_energy`, `assumptions.pue` | Needs the machine's own energy and the site's power usage effectiveness. |
 | Carbon | not known | `TODO` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Needs the energy drawn and the grid carbon intensity where it runs. |
+| Embodied carbon | not known | `TODO` | `assumptions.hardware_embodied_carbon`, `assumptions.hardware_lifetime`, `scenarios[0].runtime` | No product carbon footprint is on file for this hardware, so the carbon of building it is open. Nobody has read one for this part; that is not the same as it having been free to build. Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was read. |
 | Water | not known | `TODO` | `assumptions.machine_energy`, `assumptions.water_usage_effectiveness` | Needs the machine's energy and a published water usage effectiveness. |
 
 ## What the numbers rest on
@@ -52,6 +53,8 @@ One unit of work as this audit found it, on the machine it ran on.
 | `electricity_price` | 0.24 USD | `estimated` | [source](https://ember-energy.org/data/electricity-data-explorer/), read 2026-09-12 | Indicative tariff for France. |
 | `grid_carbon_intensity` | 56 gCO2e/kWh | `estimated` | [source](https://ember-energy.org/data/electricity-data-explorer/), read 2026-09-12 | Annual average for France. |
 | `water_usage_effectiveness` | not known | `TODO` | — | On-premises publishes no water usage effectiveness. Leave this open rather than inventing a figure. |
+| `hardware_embodied_carbon` | not known | `TODO` | — | No accelerator was identified, so the carbon of building one is not this model's to carry. A processor's own footprint is not in the catalogue yet; it is excluded rather than assumed to be zero. |
+| `hardware_lifetime` | not known | `TODO` | — | How long this hardware stays in service, which only you know. The published footprints are cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster between three and six years; choosing within that range moves the embodied carbon by a factor of two, which is why this is asked rather than assumed. |
 | `machine_energy` | not known | `TODO` | — | Needs both a runtime and an average power draw. |
 
 ## Services this code pays for
@@ -66,15 +69,15 @@ Prices are not copied into this model. An API price copied today is wrong by nex
 
 A rate is not a cost. These are what the vendor charges per unit; how many of those units one unit of work spends is the open half, and reading the code cannot establish it.
 
-### `gpt-4o` — found at `tests/unit/test_static.py:306`
+### `gpt-4o` — found at `tests/unit/test_static.py:307`
 
 _No published rate was found for this model._
 
-### `claude-3-5-sonnet` — found at `tests/unit/test_static.py:316`
+### `claude-3-5-sonnet` — found at `tests/unit/test_static.py:317`
 
 _No published rate was found for this model._
 
-### `mistral-large-latest` — found at `tests/unit/test_static.py:317`
+### `mistral-large-latest` — found at `tests/unit/test_static.py:318`
 
 _No published rate was found for this model._
 

@@ -5,7 +5,40 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
-## Unreleased
+## 1.2.0 — 2026-10-01
+
+### The hardware's own carbon, and the standard it completes
+
+- A new canonical dimension, `embodied_carbon`: what building the hardware
+  emitted, amortised over the share of its life one unit of work reserved.
+  Manufacturing one HGX H100 baseboard emits 1,312 kgCO2e before it computes
+  anything, and a model that reported only the electricity was claiming that
+  figure was zero.
+- `saggio.embodied_carbon` implements the Software Carbon Intensity
+  specification's `M = TE × TS × RS`, and `saggio.software_carbon_intensity`
+  assembles `(E × I + M) per R` — refusing when either half is open, because
+  reporting one of them under the name of a standard would understate it with
+  the standard's authority.
+- Three sourced footprints in the catalogue, each read from its own primary
+  document and carrying its boundary in words: A100 at 127.6 kgCO2e from a
+  teardown LCA, H100 at 164.0 and B200 at 284.25 from NVIDIA's own ISO
+  14067 product carbon footprints, both one eighth of a baseboard. A part with
+  no row gives a `TODO` saying nobody has read a footprint for it, which is not
+  the same as it having been free to build.
+- **The lifespan ships open, on purpose.** Every one of those footprints is
+  cradle-to-gate and excludes the use phase, so the vendor gave the numerator
+  and withheld the denominator. `assumptions.hardware_lifetime` is a `TODO`
+  until a human states it; published figures cluster between three and six
+  years and that range alone moves the answer by a factor of two.
+- The amortisation is calendar time, as the specification defines it, so a card
+  idle half its life charges that half to nobody. Every figure says so, because
+  the common alternative gives a larger number and is not what the standard
+  says.
+- `STANDARDS.md` and `NORMES.md` are the new bilingual page: the four terms,
+  where each comes from, and — the half of a conformance claim worth reading —
+  exactly where this is *not* conformant. Plus what the EU AI Act's Annex XI
+  asks, which is less: energy rather than emissions, no embodied carbon at all,
+  and disclosure to the regulator rather than the public.
 
 ### The baseline stops costing what it cannot buy
 

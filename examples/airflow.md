@@ -2,14 +2,14 @@
 
 **This model is only as good as its weakest number, which is `TODO`.** A human must supply this before the model can be trusted.
 
-Last updated 2026-09-14. Schema 2.1.
+Last updated 2026-10-01. Schema 2.1.
 
 ## Honesty
 
 | Status | Count | Meaning |
 |---|---|---|
 | `estimated` | 4 | Computed from a sourced assumption or a published formula. |
-| `TODO` | 51 | A human must supply this before the model can be trusted. |
+| `TODO` | 82 | A human must supply this before the model can be trusted. |
 
 ## One unit of work
 
@@ -42,6 +42,7 @@ One unit of work as this audit found it, on the machine it ran on.
 | Time | not known | `TODO` | `scenarios[0].runtime` | No run was measured. Measure the real command with `saggio measure`, or audit again with --run. |
 | Energy | not known | `TODO` | `assumptions.machine_energy`, `assumptions.pue` | Needs the machine's own energy and the site's power usage effectiveness. |
 | Carbon | not known | `TODO` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Needs the energy drawn and the grid carbon intensity where it runs. |
+| Embodied carbon | not known | `TODO` | `assumptions.hardware_embodied_carbon`, `assumptions.hardware_lifetime`, `scenarios[0].runtime` | No product carbon footprint is on file for this hardware, so the carbon of building it is open. Nobody has read one for this part; that is not the same as it having been free to build. Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was read. |
 | Water | not known | `TODO` | `assumptions.machine_energy`, `assumptions.water_usage_effectiveness` | Needs the machine's energy and a published water usage effectiveness. |
 
 ## What the numbers rest on
@@ -53,6 +54,8 @@ One unit of work as this audit found it, on the machine it ran on.
 | `electricity_price` | 0.24 USD | `estimated` | [source](https://ember-energy.org/data/electricity-data-explorer/), read 2026-09-12 | Indicative tariff for France. |
 | `grid_carbon_intensity` | 56 gCO2e/kWh | `estimated` | [source](https://ember-energy.org/data/electricity-data-explorer/), read 2026-09-12 | Annual average for France. |
 | `water_usage_effectiveness` | not known | `TODO` | — | On-premises publishes no water usage effectiveness. Leave this open rather than inventing a figure. |
+| `hardware_embodied_carbon` | not known | `TODO` | — | No accelerator was identified, so the carbon of building one is not this model's to carry. A processor's own footprint is not in the catalogue yet; it is excluded rather than assumed to be zero. |
+| `hardware_lifetime` | not known | `TODO` | — | How long this hardware stays in service, which only you know. The published footprints are cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster between three and six years; choosing within that range moves the embodied carbon by a factor of two, which is why this is asked rather than assumed. |
 | `machine_energy` | not known | `TODO` | — | Needs both a runtime and an average power draw. |
 
 ## Services this code pays for
@@ -63,9 +66,8 @@ Prices are not copied into this model. An API price copied today is wrong by nex
 |---|---|---|---|---|
 | Anthropic API | `providers/anthropic/src/airflow/providers/anthropic/operators/agent.py:36` | `from anthropic.types.beta import BetaManagedAgentsSession` | not known | [prices](https://www.anthropic.com/pricing) |
 | AWS (boto3) | `dev/breeze/src/airflow_breeze/utils/publish_docs_to_s3.py:26` | `import boto3` | not known | [prices](https://aws.amazon.com/pricing/) |
-| Microsoft Azure | `providers/databricks/src/airflow/providers/databricks/hooks/databricks_base.py:418` | `from azure.identity import ClientSecretCredential, ManagedIdentityCredential` | not known | [prices](https://azure.microsoft.com/en-us/pricing/) |
 | Cohere API | `providers/cohere/src/airflow/providers/cohere/operators/rerank.py:28` | `from cohere.core.request_options import RequestOptions` | not known | [prices](https://cohere.com/pricing) |
-| Google Cloud | `providers/google/src/airflow/providers/google/cloud/sensors/pubsub.py:26` | `from google.cloud import pubsub_v1` | not known | [prices](https://cloud.google.com/pricing) |
+| Google Cloud | `providers/google/src/airflow/providers/google/cloud/sensors/pubsub.py:27` | `from google.cloud import pubsub_v1` | not known | [prices](https://cloud.google.com/pricing) |
 | Google Gemini API | `providers/google/src/airflow/providers/google/cloud/hooks/gen_ai.py:26` | `from google import genai` | not known | [prices](https://ai.google.dev/pricing) |
 | OpenAI API | `providers/openai/src/airflow/providers/openai/hooks/openai.py:26` | `from openai import OpenAI` | not known | [prices](https://openai.com/api/pricing/) |
 | SendGrid API | `providers/sendgrid/src/airflow/providers/sendgrid/utils/emailer.py:28` | `import sendgrid` | not known | [prices](https://sendgrid.com/en-us/pricing) |
@@ -82,23 +84,27 @@ _No published rate was found for this model._
 
 _No published rate was found for this model._
 
-### `openai:gpt-5.6-sol` — found at `providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:144`
+### `openai:gpt-5` — found at `providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:155`
 
 _No published rate was found for this model._
 
-### `azure:gpt-4o` — found at `providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:165`
+### `azure:gpt-5` — found at `providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:181`
 
 _No published rate was found for this model._
 
-### `bedrock:us.anthropic.claude-opus-4-5` — found at `providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:190`
+### `bedrock:us.anthropic.claude-opus-4-5` — found at `providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:211`
 
 _No published rate was found for this model._
 
-### `google-cloud:gemini-2.0-flash` — found at `providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:255`
+### `google-cloud:gemini-2.5-flash` — found at `providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:281`
 
 _No published rate was found for this model._
 
-### `openai:gpt-4o` — found at `providers/common/ai/src/airflow/providers/common/ai/get_provider_info.py:341`
+### `openai:gpt-5-mini` — found at `providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llm_fallback.py:27`
+
+_No published rate was found for this model._
+
+### `anthropic:claude-haiku-4-5-20251001` — found at `providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llm_fallback.py:33`
 
 _No published rate was found for this model._
 
@@ -106,7 +112,23 @@ _No published rate was found for this model._
 
 _No published rate was found for this model._
 
-### `anthropic:claude-haiku-4-5-20251001` — found at `providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llm_retry_policy.py:25`
+### `typesafe:jev-1.13.0` — found at `providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llm_branch.py:113`
+
+_No published rate was found for this model._
+
+### `anthropic:claude-sonnet-5` — found at `providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llm_batch.py:109`
+
+_No published rate was found for this model._
+
+### `openai:gpt-4.1-mini` — found at `providers/common/ai/src/airflow/providers/common/ai/example_dags/example_llm_batch.py:170`
+
+_No published rate was found for this model._
+
+### `old` — found at `scripts/tests/ci/prek/test_check_ui_field_behaviour_matches_hook.py:119`
+
+_No published rate was found for this model._
+
+### `new` — found at `scripts/tests/ci/prek/test_check_ui_field_behaviour_matches_hook.py:120`
 
 _No published rate was found for this model._
 
@@ -118,15 +140,19 @@ _No published rate was found for this model._
 
 _No published rate was found for this model._
 
+### `gpt-6-astra` — found at `providers/openai/tests/system/openai/example_openai_agent.py:39`
+
+_No published rate was found for this model._
+
 ### `gpt-4o-mini` — found at `providers/openai/tests/system/openai/example_trigger_batch_operator.py:65`
 
 _No published rate was found for this model._
 
-### `test_model` — found at `providers/openai/tests/unit/openai/operators/test_openai.py:58`
+### `test_model` — found at `providers/openai/tests/unit/openai/operators/test_openai.py:70`
 
 _No published rate was found for this model._
 
-### `text-embedding-ada-002-v2` — found at `providers/openai/tests/unit/openai/hooks/test_openai.py:102`
+### `text-embedding-ada-002-v2` — found at `providers/openai/tests/unit/openai/hooks/test_openai.py:105`
 
 _No published rate was found for this model._
 
@@ -138,19 +164,27 @@ _No published rate was found for this model._
 
 _No published rate was found for this model._
 
-### `test-model` — found at `providers/common/ai/tests/unit/common/ai/conftest.py:43`
+### `test-model` — found at `providers/common/ai/tests/unit/common/ai/conftest.py:88`
 
 _No published rate was found for this model._
 
-### `test` — found at `providers/common/ai/tests/unit/common/ai/test_observability.py:105`
+### `test` — found at `providers/common/ai/tests/unit/common/ai/test_observability.py:109`
 
 _No published rate was found for this model._
 
-### `openai:gpt-5` — found at `providers/common/ai/tests/unit/common/ai/operators/test_agent.py:371`
+### `gpt-4o` — found at `providers/common/ai/tests/unit/common/ai/operators/test_agent.py:2814`
 
 _No published rate was found for this model._
 
-### `gpt-5` — found at `providers/common/ai/tests/unit/common/ai/utils/test_logging.py:37`
+### `jev-1.13.0` — found at `providers/common/ai/tests/unit/common/ai/operators/test_llm.py:381`
+
+_No published rate was found for this model._
+
+### `claude-sonnet-5` — found at `providers/common/ai/tests/unit/common/ai/operators/test_llm_branch.py:689`
+
+_No published rate was found for this model._
+
+### `gpt-5` — found at `providers/common/ai/tests/unit/common/ai/operators/test_llm_batch.py:149`
 
 _No published rate was found for this model._
 
@@ -158,35 +192,119 @@ _No published rate was found for this model._
 
 _No published rate was found for this model._
 
-### `anthropic:claude-3-7-sonnet` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_langchain.py:104`
+### `anthropic:claude-opus-5` — found at `providers/common/ai/tests/unit/common/ai/batch/test_anthropic.py:205`
 
 _No published rate was found for this model._
 
-### `anthropic:claude-opus-4-6` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:151`
+### `someone-elses-model` — found at `providers/common/ai/tests/unit/common/ai/batch/test_anthropic.py:241`
 
 _No published rate was found for this model._
 
-### `bedrock:us.anthropic.claude-v2` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:195`
+### `anthropic:claude-3-opus` — found at `providers/common/ai/tests/unit/common/ai/batch/test_openai.py:287`
 
 _No published rate was found for this model._
 
-### `openai:llama3` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:213`
+### `fake:model` — found at `providers/common/ai/tests/unit/common/ai/batch/test_results.py:241`
 
 _No published rate was found for this model._
 
-### `badprovider:model` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:490`
+### `anthropic:claude-3-7-sonnet` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_langchain.py:109`
 
 _No published rate was found for this model._
 
-### `google:gemini-2.0-flash` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:784`
+### `other-model` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_langchain.py:282`
 
 _No published rate was found for this model._
 
-### `text-embedding-3-large` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_llamaindex.py:141`
+### `openai:gpt-4o` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_langchain.py:304`
 
 _No published rate was found for this model._
 
-### `gpt-4o` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_llamaindex.py:161`
+### `openai:gpt-5.6-sol` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:121`
+
+_No published rate was found for this model._
+
+### `anthropic:claude-opus-4-6` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:186`
+
+_No published rate was found for this model._
+
+### `bedrock:us.anthropic.claude-v2` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:230`
+
+_No published rate was found for this model._
+
+### `openai:llama3` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:248`
+
+_No published rate was found for this model._
+
+### `foo` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:383`
+
+_No published rate was found for this model._
+
+### `openai:gpt-4` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:419`
+
+_No published rate was found for this model._
+
+### `gpt-4` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:427`
+
+_No published rate was found for this model._
+
+### `gemini-2.5-flash` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:446`
+
+_No published rate was found for this model._
+
+### `us.anthropic.claude-opus-4-6-v1:0` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:468`
+
+_No published rate was found for this model._
+
+### `bedrock:us.anthropic.claude-opus-4-6-v1:0` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:490`
+
+_No published rate was found for this model._
+
+### `google-vertex:gemini-2.5-flash` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:564`
+
+_No published rate was found for this model._
+
+### `openi:gpt-5` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:595`
+
+_No published rate was found for this model._
+
+### `groq:llama-4` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:616`
+
+_No published rate was found for this model._
+
+### `gpt-5-nano` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:737`
+
+_No published rate was found for this model._
+
+### `claude-opus-4-5` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:850`
+
+_No published rate was found for this model._
+
+### `anthropic:claude-1` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:1111`
+
+_No published rate was found for this model._
+
+### `anthropic:claude-2` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:1114`
+
+_No published rate was found for this model._
+
+### `openai:nonexistent-model` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:1406`
+
+_No published rate was found for this model._
+
+### `azure:gpt-4o` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:1473`
+
+_No published rate was found for this model._
+
+### `google:gemini-2.5-flash` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_pydantic_ai.py:1736`
+
+_No published rate was found for this model._
+
+### `custom-value` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_llamaindex.py:185`
+
+_No published rate was found for this model._
+
+### `text-embedding-3-large` — found at `providers/common/ai/tests/unit/common/ai/hooks/test_llamaindex.py:213`
 
 _No published rate was found for this model._
 

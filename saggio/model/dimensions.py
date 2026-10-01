@@ -163,6 +163,16 @@ CARBON: Final[Dimension] = Dimension(
     unit="gCO2e",
     description="Grid emissions for that energy, at the deployment region's intensity.",
 )
+EMBODIED_CARBON: Final[Dimension] = Dimension(
+    key="embodied_carbon",
+    label="Embodied carbon",
+    unit="gCO2e",
+    description=(
+        "Manufacturing the hardware, amortised over the share of its life this unit "
+        "of work reserved. Cradle-to-gate: use phase is the carbon dimension beside "
+        "it, and end of life is excluded because the published footprints exclude it."
+    ),
+)
 WATER: Final[Dimension] = Dimension(
     key="water",
     label="Water",
@@ -171,7 +181,14 @@ WATER: Final[Dimension] = Dimension(
 )
 
 #: The dimensions every model reports by default, in the order reports read.
-CANONICAL_DIMENSIONS: Final[tuple[Dimension, ...]] = (MONEY, TIME, ENERGY, CARBON, WATER)
+CANONICAL_DIMENSIONS: Final[tuple[Dimension, ...]] = (
+    MONEY,
+    TIME,
+    ENERGY,
+    CARBON,
+    EMBODIED_CARBON,
+    WATER,
+)
 
 
 class DimensionRegistry:
@@ -197,7 +214,7 @@ class DimensionRegistry:
     >>> "carbon" in registry
     True
     >>> len(registry)
-    5
+    6
     """
 
     def __init__(self, dimensions: Iterable[Dimension] = CANONICAL_DIMENSIONS) -> None:
@@ -336,7 +353,7 @@ def registry_for(declared: Any) -> DimensionRegistry:
     >>> registry_for([{"key": "egress", "unit": "GB"}]).keys()[-1]
     'egress'
     >>> len(registry_for(None))
-    5
+    6
     """
     registry = DimensionRegistry()
     if not isinstance(declared, list):

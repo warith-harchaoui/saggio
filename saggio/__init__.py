@@ -44,7 +44,7 @@ from __future__ import annotations
 from typing import Final
 
 #: The installed version, kept in step with pyproject.toml at release.
-__version__: Final[str] = "1.1.0"
+__version__: Final[str] = "1.2.0"
 
 __author__: Final[str] = "Warith Harchaoui, Ph.D."
 __email__: Final[str] = "warith.harchaoui@sev7n.io"
@@ -67,6 +67,7 @@ from .estimate import (
     car_km,
     carbon_from_energy,
     detect_machine,
+    embodied_carbon,
     energy_from_runtime,
     equivalences,
     fit_power_law,
@@ -77,6 +78,7 @@ from .estimate import (
     project_to_completion,
     project_to_machine,
     project_to_processor,
+    software_carbon_intensity,
     tree_months,
     water_from_energy,
 )
@@ -142,8 +144,10 @@ __all__ = [
     "Observation",
     "Projection",
     "ScalingFit",
+    "embodied_carbon",
     "fit_power_law",
     "project_to_completion",
+    "software_carbon_intensity",
     "project_to_machine",
     "project_to_processor",
     # Reading and running a repository.

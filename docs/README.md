@@ -16,6 +16,7 @@ hand except [`api.md`](api.md), which is derived from the docstrings.
 | [`../LANDSCAPE.md`](../LANDSCAPE.md) | How does it compare to CodeCarbon, Scaphandre, and the rest? |
 | [`../MEASURING.md`](../MEASURING.md) | Which counters will this machine let me read, and what do they cover? |
 | [`../ANALYSIS.md`](../ANALYSIS.md) | Can reading the code, or running it, tell me its complexity and its cost? |
+| [`../STANDARDS.md`](../STANDARDS.md) | Which standard is this, and which part of it does it not yet satisfy? |
 
 ## Reference
 

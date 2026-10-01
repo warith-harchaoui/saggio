@@ -63,6 +63,7 @@ from .analyze.static import (
 from .catalog.pricing import open_price, rate_table
 from .catalog.registry import Catalog
 from .estimate.context import DeploymentContext
+from .estimate.embodied import embodied_carbon
 from .estimate.energy import (
     carbon_from_energy,
     facility_energy,
@@ -101,6 +102,8 @@ _POWER_PATH: Final[str] = "assumptions.power_draw"
 _PUE_PATH: Final[str] = "assumptions.pue"
 _PRICE_PATH: Final[str] = "assumptions.electricity_price"
 _GRID_PATH: Final[str] = "assumptions.grid_carbon_intensity"
+_LIFETIME_PATH: Final[str] = "assumptions.hardware_lifetime"
+_EMBODIED_PATH: Final[str] = "assumptions.hardware_embodied_carbon"
 _WUE_PATH: Final[str] = "assumptions.water_usage_effectiveness"
 _RUNTIME_PATH: Final[str] = f"{_SCENARIO_PATH}.runtime"
 _IT_ENERGY_PATH: Final[str] = "assumptions.machine_energy"
@@ -317,6 +320,97 @@ def _unit_of_work(reading: RepositoryReading) -> dict[str, Any]:
         "status": "placeholder",
         "out_of_scope": [],
     }
+
+
+def _embodied_assumption(machine: MachineProfile, options: AuditOptions) -> Quantity:
+    """Return what building this machine's accelerator emitted, or a ``TODO``.
+
+    Read from the catalogue the same way a wattage is, and open the same way
+    when the row has no figure: nobody having read a product carbon footprint
+    for a part is not the same as the part having been free to build.
+
+    Parameters
+    ----------
+    machine : MachineProfile
+        What this machine is, including the accelerator key when it has one.
+    options : AuditOptions
+        Carried for the catalogue overlay.
+
+    Returns
+    -------
+    Quantity
+        Kilograms of CO2 equivalent per device, with the footprint's own URL and
+        read date — never the row's, because a footprint is not a datasheet.
+
+    Examples
+    --------
+    >>> _embodied_assumption(MachineProfile(platform="darwin"), AuditOptions()).status
+    'TODO'
+    """
+    if machine.gpu_key is None:
+        return Quantity(
+            unit="kgCO2e",
+            status=TODO,
+            notes=(
+                "No accelerator was identified, so the carbon of building one is not "
+                "this model's to carry. A processor's own footprint is not in the "
+                "catalogue yet; it is excluded rather than assumed to be zero."
+            ),
+        )
+    row = Catalog.load("hardware", overlay=options.overlay).rows("gpus").get(machine.gpu_key, {})
+    figure = row.get("embodied_kgco2e")
+    if not isinstance(figure, (int, float)):
+        return Quantity(
+            unit="kgCO2e",
+            status=TODO,
+            notes=(
+                f"No product carbon footprint is on file for {machine.gpu_key}. Add "
+                "`embodied_kgco2e` to its catalogue row with the footprint's own URL "
+                "and the date it was read; `saggio catalog add gpu` does the rest."
+            ),
+        )
+    return Quantity(
+        value=float(figure),
+        unit="kgCO2e",
+        status=ESTIMATED,
+        source_kind="first-party",
+        source_url=row.get("embodied_source_url") or row.get("source_url"),
+        retrieved_date=row.get("embodied_retrieved_date") or row.get("retrieved_date"),
+        notes=str(row.get("embodied_scope") or "Published product carbon footprint."),
+    )
+
+
+def _lifetime_assumption() -> Quantity:
+    """Return the hardware lifespan, which nobody but the operator knows.
+
+    Shipped open on purpose. Every published footprint in the catalogue is
+    cradle-to-gate and excludes the use phase, so the vendor gave the numerator
+    and deliberately withheld the denominator; how long a card stays in service
+    is a fact about a fleet. Filling it in with a plausible four years would put
+    a number nobody checked under every embodied figure in the report.
+
+    Returns
+    -------
+    Quantity
+        A ``TODO`` naming the range published figures cluster in and what
+        choosing within it does to the answer.
+
+    Examples
+    --------
+    >>> _lifetime_assumption().status
+    'TODO'
+    """
+    return Quantity(
+        unit="years",
+        status=TODO,
+        notes=(
+            "How long this hardware stays in service, which only you know. The "
+            "published footprints are cradle-to-gate and exclude the use phase, so "
+            "none of them states a lifespan. Reported figures cluster between three "
+            "and six years; choosing within that range moves the embodied carbon by "
+            "a factor of two, which is why this is asked rather than assumed."
+        ),
+    )
 
 
 def _power_assumption(
@@ -954,6 +1048,8 @@ def audit(
     price = context.electricity_price()
     grid = context.grid_intensity()
     wue = context.water_effectiveness()
+    embodied = _embodied_assumption(machine, settings)
+    lifetime = _lifetime_assumption()
 
     machine_energy = it_energy_from_runtime(runtime, power).with_derivation(
         _RUNTIME_PATH, _POWER_PATH
@@ -969,6 +1065,9 @@ def audit(
         "energy": energy,
         "money": money_from_energy(energy, price).with_derivation(_ENERGY_PATH, _PRICE_PATH),
         "carbon": carbon_from_energy(energy, grid).with_derivation(_ENERGY_PATH, _GRID_PATH),
+        "embodied_carbon": embodied_carbon(
+            embodied=embodied, lifetime=lifetime, runtime=runtime
+        ).with_derivation(_EMBODIED_PATH, _LIFETIME_PATH, _RUNTIME_PATH),
         "water": water_from_energy(machine_energy, wue).with_derivation(_IT_ENERGY_PATH, _WUE_PATH),
     }
 
@@ -1016,6 +1115,8 @@ def audit(
             "electricity_price": price.to_mapping(),
             "grid_carbon_intensity": grid.to_mapping(),
             "water_usage_effectiveness": wue.to_mapping(),
+            "hardware_embodied_carbon": embodied.to_mapping(),
+            "hardware_lifetime": lifetime.to_mapping(),
             "machine_energy": machine_energy.to_mapping(),
         },
         "scenarios": [

@@ -1,5 +1,5 @@
 schema_version: '2.1'
-date_updated: '2026-09-14'
+date_updated: '2026-10-01'
 project:
   name: fastapi
   audited_from: https://github.com/fastapi/fastapi
@@ -56,6 +56,21 @@ assumptions:
     unit: L/kWh
     notes: On-premises publishes no water usage effectiveness. Leave this open rather than inventing a
       figure.
+  hardware_embodied_carbon:
+    value: null
+    status: TODO
+    unit: kgCO2e
+    notes: No accelerator was identified, so the carbon of building one is not this model's to carry.
+      A processor's own footprint is not in the catalogue yet; it is excluded rather than assumed to be
+      zero.
+  hardware_lifetime:
+    value: null
+    status: TODO
+    unit: years
+    notes: How long this hardware stays in service, which only you know. The published footprints are
+      cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster
+      between three and six years; choosing within that range moves the embodied carbon by a factor of
+      two, which is why this is asked rather than assumed.
   machine_energy:
     value: null
     status: TODO
@@ -137,6 +152,18 @@ scenarios:
       - scenarios[0].costs.energy
       - assumptions.grid_carbon_intensity
       notes: Needs the energy drawn and the grid carbon intensity where it runs.
+    embodied_carbon:
+      value: null
+      status: TODO
+      unit: gCO2e
+      derived_from:
+      - assumptions.hardware_embodied_carbon
+      - assumptions.hardware_lifetime
+      - scenarios[0].runtime
+      notes: No product carbon footprint is on file for this hardware, so the carbon of building it is
+        open. Nobody has read one for this part; that is not the same as it having been free to build.
+        Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was
+        read.
     water:
       value: null
       status: TODO
@@ -153,7 +180,7 @@ analysis:
   - Shell
   - JavaScript
   language_file_counts:
-    Python: 1138
+    Python: 1166
     Shell: 5
     JavaScript: 4
   has_tests: true

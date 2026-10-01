@@ -10,6 +10,8 @@ emits; :mod:`energy` applies the Green Algorithms chain from power and time to
 energy, carbon, water, and money; :mod:`equivalences` restates a carbon figure
 in tree-months, car kilometres, and reference flights so a reader can feel its
 size; :mod:`scaling` measures how the cost grows with the size of the job;
+:mod:`embodied` amortises the carbon of building the hardware onto one unit of
+work and assembles the SCI score;
 :mod:`extrapolate` projects a measured slice to a whole run, and one
 machine's run to another's.
 
@@ -38,6 +40,7 @@ from .context import (
     country_from_timezone,
     local_timezone_name,
 )
+from .embodied import SCI_SOURCE, embodied_carbon, software_carbon_intensity
 from .energy import (
     GREEN_ALGORITHMS_SOURCE,
     MEMORY_POWER_W_PER_GB,
@@ -88,6 +91,7 @@ __all__ = [
     "DEFAULT_PROVIDER",
     "FLIGHT_GCO2",
     "GREEN_ALGORITHMS_SOURCE",
+    "SCI_SOURCE",
     "MEMORY_POWER_W_PER_GB",
     "THROUGHPUT_PRECISIONS",
     "TREE_MONTH_GCO2",
@@ -100,6 +104,7 @@ __all__ = [
     "carbon_from_energy",
     "country_from_timezone",
     "detect_machine",
+    "embodied_carbon",
     "energy_from_runtime",
     "equivalences",
     "flight_fraction",
@@ -112,6 +117,7 @@ __all__ = [
     "project_to_completion",
     "project_to_machine",
     "project_to_processor",
+    "software_carbon_intensity",
     "total_money",
     "tree_months",
     "water_from_energy",

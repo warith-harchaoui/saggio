@@ -31,6 +31,17 @@
 # notes did not state it unambiguously; a part with both performance and
 # efficiency cores needs a decision about what to count before it gets one.
 #
+# embodied_kgco2e is what building the part emitted, cradle-to-gate, per device.
+# It is the one column here whose source is never a datasheet: it comes from a
+# product carbon footprint, so it carries its own `embodied_source_url` and
+# `embodied_retrieved_date` rather than borrowing the row's. `embodied_scope`
+# states the boundary in words, because every published footprint excludes the
+# use phase and most exclude end of life, and a number without its boundary is
+# not a number anybody can use. There is deliberately no lifetime column: the
+# footprints exclude the use phase on purpose, so the vendor gave the numerator
+# and withheld the denominator, and how long a card stays in service is a fact
+# about a fleet rather than about a part.
+#
 # memory_bandwidth_gbps is what makes a projection onto another accelerator
 # honest rather than optimistic. A workload that waits on memory gains the ratio
 # of bandwidths, not the ratio of peak FLOP/s, and the two differ by more than a
@@ -79,6 +90,10 @@ gpus:
     memory_bandwidth_gbps: 1555
     memory_gb: 40
     peak_bf16_tflops: 312
+    embodied_kgco2e: 127.6
+    embodied_scope: "One SXM 40GB card, cradle-to-gate. Teardown LCA with primary elemental analysis; excludes use phase."
+    embodied_source_url: "https://arxiv.org/abs/2509.00093"
+    embodied_retrieved_date: "2026-10-01"
     source_url: "https://www.nvidia.com/en-us/data-center/a100/"
     retrieved_date: "2026-07-27"
     notes: "SXM4, dense BF16, 40 GB memory configuration. The 80 GB part has
@@ -102,6 +117,10 @@ gpus:
     memory_bandwidth_gbps: 3350
     memory_gb: 80
     peak_bf16_tflops: 989
+    embodied_kgco2e: 164.0
+    embodied_scope: "One of the eight GPUs on an HGX H100 baseboard: 1312 kgCO2e cradle-to-gate for the baseboard, divided by eight. ISO 14067, third-party reviewed; excludes use phase and end of life."
+    embodied_source_url: "https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf"
+    embodied_retrieved_date: "2026-10-01"
     source_url: "https://www.nvidia.com/en-us/data-center/h100/"
     retrieved_date: "2026-07-27"
     notes: "SXM5, dense BF16."
@@ -132,6 +151,10 @@ gpus:
     memory_bandwidth_gbps: 8000
     memory_gb: 192
     peak_bf16_tflops: 2250
+    embodied_kgco2e: 284.25
+    embodied_scope: "One of the eight GPUs on an HGX B200 baseboard: 2274 kgCO2e cradle-to-gate for the baseboard, divided by eight. ISO 14067, third-party reviewed; excludes use phase and end of life."
+    embodied_source_url: "https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf"
+    embodied_retrieved_date: "2026-10-01"
     source_url: "https://www.nvidia.com/en-us/data-center/technologies/blackwell-architecture/"
     retrieved_date: "2026-07-27"
     notes: "NVIDIA Blackwell, SXM, dense BF16."
