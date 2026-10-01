@@ -22,6 +22,7 @@ Warith Harchaoui
 
 from __future__ import annotations
 
+from .refresh import GridRefresh, apply_grid, fetch_grid
 from .registry import (
     BUNDLED_CATALOGS,
     DEFAULT_STALE_AFTER_DAYS,
@@ -47,7 +48,9 @@ __all__ = [
     "SECTION_OF_KIND",
     "STALE_AFTER_DAYS",
     "Catalog",
+    "GridRefresh",
     "add_row",
+    "apply_grid",
     "carries_numbers",
     "days_since",
     "is_stale",
@@ -55,5 +58,6 @@ __all__ = [
     "require_provenance",
     "stale_after_days",
     "expiring_report",
+    "fetch_grid",
     "stale_report",
 ]

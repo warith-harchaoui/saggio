@@ -297,12 +297,20 @@ def is_stale(row: dict[str, Any], kind: str, *, today: date | None = None) -> bo
     """
     if not carries_numbers(row):
         return False
-    age = days_since(row.get("retrieved_date"), today=today)
-    if age is None or age < 0:
+    # A row can carry more than one date now: a grid row's carbon intensity is
+    # refreshed from Ember while its price is not, and a GPU row's product carbon
+    # footprint comes from a different document than its datasheet. The row is as
+    # fresh as its stalest number, so the oldest date wins.
+    ages = [
+        days_since(value, today=today)
+        for name, value in row.items()
+        if name == "retrieved_date" or name.endswith("_retrieved_date")
+    ]
+    if not ages or any(age is None or age < 0 for age in ages):
         # A future date is a typo, not extra freshness; a typo'd year must not
         # buy the row years of unearned trust.
         return True
-    return age > stale_after_days(kind)
+    return max(age for age in ages if age is not None) > stale_after_days(kind)
 
 
 def require_provenance(row: dict[str, Any]) -> None:
@@ -717,8 +725,15 @@ def expiring_report(
         for key, row in catalog.rows(section).items():
             if row.get("source_url") == INTERNAL_DEFAULT_SOURCE:
                 continue
-            age = days_since(row.get("retrieved_date"), today=today)
-            if age is None or age < 0 or age > limit:
+            ages = [
+                days_since(value, today=today)
+                for name, value in row.items()
+                if name == "retrieved_date" or name.endswith("_retrieved_date")
+            ]
+            if not ages or any(value is None or value < 0 for value in ages):
+                continue
+            age = max(value for value in ages if value is not None)
+            if age > limit:
                 continue
             left = limit - age
             if left <= within:

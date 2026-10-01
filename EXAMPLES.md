@@ -756,6 +756,29 @@ Tariffs and grid mixes expire in a month, datasheet wattages in a year. A single
 threshold would either nag about a GPU or wave last year's electricity price
 through.
 
+When something does go stale, there is a way to answer it rather than re-date it:
+
+```bash
+saggio catalog refresh grid
+```
+
+Read-only. It prints what Ember says today against what the catalogue holds, and
+writes nothing. `--write saggio/data/grid.yaml` is the deliberate second step,
+and it touches one column: the carbon intensity and the provenance that belongs
+to it. The row's price and timezones came from elsewhere and keep their own.
+
+It needs a free [Ember API key](https://ember-energy.org/data/), in
+`EMBER_API_KEY` or `--api-key`, and it will not substitute anything else. There
+is one tempting alternative — Our World in Data publishes an Ember-derived
+series through a stable CSV with no key at all — and it is wrong: its own
+metadata calls it *lifecycle* carbon intensity, while this column is *operating*
+emissions. Swapping one for the other would change what every committed model
+means, silently, and leave every number looking exactly as trustworthy as
+before. So the command refuses and says that, rather than quietly doing it.
+
+A country the source does not answer for is left alone and named. Nothing is
+interpolated, carried over, or averaged.
+
 It also says what is *about* to expire, without failing:
 
 ```bash

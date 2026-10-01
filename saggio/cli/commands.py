@@ -43,6 +43,7 @@ from ..analyze.capability import measurable, paths_read, probe, summary
 from ..analyze.power import PowerMeter
 from ..analyze.run import record_consent, run_slice
 from ..auditor import AuditOptions, audit, audit_git_url
+from ..catalog.refresh import apply_grid, fetch_grid
 from ..catalog.registry import (
     SECTION_OF_KIND,
     Catalog,
@@ -670,6 +671,82 @@ def catalog_freshness(args: argparse.Namespace) -> int:
             f"{listed}{more}. Re-read the source now rather than re-dating it later."
         )
     return INVALID if stale else OK
+
+
+def catalog_refresh(args: argparse.Namespace) -> int:
+    """Re-read a catalogue's numbers from the source it cites.
+
+    Read-only by default. A command that rewrites thirty-eight sourced figures
+    on a bare invocation is a command somebody runs by accident, and the diff it
+    leaves looks exactly like one a person checked. So it prints what would
+    change and exits; ``--write`` is the deliberate second step.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        With ``catalog``, ``api_key``, ``year``, ``write`` and ``json``.
+
+    Returns
+    -------
+    int
+        :data:`~saggio.cli.exit_codes.USAGE` for a catalogue this cannot
+        refresh, :data:`~saggio.cli.exit_codes.UNAVAILABLE` when the source
+        could not be reached or needs a key, otherwise
+        :data:`~saggio.cli.exit_codes.OK`.
+
+    Examples
+    --------
+    >>> import contextlib, io
+    >>> args = argparse.Namespace(catalog="hardware", api_key=None, year=None,
+    ...                           write=None, json=False)
+    >>> with contextlib.redirect_stdout(io.StringIO()):
+    ...     verdict = catalog_refresh(args)
+    >>> verdict  # a catalogue with no machine-readable source is a usage error
+    2
+    """
+    if args.catalog != "grid":
+        osh.error(
+            f"There is no refresh for the {args.catalog} catalogue. Only `grid` cites a "
+            "source that answers a machine; the others are datasheets and published "
+            "rates that a person reads."
+        )
+        return USAGE
+
+    current = Catalog.bundled("grid").rows("countries")
+    try:
+        refresh = fetch_grid(sorted(current), api_key=args.api_key, year=args.year)
+    except RuntimeError as exc:
+        osh.error(str(exc))
+        return UNAVAILABLE
+
+    moved = refresh.changed(current)
+    if args.json:
+        _emit(
+            {
+                "source": refresh.source,
+                "data_year": refresh.year,
+                "read_on": refresh.retrieved,
+                "changed": {key: {"was": was, "now": now} for key, (was, now) in moved.items()},
+                "unchanged": sorted(set(refresh.rows) - set(moved)),
+                "skipped": refresh.skipped,
+            },
+            as_json=True,
+        )
+    else:
+        print(f"{refresh.source} — {len(refresh.rows)} countries, data year {refresh.year}")
+        for key, (was, now) in sorted(moved.items()):
+            print(f"  {key}: {was} -> {now:.1f} gCO2e/kWh")
+        if not moved:
+            print("  nothing moved by more than the catalogue's own precision.")
+        for key, reason in sorted(refresh.skipped.items()):
+            print(f"  {key}: left alone — {reason}")
+        if args.write is None:
+            print("Read-only. Pass --write PATH to apply this to a catalogue file.")
+
+    if args.write is not None:
+        written = apply_grid(Path(args.write), refresh)
+        print(f"Wrote {written} row(s) to {args.write}.")
+    return OK
 
 
 def machine(args: argparse.Namespace) -> int:

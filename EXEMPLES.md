@@ -777,6 +777,31 @@ Tarifs et mix électriques périment en un mois, consommations de fiche techniqu
 un an. Un seuil unique se mettrait soit à râler sur un GPU, soit à laisser passer
 le tarif d'électricité de l'an dernier.
 
+Quand quelque chose périme vraiment, il y a de quoi y répondre au lieu de
+redater :
+
+```bash
+saggio catalog refresh grid
+```
+
+En lecture seule. Elle affiche ce que dit Ember aujourd'hui face à ce que tient
+le catalogue, et n'écrit rien. `--write saggio/data/grid.yaml` est le second
+geste, délibéré, et il ne touche qu'une colonne : l'intensité carbone et la
+provenance qui lui appartient. Le prix de l'électricité et les fuseaux de la
+ligne viennent d'ailleurs et gardent les leurs.
+
+Elle demande une [clé d'API Ember](https://ember-energy.org/data/) gratuite, dans
+`EMBER_API_KEY` ou `--api-key`, et ne substitue rien d'autre. Il existe une
+alternative tentante — Our World in Data publie une série dérivée d'Ember par un
+CSV stable, sans clé — et elle est fausse : sa propre métadonnée l'appelle
+intensité carbone *de cycle de vie*, là où cette colonne est l'émission
+*opératoire*. Échanger l'une contre l'autre changerait en silence le sens de
+chaque modèle commité, sans rien changer à la confiance qu'il inspire. La
+commande refuse et le dit, plutôt que de le faire discrètement.
+
+Un pays pour lequel la source ne répond pas est laissé tel quel et nommé. Rien
+n'est interpolé, reporté ni moyenné.
+
 Elle dit aussi ce qui est *sur le point* de périmer, sans faire échouer :
 
 ```bash

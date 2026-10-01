@@ -7,6 +7,49 @@ release of that line.
 
 ## Unreleased
 
+### The CI ran two jobs that could only fail
+
+- The workflow matrix still listed `windows-latest` after Windows was excluded,
+  and its header comment still said "the three operating systems this package
+  claims to support". Since `import saggio` now raises there, both Windows jobs
+  failed at collection. The sweep that excluded Windows searched `*.md`, `*.py`,
+  `*.toml` and `*.yaml`; the workflow is `.yml`.
+- Fixed, and pinned: a contract test maps `SUPPORTED_PLATFORMS` to the runners
+  in the matrix and fails when they drift, and a second one refuses an excluded
+  platform in any `os:` or `runs-on:` line. A list of supported platforms that
+  lives in two files needs a test, not a convention.
+
+### A catalogue can be re-read from the source it cites
+
+- `saggio catalog refresh grid` asks Ember what each country's grid emitted and
+  prints it against what the catalogue holds. **Read-only**: a command that
+  rewrites thirty-eight sourced figures on a bare invocation is one somebody
+  runs by accident, and the diff it leaves looks exactly like one a person
+  checked. `--write PATH` is the deliberate second step.
+- It needs a free Ember API key and **substitutes nothing**. Our World in Data
+  publishes an Ember-derived series through a stable CSV with no key, and it is
+  the wrong series: its own metadata calls it *lifecycle* carbon intensity while
+  this column is *operating* emissions. Taking it would have changed what every
+  committed model means, silently. The refusal names the shortcut and the
+  reason, so the next person to look for it finds the reason first.
+- It writes one column. The carbon intensity gets its own `carbon_source_url`,
+  `carbon_retrieved_date` and `carbon_data_year`; the row's price and timezones
+  came from elsewhere and keep the row's own provenance. The file is edited line
+  by line rather than round-tripped through a YAML dumper, which would have lost
+  the header, the grouping, and the comment explaining that an unquoted `NO`
+  is the boolean false and takes Norway out of the catalogue.
+- A country the source does not answer for is left alone and named. Nothing is
+  interpolated, carried over, or averaged.
+- **A row is now as fresh as its stalest number.** Rows carry more than one date
+  since this and the embodied footprints landed, so `is_stale` and
+  `expiring_report` take the oldest of every `*_retrieved_date` rather than only
+  the row's own. That change immediately failed a test pinning freshness to a
+  hard-coded day the catalogue had moved past; the test now measures from the
+  day the newest row was read, which is true whenever it runs.
+- Found by the test written to find it: five of the thirty-eight country keys
+  had no ISO 3166-1 alpha-3 code on file and would have been silently
+  un-refreshable.
+
 ### Windows is out of scope, definitively
 
 - **The supported platforms are Linux and macOS**, stated in the packaging

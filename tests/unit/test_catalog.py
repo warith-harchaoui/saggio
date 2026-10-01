@@ -193,11 +193,42 @@ def test_the_age_of_a_provenance_date(value: object, expected: int | None) -> No
     assert days_since(value, today=date(2026, 3, 2)) == expected
 
 
-def test_the_bundled_catalogues_are_fresh_today(overlay: Path) -> None:
+def newest_provenance_date() -> date:
+    """Return the most recent date any bundled row was read on.
+
+    The invariant below has to be checked from *some* day, and both obvious
+    choices are wrong. A hard-coded date goes out of date the moment a row is
+    refreshed — which is how this test first failed, against rows read a
+    fortnight after the day it pinned. `date.today()` turns a unit test into a
+    calendar bomb that fires the morning the grid expires, which is the
+    scheduled job's business, not this one's.
+
+    So: the day the freshest row was read. On that day nothing in the catalogue
+    should already have been stale, whenever that day happens to be.
+    """
+    from saggio.catalog.registry import BUNDLED_CATALOGS, Catalog
+
+    dates = [
+        date.fromisoformat(value)
+        for name in BUNDLED_CATALOGS
+        for rows in Catalog.bundled(name).data.values()
+        if isinstance(rows, list)
+        for row in rows
+        if isinstance(row, dict)
+        for key, value in row.items()
+        if (key == "retrieved_date" or key.endswith("_retrieved_date")) and isinstance(value, str)
+    ]
+    assert dates, "no bundled row states when it was read"
+    return max(dates)
+
+
+def test_nothing_was_already_stale_on_the_day_the_newest_row_was_read(
+    overlay: Path,
+) -> None:
     # This is the gate that stops the package shipping numbers nobody has looked
     # at. When it fails, the fix is to re-read the sources, not to raise the
     # threshold.
-    assert stale_report(overlay=overlay, today=date(2026, 9, 12)) == {}
+    assert stale_report(overlay=overlay, today=newest_provenance_date()) == {}
 
 
 def test_the_report_names_what_went_stale(overlay: Path) -> None:

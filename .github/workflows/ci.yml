@@ -1,8 +1,11 @@
 # Continuous integration.
 #
-# Three things are checked on every push, on the three operating systems this
-# package claims to support, because "works on my machine" is exactly the claim a
-# cost model is not allowed to make either.
+# Three things are checked on every push, on both operating systems this package
+# supports, because "works on my machine" is exactly the claim a cost model is
+# not allowed to make either. The list below is pinned to
+# `saggio.analyze.capability.SUPPORTED_PLATFORMS` by a contract test, so the two
+# cannot drift: the first time they did, every Windows job failed at `import
+# saggio` and this comment claimed three systems.
 #
 # The catalogue freshness gate is deliberately a separate, scheduled job. It does
 # not fail a pull request, because a tariff going out of date is not the fault of
@@ -29,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
         python: ["3.10", "3.13"]
     steps:
       - uses: actions/checkout@v4

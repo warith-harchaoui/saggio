@@ -239,3 +239,49 @@ def test_the_command_line_reaches_only_the_library() -> None:
     source = inspect.getsource(commands)
     assert "subprocess" not in source
     assert "yaml.safe_load" not in source
+
+
+# --- The platforms, said once and checked everywhere they are repeated --------
+
+
+def test_the_ci_matrix_matches_the_platforms_the_package_supports() -> None:
+    # The first time these drifted, the package had just stopped importing on
+    # Windows and the workflow still ran two Windows jobs that could only fail.
+    # A list of supported platforms that lives in two files needs a test.
+    import re
+
+    from saggio.analyze.capability import SUPPORTED_PLATFORMS
+
+    workflow = (
+        _repository_root().joinpath(".github", "workflows", "ci.yml").read_text(encoding="utf-8")
+    )
+    match = re.search(r"^\s*os:\s*\[([^\]]+)\]", workflow, re.MULTILINE)
+    assert match, "the workflow no longer declares an os matrix in a shape this can read"
+    runners = {name.strip() for name in match.group(1).split(",")}
+
+    expected = {"linux": "ubuntu-latest", "darwin": "macos-latest"}
+    assert set(SUPPORTED_PLATFORMS) == set(expected), (
+        "a platform was added or removed; teach this test which runner it maps to"
+    )
+    assert runners == set(expected.values()), (
+        f"the CI matrix runs on {sorted(runners)} but the package supports "
+        f"{sorted(SUPPORTED_PLATFORMS)}"
+    )
+
+
+def test_no_job_runs_on_a_platform_that_was_excluded() -> None:
+    # Prose is allowed to mention Windows — the comment explains why it is not
+    # here, which is worth keeping. What must not come back is a *runner*.
+    workflow = (
+        _repository_root().joinpath(".github", "workflows", "ci.yml").read_text(encoding="utf-8")
+    )
+    runner_lines = [
+        line for line in workflow.splitlines() if line.strip().startswith(("os:", "runs-on:"))
+    ]
+    assert runner_lines, "the workflow declares no runners in a shape this can read"
+    assert not any("windows" in line.lower() for line in runner_lines)
+
+
+def _repository_root() -> Path:
+    """Return the checkout this test file lives in."""
+    return Path(__file__).resolve().parents[2]

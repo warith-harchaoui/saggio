@@ -60,6 +60,7 @@ _HANDLERS: Final[dict[str, Callable[[argparse.Namespace], int]]] = {
     "catalog list": commands.catalog_list,
     "catalog add": commands.catalog_add,
     "catalog freshness": commands.catalog_freshness,
+    "catalog refresh": commands.catalog_refresh,
 }
 
 _EPILOG: Final[str] = "Exit codes: " + "; ".join(
@@ -570,6 +571,32 @@ def _add_catalog(verbs: argparse._SubParsersAction) -> None:
         metavar="NAME=VALUE",
         help="A field of the row, repeatable, for example --field tdp_w=700.",
     )
+    refresh = sub.add_parser(
+        "refresh",
+        help="Re-read a catalogue's numbers from the source it cites. Read-only "
+        "unless --write is given.",
+    )
+    refresh.add_argument("catalog", help="Which catalogue. Only `grid` can be refreshed.")
+    refresh.add_argument(
+        "--api-key",
+        default=None,
+        help=(
+            "Ember API key. Falls back to EMBER_API_KEY. Free from "
+            "https://ember-energy.org/data/ ; nothing else is used as a substitute, "
+            "because the open series that looks equivalent measures lifecycle rather "
+            "than operating emissions."
+        ),
+    )
+    refresh.add_argument(
+        "--year", type=int, default=None, help="Data year. The most recent one by default."
+    )
+    refresh.add_argument(
+        "--write",
+        default=None,
+        metavar="PATH",
+        help="Apply the result to this catalogue file. Without it, nothing is written.",
+    )
+    refresh.add_argument("--json", action="store_true", help="Print the result as JSON.")
 
     freshness = sub.add_parser(
         "freshness",
@@ -656,7 +683,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             # Not parse_args([verb, "--help"]): argparse's help action raises
             # SystemExit(0), which made a usage error read as success to any
             # script checking the exit code.
-            osh.error("catalog needs an action: list, add, or freshness. Try `saggio catalog -h`.")
+            osh.error(
+                "catalog needs an action: list, add, freshness, or refresh. "
+                "Try `saggio catalog -h`."
+            )
             return USAGE
         key = f"catalog {args.catalog_verb}"
     else:
