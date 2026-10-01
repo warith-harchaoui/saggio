@@ -41,6 +41,7 @@ import cProfile  # noqa: F401 - imported for the -m form used in the child comma
 import json
 import os
 import pstats
+import resource
 import signal
 import subprocess
 import sys
@@ -53,11 +54,6 @@ from typing import Any, Final
 
 import os_helper as osh
 import platformdirs
-
-try:  # Windows has no resource module; the child CPU time is simply unknown there.
-    import resource
-except ImportError:  # pragma: no cover - POSIX-only dependency.
-    resource = None  # type: ignore[assignment]
 
 from .cpu import CpuShare, CpuShareMeter
 from .power import PowerMeter, PowerReading, measure_for

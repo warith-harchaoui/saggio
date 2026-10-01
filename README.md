@@ -134,9 +134,16 @@ that quietly disappeared.
 pip install saggio
 ```
 
+**Linux and macOS.** Windows is out of scope, deliberately and for good: it
+publishes no vendor-neutral processor energy counter to an unprivileged process,
+no machine-wide processor-time total this package can read, and no POSIX resource
+accounting for a child. A tool whose whole proposition is that a number says how
+far it can be trusted should not pretend to support a platform where it could
+only ever estimate, so `import saggio` there raises rather than half-working.
+
 Three runtime dependencies, on purpose. [`os-helper`](https://pypi.org/project/os-helper/)
-answers every question about the machine and the operating system, on macOS,
-Linux, and Windows alike. PyYAML parses the models and the catalogues.
+answers every question about the machine and the operating system on both of
+them. PyYAML parses the models and the catalogues.
 `platformdirs` finds the per-user config directory. Everything else this package
 does, it does itself.
 

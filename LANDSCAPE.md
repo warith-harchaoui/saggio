@@ -162,12 +162,13 @@ Being honest about the gaps, since that is the whole premise of the tool.
   the run from the browser beside it. Scaphandre, PowerAPI and Kepler model
   per-process and per-container draw; this package does not, and says so in the
   scope every reading carries. That is the gap that matters most on a shared box.
-- **Windows measures nothing.** It publishes no vendor-neutral processor counter
-  to an unprivileged process, so a Windows run falls back to a datasheet and the
-  model says `estimated`. Linux and macOS both read real counters now — powercap
-  zones by name, `IOReport` on Apple Silicon, NVML and the `amdgpu` / `i915` /
-  `xe` sysfs interfaces for the accelerator — which is a change from earlier
-  versions of this page.
+- **Two platforms, not three.** Linux and macOS, both reading real counters —
+  powercap zones by name, `IOReport` on Apple Silicon, NVML and the `amdgpu` /
+  `i915` / `xe` sysfs interfaces for the accelerator. Windows is out of scope
+  rather than unfinished: it offers no unprivileged processor energy counter, no
+  machine-wide processor-time total, and no POSIX resource accounting, so every
+  figure there would be an estimate. Narrower than the tools above it in this
+  table, and narrow on purpose.
 - **A counter is not the wall.** Fans, storage, network and the power supply sit
   outside RAPL and NVML by construction, and the gap is not a constant that could
   be added back: measured against physical meters it is a slope of about 1.17,

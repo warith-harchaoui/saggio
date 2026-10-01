@@ -55,11 +55,25 @@ machine-wide counter.
 | Linux | [powercap / RAPL](https://docs.kernel.org/power/powercap/powercap.html) | processor packages, the `psys` zone where present, and the memory zone beside them | **root by default since 5.10** | accumulating `energy_uj`, one difference per run |
 | Linux | [`amdgpu` hwmon](https://docs.kernel.org/gpu/amdgpu/thermal.html) | the graphics board | none | `power1_average` in µW, sampled across the run |
 | Linux | [`i915`](https://www.kernel.org/doc/html/latest/gpu/i915.html) / [`xe` hwmon](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-driver-intel-xe-hwmon) | the graphics board | none | accumulating `energy1_input` in µJ |
-| Linux, Windows | [NVIDIA driver](https://developer.nvidia.com/management-library-nvml), through [`nvidia-smi`](https://docs.nvidia.com/deploy/nvidia-smi/index.html) | the whole accelerator board | none | accumulated energy where the board keeps it, otherwise sampled board power |
+| Linux | [NVIDIA driver](https://developer.nvidia.com/management-library-nvml), through [`nvidia-smi`](https://docs.nvidia.com/deploy/nvidia-smi/index.html) | the whole accelerator board | none | accumulated energy where the board keeps it, otherwise sampled board power |
 | macOS, Apple Silicon | `IOReport`, the library behind `powermetrics` | processor cores, graphics cores, neural engine, memory | **none** | monotonic per-subsystem counters, one difference per run |
 | macOS | `powermetrics` | the same subsystems | root | not used by this package |
-| Windows | [Energy Meter Interface](https://learn.microsoft.com/en-us/windows-hardware/drivers/powermeter/energy-meter-interface) | whatever a vendor chose to meter | a driver | not used by this package |
 | Any server | IPMI / DCMI / [Redfish](https://www.dmtf.org/standards/redfish) | the whole node, fans and power supply losses included | controller credentials | not used by this package |
+
+**Windows is not in that table, and will not be.** It is out of scope,
+deliberately and for good. It publishes no vendor-neutral processor energy
+counter to an unprivileged process: the
+[Energy Meter Interface](https://learn.microsoft.com/en-us/windows-hardware/drivers/powermeter/energy-meter-interface)
+exists only where a manufacturer implemented it and only through a driver, and
+`powercfg`'s per-application figures are a battery model rather than a counter.
+It publishes no machine-wide processor-time total this package can read, so the
+attribution below has nothing to divide by. And it has no POSIX resource
+accounting, so a child process's own processor time is unavailable too.
+
+Each of those alone would be survivable. Together they mean every number this
+package exists to produce would be an estimate on that platform, which is the
+one thing it is built not to pretend. So `import saggio` raises there, with that
+sentence, rather than half-working.
 
 Two entries in that table deserve a sentence each.
 
@@ -208,8 +222,8 @@ how `GreenAlgorithms4HPC` reads a scheduler's accounting.
 
 Linux publishes the totals in `/proc/stat`. macOS publishes them through the
 Mach call `host_processor_info`, per logical processor, to an ordinary user.
-Windows publishes them only through interfaces this package does not reach, and
-says so.
+Both are readable without privileges, which is a large part of why they are the
+two platforms this package supports.
 
 ```
 cpu_share:
@@ -348,7 +362,7 @@ the channel names is enough to add the part; see
 - [`sysfs-driver-intel-xe-hwmon`](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-driver-intel-xe-hwmon) — Intel's `energy1_input`, in microjoules.
 - [hwmon sysfs interface](https://www.kernel.org/doc/html/latest/hwmon/sysfs-interface.html) — units and naming for both of the above.
 - [NVIDIA Management Library](https://developer.nvidia.com/management-library-nvml) and [`nvidia-smi`](https://docs.nvidia.com/deploy/nvidia-smi/index.html).
-- [Energy Meter Interface](https://learn.microsoft.com/en-us/windows-hardware/drivers/powermeter/energy-meter-interface) — what Windows offers, and to whom.
+- [Energy Meter Interface](https://learn.microsoft.com/en-us/windows-hardware/drivers/powermeter/energy-meter-interface) — what Windows offers, to whom, and through what. The evidence behind leaving it out of scope.
 - [Redfish](https://www.dmtf.org/standards/redfish) — the standard way a server reports its own whole-node draw.
 
 **Why the Linux counter is shut**

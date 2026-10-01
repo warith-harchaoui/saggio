@@ -172,12 +172,14 @@ Autant être honnête sur les manques, puisque c'est toute la prémisse de l'out
   consommation par processus et par conteneur ; ce paquet ne le fait pas, et le dit
   dans le périmètre que porte chaque lecture. C'est le manque qui compte le plus
   sur une machine partagée.
-- **Windows ne mesure rien.** Il ne publie aucun compteur processeur indépendant du
-  fabricant à un processus sans privilèges : une exécution Windows retombe sur une
-  fiche technique et le modèle dit `estimated`. Linux et macOS lisent désormais tous
-  deux de vrais compteurs — zones powercap par leur nom, `IOReport` sur Apple
-  Silicon, NVML et les interfaces sysfs `amdgpu` / `i915` / `xe` pour
-  l'accélérateur — ce qui change par rapport aux versions antérieures de cette page.
+- **Deux plateformes, pas trois.** Linux et macOS, qui lisent toutes deux de
+  vrais compteurs — zones powercap par leur nom, `IOReport` sur Apple Silicon,
+  NVML et les interfaces sysfs `amdgpu` / `i915` / `xe` pour l'accélérateur.
+  Windows est hors périmètre plutôt qu'inachevé : il n'offre aucun compteur
+  d'énergie processeur sans privilèges, aucun total de temps processeur machine,
+  et aucune comptabilité POSIX des ressources — chaque chiffre y serait une
+  estimation. Plus étroit que les outils au-dessus dans ce tableau, et étroit à
+  dessein.
 - **Un compteur n'est pas la prise murale.** Ventilateurs, stockage, réseau et
   alimentation sont hors RAPL et hors NVML par construction, et l'écart n'est pas
   une constante qu'on pourrait rajouter : mesuré face à des wattmètres physiques,

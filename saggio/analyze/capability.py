@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
@@ -108,6 +109,50 @@ _POWERMETRICS_NOTE: Final[str] = (
     "`sudo powermetrics --samplers cpu_power -n 1` yourself if you want to "
     "compare it against what was measured here."
 )
+
+
+#: The platforms this package supports. Not a list of where it happens to
+#: import: a list of where its central claim holds. Everything here exists to
+#: turn a counter into a number somebody can defend, and Linux and macOS are the
+#: two systems that publish those counters to an ordinary process.
+SUPPORTED_PLATFORMS: Final[tuple[str, ...]] = ("linux", "darwin")
+
+#: Why Windows is not among them. Written once, said wherever it is needed,
+#: because a limit stated four different ways reads as four different limits.
+UNSUPPORTED_REASON: Final[str] = (
+    "saggio supports Linux and macOS. Windows is out of scope, deliberately and "
+    "for good: it publishes no vendor-neutral processor energy counter to an "
+    "unprivileged process, no machine-wide processor-time total this package can "
+    "read, and no POSIX resource accounting for a child. The Energy Meter "
+    "Interface exists on some devices through a vendor driver, and powercfg's "
+    "per-application figures are a battery model rather than a counter. A tool "
+    "whose whole proposition is that a number says how far it can be trusted "
+    "should not pretend to support a platform where it could only ever estimate."
+)
+
+
+def is_supported(platform: str | None = None) -> bool:
+    """Return whether this package supports the platform it is running on.
+
+    Parameters
+    ----------
+    platform : str or None, optional
+        A ``sys.platform`` string. Defaults to this machine's.
+
+    Returns
+    -------
+    bool
+        True on Linux and macOS, false everywhere else.
+
+    Examples
+    --------
+    >>> is_supported("linux"), is_supported("darwin"), is_supported("win32")
+    (True, True, False)
+    >>> is_supported() in (True, False)
+    True
+    """
+    name = sys.platform if platform is None else platform
+    return any(name.startswith(supported) for supported in SUPPORTED_PLATFORMS)
 
 
 @dataclass(frozen=True, slots=True)
@@ -304,24 +349,6 @@ def _graphics_interface() -> Interface:
     )
 
 
-def _windows_interface() -> Interface:
-    """Return the state of what Windows offers a library."""
-    return Interface(
-        name="Windows processor energy",
-        covers="the processor package",
-        state=ABSENT,
-        detail=(
-            "Windows publishes no vendor-neutral processor energy counter to an "
-            "unprivileged process. The Energy Meter Interface exists but only on "
-            "devices whose manufacturer implemented it and only through a driver, "
-            "and powercfg's per-application estimates are a battery model rather "
-            "than a counter. An accelerator here is still measured through its own "
-            "driver; the processor is estimated from the hardware catalogue, and "
-            "the report says so."
-        ),
-    )
-
-
 def _node_interface() -> Interface:
     """Return the state of the whole-node meters a datacentre has."""
     return Interface(
@@ -361,8 +388,6 @@ def probe() -> tuple[Interface, ...]:
     """
     if osh.macos():
         return (_apple_interface(), _powermetrics_interface(), _node_interface())
-    if osh.windows():
-        return (_windows_interface(), _nvidia_interface(), _node_interface())
     return (
         _rapl_interface(),
         _nvidia_interface(),

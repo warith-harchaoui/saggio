@@ -48,7 +48,7 @@ def test_this_machine_is_detected_without_raising(overlay: Path) -> None:
     # Hardware probing must never abort an audit: an unreadable machine gives a
     # profile full of nothing, which is an honest answer.
     profile = detect_machine(overlay=overlay)
-    assert profile.platform in {"darwin", "linux", "windows"}
+    assert profile.platform in {"darwin", "linux"}
     assert profile.physical_cores >= 1
     assert profile.logical_cores >= 1
 
@@ -201,7 +201,7 @@ def test_the_accelerator_counter_is_added_to_the_package(
 def test_a_machine_with_only_a_board_says_the_processor_is_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Windows and Apple Silicon have no package counter. An accelerator figure
+    # Apple Silicon has no package counter of the Intel kind. An accelerator figure
     # there is worth having, and worth labelling as the accelerator alone.
     monkeypatch.setattr("saggio.analyze.power.read_package_energy_microjoules", lambda: None)
     monkeypatch.setattr("saggio.analyze.power.read_accelerator_energy_millijoules", lambda: 600_000)
@@ -448,7 +448,7 @@ def test_the_baseline_does_not_wait_when_nothing_can_measure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # The second bought a reading that says "not measured", which the meter can
-    # say immediately. On a machine with no counters — a container, Windows —
+    # say immediately. On a machine with no counters — a container, an ARM board —
     # every slice was paying it.
     import saggio.analyze.power as power
 

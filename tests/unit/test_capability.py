@@ -9,6 +9,7 @@ nothing they can act on.
 from __future__ import annotations
 
 import os
+import pathlib
 from pathlib import Path
 
 import pytest
@@ -145,3 +146,59 @@ def test_the_paths_read_are_disclosed(monkeypatch: pytest.MonkeyPatch, tmp_path:
     _zone(tmp_path, "intel-rapl:0", "package-0", energy_uj="1000")
     _point_at(monkeypatch, tmp_path)
     assert any(path.endswith("energy_uj") for path in paths_read())
+
+
+# --- The platforms this package supports, and the one it does not -------------
+
+
+def test_the_two_supported_platforms_are_named() -> None:
+    from saggio.analyze.capability import SUPPORTED_PLATFORMS
+
+    assert SUPPORTED_PLATFORMS == ("linux", "darwin")
+
+
+@pytest.mark.parametrize("platform", ["linux", "linux2", "darwin"])
+def test_a_supported_platform_is_supported(platform: str) -> None:
+    from saggio.analyze.capability import is_supported
+
+    assert is_supported(platform)
+
+
+@pytest.mark.parametrize("platform", ["win32", "cygwin", "aix"])
+def test_an_unsupported_platform_is_not(platform: str) -> None:
+    from saggio.analyze.capability import is_supported
+
+    assert not is_supported(platform)
+
+
+def test_the_package_refuses_to_import_on_an_unsupported_platform() -> None:
+    # The refusal lives at import, so an unsupported platform meets a sentence
+    # rather than a missing stdlib module three imports deeper.
+    source = (pathlib.Path(__file__).resolve().parents[2] / "saggio" / "__init__.py").read_text(
+        encoding="utf-8"
+    )
+    assert "raise ImportError(" in source
+    assert "does not support" in source
+
+
+def test_the_early_list_and_the_real_one_cannot_drift() -> None:
+    # `saggio/__init__.py` repeats the tuple because it cannot import
+    # `capability` that early without a cycle. This is what keeps the copy honest.
+    import saggio
+    from saggio.analyze.capability import SUPPORTED_PLATFORMS
+
+    assert saggio.SUPPORTED_PLATFORMS == SUPPORTED_PLATFORMS
+
+
+def test_nothing_probes_an_interface_for_a_platform_we_do_not_support() -> None:
+    from saggio.analyze import capability
+
+    assert not hasattr(capability, "_windows_interface")
+
+
+def test_the_reason_says_what_is_missing_rather_than_apologising() -> None:
+    from saggio.analyze.capability import UNSUPPORTED_REASON
+
+    assert "Linux and macOS" in UNSUPPORTED_REASON
+    for missing in ("energy counter", "processor-time", "resource accounting"):
+        assert missing in UNSUPPORTED_REASON

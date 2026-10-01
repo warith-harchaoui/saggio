@@ -55,11 +55,27 @@ compteur à l'échelle de la machine.
 | Linux | [powercap / RAPL](https://docs.kernel.org/power/powercap/powercap.html) | les paquets processeur, la zone `psys` quand elle existe, et la zone mémoire à côté | **root par défaut depuis la 5.10** | `energy_uj` cumulé, une différence par exécution |
 | Linux | [hwmon `amdgpu`](https://docs.kernel.org/gpu/amdgpu/thermal.html) | la carte graphique | aucun | `power1_average` en µW, échantillonné pendant la course |
 | Linux | hwmon [`i915`](https://www.kernel.org/doc/html/latest/gpu/i915.html) / [`xe`](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-driver-intel-xe-hwmon) | la carte graphique | aucun | `energy1_input` cumulé en µJ |
-| Linux, Windows | [pilote NVIDIA](https://developer.nvidia.com/management-library-nvml), via [`nvidia-smi`](https://docs.nvidia.com/deploy/nvidia-smi/index.html) | toute la carte accélératrice | aucun | énergie cumulée quand la carte en tient, sinon puissance échantillonnée |
+| Linux | [pilote NVIDIA](https://developer.nvidia.com/management-library-nvml), via [`nvidia-smi`](https://docs.nvidia.com/deploy/nvidia-smi/index.html) | toute la carte accélératrice | aucun | énergie cumulée quand la carte en tient, sinon puissance échantillonnée |
 | macOS, Apple Silicon | `IOReport`, la bibliothèque derrière `powermetrics` | cœurs du processeur, cœurs graphiques, moteur neuronal, mémoire | **aucun** | compteurs monotones par sous-système, une différence par exécution |
 | macOS | `powermetrics` | les mêmes sous-systèmes | root | non utilisé par ce paquet |
-| Windows | [Energy Meter Interface](https://learn.microsoft.com/en-us/windows-hardware/drivers/powermeter/energy-meter-interface) | ce qu'un constructeur a choisi d'instrumenter | un pilote | non utilisé par ce paquet |
 | Tout serveur | IPMI / DCMI / [Redfish](https://www.dmtf.org/standards/redfish) | le nœud entier, ventilateurs et pertes d'alimentation compris | identifiants du contrôleur | non utilisé par ce paquet |
+
+**Windows n'est pas dans ce tableau, et n'y sera pas.** Il est hors périmètre,
+délibérément et définitivement. Il ne publie aucun compteur d'énergie processeur
+indépendant du fabricant à un processus sans privilèges : l'
+[Energy Meter Interface](https://learn.microsoft.com/en-us/windows-hardware/drivers/powermeter/energy-meter-interface)
+n'existe que là où un constructeur l'a implémentée et seulement via un pilote, et
+les chiffres par application de `powercfg` sont un modèle de batterie, pas un
+compteur. Il ne publie aucun total de temps processeur machine que ce paquet
+puisse lire : l'attribution ci-dessous n'aurait rien par quoi diviser. Et il n'a
+pas de comptabilité POSIX des ressources, donc le temps processeur propre d'un
+enfant est indisponible aussi.
+
+Chacun de ces points, seul, serait survivable. Ensemble, ils signifient que
+chaque nombre que ce paquet existe pour produire serait une estimation sur cette
+plateforme — la seule chose qu'il est bâti pour ne pas faire semblant. Donc
+`import saggio` y lève une erreur, avec cette phrase, au lieu de fonctionner à
+moitié.
 
 Deux lignes de ce tableau méritent une phrase chacune.
 
@@ -215,8 +231,9 @@ consommation au lieu d'en soustraire un plancher. C'est ainsi que
 `GreenAlgorithms4HPC` lit la comptabilité d'un ordonnanceur.
 
 Linux publie ces totaux dans `/proc/stat`. macOS les publie par l'appel Mach
-`host_processor_info`, par processeur logique, à un utilisateur ordinaire. Windows
-ne les publie que par des interfaces que ce paquet n'atteint pas, et le dit.
+`host_processor_info`, par processeur logique, à un utilisateur ordinaire. Les
+deux sont lisibles sans privilèges, ce qui explique en bonne partie pourquoi ce
+sont les deux plateformes que ce paquet supporte.
 
 ```
 cpu_share:
@@ -363,7 +380,7 @@ le dit. Envoyer les noms de canaux suffit à ajouter la pièce ; voir
 - [`sysfs-driver-intel-xe-hwmon`](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-driver-intel-xe-hwmon) — l'`energy1_input` d'Intel, en microjoules.
 - [Interface sysfs hwmon](https://www.kernel.org/doc/html/latest/hwmon/sysfs-interface.html) — unités et nommage pour les deux précédents.
 - [NVIDIA Management Library](https://developer.nvidia.com/management-library-nvml) et [`nvidia-smi`](https://docs.nvidia.com/deploy/nvidia-smi/index.html).
-- [Energy Meter Interface](https://learn.microsoft.com/en-us/windows-hardware/drivers/powermeter/energy-meter-interface) — ce que Windows offre, et à qui.
+- [Energy Meter Interface](https://learn.microsoft.com/en-us/windows-hardware/drivers/powermeter/energy-meter-interface) — ce que Windows offre, à qui, et par quoi. La preuve derrière sa mise hors périmètre.
 - [Redfish](https://www.dmtf.org/standards/redfish) — la façon normalisée dont un serveur rapporte sa propre consommation de nœud.
 
 **Pourquoi le compteur Linux est fermé**

@@ -31,8 +31,8 @@ reported for what it is, and never applied to an accelerator figure.
 
 Linux publishes the totals in ``/proc/stat``, in clock ticks. macOS publishes
 them through the Mach call ``host_processor_info``, per logical processor, which
-answers an ordinary user. Windows publishes them only through interfaces this
-package does not reach, and says so rather than guessing.
+answers an ordinary user. Those are the two platforms this package supports, and
+the absence of any third readable total is one of the reasons why.
 
 Usage example
 -------------
@@ -209,8 +209,8 @@ def unavailable_reason() -> str:
     if sys.platform == "darwin":
         return "host_processor_info did not answer, so machine-wide processor time is unknown."
     return (
-        f"On {sys.platform} this package reads no machine-wide processor time: Windows "
-        "publishes it only through interfaces this package does not reach."
+        f"{sys.platform} is not a platform this package supports, so it reads no "
+        "machine-wide processor time here. saggio supports Linux and macOS."
     )
 
 

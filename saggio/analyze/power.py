@@ -23,12 +23,13 @@ macOS was the platform this module used to give up on. It should not have been:
 the counters ``powermetrics`` prints are published by ``IOReport``, which answers
 an ordinary user, and :mod:`saggio.analyze.apple` reads them — processor cores,
 graphics cores, neural engine, and memory, as monotonic counters in units the
-library labels itself. Windows still publishes no vendor-neutral processor
-counter to an unprivileged process, and says so rather than estimating quietly.
+library labels itself. Those two systems are the two this package supports; see
+:data:`saggio.analyze.capability.SUPPORTED_PLATFORMS` for why there is no
+third.
 
 The processor is rarely the expensive part. On the workloads this package exists
 for, the accelerator draws several times what the package does, and NVIDIA's
-driver reports it without privileges on Linux and on Windows alike, either as an
+driver reports it without privileges, either as an
 accumulating energy counter or as an instantaneous board wattage that can be
 sampled across the run. Both paths are read here, the counter first because it is
 a counter, and whichever one answers says so in the scope it carries. A machine
@@ -122,10 +123,6 @@ _UNAVAILABLE_REASON: Final[dict[str, str]] = {
     "darwin": (
         "macOS publishes package power only through powermetrics, which needs "
         "administrator rights and so cannot be read from a library call."
-    ),
-    "windows": (
-        "Windows exposes no vendor-neutral package energy counter, so power here "
-        "is estimated from the hardware catalogue rather than measured."
     ),
     "linux": (
         "No readable RAPL counter was found: this is an ARM machine, a container "
@@ -774,8 +771,6 @@ def unavailable_reason() -> str:
         # An Apple Silicon Mac has its own counters and its own reasons for not
         # answering; only an Intel Mac falls back to the powermetrics sentence.
         return apple.unavailable_reason() or _UNAVAILABLE_REASON["darwin"]
-    if osh.windows():
-        return _UNAVAILABLE_REASON["windows"]
     return _UNAVAILABLE_REASON["linux"]
 
 

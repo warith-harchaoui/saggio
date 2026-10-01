@@ -7,6 +7,32 @@ release of that line.
 
 ## Unreleased
 
+### Windows is out of scope, definitively
+
+- **The supported platforms are Linux and macOS**, stated in the packaging
+  classifiers, in both READMEs, and in one constant,
+  `saggio.analyze.capability.SUPPORTED_PLATFORMS`. `import saggio` on anything
+  else raises an `ImportError` carrying the reason, rather than half-working or
+  failing three imports deeper on a missing stdlib module.
+- The reason, said once instead of four different ways: Windows publishes no
+  vendor-neutral processor energy counter to an unprivileged process — the
+  Energy Meter Interface exists only where a manufacturer implemented it and
+  only through a driver, and `powercfg`'s per-application figures are a battery
+  model rather than a counter — no machine-wide processor-time total this
+  package can read, and no POSIX resource accounting for a child. Each alone
+  would be survivable; together they mean every number this package exists to
+  produce would be an estimate there.
+- The accommodations go with it. `capability.probe()` loses its Windows branch
+  and `_windows_interface()` is gone; `power.unavailable_reason()` loses its
+  Windows case; `run.py` imports `resource` like any other stdlib module instead
+  of guarding an import that could only fail on a platform now excluded.
+- The documentation stops treating it as a gap. Windows leaves the table of
+  interfaces in `MEASURING.md` / `MESURER.md` and becomes a statement of scope
+  beneath it, and the "where this is weakest" list in `LANDSCAPE.md` /
+  `PAYSAGE.md` now reads "two platforms, not three" — narrower than its
+  neighbours, and narrow on purpose. The Energy Meter Interface stays in the
+  sources, as the evidence for the exclusion rather than as a capability.
+
 ### The freshness gate gives notice before it fails
 
 - `saggio catalog freshness --within DAYS` names the rows that are still inside

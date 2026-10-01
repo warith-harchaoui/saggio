@@ -41,7 +41,26 @@ Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
 
 from __future__ import annotations
 
+import sys
 from typing import Final
+
+#: The platforms this package supports, stated before anything else is imported
+#: so that an unsupported one is told why rather than meeting a missing stdlib
+#: module three imports deeper. Repeated from
+#: :mod:`saggio.analyze.capability`, which cannot be imported this early without
+#: a cycle, and pinned to it by a test.
+SUPPORTED_PLATFORMS: Final[tuple[str, ...]] = ("linux", "darwin")
+
+if not any(sys.platform.startswith(name) for name in SUPPORTED_PLATFORMS):
+    raise ImportError(
+        f"saggio does not support {sys.platform}. It supports Linux and macOS, and "
+        "Windows is out of scope deliberately: it publishes no vendor-neutral "
+        "processor energy counter to an unprivileged process, no machine-wide "
+        "processor-time total this package can read, and no POSIX resource "
+        "accounting for a child process. A tool whose whole proposition is that a "
+        "number says how far it can be trusted should not pretend to support a "
+        "platform where it could only ever estimate."
+    )
 
 #: The installed version, kept in step with pyproject.toml at release.
 __version__: Final[str] = "1.2.0"

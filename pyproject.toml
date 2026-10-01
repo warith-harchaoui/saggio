@@ -38,7 +38,8 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
-    "Operating System :: OS Independent",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -50,7 +51,7 @@ classifiers = [
 ]
 dependencies = [
     # os-helper answers every question about the machine and the operating
-    # system, on macOS, Linux and Windows alike: CPU model and core count,
+    # system on the two this package supports: CPU model and core count,
     # installed memory, discrete GPUs, platform detection, temporary files,
     # timers, logging. This package asks rather than re-implementing.
     "os-helper>=2.0.0,<3",
@@ -108,6 +109,13 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+# The package refuses to import on an unsupported platform before it imports
+# anything else, which is the whole point of putting the check there: on Windows
+# a submodule import would otherwise fail on a missing stdlib module, three
+# frames deep, with no explanation. Every import below that guard is therefore
+# "not at top of file" on purpose.
+"saggio/__init__.py" = ["E402"]
+
 # Tests say what they check in their names; a docstring rule on every assertion
 # helper adds noise rather than clarity. assert is what a test is made of.
 "tests/*" = [

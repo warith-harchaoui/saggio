@@ -5,7 +5,7 @@ Module summary
 --------------
 Before anything can be estimated, the tool has to know what it is running on.
 That question is entirely about the operating system, and ``os-helper`` already
-answers it on macOS, Linux, and Windows: CPU model and core count, installed
+answers it on the two systems this package supports: CPU model and core count, installed
 memory, discrete GPUs and their memory, Apple Silicon chip name. This module does
 not re-implement any of that. It asks ``os-helper``, then does the one thing
 ``os-helper`` cannot: match the answers against the power catalogue.

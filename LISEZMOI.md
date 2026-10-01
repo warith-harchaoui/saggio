@@ -137,9 +137,16 @@ affaibli, et sur une quantité qui a discrètement disparu.
 pip install saggio
 ```
 
-Trois dépendances d'exécution, et c'est voulu.
-[`os-helper`](https://pypi.org/project/os-helper/) répond à toutes les questions
-sur la machine et le système, sous macOS, Linux et Windows indifféremment. PyYAML
+**Linux et macOS.** Windows est hors périmètre, délibérément et définitivement :
+il ne publie aucun compteur d'énergie processeur indépendant du fabricant à un
+processus sans privilèges, aucun total de temps processeur machine que ce paquet
+puisse lire, et aucune comptabilité POSIX des ressources d'un enfant. Un outil
+dont toute la proposition est qu'un nombre dise jusqu'où lui faire confiance ne
+devrait pas prétendre supporter une plateforme où il ne pourrait qu'estimer :
+`import saggio` y lève une erreur au lieu de fonctionner à moitié.
+
+Trois dépendances d'exécution, à dessein. [`os-helper`](https://pypi.org/project/os-helper/)
+répond à toutes les questions sur la machine et le système, sur les deux. PyYAML
 lit les modèles et les catalogues. `platformdirs` trouve le répertoire de
 configuration de l'utilisateur. Tout le reste, ce paquet le fait lui-même.
 
