@@ -50,14 +50,21 @@ entrées. Mesurez la durée et l'énergie devient mesurée toute seule. Laissez 
 non renseigné et le chiffre carbone reste ouvert, parce que personne ne le connaît
 encore.
 
-Et la dérivation est **vérifiée, pas seulement déclarée**. Le validateur
-remultiplie les apports nommés partout où il reconnaît la relation aux unités, et
-une valeur à plus d'un pour cent de ce qu'ils donnent est une erreur. L'erreur
-ainsi fermée est celle qui a la plus belle allure : un nombre faux de quatre
-ordres de grandeur, portant la liste parfaitement exacte des apports dont il est
-censé venir, paraît mieux fondé que tout le reste de la page. Là où la relation
-n'est pas reconnue — une dimension que vous avez enregistrée ce matin — il ne dit
-rien plutôt que d'inventer une règle.
+Et la dérivation est **vérifiée, pas seulement déclarée**. Le validateur décompose
+chaque unité en dimensions de base — un watt *est* un joule par seconde — et
+recalcule la valeur depuis les apports nommés, en les multipliant puis, là où le
+produit n'atteint pas l'unité déclarée, en divisant : amortir une empreinte de
+fabrication sur une durée de vie est une division, et le modèle nomme cette durée
+parmi ses apports tout pareillement. Une valeur à plus d'un pour cent de ce que
+donnent ses apports est une erreur. Là où plusieurs lectures atteignent l'unité et
+où les unités ne peuvent dire laquelle était visée, une valeur qui ne correspond à
+aucune reste une erreur, puisqu'elle est fausse sous toutes les lectures. Une unité
+qu'aucun agencement des apports ne peut produire est une erreur qui ne demande
+aucun calcul. L'erreur ainsi fermée est celle qui a la plus belle allure : un
+nombre faux de plusieurs ordres de grandeur, portant la liste parfaitement exacte
+des apports dont il est censé venir, paraît mieux fondé que tout le reste de la
+page. Et là où une unité en jeu n'est pas connue du paquet — une dimension que
+vous avez enregistrée ce matin — il ne dit rien plutôt que d'inventer une règle.
 
 Trois propriétés en découlent, et ce sont elles qui justifient le dessin :
 

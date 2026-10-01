@@ -49,14 +49,20 @@ derived value may never claim to be better founded than the worst of its inputs.
 Measure the runtime and the energy becomes measured on its own. Leave the country
 unstated and the carbon figure stays open, because nobody knows it yet.
 
-And the derivation is **checked, not just declared**. The validator multiplies
-the named inputs back together wherever it recognises the relationship from the
-units, and a value more than a percent away from what they give is an error. The
-mistake this closes is the worst-looking one: a number four orders of magnitude
+And the derivation is **checked, not just declared**. The validator parses every
+unit down to its base dimensions — a watt *is* a joule per second — and recomputes
+the value from its named inputs, multiplying them and, where that cannot reach the
+stated unit, dividing: amortising an embodied footprint over a lifetime is a
+division, and the model names the lifetime among its inputs just the same. A value
+more than a percent from what its inputs give is an error. Where several readings
+reach the unit and the units cannot say which was meant, a value matching none of
+them is still an error, because it is wrong under every reading. A unit no
+arrangement of the inputs can produce is an error needing no arithmetic at all.
+The mistake this closes is the worst-looking one: a number orders of magnitude
 out, carrying a perfectly correct list of the inputs it supposedly came from,
-reads as better founded than anything else on the page. Where the relationship is
-one the package does not recognise — a dimension you registered this morning — it
-says nothing rather than inventing a rule.
+reads as better founded than anything else on the page. And where any unit
+involved is one the package does not know — a dimension you registered this
+morning — it says nothing rather than inventing a rule.
 
 Three properties fall out of writing it this way, and they are the reason for the
 design:

@@ -5,7 +5,13 @@ from __future__ import annotations
 import pytest
 
 from saggio.model import CostModel, validate
-from saggio.model.derivation import KIND_OF_UNIT, combine, disagrees, unreachable
+from saggio.model.derivation import (
+    candidates,
+    combine,
+    disagrees,
+    parse_unit,
+    unreachable,
+)
 
 # --- The arithmetic ----------------------------------------------------------
 
@@ -76,16 +82,91 @@ def test_two_carrying_inputs_are_beyond_what_it_claims_to_know() -> None:
     assert unreachable([(1.0, "kWh"), (56.0, "gCO2e/kWh")], "gCO2e") is None
 
 
-def test_every_unit_the_canonical_dimensions_use_has_a_kind() -> None:
+def test_every_unit_the_canonical_dimensions_use_parses() -> None:
     from saggio.model.dimensions import CANONICAL_DIMENSIONS
 
     for dimension in CANONICAL_DIMENSIONS:
-        # Money is the one dimension with no physical kind: `currency` is a
+        # Money is the one dimension with no physical base: `currency` is a
         # placeholder for whichever ISO 4217 code a model states, and dollars
         # are not convertible into euros by multiplication.
         if dimension.key == "money":
             continue
-        assert dimension.unit in KIND_OF_UNIT, f"{dimension.unit} has no kind on file"
+        assert parse_unit(dimension.unit) is not None, (
+            f"{dimension.unit} is a unit the package emits but cannot parse"
+        )
+
+
+def test_an_intensity_keeps_its_denominator() -> None:
+    # The bug that made the first version of this module useless: unary plus on
+    # a Counter drops non-positive entries, so `gCO2e/kWh` parsed as a mass and
+    # compared equal to one. An intensity that has lost its denominator cannot
+    # catch anything.
+    parsed = parse_unit("gCO2e/kWh")
+    assert parsed is not None
+    _, dimensions = parsed
+    assert dimensions["J"] == -1
+    assert dimensions["gCO2e"] == 1
+
+
+def test_a_watt_is_a_joule_per_second() -> None:
+    # Which is why seconds times watts come out as energy with no special case
+    # for that pair anywhere in the module.
+    parsed = parse_unit("W")
+    assert parsed is not None
+    _, dimensions = parsed
+    assert dict(dimensions) == {"J": 1, "s": -1}
+
+
+def test_a_scale_is_folded_in_so_prefixes_cannot_be_mixed_up() -> None:
+    assert combine([(1.0, "kWh")], "Wh") == pytest.approx(1000.0)
+    assert combine([(3600.0, "s")], "h") == pytest.approx(1.0)
+    assert combine([(1.0, "kgCO2e")], "gCO2e") == pytest.approx(1000.0)
+
+
+# --- More than two inputs ----------------------------------------------------
+
+
+def test_the_product_is_the_reading_when_it_lands_on_the_unit() -> None:
+    # Without this, every dimensionless input would be ambiguous — energy times
+    # an overhead could as well be energy divided by it — and the commonest
+    # derivation in the package would stop being checked exactly.
+    assert combine([(0.4, "kWh"), (1.2, "ratio")], "kWh") == pytest.approx(0.48)
+    assert combine([(0.4, "kWh"), (1.2, "ratio"), (1.1, "ratio")], "kWh") == pytest.approx(
+        0.528
+    )
+
+
+def test_amortising_over_a_lifetime_gives_both_readings() -> None:
+    # An hour out of a four-year life divides, but nothing in `years` says so
+    # rather than multiplying, so the units offer both and neither is guessed.
+    values = candidates([(164.0, "kgCO2e"), (4.0, "years"), (1.0, "h")], "gCO2e")
+    assert values is not None
+    assert len(values) == 2
+    assert min(values) == pytest.approx(4.677, abs=1e-3)
+
+
+def test_a_three_input_value_matching_no_reading_is_still_wrong() -> None:
+    # The hole that survived the first fix: a three-input derivation went
+    # unchecked, so an embodied figure five orders of magnitude out passed with
+    # a perfectly correct list of inputs beside it.
+    values = candidates([(164.0, "kgCO2e"), (4.0, "years"), (1.0, "h")], "gCO2e")
+    assert values is not None
+    assert all(disagrees(1_000_000.0, value) for value in values)
+
+
+def test_an_impossible_unit_is_caught_however_many_inputs_there_are() -> None:
+    # Ruling a unit out needs only the dimensions, so it stays decidable where
+    # recomputing the value does not.
+    assert unreachable([(1.0, "kWh"), (100.0, "W")], "gCO2e") is not None
+    assert unreachable([(1.0, "s"), (1.2, "ratio"), (4.0, "years")], "gCO2e") is not None
+    assert candidates([(1.0, "kWh"), (100.0, "W")], "gCO2e") == []
+
+
+def test_one_unknown_unit_silences_the_whole_comparison() -> None:
+    # Asserting an impossibility about somebody else's dimension would be
+    # inventing exactly the kind of rule this package exists to refuse.
+    assert candidates([(1.0, "kWh"), (3.0, "sheep")], "gCO2e") is None
+    assert unreachable([(1.0, "kWh"), (3.0, "sheep")], "gCO2e") is None
 
 
 # --- The tolerance -----------------------------------------------------------
@@ -214,18 +295,95 @@ def test_a_unit_the_inputs_cannot_produce_is_an_error() -> None:
 
 
 def test_a_dimension_this_does_not_know_is_left_alone() -> None:
-    # A project's own dimension gets the same silence as any other unknown.
+    # A project's own dimension gets silence. `tokens` is not a unit the module
+    # knows, and inventing a relationship for it would be the one thing this
+    # package refuses to do.
     model = model_with(
         {
-            "egress": {
+            "tokens": {
                 "value": 12.0,
-                "unit": "GB",
+                "unit": "tokens",
                 "status": "estimated",
                 "derived_from": ["scenarios[0].runtime"],
             }
         }
     )
-    assert "does not follow" not in validate(model).to_text()
+    text = validate(model).to_text()
+    assert "does not follow" not in text
+    assert "cannot come from" not in text
+
+
+def test_bytes_cannot_come_from_a_duration() -> None:
+    # Data is a dimension the module does know, and a runtime cannot produce
+    # it, so claiming otherwise is caught rather than waved through.
+    report = validate(
+        model_with(
+            {
+                "egress": {
+                    "value": 12.0,
+                    "unit": "GB",
+                    "status": "estimated",
+                    "derived_from": ["scenarios[0].runtime"],
+                }
+            }
+        )
+    )
+    assert not report.ok
+    assert "cannot come from" in report.to_text()
+
+
+def test_an_embodied_figure_orders_of_magnitude_out_is_caught() -> None:
+    # Three inputs, through the validator, which is where the hole actually was.
+    model = CostModel.from_mapping(
+        {
+            "schema_version": "2.0",
+            "date_updated": "2026-10-02",
+            "unit_of_work": {"name": "one hour", "status": "estimated"},
+            "deployment": {"provider": "on-prem", "country": "FR"},
+            "assumptions": {
+                "embodied": {
+                    "value": 164.0,
+                    "unit": "kgCO2e",
+                    "status": "estimated",
+                    "source_url": "https://e.invalid",
+                    "retrieved_date": "2026-10-01",
+                },
+                "lifetime": {
+                    "value": 4.0,
+                    "unit": "years",
+                    "status": "estimated",
+                    "source_url": "https://e.invalid",
+                    "retrieved_date": "2026-10-01",
+                },
+            },
+            "scenarios": [
+                {
+                    "name": "default",
+                    "runtime": {
+                        "value": 3600.0,
+                        "unit": "s",
+                        "status": "measured",
+                        "notes": "timed",
+                    },
+                    "costs": {
+                        "embodied_carbon": {
+                            "value": 1_000_000.0,
+                            "unit": "gCO2e",
+                            "status": "estimated",
+                            "derived_from": [
+                                "assumptions.embodied",
+                                "assumptions.lifetime",
+                                "scenarios[0].runtime",
+                            ],
+                        }
+                    },
+                }
+            ],
+        }
+    )
+    report = validate(model)
+    assert not report.ok
+    assert "does not follow" in report.to_text()
 
 
 def test_every_committed_example_survives_the_check() -> None:
@@ -328,3 +486,70 @@ def test_an_unattributed_measurement_is_a_warning_and_not_a_failure() -> None:
         }
     )
     assert validate(model).ok
+
+
+def test_a_measurement_block_vouches_only_for_what_a_run_observes() -> None:
+    # The quieter half of the same mistake: a carbon figure marked `measured`,
+    # with nothing in the world that could have measured it, inheriting the
+    # standing of a stopwatch because the file happened to contain one.
+    model = CostModel.from_mapping(
+        {
+            "schema_version": "2.0",
+            "date_updated": "2026-10-02",
+            "unit_of_work": {"name": "one request", "status": "estimated"},
+            "deployment": {"provider": "on-prem", "country": "FR"},
+            "measurement": {"command": ["python", "train.py"], "exit_code": 0},
+            "scenarios": [
+                {
+                    "name": "default",
+                    "costs": {
+                        "runtime": {"value": 1.0, "unit": "s", "status": "measured"},
+                        "energy": {"value": 1.0, "unit": "kWh", "status": "measured"},
+                        "carbon": {"value": 1.0, "unit": "gCO2e", "status": "measured"},
+                    },
+                }
+            ],
+        }
+    )
+    text = validate(model).to_text()
+    assert "does not observe" in text
+    # And it says so about the carbon alone, not about the two the run did see.
+    assert text.count("does not observe") == 1
+    assert "gCO2e" in text
+
+
+def test_money_read_off_an_invoice_is_attributed_by_its_note() -> None:
+    # A cost genuinely can be measured — off a bill. The rule asks it to say so,
+    # not to stop claiming it.
+    model = CostModel.from_mapping(
+        {
+            "schema_version": "2.0",
+            "date_updated": "2026-10-02",
+            "unit_of_work": {"name": "one request", "status": "estimated"},
+            "deployment": {"provider": "aws", "country": "FR"},
+            "measurement": {"command": ["python", "train.py"], "exit_code": 0},
+            "scenarios": [
+                {
+                    "name": "default",
+                    "costs": {
+                        "spend": {
+                            "value": 12.4,
+                            "unit": "USD",
+                            "status": "measured",
+                            "notes": "read off the November invoice",
+                        }
+                    },
+                }
+            ],
+        }
+    )
+    assert "does not observe" not in validate(model).to_text()
+
+
+def test_an_unknown_unit_gets_the_benefit_of_the_doubt() -> None:
+    # Asserting that somebody's instrument cannot exist would be inventing a
+    # rule about their field, which is the mistake this package is built against.
+    from saggio.model.validate import _a_run_can_observe
+
+    assert _a_run_can_observe("sheep") is True
+    assert _a_run_can_observe("gCO2e") is False

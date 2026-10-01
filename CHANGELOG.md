@@ -14,28 +14,54 @@ release of that line.
   multiply to, and validate. That was the worst shape the gap could take: a
   wrong number carrying a correct derivation reads as *better* founded than
   anything else on the page.
-- `saggio.model.derivation` multiplies the inputs back together where it
-  recognises the relationship — by **units**, not by field name, so a dimension
-  a project registered this morning is treated like carbon rather than as a
-  special case. Seconds times watts give kilowatt-hours; anything times a
-  dimensionless ratio keeps its unit; kilowatt-hours times *something* per
-  kilowatt-hour give that something.
-- More than 1% from the recomputed value is an **error**. A unit the inputs
-  cannot produce — a duration times a plain number gives a duration, never a
-  mass of carbon dioxide — is an error too, and cheaper to be sure of.
-- Where the relationship is none of those, the validator says **nothing**.
-  Silence is the honest answer to "I cannot tell", here as everywhere else.
+- `saggio.model.derivation` recomputes the value from its inputs, by **units**
+  rather than by field name. Every unit is parsed into a scale and a set of base
+  dimensions — joules, seconds, grams of CO₂ equivalent, litres, bytes, and
+  whatever currency a model names. `W` is `J/s`, `kWh` is 3 600 000 joules,
+  `gCO2e/kWh` is grams over joules with the factor folded in. Nothing is a
+  special case: seconds times watts come out as energy because a watt *is* a
+  joule per second.
+- The **product comes first**, and where it lands on the stated unit that is the
+  reading: a derivation multiplies unless it cannot. Where the product misses,
+  each input is tried as a divisor too, because a derivation may divide —
+  amortising an embodied footprint over a lifetime is a division, and the model
+  names the lifetime among its inputs just the same.
+- Exactly one arrangement reaching the unit means the relationship is
+  unambiguous, and more than 1% away is an **error**. Several arrangements mean
+  the units cannot say which was meant, so no single answer is claimed — but a
+  value matching **none** of them is still an error, because it is wrong under
+  every reading. That is what closes the three-input case, where an embodied
+  figure five orders of magnitude out passed with a perfectly correct list of
+  inputs beside it.
+- A unit no arrangement can produce — a duration times a plain number gives a
+  duration, never a mass of carbon dioxide — is an **error** too, cheaper to be
+  sure of, and decidable however many inputs there are.
+- Where any unit involved is one the package does not know, the validator says
+  **nothing**. Silence is the honest answer to "I cannot tell", here as
+  everywhere else.
 - It found a wrong number on its first run, inside a test fixture named
   `sound_model`: 0.05 kWh where 3600 s at 100 W is 0.1. All nine committed
-  example models passed.
+  example models passed, before and after the rule was widened.
 
 ### `measured` has to say what measured it
 
 - `estimated` must name a source; `measured`, the stronger status, asked for
   nothing. A value claiming it must now be derived, carry a note, or sit in a
-  model with a `measurement` block. A **warning**, not an error: somebody may
-  genuinely have measured it with their own wattmeter, and refusing their model
-  would be refusing the truth.
+  model with a `measurement` block.
+- And a `measurement` block vouches only for **what a run can actually
+  observe**: durations, energy, power and bytes. It does not produce a grid's
+  carbon intensity or a cloud bill. Letting it vouch for every `measured` value
+  in the file was the same mistake in a quieter place — a carbon figure marked
+  `measured`, with nothing in the world that could have measured it, inheriting
+  the standing of a stopwatch because the file happened to contain one. A value
+  outside what a run observes now has to attribute itself; a cost read off an
+  invoice is a real measurement, and saying so in `notes` is all the rule asks.
+- A unit the package does not recognise gets the benefit of the doubt. Asserting
+  that somebody's instrument cannot exist would be inventing a rule about their
+  field.
+- A **warning** throughout, not an error: somebody may genuinely have measured it
+  with their own wattmeter, and refusing their model would be refusing the
+  truth.
 
 ### Breaking
 

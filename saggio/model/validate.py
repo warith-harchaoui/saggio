@@ -58,7 +58,7 @@ from datetime import date
 from typing import Any, Final
 
 from .cost_model import CostModel, walk_bare_numbers
-from .derivation import combine, disagrees, unreachable
+from .derivation import candidates, disagrees, parse_unit
 from .dimensions import CANONICAL_DIMENSIONS
 from .quantity import (
     QUANTITY_KEYS,
@@ -477,6 +477,44 @@ def _check_derivation(path: str, quantity: Quantity, model: CostModel, report: R
     _check_arithmetic(path, quantity, inputs, report)
 
 
+#: The base dimensions a timed run with power counters actually produces. A
+#: carbon figure comes from an intensity somebody published, and a cost from a
+#: tariff; neither is a thing a stopwatch or an energy counter observes.
+_OBSERVABLE_BASES: Final[frozenset[str]] = frozenset({"s", "J", "B"})
+
+
+def _a_run_can_observe(unit: str | None) -> bool:
+    """Return whether a timed run with power counters produces this unit.
+
+    Parameters
+    ----------
+    unit : str or None
+        As written in the model.
+
+    Returns
+    -------
+    bool
+        True for durations, energy, power and data, and for any unit this does
+        not recognise — an unknown dimension gets the benefit of the doubt,
+        because asserting that somebody's instrument cannot exist would be
+        inventing a rule about their field.
+
+    Examples
+    --------
+    >>> _a_run_can_observe("s"), _a_run_can_observe("kWh"), _a_run_can_observe("W")
+    (True, True, True)
+    >>> _a_run_can_observe("gCO2e"), _a_run_can_observe("USD")
+    (False, False)
+    >>> _a_run_can_observe("sheep")
+    True
+    """
+    parsed = parse_unit(unit)
+    if parsed is None:
+        return True
+    _, dimensions = parsed
+    return all(base in _OBSERVABLE_BASES for base in dimensions)
+
+
 def _check_measured_is_attributable(
     path: str, quantity: Quantity, model: CostModel, report: Report
 ) -> None:
@@ -488,14 +526,24 @@ def _check_measured_is_attributable(
     nothing in the file would say which instrument, or whether one existed.
 
     Three things count as saying. The quantity is derived, and its provenance is
-    its derivation. It carries a note, which is where the auditor writes the
-    command it timed and the counters that answered. Or the model carries a
-    ``measurement`` block, which is what this package writes when it did the
-    measuring itself.
+    its derivation. It carries a note of its own, which is where the auditor
+    writes the command it timed and the counters that answered. Or the model
+    carries a ``measurement`` block, which is what this package writes when it
+    did the measuring itself.
+
+    But a measurement block attests only what a run can actually observe. A
+    timed run with power counters produces durations, energy, power and bytes;
+    it does not produce a grid's carbon intensity or a cloud bill. Letting the
+    block vouch for every ``measured`` value in the file was the same mistake in
+    a quieter place: a carbon figure marked ``measured``, with nothing in the
+    world that could have measured it, inheriting the standing of a stopwatch.
+    So the block vouches by dimension, and a value outside what a run observes
+    has to attribute itself.
 
     A warning rather than an error: somebody may genuinely have measured this
-    with their own wattmeter, and refusing their model would be refusing the
-    truth. But an unattributed measurement should not pass in silence.
+    with their own wattmeter, or read that money off an invoice, and refusing
+    their model would be refusing the truth. But an unattributed measurement
+    should not pass in silence.
 
     Parameters
     ----------
@@ -520,7 +568,17 @@ def _check_measured_is_attributable(
         return
     if quantity.is_derived() or quantity.notes or quantity.source_url:
         return
-    if isinstance(model.data.get("measurement"), dict) and model.data["measurement"]:
+    block = model.data.get("measurement")
+    if isinstance(block, dict) and block:
+        if _a_run_can_observe(quantity.unit):
+            return
+        report.warning(
+            path,
+            f"is measured in {quantity.unit!r}, which a timed run does not observe. "
+            "The measurement block in this model attests durations, energy, power "
+            "and bytes; it cannot attest this one. Say in notes what measured it, "
+            "or derive it from something that was measured",
+        )
         return
     report.warning(
         path,
@@ -574,28 +632,36 @@ def _check_arithmetic(
             return
         pairs.append((float(value), node.get("unit")))
 
-    impossible = unreachable(pairs, quantity.unit)
-    if impossible is not None:
+    possible = candidates(pairs, quantity.unit)
+    if possible is None:
+        # A unit this does not know. Saying anything here would be inventing a
+        # rule for somebody else's dimension, which is what the house refuses.
+        return
+    if not possible:
         report.error(
             path,
             f"is written in {quantity.unit!r}, which cannot come from the inputs it "
-            f"names: {impossible}. The derivation and the unit disagree",
+            f"names: no way of multiplying and dividing them gives that unit. The "
+            "derivation and the unit disagree",
         )
         return
 
-    expected = combine(pairs, quantity.unit)
-    if expected is None:
-        # Not a relationship this knows. Saying something here would be inventing
-        # a rule; saying nothing is what the house does when it cannot tell.
+    stated = float(quantity.value)
+    if any(not disagrees(stated, value) for value in possible):
         return
-    if disagrees(float(quantity.value), expected):
-        report.error(
-            path,
-            f"states {quantity.value!r} but does not follow from the inputs it "
-            f"names, which multiply to {expected:.6g} {quantity.unit}. Either the "
-            "number or the derivation is wrong; naming inputs a value did not come "
-            "from is the one mistake this field exists to make impossible",
-        )
+    # Several arrangements can produce the claimed unit when the units cannot say
+    # whether an input multiplies or divides — amortising over a lifetime is the
+    # case that matters. Matching none of them is still wrong, under every
+    # reading of the derivation, which is worth saying without guessing which was
+    # meant.
+    gives = " or ".join(f"{value:.6g}" for value in sorted(possible))
+    report.error(
+        path,
+        f"states {quantity.value!r} but does not follow from the inputs it names, "
+        f"which give {gives} {quantity.unit}. Either the number or the derivation "
+        "is wrong; naming inputs a value did not come from is the one mistake this "
+        "field exists to make impossible",
+    )
 
 
 def _check_bare_numbers(model: CostModel, report: Report) -> None:

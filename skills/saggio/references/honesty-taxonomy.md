@@ -42,33 +42,69 @@ they multiply to, and pass — which was the worst shape the gap could take, sin
 a wrong number carrying a correct derivation looks *better* founded than
 anything else on the page.
 
-The validator now multiplies the inputs back together where it recognises the
-relationship, which it does by **units** rather than by field name:
+The validator now recomputes the value from its inputs, by **units** rather than
+by field name. Every unit is parsed into a scale and a set of base dimensions —
+joules, seconds, grams of CO₂ equivalent, litres, bytes, and whatever currency a
+model names. `W` is `J/s`; `kWh` is 3 600 000 joules; `gCO2e/kWh` is grams over
+joules with the factor folded in. Nothing is a special case: seconds times watts
+come out as energy because a watt *is* a joule per second.
 
-| Inputs | Give |
-|---|---|
-| seconds × watts | kilowatt-hours, over 3 600 000 |
-| anything × a dimensionless ratio | that anything |
-| kilowatt-hours × *something*/kWh | that something |
-| one input restated in its own unit | itself |
+Then the inputs are combined. The **product comes first**, and where it lands on
+the stated unit that is the reading — a derivation multiplies unless it cannot.
+Where the product misses, each input is tried as a divisor too, because a
+derivation may divide: amortising an embodied footprint over a lifetime is a
+division, and the model names the lifetime among its inputs just the same.
 
-A stated value more than 1% from the recomputed one is an **error**. A unit the
-inputs cannot possibly produce — a duration times a plain number can give a
-duration, never a mass of carbon dioxide — is an **error** too, and a cheaper one
-to be sure of.
+| Inputs | Give | How |
+|---|---|---|
+| seconds × watts | kilowatt-hours | product; `s · J/s = J` |
+| energy × a dimensionless overhead | energy | product |
+| kilowatt-hours × *something*/kWh | that something | product, denominator cancels |
+| one input restated | itself, converted | `3600 s` → `1 h` |
+| kgCO₂e, a lifetime, a runtime | an amortised mass | the runtime over the lifetime |
 
-And where the relationship is none of these, the validator says **nothing**. A
-dimension a project registered this morning must not become an error because the
-package has not heard of it. Silence is the honest answer to "I cannot tell",
-here as everywhere else.
+What happens next depends on how many arrangements reach the stated unit:
+
+- **Exactly one** — the relationship is unambiguous, and a stated value more
+  than 1% away is an **error**.
+- **Several** — the units cannot say which was meant (nothing in `years` says it
+  divides rather than multiplies), so no single answer is claimed. A value
+  matching **none** of them is still an **error**, because it is wrong under
+  every reading. This is what closes the three-input case, where a footprint
+  five orders of magnitude out used to pass with a perfectly correct list of
+  inputs beside it.
+- **None, and every unit is one the package knows** — no arrangement of these
+  inputs can produce that unit, which is an **error** about the unit itself and
+  needs no arithmetic at all. A duration times a plain number can give a
+  duration, never a mass of carbon dioxide. This stays decidable however many
+  inputs there are.
+- **None, and some unit is not one the package knows** — the validator says
+  **nothing**. A dimension a project registered this morning must not become an
+  error because the package has not heard of it. Silence is the honest answer to
+  "I cannot tell", here as everywhere else.
 
 ## `measured` has to say what measured it
 
 `estimated` must name a source. `measured` — the stronger status — asked for
 nothing, which was the wrong way round. A value claiming `measured` now has to be
-derived, or carry a note, or sit in a model with a `measurement` block. A
-*warning*, not an error: somebody may genuinely have measured it with their own
-wattmeter, and refusing their model would be refusing the truth.
+derived, or carry a note, or sit in a model with a `measurement` block.
+
+And a `measurement` block vouches only for **what a run can actually observe**.
+A timed run with power counters produces durations, energy, power and bytes; it
+does not produce a grid's carbon intensity or a cloud bill. Letting the block
+vouch for every `measured` value in the file was the same mistake in a quieter
+place: a carbon figure marked `measured`, with nothing in the world that could
+have measured it, inheriting the standing of a stopwatch because the file
+happened to contain one. So the block vouches by dimension, and a value outside
+what a run observes has to attribute itself — a cost read off an invoice is a
+real measurement, and saying so in `notes` is all the rule asks.
+
+A unit the package does not recognise gets the benefit of the doubt: asserting
+that somebody's instrument cannot exist would be inventing a rule about their
+field.
+
+A *warning*, not an error, throughout: somebody may genuinely have measured it
+with their own wattmeter, and refusing their model would be refusing the truth.
 
 ## The mistakes that matter
 
