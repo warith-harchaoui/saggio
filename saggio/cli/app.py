@@ -30,7 +30,7 @@ import os_helper as osh
 
 from .. import __version__
 from ..analyze.run import DEFAULT_BASELINE_SECONDS, DEFAULT_TIMEOUT_SECONDS
-from ..catalog.registry import SECTION_OF_KIND
+from ..catalog.registry import EXPIRING_WITHIN_DAYS, SECTION_OF_KIND
 from ..diff import DEFAULT_DRIFT_THRESHOLD_PERCENT
 from ..estimate.extrapolate import DEFAULT_PRECISION
 from ..model.taxonomy import STATUS_ORDER
@@ -574,6 +574,16 @@ def _add_catalog(verbs: argparse._SubParsersAction) -> None:
     freshness = sub.add_parser(
         "freshness",
         help="List the rows nobody has checked lately. Exits 1 when any are stale.",
+    )
+    freshness.add_argument(
+        "--within",
+        type=int,
+        default=EXPIRING_WITHIN_DAYS,
+        metavar="DAYS",
+        help=(
+            "Also warn about rows that go stale within this many days, without "
+            f"failing. Default {EXPIRING_WITHIN_DAYS}; 0 turns the warning off."
+        ),
     )
     freshness.add_argument("--json", action="store_true", help="Print them as JSON.")
 

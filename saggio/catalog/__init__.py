@@ -32,6 +32,7 @@ from .registry import (
     add_row,
     carries_numbers,
     days_since,
+    expiring_report,
     is_stale,
     overlay_directory,
     require_provenance,
@@ -53,5 +54,6 @@ __all__ = [
     "overlay_directory",
     "require_provenance",
     "stale_after_days",
+    "expiring_report",
     "stale_report",
 ]

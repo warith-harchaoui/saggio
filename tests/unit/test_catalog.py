@@ -262,3 +262,80 @@ def test_the_price_table_is_fetched_once_per_reader() -> None:
     rate_table("m", fetch=reader)
     rate_table("other", fetch=reader)
     assert calls["n"] == 1
+
+
+# --- Saying what is about to expire, before it does --------------------------
+
+
+def test_nothing_expiring_is_an_empty_report() -> None:
+    from datetime import date
+
+    from saggio.catalog.registry import expiring_report
+
+    # Everything was read recently relative to this date, so nothing is near
+    # the end of its window.
+    assert expiring_report(today=date(2026, 9, 13), within=1) == {}
+
+
+def test_a_row_near_the_end_of_its_window_is_named_with_the_days_left() -> None:
+    from datetime import date
+
+    from saggio.catalog.registry import expiring_report
+
+    # The bundled grid rows were read on 2026-09-12 and country rows last a
+    # month, so on 2026-10-11 they have two days left.
+    report = expiring_report(today=date(2026, 10, 11), within=7)
+    assert "country" in report
+    assert all(left == 2 for _, left in report["country"])
+
+
+def test_an_already_stale_row_is_not_also_reported_as_expiring() -> None:
+    from datetime import date
+
+    from saggio.catalog.registry import expiring_report, stale_report
+
+    # Reporting it twice would make the warning compete with the failure.
+    late = date(2026, 12, 1)
+    assert "country" in stale_report(today=late)
+    assert "country" not in expiring_report(today=late, within=30)
+
+
+def test_the_soonest_rows_come_first() -> None:
+    from datetime import date
+
+    from saggio.catalog.registry import expiring_report
+
+    for rows in expiring_report(today=date(2026, 10, 11), within=30).values():
+        assert rows == sorted(rows, key=lambda row: (row[1], row[0]))
+
+
+def test_a_horizon_of_zero_turns_the_warning_off() -> None:
+    from datetime import date
+
+    from saggio.catalog.registry import expiring_report
+
+    assert expiring_report(today=date(2026, 10, 12), within=0) == {}
+
+
+def test_the_command_warns_without_failing(capsys) -> None:
+    import argparse
+
+    from saggio.cli.commands import catalog_freshness
+
+    verdict = catalog_freshness(argparse.Namespace(json=False, within=3650))
+    printed = capsys.readouterr().out
+    assert verdict == 0, "an expiring row must not fail the build; only a stale one does"
+    assert "expiring" in printed
+    assert "Re-read the source now" in printed
+
+
+def test_the_json_shape_separates_the_two(capsys) -> None:
+    import argparse
+    import json
+
+    from saggio.cli.commands import catalog_freshness
+
+    catalog_freshness(argparse.Namespace(json=True, within=3650))
+    payload = json.loads(capsys.readouterr().out)
+    assert set(payload) == {"stale", "expiring"}
+    assert all("days_left" in row for rows in payload["expiring"].values() for row in rows)

@@ -7,6 +7,21 @@ release of that line.
 
 ## Unreleased
 
+### The freshness gate gives notice before it fails
+
+- `saggio catalog freshness --within DAYS` names the rows that are still inside
+  their refresh window but near the end of it, and does **not** fail. Only a
+  stale row still fails.
+- The reason is the failure mode, not the feature: a gate that turns red
+  overnight gets the date bumped in a hurry rather than the source re-read, and
+  a re-dated number nobody looked at is exactly what this mechanism was built to
+  stop. A week's notice is enough to go and read the source properly.
+- Found by asking: the bundled grid rows were read on 2026-09-12 and country
+  rows last a month, so all 38 of them expire on 2026-10-13. Nothing is stale
+  today and nothing was going to say so until the day it broke.
+- `--json` now returns `{"stale": …, "expiring": …}` rather than the bare stale
+  mapping. A shape change for anything parsing it.
+
 ### A run is told apart from its machine two ways, not one
 
 - Subtracting an idle baseline assumes the rest of the machine kept doing what

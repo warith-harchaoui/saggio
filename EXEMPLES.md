@@ -777,6 +777,21 @@ Tarifs et mix électriques périment en un mois, consommations de fiche techniqu
 un an. Un seuil unique se mettrait soit à râler sur un GPU, soit à laisser passer
 le tarif d'électricité de l'an dernier.
 
+Elle dit aussi ce qui est *sur le point* de périmer, sans faire échouer :
+
+```bash
+saggio catalog freshness --within 14
+```
+
+> expiring country: 38 row(s) go stale in 12 day(s) — AE, AT, AU, BE, BR, CA and
+> 32 more. Re-read the source now rather than re-dating it later.
+
+Cet avertissement existe pour une raison. Une barrière qui vire au rouge du jour
+au lendemain fait redater la ligne dans l'urgence au lieu de faire relire la
+source, et un nombre redaté que personne n'a regardé est exactement ce que tout
+ce mécanisme a été bâti pour empêcher. Une semaine de préavis — `--within 0` le
+désactive — suffit à aller lire Ember correctement.
+
 ## La bibliothèque
 
 Tout ce que fait la ligne de commande, elle le fait en appelant ceci.

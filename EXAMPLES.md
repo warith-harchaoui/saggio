@@ -756,6 +756,21 @@ Tariffs and grid mixes expire in a month, datasheet wattages in a year. A single
 threshold would either nag about a GPU or wave last year's electricity price
 through.
 
+It also says what is *about* to expire, without failing:
+
+```bash
+saggio catalog freshness --within 14
+```
+
+> expiring country: 38 row(s) go stale in 12 day(s) — AE, AT, AU, BE, BR, CA and
+> 32 more. Re-read the source now rather than re-dating it later.
+
+That warning exists for one reason. A gate that turns red overnight gets the
+date bumped in a hurry rather than the source re-read, and a re-dated number
+nobody looked at is precisely the thing this whole mechanism was built to stop.
+A week's notice — `--within 0` turns it off — is enough to go and read Ember
+properly.
+
 ## The library
 
 Everything the command line does, it does by calling this.

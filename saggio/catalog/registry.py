@@ -669,6 +669,65 @@ def add_row(kind: str, row: dict[str, Any], *, overlay: Path | None = None) -> P
     return target
 
 
+#: How soon a row has to be from expiring before this says so. A week is enough
+#: notice to re-read a source without it becoming noise every build.
+EXPIRING_WITHIN_DAYS: Final[int] = 7
+
+
+def expiring_report(
+    *, overlay: Path | None = None, today: date | None = None, within: int = EXPIRING_WITHIN_DAYS
+) -> dict[str, list[tuple[str, int]]]:
+    """Return the rows that are still fresh but about to stop being.
+
+    A gate that turns red overnight with no warning gets the number re-dated in a
+    hurry rather than re-read, which is the one outcome this whole mechanism
+    exists to prevent. So a row inside its window but near the end of it is
+    reported separately: nothing fails, and somebody has a week to go and look at
+    the source properly.
+
+    Parameters
+    ----------
+    overlay : pathlib.Path or None, optional
+        Overlay directory to include.
+    today : datetime.date or None, optional
+        The day to measure from.
+    within : int, optional
+        How many days ahead to look.
+
+    Returns
+    -------
+    dict
+        Mapping of row kind to ``(key, days left)`` pairs, soonest first. Kinds
+        with nothing expiring are omitted. A row that is already stale is not
+        here: it is in :func:`stale_report`, and reporting it twice would make
+        the warning compete with the failure.
+
+    Examples
+    --------
+    >>> from datetime import date
+    >>> report = expiring_report(today=date(2020, 1, 1))
+    >>> isinstance(report, dict)
+    True
+    """
+    soon: dict[str, list[tuple[str, int]]] = {}
+    for kind, (catalog_name, section) in SECTION_OF_KIND.items():
+        limit = STALE_AFTER_DAYS.get(kind, DEFAULT_STALE_AFTER_DAYS)
+        catalog = Catalog.load(catalog_name, overlay=overlay)
+        rows: list[tuple[str, int]] = []
+        for key, row in catalog.rows(section).items():
+            if row.get("source_url") == INTERNAL_DEFAULT_SOURCE:
+                continue
+            age = days_since(row.get("retrieved_date"), today=today)
+            if age is None or age < 0 or age > limit:
+                continue
+            left = limit - age
+            if left <= within:
+                rows.append((key, left))
+        if rows:
+            soon[kind] = sorted(rows, key=lambda row: (row[1], row[0]))
+    return soon
+
+
 def stale_report(*, overlay: Path | None = None, today: date | None = None) -> dict[str, list[str]]:
     """Return the keys of every catalogue row that is past its refresh date.
 

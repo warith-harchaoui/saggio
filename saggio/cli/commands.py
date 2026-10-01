@@ -43,7 +43,13 @@ from ..analyze.capability import measurable, paths_read, probe, summary
 from ..analyze.power import PowerMeter
 from ..analyze.run import record_consent, run_slice
 from ..auditor import AuditOptions, audit, audit_git_url
-from ..catalog.registry import SECTION_OF_KIND, Catalog, add_row, stale_report
+from ..catalog.registry import (
+    SECTION_OF_KIND,
+    Catalog,
+    add_row,
+    expiring_report,
+    stale_report,
+)
 from ..diff import compare
 from ..estimate.machine import detect_machine
 from ..fold import fold_measurement
@@ -613,7 +619,7 @@ def catalog_freshness(args: argparse.Namespace) -> int:
     Parameters
     ----------
     args : argparse.Namespace
-        With ``json``.
+        With ``json`` and ``within``.
 
     Returns
     -------
@@ -626,19 +632,43 @@ def catalog_freshness(args: argparse.Namespace) -> int:
     --------
     >>> import contextlib, io
     >>> with contextlib.redirect_stdout(io.StringIO()):
-    ...     verdict = catalog_freshness(argparse.Namespace(json=True))
+    ...     verdict = catalog_freshness(argparse.Namespace(json=True, within=7))
     >>> verdict in {0, 1}
     True
     """
     stale = stale_report()
+    soon = expiring_report(within=args.within)
     if args.json:
-        _emit(stale, as_json=True)
-    elif not stale:
-        print("Every catalogue row is within its refresh window.")
-    else:
+        _emit(
+            {
+                "stale": stale,
+                "expiring": {
+                    kind: [{"key": key, "days_left": left} for key, left in rows]
+                    for kind, rows in soon.items()
+                },
+            },
+            as_json=True,
+        )
+        return INVALID if stale else OK
+
+    if stale:
         for kind, keys in stale.items():
-            print(f"{kind}: {', '.join(keys)}")
+            print(f"stale {kind}: {', '.join(keys)}")
         print("Re-read the sources and add the rows again with a fresh retrieved_date.")
+    else:
+        print("Every catalogue row is within its refresh window.")
+
+    # Said even when nothing is stale, and deliberately without failing. A gate
+    # that turns red overnight gets the date bumped in a hurry rather than the
+    # source re-read, which is the one outcome this mechanism exists to prevent.
+    for kind, rows in soon.items():
+        nearest = rows[0][1]
+        listed = ", ".join(key for key, _ in rows[:6])
+        more = f" and {len(rows) - 6} more" if len(rows) > 6 else ""
+        print(
+            f"expiring {kind}: {len(rows)} row(s) go stale in {nearest} day(s) — "
+            f"{listed}{more}. Re-read the source now rather than re-dating it later."
+        )
     return INVALID if stale else OK
 
 
