@@ -290,6 +290,17 @@ def _add_audit(verbs: argparse._SubParsersAction) -> None:
         help=f"Seconds a slice may run. Default {DEFAULT_TIMEOUT_SECONDS:g}.",
     )
     parser.add_argument(
+        "--baseline",
+        type=float,
+        default=DEFAULT_BASELINE_SECONDS,
+        metavar="SECONDS",
+        help=(
+            "Watch the machine for this long before each slice, so what the slice "
+            "added can be told apart from what the machine was already drawing. "
+            "0 skips it. A scaling series takes one baseline for the whole ladder."
+        ),
+    )
+    parser.add_argument(
         "--scaling-steps",
         type=int,
         default=1,

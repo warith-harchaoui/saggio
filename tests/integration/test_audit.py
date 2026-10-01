@@ -455,3 +455,50 @@ def test_a_real_repository_really_runs_the_whole_ladder(
     assert scaling["exponent"]["status"] in {"measured", "TODO"}
     assert validate(result.model).ok, validate(result.model).to_text()
     assert any("without the profiler" in note for note in result.notes)
+
+
+def test_an_audit_can_be_told_to_skip_the_baseline(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # `saggio measure` has had this knob since the baseline existed; an audit
+    # could not be told to skip a second it does not need, and a scaling series
+    # could not be told either.
+    seen: list[float] = []
+
+    def remember(*args, **kwargs):
+        seen.append(kwargs["baseline_seconds"])
+        from saggio.analyze.power import PowerReading
+        from saggio.analyze.run import SliceResult
+
+        return SliceResult(
+            command=("true",),
+            exit_code=0,
+            wall_seconds=1.0,
+            power=PowerReading(None, None, "n/a"),
+            fraction_completed=0.001,
+        )
+
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
+    monkeypatch.setattr("saggio.auditor.run_slice", remember)
+    audit(training_repository, options=static_options(run=True, country="FR", baseline_seconds=0.0))
+
+    assert seen == [0.0]
+
+
+def test_a_scaling_series_is_given_the_audit_baseline(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    seen: list[float] = []
+
+    def remember(ladder, **kwargs):
+        seen.append(kwargs["baseline_seconds"])
+        return _synthetic_series(1.0)
+
+    monkeypatch.setattr("saggio.auditor.require_consent", lambda: True)
+    monkeypatch.setattr("saggio.auditor.run_scaling_series", remember)
+    audit(
+        training_repository,
+        options=static_options(run=True, country="FR", scaling_steps=3, baseline_seconds=0.0),
+    )
+
+    assert seen == [0.0]

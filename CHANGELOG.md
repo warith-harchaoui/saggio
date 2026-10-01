@@ -7,6 +7,21 @@ release of that line.
 
 ## Unreleased
 
+### The baseline stops costing what it cannot buy
+
+- A machine that publishes no counter no longer waits a second to find that out.
+  `PowerMeter.reads_anything()` answers from the opening readings the meter has
+  already taken, so `measure_for` skips the sleep and returns the same "not
+  measured" it would have returned a second later. Asked of the meter rather
+  than of `saggio.analyze.capability.probe()`, which runs `nvidia-smi` and has
+  no business in the path of every measured run.
+- `saggio audit --baseline SECONDS`, matching `saggio measure`, and
+  `AuditOptions.baseline_seconds` behind it. An audit could not be told to skip
+  a second it does not need, and a scaling series could not be told either; both
+  can now. A scaling series already took **one** baseline for the whole ladder
+  rather than one per rung, and still does.
+
+
 ### The landscape, read again against what shipped
 
 - `LANDSCAPE.md` and `PAYSAGE.md`: the self-criticism had gone out of date in the

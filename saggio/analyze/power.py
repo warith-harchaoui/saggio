@@ -898,9 +898,12 @@ def measure_for(seconds: float) -> PowerReading:
     False
     """
     meter = PowerMeter.start()
-    if seconds > 0.0:
+    # A machine with no counter is not made to wait: the second would buy a
+    # reading that says "not measured", which the meter can say immediately.
+    if seconds > 0.0 and meter.reads_anything():
         time.sleep(seconds)
-    return meter.stop(seconds=seconds)
+        return meter.stop(seconds=seconds)
+    return meter.stop(seconds=0.0)
 
 
 @dataclass(slots=True)
@@ -989,6 +992,39 @@ class PowerMeter:
                 if nvidia_answered or graphics_started_at is not None
                 else GraphicsSampler.start()
             ),
+        )
+
+    def reads_anything(self) -> bool:
+        """Return whether any counter answered when this meter started.
+
+        A meter that answered nothing will still answer nothing a second later,
+        so there is no point watching it for one. Asked here rather than of
+        :mod:`saggio.analyze.capability`, whose ``probe()`` runs ``nvidia-smi``
+        and is far too expensive to put in the path of every measured run: the
+        meter has already done the discovery by the time it exists.
+
+        Returns
+        -------
+        bool
+            True when at least one counter produced an opening reading.
+
+        Examples
+        --------
+        >>> PowerMeter(started_at=None).reads_anything()
+        False
+        >>> PowerMeter(started_at=12345).reads_anything()
+        True
+        """
+        return any(
+            (
+                self.started_at is not None,
+                self.accelerator_started_at is not None,
+                self.sampler is not None,
+                self.memory_started_at is not None,
+                self.soc is not None,
+                self.graphics_started_at is not None,
+                self.graphics_sampler is not None,
+            )
         )
 
     def _package_joules(self, *, seconds: float) -> tuple[float | None, str | None]:

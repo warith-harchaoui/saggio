@@ -300,6 +300,18 @@ On a machine you know is quiet, skip it and save the second:
 saggio measure --baseline 0 -- python train.py --steps 100
 ```
 
+An audit takes the same knob, and a scaling series takes **one** baseline for the
+whole ladder rather than one per rung — the rungs run back to back on the same
+machine, so three baselines would measure the same idle three times:
+
+```bash
+saggio audit . --country FR --run --baseline 0 --scaling-steps 3 -o cost_of_running.yaml
+```
+
+On a machine that publishes no counter at all there is nothing to skip: the
+baseline returns "not measured" immediately rather than watching an instrument
+that does not exist for a second first.
+
 Power is measured from whichever counters this machine publishes, which
 `saggio power` above has already listed. On Linux that is the powercap tree —
 every package, the `psys` zone in preference to the packages it contains, and the

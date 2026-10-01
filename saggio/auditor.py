@@ -46,6 +46,7 @@ import os_helper as osh
 
 from .analyze import llm
 from .analyze.run import (
+    DEFAULT_BASELINE_SECONDS,
     DEFAULT_TIMEOUT_SECONDS,
     SliceResult,
     require_consent,
@@ -163,6 +164,12 @@ class AuditOptions:
     precision : str
         Numeric precision the workload runs in, which decides whether the
         catalogue's throughput figures apply to it at all.
+    baseline_seconds : float
+        How long to watch the machine before a slice starts, so that what the
+        slice added can be told apart from what the machine was already drawing.
+        Zero skips it. `saggio measure` has had this knob since the baseline
+        existed; without it here, an audit could not be told to skip a second it
+        does not need, and a scaling series could not be told either.
     scaling_steps : int
         How many differently sized slices to run in order to measure how the
         work grows with the job. One, the default, runs the single slice this
@@ -195,6 +202,7 @@ class AuditOptions:
     source_accelerator: str | None = None
     target_accelerator: str | None = None
     precision: str = DEFAULT_PRECISION
+    baseline_seconds: float = DEFAULT_BASELINE_SECONDS
     scaling_steps: int = 1
     fetch_prices: bool = False
     overlay: Path | None = None
@@ -582,6 +590,7 @@ def _run_a_slice(
             ladder,
             working_directory=reading.root,
             timeout_seconds=options.timeout_seconds,
+            baseline_seconds=options.baseline_seconds,
         )
         if not series:
             notes.append(
@@ -618,6 +627,7 @@ def _run_a_slice(
         timeout_seconds=options.timeout_seconds,
         fraction_completed=fraction,
         profile=True,
+        baseline_seconds=options.baseline_seconds,
     )
     notes.extend(result.warnings)
     return result, None, notes

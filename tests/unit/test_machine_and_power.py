@@ -418,3 +418,61 @@ def test_the_graphics_counter_is_used_when_no_nvidia_board_answered(
     assert reading.watts == pytest.approx(2.0)
     assert reading.sources == ("accelerator",)
     assert "needs neither a vendor tool nor administrator rights" in reading.scope
+
+
+# --- A meter that reads nothing does not make you wait for it -----------------
+
+
+def test_a_meter_with_no_counter_reads_nothing() -> None:
+    from saggio.analyze.power import PowerMeter
+
+    assert not PowerMeter(started_at=None).reads_anything()
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "started_at",
+        "accelerator_started_at",
+        "memory_started_at",
+        "graphics_started_at",
+    ],
+)
+def test_any_single_counter_answering_is_enough(field: str) -> None:
+    from saggio.analyze.power import PowerMeter
+
+    assert PowerMeter(**{"started_at": None, field: 1}).reads_anything()
+
+
+def test_the_baseline_does_not_wait_when_nothing_can_measure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The second bought a reading that says "not measured", which the meter can
+    # say immediately. On a machine with no counters — a container, Windows —
+    # every slice was paying it.
+    import saggio.analyze.power as power
+
+    monkeypatch.setattr(power.PowerMeter, "start", classmethod(lambda cls: cls(started_at=None)))
+    slept: list[float] = []
+    monkeypatch.setattr(power.time, "sleep", slept.append)
+
+    reading = power.measure_for(5.0)
+
+    assert slept == []
+    assert not reading.measured()
+
+
+def test_the_baseline_still_waits_when_something_answers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import saggio.analyze.power as power
+
+    monkeypatch.setattr(
+        power.PowerMeter, "start", classmethod(lambda cls: cls(started_at=1_000_000))
+    )
+    slept: list[float] = []
+    monkeypatch.setattr(power.time, "sleep", slept.append)
+
+    power.measure_for(2.0)
+
+    assert slept == [2.0]

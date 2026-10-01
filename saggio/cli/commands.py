@@ -305,6 +305,7 @@ def audit_command(args: argparse.Namespace) -> int:
         provider=args.provider,
         instance=args.instance,
         timeout_seconds=args.timeout,
+        baseline_seconds=args.baseline,
         scaling_steps=args.scaling_steps,
         source_accelerator=args.source_accelerator,
         target_accelerator=args.target_accelerator,

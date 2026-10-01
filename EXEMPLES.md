@@ -309,6 +309,19 @@ Sur une machine que vous savez calme, passez outre et gagnez la seconde :
 saggio measure --baseline 0 -- python train.py --steps 100
 ```
 
+Un audit prend le même réglage, et une série de mise à l'échelle prend **une**
+ligne de base pour toute l'échelle plutôt qu'une par barreau — les barreaux
+s'enchaînent sur la même machine, trois lignes de base mesureraient trois fois le
+même repos :
+
+```bash
+saggio audit . --country FR --run --baseline 0 --scaling-steps 3 -o cost_of_running.yaml
+```
+
+Sur une machine qui ne publie aucun compteur, il n'y a rien à passer : la ligne de
+base rend « non mesuré » immédiatement au lieu de regarder pendant une seconde un
+instrument qui n'existe pas.
+
 La puissance est mesurée à partir des compteurs que cette machine publie — ceux
 que `saggio power` vient d'énumérer. Sous Linux, c'est l'arborescence powercap :
 chaque paquet, la zone `psys` de préférence aux paquets qu'elle contient, et la

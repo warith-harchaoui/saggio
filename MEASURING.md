@@ -185,7 +185,11 @@ Two cases are said out loud instead of being quietly subtracted:
   whatever else was running stopped. The baseline was never this slice's floor,
   so no marginal figure follows from it and none is offered.
 
-`--baseline 0` skips the whole thing on a machine you know is quiet.
+`--baseline 0` skips the whole thing on a machine you know is quiet, on
+`saggio measure` and on `saggio audit` alike. A machine that publishes no
+counter skips it without being asked: a second spent watching an instrument
+that does not exist buys a reading that says `not measured`, which the meter
+can say at once.
 
 The next step beyond a baseline is attribution — splitting a node's energy
 between the things that ran on it in proportion to what each used, which is what

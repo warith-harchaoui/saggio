@@ -191,7 +191,11 @@ Deux cas sont dits à voix haute au lieu d'être soustraits en silence :
   n'a jamais été le plancher de cette tranche : aucun chiffre marginal n'en
   découle, et aucun n'est proposé.
 
-`--baseline 0` passe outre sur une machine que vous savez calme.
+`--baseline 0` passe outre sur une machine que vous savez calme, pour
+`saggio measure` comme pour `saggio audit`. Une machine qui ne publie aucun
+compteur passe outre sans qu'on le lui demande : une seconde passée à
+regarder un instrument qui n'existe pas rend une lecture « non mesuré », que
+le compteur peut donner tout de suite.
 
 L'étape suivante après une ligne de base est l'attribution — répartir l'énergie
 d'un nœud entre ce qui y a tourné, au prorata de ce que chacun a consommé, ce que
