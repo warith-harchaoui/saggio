@@ -191,11 +191,63 @@ counter skips it without being asked: a second spent watching an instrument
 that does not exist buys a reading that says `not measured`, which the meter
 can say at once.
 
-The next step beyond a baseline is attribution — splitting a node's energy
-between the things that ran on it in proportion to what each used, which is what
-[Kepler](https://sustainable-computing.io/) does for pods and what
-`GreenAlgorithms4HPC` does from a scheduler's accounting. This package measures
-the processor time its own slice used, and does not yet divide by the machine's.
+## The second answer, and why there are two
+
+Subtracting a baseline rests on something nobody checked: that the rest of the
+machine kept doing what it was doing. There is another way to ask the same
+question that does not need that assumption, and this package now asks it too.
+
+Every operating system worth reading keeps a running total of processor time,
+machine-wide, split into work and idle. Read it before the slice and after, and
+the difference is how many processor-seconds the *whole machine* spent working
+while the slice ran. The slice already knows its own, from `RUSAGE_CHILDREN`.
+The ratio is its share of the work, and multiplying the measured draw by that
+share **attributes** the draw rather than subtracting a floor from it. This is
+how [Kepler](https://sustainable-computing.io/) splits a node between pods and
+how `GreenAlgorithms4HPC` reads a scheduler's accounting.
+
+Linux publishes the totals in `/proc/stat`. macOS publishes them through the
+Mach call `host_processor_info`, per logical processor, to an ordinary user.
+Windows publishes them only through interfaces this package does not reach, and
+says so.
+
+```
+cpu_share:
+  share: 0.165
+  run_cpu_seconds: 0.137
+  machine_cpu_seconds: 0.83
+attributed_watts: 3.4
+attributed_scope: the processor cores alone, which is the only part a share of
+  processor work can price
+```
+
+**A share of processor work may only price processor energy.** A run that keeps
+an accelerator busy on almost no processor time would be attributed almost none
+of a draw that was mostly the accelerator's. Where the machine publishes its
+subsystems apart — every Apple Silicon chip does — the processor's own figure is
+used and the report says so. Where it publishes one number covering a GPU, there
+is nothing to apply the share to, and no attributed figure is offered.
+
+The two answers are reported together on purpose. Where they agree, the figure
+is robust to either assumption being wrong. Where they disagree by more than
+half again, a warning says so with both numbers in it, because the useful output
+of two methods that disagree is the pair, not a pick:
+
+> Two ways of separating this slice from the machine it ran on disagree:
+> subtracting the idle baseline gives 1.7 W, and attributing the measured draw
+> by the slice's 17% share of the machine's processor work gives 3.4 W.
+
+On a busy machine the second is usually the better of the two, and on a quiet
+one they converge.
+
+## Where the power actually went
+
+A chip that counts its subsystems apart is not asked to add them up. Apple
+Silicon publishes the processor cores, the graphics cores, the neural engine and
+the memory as four separate counters, so the report draws them as four separate
+bars — the only split in a saggio report that is **measured rather than
+modelled**. A donut of estimated shares would have been easier to draw and would
+have been a picture of an assumption.
 
 ## From a counter to a cost
 

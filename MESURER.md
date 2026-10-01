@@ -197,13 +197,67 @@ compteur passe outre sans qu'on le lui demande : une seconde passée à
 regarder un instrument qui n'existe pas rend une lecture « non mesuré », que
 le compteur peut donner tout de suite.
 
-L'étape suivante après une ligne de base est l'attribution — répartir l'énergie
-d'un nœud entre ce qui y a tourné, au prorata de ce que chacun a consommé, ce que
-fait [Kepler](https://sustainable-computing.io/) pour les pods et ce que fait
-`GreenAlgorithms4HPC` depuis la comptabilité d'un ordonnanceur. Ce paquet mesure
-le temps processeur de sa propre tranche, et ne le divise pas encore par celui de
-la machine.
+## La seconde réponse, et pourquoi il y en a deux
 
+Soustraire une ligne de base repose sur quelque chose que personne n'a vérifié :
+que le reste de la machine a continué de faire ce qu'il faisait. Il existe une
+autre façon de poser la même question, qui n'a pas besoin de cette hypothèse, et
+ce paquet la pose désormais aussi.
+
+Tout système d'exploitation digne d'être lu tient un total courant du temps
+processeur, à l'échelle de la machine, séparé entre travail et inactivité. Lisez-le
+avant la tranche et après : la différence est le nombre de secondes-processeur que
+la machine *entière* a passées à travailler pendant que la tranche tournait. La
+tranche connaît déjà les siennes, par `RUSAGE_CHILDREN`. Le rapport est sa part du
+travail, et multiplier la consommation mesurée par cette part **attribue** la
+consommation au lieu d'en soustraire un plancher. C'est ainsi que
+[Kepler](https://sustainable-computing.io/) répartit un nœud entre ses pods et que
+`GreenAlgorithms4HPC` lit la comptabilité d'un ordonnanceur.
+
+Linux publie ces totaux dans `/proc/stat`. macOS les publie par l'appel Mach
+`host_processor_info`, par processeur logique, à un utilisateur ordinaire. Windows
+ne les publie que par des interfaces que ce paquet n'atteint pas, et le dit.
+
+```
+cpu_share:
+  share: 0.165
+  run_cpu_seconds: 0.137
+  machine_cpu_seconds: 0.83
+attributed_watts: 3.4
+attributed_scope: the processor cores alone, which is the only part a share of
+  processor work can price
+```
+
+**Une part de travail processeur ne peut tarifer que de l'énergie processeur.**
+Une exécution qui occupe un accélérateur en n'utilisant presque pas de temps
+processeur se verrait attribuer presque rien d'une consommation qui était
+surtout celle de l'accélérateur. Là où la machine publie ses sous-systèmes
+séparément — toutes les puces Apple Silicon le font — c'est le chiffre propre du
+processeur qui est employé, et le rapport le dit. Là où elle publie un seul
+nombre couvrant un GPU, il n'y a rien à quoi appliquer la part, et aucun chiffre
+attribué n'est proposé.
+
+Les deux réponses sont rapportées ensemble à dessein. Quand elles concordent, le
+chiffre résiste à ce que l'une ou l'autre hypothèse soit fausse. Quand elles
+divergent de plus de moitié, un avertissement le dit avec les deux nombres,
+parce que le produit utile de deux méthodes qui divergent est la paire, pas un
+choix :
+
+> Deux façons de séparer cette tranche de la machine divergent : soustraire la
+> ligne de base au repos donne 1,7 W, et attribuer la consommation mesurée par
+> la part de 17 % du travail processeur donne 3,4 W.
+
+Sur une machine occupée, la seconde est en général la meilleure des deux ; sur
+une machine calme, elles convergent.
+
+## Où la puissance est réellement passée
+
+Une puce qui compte ses sous-systèmes séparément n'a pas à les additionner. Apple
+Silicon publie les cœurs du processeur, les cœurs graphiques, le moteur neuronal
+et la mémoire comme quatre compteurs distincts : le rapport les dessine donc en
+quatre barres distinctes — la seule répartition d'un rapport saggio qui soit
+**mesurée et non modélisée**. Un donut de parts estimées aurait été plus facile à
+dessiner et aurait été l'image d'une hypothèse.
 ## Du compteur au coût
 
 Une puissance moyenne mesurée est le premier maillon d'une chaîne, et le reste de

@@ -53,6 +53,7 @@ from .figures import (
     derivation_chain,
     honesty_bar,
     location_impact,
+    power_by_domain,
     scenario_energy,
 )
 from .markdown import NOT_KNOWN, ROUTE_LABEL, felt_size, format_number, format_quantity
@@ -853,6 +854,15 @@ def _measurement_section(model: CostModel) -> str:
     ]
     if rows:
         blocks.append(_table(["", ""], rows, widths=[30, 70]))
+    split = measurement.get("power_by_domain")
+    if isinstance(split, dict) and split:
+        # The only split in this report that is measured rather than modelled:
+        # each row came off its own counter, so it is drawn rather than described.
+        figure = power_by_domain(
+            {str(k): float(v) for k, v in split.items() if isinstance(v, (int, float))}
+        )
+        if figure:
+            blocks.append(f'<figure class="figure">{figure}</figure>')
     hot_path = measurement.get("hot_path")
     if isinstance(hot_path, list) and hot_path:
         entries = [

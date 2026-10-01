@@ -59,6 +59,7 @@ try:  # Windows has no resource module; the child CPU time is simply unknown the
 except ImportError:  # pragma: no cover - POSIX-only dependency.
     resource = None  # type: ignore[assignment]
 
+from .cpu import CpuShare, CpuShareMeter
 from .power import PowerMeter, PowerReading, measure_for
 
 #: Application name used to locate the consent record.
@@ -333,6 +334,10 @@ class SliceResult:
         anything here measures power at all. A counter measures the machine, not
         the program, so without this the browser, the indexer, and the other
         tenant are all charged to the slice.
+    cpu_share : CpuShare or None
+        The slice's share of all the processor work the machine did while it
+        ran. The second answer to the same question the baseline answers, and
+        the one that does not assume the rest of the machine kept still.
 
     Examples
     --------
@@ -351,6 +356,7 @@ class SliceResult:
     hot_path: tuple[ProfileEntry, ...] = field(default_factory=tuple)
     warnings: tuple[str, ...] = field(default_factory=tuple)
     baseline: PowerReading | None = None
+    cpu_share: CpuShare | None = None
 
     def marginal_watts(self) -> float | None:
         """Return what the slice added to the machine's draw, or ``None``.
@@ -439,6 +445,93 @@ class SliceResult:
         """
         return self.succeeded() and self.fraction_completed is not None
 
+    def attributed_watts(self) -> float | None:
+        """Return the processor's measured draw times this slice's share of it.
+
+        The other way of separating a run from the machine it ran on. Where
+        :meth:`marginal_watts` subtracts a floor and assumes the rest of the
+        machine held still, this multiplies by the share of the processor work
+        the slice actually did, and assumes instead that the draw divides the
+        way the work does.
+
+        Neither assumption is free, which is why both numbers are reported:
+        where they agree, the answer is robust to either being wrong, and where
+        they disagree the disagreement is the finding.
+
+        A share of *processor* work may only price *processor* energy. Where the
+        machine publishes its subsystems apart — every Apple Silicon chip does,
+        and Linux does when the graphics driver answers — the processor's own
+        figure is used. Where it publishes one number covering an accelerator,
+        there is nothing to apply the share to: a run that keeps a GPU busy on
+        almost no processor time would be attributed almost none of a draw that
+        was mostly the GPU's.
+
+        Returns
+        -------
+        float or None
+            Watts attributed to the slice, or ``None`` when nothing measured the
+            power, no share was established, or the only figure available covers
+            hardware this share says nothing about.
+
+        Examples
+        --------
+        A reading that names its subsystems is attributed on the processor's:
+
+        >>> split = PowerReading(60.0, 60.0, "soc", by_domain={"cpu": 40.0, "gpu": 20.0})
+        >>> half = CpuShare(share=0.5, run_seconds=1.0, machine_seconds=2.0)
+        >>> SliceResult(("x",), 0, 1.0, split, cpu_share=half).attributed_watts()
+        20.0
+
+        A processor-only reading is attributed whole:
+
+        >>> package = PowerReading(60.0, 60.0, "processor package")
+        >>> SliceResult(("x",), 0, 1.0, package, cpu_share=half).attributed_watts()
+        30.0
+
+        And one number covering an accelerator is refused:
+
+        >>> both = PowerReading(60.0, 60.0, "processor package and accelerator board")
+        >>> SliceResult(("x",), 0, 1.0, both, cpu_share=half).attributed_watts() is None
+        True
+        """
+        if self.cpu_share is None or not self.cpu_share.known():
+            return None
+        share = float(self.cpu_share.share)
+        processor = self.power.by_domain.get("cpu")
+        if processor is not None:
+            return processor * share
+        if self.power.watts is None:
+            return None
+        scope = (self.power.scope or "").lower()
+        if any(word in scope for word in ("accelerator", "graphics", "gpu")):
+            return None
+        return self.power.watts * share
+
+    def attributed_scope(self) -> str | None:
+        """Return what the attributed figure covers, or ``None`` when there is none.
+
+        Returns
+        -------
+        str or None
+            One phrase naming the hardware the attributed watts are about, so a
+            reader never has to assume it is the same hardware the total covers.
+
+        Examples
+        --------
+        >>> split = PowerReading(60.0, 60.0, "soc", by_domain={"cpu": 40.0})
+        >>> half = CpuShare(share=0.5, run_seconds=1.0, machine_seconds=2.0)
+        >>> SliceResult(("x",), 0, 1.0, split, cpu_share=half).attributed_scope()
+        'the processor cores alone, which is the only part a share of processor work can price'
+        """
+        if self.attributed_watts() is None:
+            return None
+        if "cpu" in self.power.by_domain:
+            return (
+                "the processor cores alone, which is the only part a share of "
+                "processor work can price"
+            )
+        return "the measured scope, which covers no accelerator"
+
     def to_mapping(self) -> dict[str, Any]:
         """Serialise the result for the model's measurement block.
 
@@ -477,6 +570,21 @@ class SliceResult:
                 mapping["power_note"] = _BASELINE_NOTE.format(
                     idle=self.baseline.watts, marginal=marginal
                 )
+        if self.power.by_domain:
+            # Watts per subsystem, each read from its own counter. Diagnostic
+            # context like the rest of this block, and the only split in a report
+            # that is measured rather than modelled.
+            mapping["power_by_domain"] = {
+                domain: round(value, 3) for domain, value in self.power.by_domain.items()
+            }
+        if self.cpu_share is not None:
+            share = self.cpu_share.to_mapping()
+            if share:
+                mapping["cpu_share"] = share
+            attributed = self.attributed_watts()
+            if attributed is not None:
+                mapping["attributed_watts"] = round(attributed, 2)
+                mapping["attributed_scope"] = self.attributed_scope()
         if self.truncated:
             mapping["truncated"] = True
         if self.hot_path:
@@ -708,6 +816,22 @@ _BUSY_MACHINE_WARNING: Final[str] = (
     "what you need."
 )
 
+#: Said when the two ways of separating a run from its machine disagree by more
+#: than this. Below it they corroborate each other; above it, one of their two
+#: assumptions is wrong and the reader has to know which figures are in play.
+_ATTRIBUTION_DISAGREEMENT: Final[float] = 1.5
+
+#: Said when they do disagree. Both numbers appear, because the useful output of
+#: two methods that disagree is the pair, not a pick.
+_DISAGREEMENT_NOTE: Final[str] = (
+    "Two ways of separating this slice from the machine it ran on disagree: "
+    "subtracting the idle baseline gives {marginal:.1f} W, and attributing the "
+    "measured draw by the slice's {share:.0%} share of the machine's processor work "
+    "gives {attributed:.1f} W. The first assumes the rest of the machine held still, "
+    "the second that the draw divides the way the work does; on a busy machine the "
+    "second is usually the better of the two. Treat them as the ends of a bracket."
+)
+
 #: Said whenever a baseline was taken, because subtracting it assumes something
 #: that nobody checked: that the rest of the machine kept doing what it was doing.
 _BASELINE_NOTE: Final[str] = (
@@ -801,6 +925,9 @@ def run_slice(
         baseline = measure_for(baseline_seconds) if baseline_seconds > 0.0 else None
 
         meter = PowerMeter.start()
+        # Started beside the power meter and before the child, so the window the
+        # two of them cover is the same window.
+        cpu_meter = CpuShareMeter.start()
         truncated = False
         # The child runs as its own session on POSIX so a timeout can end the
         # whole tree it may have forked, not just the direct child. Its stdout
@@ -854,6 +981,8 @@ def run_slice(
                 "the command by hand to see."
             )
 
+    cpu_share = cpu_meter.stop(run_cpu_seconds=cpu_seconds)
+
     if not reading.measured():
         warnings.append(reading.scope)
 
@@ -875,6 +1004,28 @@ def run_slice(
             warnings.append(
                 _BUSY_MACHINE_WARNING.format(idle=idle, total=total, marginal=total - idle)
             )
+    # Where both answers exist, say so when they disagree. Two methods that
+    # agree make the figure robust to either assumption being wrong; two that
+    # disagree are a finding, and hiding one of them would waste it.
+    so_far = SliceResult(
+        command=tuple(command),
+        exit_code=exit_code,
+        wall_seconds=seconds,
+        power=reading,
+        baseline=baseline,
+        cpu_share=cpu_share,
+    )
+    both = (so_far.marginal_watts(), so_far.attributed_watts())
+    if all(value is not None and value > 0.0 for value in both):
+        low, high = sorted(float(value) for value in both)  # type: ignore[arg-type]
+        if high / low > _ATTRIBUTION_DISAGREEMENT:
+            warnings.append(
+                _DISAGREEMENT_NOTE.format(
+                    marginal=so_far.marginal_watts(),
+                    share=float(cpu_share.share or 0.0),
+                    attributed=so_far.attributed_watts(),
+                )
+            )
 
     return SliceResult(
         command=command,
@@ -882,6 +1033,7 @@ def run_slice(
         wall_seconds=seconds,
         power=reading,
         cpu_seconds=cpu_seconds,
+        cpu_share=cpu_share,
         truncated=truncated,
         fraction_completed=fraction_completed if exit_code == 0 and not truncated else None,
         hot_path=hot_path,

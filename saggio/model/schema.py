@@ -85,6 +85,13 @@ BARE_NUMBER_EXEMPT_PREFIXES: Final[tuple[str, ...]] = (
     # reader needs it to see how much of the total was the machine itself.
     "measurement.idle_watts",
     "measurement.hot_path",
+    # The slice's share of all the processor work the machine did while it ran,
+    # and the draw attributed by it. The second answer to the question the
+    # baseline answers; diagnostic context about how the run was separated from
+    # the machine, not a cost anybody is charged.
+    "measurement.power_by_domain",
+    "measurement.cpu_share",
+    "measurement.attributed_watts",
     # The evidence behind a measured scaling exponent. The exponent itself is a
     # quantity and is checked like one; these are the runs it was fitted to and
     # how well the fit worked, which is what lets a reader redo the arithmetic

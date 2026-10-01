@@ -791,6 +791,12 @@ class PowerReading:
         Energy consumed over the interval, or ``None``.
     scope : str
         What the figure covers, or why there is none.
+    by_domain : dict
+        Average watts per subsystem, keyed ``cpu``, ``gpu``, ``ane``, ``memory``,
+        where the machine publishes them apart. Empty where it publishes one
+        number for the lot. This is what lets a figure show where the power went
+        instead of asserting a split, and what lets a share of *processor* work
+        price the processor's draw rather than the whole chip's.
     sources : tuple of str
         Which counters answered, named the way a reader would name them. A
         figure that covers the processor alone and one that covers the processor
@@ -810,6 +816,7 @@ class PowerReading:
     joules: float | None
     scope: str
     sources: tuple[str, ...] = ()
+    by_domain: dict[str, float] = field(default_factory=dict)
 
     def measured(self) -> bool:
         """Return whether a real figure was obtained.
@@ -871,6 +878,11 @@ def _soc_reading(energy: apple.SocEnergy, *, seconds: float) -> PowerReading:
         joules=joules,
         scope=" ".join(scopes),
         sources=tuple(sources),
+        # The chip counts these apart, so there is no reason to add them up and
+        # then guess the split back out again.
+        by_domain={
+            domain: value / seconds for domain, value in energy.by_domain.items() if seconds > 0.0
+        },
     )
 
 

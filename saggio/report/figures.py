@@ -740,3 +740,96 @@ def honesty_overview(entries: list[tuple[str, dict[str, int]]]) -> str:
         legend_x += 34 + 8 * len(status) + 16
     parts.append("</svg>")
     return "\n".join(parts)
+
+
+#: What each subsystem is called in a report, and the order they read best in:
+#: the processor first because it is usually the largest, memory last because it
+#: is the one a reader is least expecting to see.
+_DOMAIN_LABEL: Final[dict[str, str]] = {
+    "cpu": "Processor cores",
+    "gpu": "Graphics cores",
+    "ane": "Neural engine",
+    "memory": "Memory",
+}
+
+#: Height of one subsystem row, and of the whole figure's margins.
+_DOMAIN_ROW: Final[int] = 30
+_DOMAIN_LABEL_WIDTH: Final[int] = 150
+
+
+def power_by_domain(watts: dict[str, float]) -> str:
+    """Draw where the measured power actually went, by subsystem.
+
+    The one figure in this package drawn entirely from counters. Every other
+    chart here shows statuses or derivations; this shows watts, each one read
+    off a channel the chip publishes separately, so the split is measured rather
+    than modelled. A donut of estimated shares would have been easier to draw
+    and would have been a picture of an assumption.
+
+    Parameters
+    ----------
+    watts : dict
+        Average watts per subsystem, keyed ``cpu``, ``gpu``, ``ane``,
+        ``memory``, as :class:`saggio.analyze.power.PowerReading` carries them.
+
+    Returns
+    -------
+    str
+        Inline SVG, or an empty string when nothing was measured apart — a chip
+        that publishes one number for the lot has no split to show, and drawing
+        one anyway would invent it.
+
+    Examples
+    --------
+    >>> svg = power_by_domain({"cpu": 18.5, "gpu": 0.1, "memory": 2.3})
+    >>> svg.count("<rect") >= 3
+    True
+    >>> power_by_domain({}) == ""
+    True
+    >>> power_by_domain({"cpu": 0.0, "gpu": 0.0}) == ""
+    True
+    """
+    rows = [
+        (key, float(value))
+        for key, value in watts.items()
+        if key in _DOMAIN_LABEL and isinstance(value, (int, float)) and value >= 0.0
+    ]
+    largest = max((value for _, value in rows), default=0.0)
+    if not rows or largest <= 0.0:
+        return ""
+    rows.sort(key=lambda row: list(_DOMAIN_LABEL).index(row[0]))
+
+    bar_area = _WIDTH - _DOMAIN_LABEL_WIDTH - 80
+    height = _DOMAIN_ROW * len(rows) + 30
+    total = sum(value for _, value in rows)
+    parts = [
+        f'<svg viewBox="0 0 {_WIDTH} {height}" role="img" '
+        'aria-labelledby="domains-title domains-desc" xmlns="http://www.w3.org/2000/svg">',
+        '<title id="domains-title">Where the measured power went</title>',
+        '<desc id="domains-desc">'
+        + _escape(", ".join(f"{_DOMAIN_LABEL[key]} {value:.2f} W" for key, value in rows))
+        + f", {total:.2f} W in total, each read from its own counter.</desc>",
+    ]
+    for index, (key, value) in enumerate(rows):
+        y = 8 + index * _DOMAIN_ROW
+        width = max(1.0, bar_area * value / largest)
+        parts.append(
+            f'<text x="{_DOMAIN_LABEL_WIDTH - 10}" y="{y + 15}" text-anchor="end" '
+            f'font-size="13" fill="var(--ink-soft)">{_escape(_DOMAIN_LABEL[key])}</text>'
+        )
+        parts.append(
+            f'<rect x="{_DOMAIN_LABEL_WIDTH}" y="{y}" width="{width:.1f}" height="18" rx="3" '
+            f'fill="var(--measured)"><title>{_escape(_DOMAIN_LABEL[key])}: '
+            f"{value:.2f} W</title></rect>"
+        )
+        parts.append(
+            f'<text x="{_DOMAIN_LABEL_WIDTH + width + 8:.1f}" y="{y + 14}" font-size="13" '
+            f'fill="var(--ink-soft)">{value:.2f} W</text>'
+        )
+    parts.append(
+        f'<text x="{_DOMAIN_LABEL_WIDTH}" y="{height - 6}" font-size="12" '
+        f'fill="var(--ink-soft)">Measured, not modelled: each row is its own counter. '
+        f"Total {total:.2f} W.</text>"
+    )
+    parts.append("</svg>")
+    return "".join(parts)

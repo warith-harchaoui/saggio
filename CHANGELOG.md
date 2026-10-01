@@ -5,6 +5,40 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
+## Unreleased
+
+### A run is told apart from its machine two ways, not one
+
+- Subtracting an idle baseline assumes the rest of the machine kept doing what
+  it was doing. `saggio.analyze.cpu` asks the same question without that
+  assumption: it reads the machine's own processor total before the slice and
+  after — `/proc/stat` on Linux, the Mach call `host_processor_info` on macOS,
+  both to an ordinary user — and the slice's share of that work attributes the
+  measured draw instead of subtracting a floor from it. The method Kepler uses
+  for pods and GreenAlgorithms4HPC reads from a scheduler.
+- **A share of processor work may only price processor energy.** Where the
+  machine publishes its subsystems apart, the processor's own figure is used and
+  the model records what the attributed number covers. Where one figure covers
+  an accelerator, there is nothing to apply the share to and none is offered: a
+  run that keeps a GPU busy on almost no processor time would be attributed
+  almost none of a draw that was mostly the GPU's.
+- The two answers are reported together, and a warning fires when they disagree
+  by more than half again, with both numbers in it. The useful output of two
+  methods that disagree is the pair, not a pick.
+- Refusals rather than plausible ratios: a window too short for the counter's
+  resolution, a counter that went backwards, and — the one worth having — a run
+  that reports more processor time than the whole machine did, which is refused
+  rather than clamped to one, because clamping would turn a sign that a counter
+  is wrong into a confident number.
+- `PowerReading` now carries `by_domain`: watts per subsystem where the machine
+  counts them apart. Apple Silicon has always counted the processor cores, the
+  graphics cores, the neural engine and the memory separately, and this package
+  was adding them up and throwing the split away.
+- `power_by_domain()` draws that split in the HTML report — the only figure in a
+  saggio report that is measured rather than modelled, each bar read off its own
+  counter. The donut of estimated shares this replaces would have been easier to
+  draw and would have been a picture of an assumption.
+
 ## 1.2.0 — 2026-10-01
 
 ### The hardware's own carbon, and the standard it completes
