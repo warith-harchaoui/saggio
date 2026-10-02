@@ -199,6 +199,50 @@ That exponent is `measured`, over the three sizes that were run, with an R² of
 this small is mostly Python starting up, and the tool says so rather than
 projecting from it with a straight face.
 
+## The same work, through the other tools
+
+The gallery above is one tool's output on six repositories. It is worth knowing
+what the alternatives would have handed you for the same work, because for a lot
+of jobs one of them is the better answer — and because the thing that separates
+them is not accuracy but **what they produce and what they do when they cannot
+answer.**
+
+<p align="center">
+  <img src="assets/gallery-families.svg" alt="Five families of cost and carbon tool compared on the artefact they produce, the unit their answer is per, and what each does when an input is missing: saggio writes TODO, episode trackers emit a number anyway, power daemons leave a gap in the series, calculators refuse the form, and spend tools have no line for it" width="900">
+</p>
+
+Read the last column first. It is the one that decides whether a figure survives
+being quoted.
+
+The figure groups by family. These are the tools in each, and each one's own
+page is the place to judge it rather than this one:
+
+| Family | The tools it stands for |
+|---|---|
+| Episode trackers | [CodeCarbon](https://codecarbon.io/), [eco2AI](https://github.com/sb-ai-lab/Eco2AI), [carbontracker](https://github.com/lfwa/carbontracker) |
+| Power daemons | [Scaphandre](https://github.com/hubblo-org/scaphandre), [PowerAPI](https://powerapi.org/), [Kepler](https://sustainable-computing.io/) |
+| Calculators | [Green Algorithms](https://www.green-algorithms.org/) |
+| Spend tools | [Infracost](https://www.infracost.io/), [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/), [OpenCost](https://www.opencost.io/) |
+
+**None of those last-column behaviours is a flaw.** A daemon that stopped the
+world to ask you a question would be a bad daemon; a gap in a time series is the
+honest shape of a missing sample. A calculator with a required field is doing
+exactly its job. The column is not a scoreboard — it is the reason these tools
+are not interchangeable, and the reason a figure from one of them cannot simply
+be pasted where a figure from another is expected.
+
+What the comparison cannot show, and should not pretend to: **the numbers do not
+line up.** A CodeCarbon figure for a training run and a saggio figure for one
+inference are not two measurements of one thing, any more than the gallery's own
+six models compare with each other — each is per its own unit of work, which is
+the first thing every report here says. Nothing on this page ranks the tools by
+their output, because their outputs are not on one scale.
+
+Where each tool is genuinely better, where this one is weakest, and the
+twelve-row rating table the positioning map is drawn from, are all in
+[`LANDSCAPE.md`](LANDSCAPE.md) — including the cases where the honest advice is
+to use something else.
+
 ## What these files caught, and what is still wrong
 
 A gallery that only showed the tool at its best would be an advertisement. This

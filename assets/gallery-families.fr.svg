@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="560" viewBox="0 0 1180 560" role="img" aria-labelledby="gt gd" font-family="Roboto, -apple-system, Helvetica, Arial, sans-serif">
+<title id="gt">Ce que chaque sorte d'outil vous rend</title>
+<desc id="gd">Cinq familles d'outils de coût et de carbone comparées sur l'artefact qu'elles produisent, l'unité à laquelle leur réponse se rapporte, et ce que chacune fait quand un apport manque.</desc>
+<style>.paper{fill:#FFFFFF}.ink{fill:#1A1A1A}.muted{fill:#6B6B6B}.rule{stroke:#E4E4E4}.h{font-size:15px;font-weight:600;letter-spacing:.01em}.k{font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase}.b{font-size:14px}.t{font-size:26px;font-weight:700;letter-spacing:-.01em}.s{font-size:14.5px}.n{font-size:12.5px}@media (prefers-color-scheme: dark){.paper{fill:#141414}.ink{fill:#F2F2F2}.muted{fill:#9A9A9A}.rule{stroke:#2E2E2E}.chip{fill-opacity:.26}}</style>
+<rect class="paper" width="1180" height="560"/>
+<text class="t ink" x="44" y="56">Ce que chaque sorte d'outil vous rend</text>
+<text class="s muted" x="44" y="84">Et ce qu'il fait quand un apport manque — la colonne qui décide si un chiffre peut être cité.</text>
+<text class="k muted" x="44" y="146">Famille d'outils</text>
+<text class="k muted" x="268" y="146">L'artefact qu'il produit</text>
+<text class="k muted" x="596" y="146">Sa réponse porte sur</text>
+<text class="k muted" x="858" y="146">Quand un nombre manque</text>
+<line class="rule" x1="44" y1="160" x2="1136" y2="160" stroke-width="1"/>
+<rect x="44" y="177" width="4" height="24" rx="2" fill="#007AFF"/>
+<text class="h ink" x="60" y="196" font-weight="700">saggio</text>
+<text class="b muted" x="268" y="196">un modèle YAML commité + un rapport</text>
+<text class="b muted" x="596" y="196">une unité de travail que vous nommez</text>
+<rect class="chip" x="848" y="175" width="300" height="29" rx="8" fill="#007AFF" fill-opacity="0.13"/>
+<text class="b ink" x="858" y="196">écrit TODO, et le rapport le dit</text>
+<line class="rule" x1="44" y1="226" x2="1136" y2="226" stroke-width="1"/>
+<rect x="44" y="239" width="4" height="24" rx="2" fill="#28CD41"/>
+<text class="h ink" x="60" y="258" font-weight="600">Traceurs d'épisode</text>
+<text class="b muted" x="268" y="258">un journal CSV de l'exécution finie</text>
+<text class="b muted" x="596" y="258">un épisode, quelle qu'en soit la durée</text>
+<rect class="chip" x="848" y="237" width="300" height="29" rx="8" fill="#28CD41" fill-opacity="0.13"/>
+<text class="b ink" x="858" y="258">émet un nombre quand même</text>
+<line class="rule" x1="44" y1="288" x2="1136" y2="288" stroke-width="1"/>
+<rect x="44" y="301" width="4" height="24" rx="2" fill="#AF52DE"/>
+<text class="h ink" x="60" y="320" font-weight="600">Démons de puissance</text>
+<text class="b muted" x="268" y="320">un flux de métriques, par processus</text>
+<text class="b muted" x="596" y="320">un instant, en continu</text>
+<rect class="chip" x="848" y="299" width="300" height="29" rx="8" fill="#AF52DE" fill-opacity="0.13"/>
+<text class="b ink" x="858" y="320">la série a un trou</text>
+<line class="rule" x1="44" y1="350" x2="1136" y2="350" stroke-width="1"/>
+<rect x="44" y="363" width="4" height="24" rx="2" fill="#FF9500"/>
+<text class="h ink" x="60" y="382" font-weight="600">Calculateurs</text>
+<text class="b muted" x="268" y="382">une réponse à un formulaire rempli</text>
+<text class="b muted" x="596" y="382">l'hypothèse que vous avez décrite</text>
+<rect class="chip" x="848" y="361" width="300" height="29" rx="8" fill="#FF9500" fill-opacity="0.13"/>
+<text class="b ink" x="858" y="382">le champ est obligatoire</text>
+<line class="rule" x1="44" y1="412" x2="1136" y2="412" stroke-width="1"/>
+<rect x="44" y="425" width="4" height="24" rx="2" fill="#808080"/>
+<text class="h ink" x="60" y="444" font-weight="600">Outils de dépense</text>
+<text class="b muted" x="268" y="444">un tableau de bord ou un commentaire de PR</text>
+<text class="b muted" x="596" y="444">une facture, ou un plan non exécuté</text>
+<rect class="chip" x="848" y="423" width="300" height="29" rx="8" fill="#808080" fill-opacity="0.13"/>
+<text class="b ink" x="858" y="444">la ligne est absente de la facture</text>
+<line class="rule" x1="44" y1="480" x2="1136" y2="480" stroke-width="1"/>
+<text class="n muted" x="44" y="510">Des familles, pas des produits : les outils de chaque ligne, et ce qui les sépare, sont dans PAYSAGE.md. Aucune de ces lignes n'est un verdict de qualité —</text>
+<text class="n muted" x="44" y="529">un flux de métriques est le bon artefact pour un démon et le mauvais pour un chiffre dans un rapport, et l'inverse vaut aussi.</text>
+</svg>

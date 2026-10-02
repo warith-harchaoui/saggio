@@ -210,6 +210,52 @@ Cet exposant est `measured`, sur les trois tailles exécutées, avec un R² de
 une tranche aussi petite est surtout du démarrage de Python, et l'outil le dit
 au lieu de projeter à partir d'elle sans sourciller.
 
+## Le même travail, vu par les autres outils
+
+La galerie ci-dessus est la sortie d'un outil sur six dépôts. Il vaut la peine de
+savoir ce que les alternatives auraient rendu pour le même travail, parce que pour
+bien des tâches l'une d'elles est la meilleure réponse — et parce que ce qui les
+sépare n'est pas la justesse mais **ce qu'elles produisent et ce qu'elles font
+quand elles ne peuvent pas répondre.**
+
+<p align="center">
+  <img src="assets/gallery-families.fr.svg" alt="Cinq familles d'outils de coût et de carbone comparées sur l'artefact qu'elles produisent, l'unité à laquelle leur réponse se rapporte, et ce que chacune fait quand un apport manque : saggio écrit TODO, les traceurs d'épisode émettent un nombre quand même, les démons de puissance laissent un trou dans la série, les calculateurs refusent le formulaire, et les outils de dépense n'ont pas la ligne" width="900">
+</p>
+
+Lisez la dernière colonne en premier. C'est elle qui décide si un chiffre survit
+au fait d'être cité.
+
+La figure regroupe par famille. Voici les outils de chacune, et c'est leur propre
+page qui permet de les juger, pas celle-ci :
+
+| Famille | Les outils qu'elle représente |
+|---|---|
+| Traceurs d'épisode | [CodeCarbon](https://codecarbon.io/), [eco2AI](https://github.com/sb-ai-lab/Eco2AI), [carbontracker](https://github.com/lfwa/carbontracker) |
+| Démons de puissance | [Scaphandre](https://github.com/hubblo-org/scaphandre), [PowerAPI](https://powerapi.org/), [Kepler](https://sustainable-computing.io/) |
+| Calculateurs | [Green Algorithms](https://www.green-algorithms.org/) |
+| Outils de dépense | [Infracost](https://www.infracost.io/), [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/), [OpenCost](https://www.opencost.io/) |
+
+**Aucun de ces comportements de dernière colonne n'est un défaut.** Un démon qui
+arrêterait le monde pour vous poser une question serait un mauvais démon ; un trou
+dans une série temporelle est la forme honnête d'un échantillon manquant. Un
+calculateur avec un champ obligatoire fait exactement son travail. Cette colonne
+n'est pas un classement — c'est la raison pour laquelle ces outils ne sont pas
+interchangeables, et pour laquelle un chiffre de l'un ne peut pas être collé là où
+on attend un chiffre de l'autre.
+
+Ce que la comparaison ne peut pas montrer, et ne doit pas prétendre montrer : **les
+nombres ne s'alignent pas.** Un chiffre CodeCarbon pour un entraînement et un
+chiffre saggio pour une inférence ne sont pas deux mesures d'une même chose, pas
+plus que les six modèles de la galerie ne se comparent entre eux — chacun porte sur
+sa propre unité de travail, ce que chaque rapport dit en premier. Rien sur cette
+page ne classe les outils par leur sortie, parce que leurs sorties ne sont pas sur
+une même échelle.
+
+Là où chaque outil est réellement meilleur, là où celui-ci est le plus faible, et
+le tableau de notation à douze lignes dont la carte de positionnement est tirée,
+sont dans [`PAYSAGE.md`](PAYSAGE.md) — y compris les cas où le conseil honnête est
+d'utiliser autre chose.
+
 ## Ce que ces fichiers ont attrapé, et ce qui ne va toujours pas
 
 Une galerie qui ne montrerait l'outil qu'à son avantage serait une publicité.

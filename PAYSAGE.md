@@ -187,10 +187,12 @@ Autant être honnête sur les manques, puisque c'est toute la prémisse de l'out
   est le périmètre qu'il nomme, jamais la machine.
 - **Pas de suivi continu.** Une tranche bornée, une fois. Si vous voulez une série
   temporelle, ce n'est pas la bonne forme d'outil.
-- **Pas de carbone incorporé.** La fabrication du matériel est réelle, importante,
-  et exclue, parce que l'amortir demande une durée de vie et un taux d'utilisation
-  qui seraient deux devinettes. C'est listé comme exclu dans chaque rapport plutôt
-  qu'omis en silence.
+- **Le carbone incorporé est implémenté et à peine catalogué.** L'arithmétique est
+  là — les quatre termes d'ISO/IEC 21031, amortis en temps calendaire — et sept
+  empreintes aussi : trois accélérateurs sur 25 lignes et quatre processeurs sur
+  12. Tout le reste rapporte `TODO`. La durée de vie reste à vous, parce que
+  combien de temps une carte reste en service est un fait sur un parc et non sur
+  une pièce. Voir [`NORMES.md`](NORMES.md) pour le tableau et les huit refus.
 - **Les catalogues sont petits.** Ils couvrent les accélérateurs courants et les
   grands réseaux électriques. Au-delà, vous tomberez sur un manque, et l'outil vous
   dira quelle ligne ajouter.

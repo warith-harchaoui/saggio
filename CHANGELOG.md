@@ -33,6 +33,38 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### The gallery compares, without pretending the numbers do
+
+- The gallery showed one tool's output on six repositories and said nothing
+  about the alternatives, which for a lot of jobs are the better answer. It now
+  carries **the same work, through the other tools**: five families — episode
+  trackers, power daemons, calculators, spend tools, and this one — on the
+  artefact each produces, the unit its answer is per, and **what each does when
+  an input is missing**.
+- That last column is the comparison. saggio writes `TODO`; episode trackers
+  emit a number anyway; a daemon's series has a gap; a calculator's field is
+  required; a spend tool simply has no line. **None of those is a flaw** — a
+  daemon that stopped the world to ask a question would be a bad daemon — and
+  the page says so, because the column is the reason the tools are not
+  interchangeable rather than a scoreboard.
+- What it refuses to do is rank them by output. A CodeCarbon figure for a
+  training run and a saggio figure for one inference are not two measurements of
+  one thing, any more than the gallery's own six models compare with each other.
+- A hand-authored SVG carries the comparison; the table beside it carries the
+  named tools and their links, so the two do different jobs rather than saying
+  the same thing twice. Both language versions come out of one generator,
+  `assets/make_gallery_figure.py`, because two hand-edited SVGs drift the first
+  time a row changes and a figure that disagrees with its translation leaves
+  nobody able to tell which is right.
+- Four contract tests hold it: every tool named in the comparison must be one
+  `LANDSCAPE.md` actually researched, the caveat about incomparable numbers may
+  not be dropped, each language must show its own figure, and a figure edited by
+  hand instead of regenerated fails by name.
+- `LANDSCAPE.md` / `PAYSAGE.md` said **"No embodied carbon"**, which stopped
+  being true some releases ago. A stale self-assessment is worse than none when
+  it is the page a comparison is drawn from, so it now states what is
+  implemented and how thinly it is catalogued.
+
 ### The embodied-carbon promise meets its catalogue
 
 - The README offered the four terms of ISO/IEC 21031. The arithmetic had them;

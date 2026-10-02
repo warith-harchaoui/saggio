@@ -175,9 +175,13 @@ Being honest about the gaps, since that is the whole premise of the tool.
   varying per node. Every figure here is the scope it names, never the machine.
 - **No continuous monitoring.** One bounded slice, once. If you want a time series,
   this is the wrong shape of tool.
-- **No embodied carbon.** Manufacturing the hardware is real, large, and excluded,
-  because amortising it needs a lifetime and a utilisation figure that would both
-  be guesses. It is listed as excluded in every report rather than quietly omitted.
+- **Embodied carbon is implemented and barely catalogued.** The arithmetic is
+  there — the four terms of ISO/IEC 21031, amortised over calendar time — and so
+  are seven footprints: three accelerators out of 25 rows and four processors out
+  of 12. Everything else reports `TODO`. The lifetime is still yours to state,
+  because how long a card stays in service is a fact about a fleet rather than
+  about a part. See [`STANDARDS.md`](STANDARDS.md) for the table and the eight
+  refusals.
 - **The catalogues are small.** They cover the common accelerators and the larger
   grids. Beyond that you will meet a miss, and the tool will tell you which row to
   add.
