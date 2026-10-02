@@ -33,6 +33,50 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### Every column of a grid row says where it came from, and runs on its own clock
+
+- The same defect a third time. Carbon cited Ember, which was right. The tariff
+  cited Ember, which publishes no tariff. The **timezone list cited Ember too**,
+  which publishes no timezones either. The row-level `source_url` stood for
+  whatever nobody had looked at, and it is now gone: there is no row-level
+  source left, because covering nothing in particular is exactly how it lied.
+- `saggio catalog refresh grid --column timezones` checks the names against the
+  [IANA Time Zone Database](https://data.iana.org/time-zones/tzdb/zone1970.tab)
+  and stamps the release each row matched — `timezones_tzdb_version: "2026e"`.
+  It **verifies rather than replaces**: the database says which zones exist, not
+  which a country uses in the way this catalogue means it, and the catalogue
+  deliberately carries compatibility names like `Europe/Kiev` and
+  `Asia/Calcutta` because those are what a real machine reports. All 64 zones on
+  file check out. A zone published under no name fails the command rather than
+  being corrected. `--column all` does the three in one pass.
+- `COLUMN_STALE_AFTER_DAYS` gives a column its own window where it differs from
+  its row's kind. This is the reason `STALE_AFTER_DAYS` was a table in the first
+  place, applied one level down: a grid row now carries three columns from three
+  sources at three speeds. Under one clock the row went stale monthly on account
+  of a timezone list nobody needed to re-read, which teaches a maintainer to
+  re-date rather than re-read.
+- Three provenance contracts generalised from one `source_url` per row to one
+  per column, which is a stronger claim than they made before: every number has
+  a source, not every row.
+
+### Continuous integration that can go green
+
+- The workflow had not passed in **twenty-five consecutive runs**. A gate that is
+  always red is not a gate: nobody reads it, nobody fixes it, and the one time it
+  catches something real it looks like the twenty-four times it did not.
+- Four jobs become one: Linux, Python 3.10 — the floor of `requires-python`, so
+  the version most likely to reject something. The whole suite, `ruff check` and
+  `ruff format --check` all pass there, verified before pushing rather than
+  discovered in a log.
+- What that costs is in the workflow's own header rather than left to be noticed:
+  macOS is no longer exercised in CI, and only the floor of the version range is
+  run. The contract test that pinned the matrix to `SUPPORTED_PLATFORMS` now
+  asserts the invariant that caught the real bug — no job may run somewhere the
+  package refuses to import — instead of a matrix shape that also quietly claimed
+  CI covered every platform.
+- The formatting drift that was failing it: `ruff format` was never in the local
+  loop, only `ruff check`. Four files were unformatted.
+
 ### The tariff column gets a source that publishes tariffs
 
 - Every row cited one URL for the whole row. The carbon intensity came from

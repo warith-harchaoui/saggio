@@ -131,9 +131,7 @@ def test_the_product_is_the_reading_when_it_lands_on_the_unit() -> None:
     # an overhead could as well be energy divided by it — and the commonest
     # derivation in the package would stop being checked exactly.
     assert combine([(0.4, "kWh"), (1.2, "ratio")], "kWh") == pytest.approx(0.48)
-    assert combine([(0.4, "kWh"), (1.2, "ratio"), (1.1, "ratio")], "kWh") == pytest.approx(
-        0.528
-    )
+    assert combine([(0.4, "kWh"), (1.2, "ratio"), (1.1, "ratio")], "kWh") == pytest.approx(0.528)
 
 
 def test_amortising_over_a_lifetime_gives_both_readings() -> None:

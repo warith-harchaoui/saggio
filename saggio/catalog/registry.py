@@ -80,6 +80,21 @@ STALE_AFTER_DAYS: Final[dict[str, int]] = {
 #: Fallback when a kind has no explicit threshold.
 DEFAULT_STALE_AFTER_DAYS: Final[int] = 31
 
+#: How long a particular column stays believable, where that differs from its
+#: row's kind. The reason is the one that made :data:`STALE_AFTER_DAYS` a table
+#: in the first place, applied one level down: a grid row now carries three
+#: columns from three sources, and they do not move at the same speed. A tariff
+#: and a grid mix move monthly. The list of timezone names a country uses is
+#: published by a database that issues a handful of releases a year, so asking
+#: for it monthly would teach a maintainer to re-date rather than re-read, which
+#: is the habit this whole mechanism exists to prevent.
+#:
+#: Keyed by the prefix of the ``*_retrieved_date`` field, so ``timezones`` covers
+#: ``timezones_retrieved_date``.
+COLUMN_STALE_AFTER_DAYS: Final[dict[str, int]] = {
+    "timezones": 365,
+}
+
 #: The ``source_url`` reserved for a figure this package chose itself, such as a
 #: generic fallback. It is honest about being an internal default rather than
 #: pretending to a citation.
@@ -301,16 +316,21 @@ def is_stale(row: dict[str, Any], kind: str, *, today: date | None = None) -> bo
     # refreshed from Ember while its price is not, and a GPU row's product carbon
     # footprint comes from a different document than its datasheet. The row is as
     # fresh as its stalest number, so the oldest date wins.
-    ages = [
-        days_since(value, today=today)
-        for name, value in row.items()
-        if name == "retrieved_date" or name.endswith("_retrieved_date")
-    ]
-    if not ages or any(age is None or age < 0 for age in ages):
+    limit = stale_after_days(kind)
+    dated: list[tuple[int | None, int]] = []
+    for name, value in row.items():
+        if name == "retrieved_date":
+            dated.append((days_since(value, today=today), limit))
+        elif name.endswith("_retrieved_date"):
+            column = name[: -len("_retrieved_date")]
+            allowed = COLUMN_STALE_AFTER_DAYS.get(column, limit)
+            dated.append((days_since(value, today=today), allowed))
+    if not dated or any(age is None or age < 0 for age, _ in dated):
         # A future date is a typo, not extra freshness; a typo'd year must not
         # buy the row years of unearned trust.
         return True
-    return max(age for age in ages if age is not None) > stale_after_days(kind)
+    # Each column against its own clock, and the row is stale if any has run out.
+    return any(age > allowed for age, allowed in dated if age is not None)
 
 
 def require_provenance(row: dict[str, Any]) -> None:

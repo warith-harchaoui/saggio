@@ -811,6 +811,23 @@ changerait en silence le sens de chaque modèle commité, sans rien changer à l
 confiance qu'il inspire. La commande refuse et le dit, plutôt que de le faire
 discrètement.
 
+**La colonne fuseaux** est vérifiée plutôt que remplacée, contre la [base de
+données des fuseaux de l'IANA](https://data.iana.org/time-zones/tzdb/zone1970.tab)
+qui définit ces noms — celle que livre chaque système d'exploitation, dans le
+domaine public, et versionnée : la ligne note donc la version à laquelle elle
+correspond (`timezones_tzdb_version: "2026e"`) et pas seulement le jour où
+quelqu'un a regardé. La liste n'est pas réécrite : la base dit quels fuseaux
+existent, pas lesquels un pays utilise au sens où ce catalogue l'entend, et le
+catalogue porte exprès des noms de compatibilité comme `Europe/Kiev` ou
+`Asia/Calcutta` parce que c'est ce qu'une vraie machine rapporte. Un fuseau que
+la base ne publie sous aucun nom fait échouer la commande au lieu d'être
+corrigé : c'est une question, pas une correction.
+
+Chaque colonne a aussi son horloge. Un tarif et un mix électrique bougent tous
+les mois ; une liste de fuseaux est publiée quelques fois par an, et la redemander
+tous les mois apprendrait à redater plutôt qu'à relire — l'habitude même que tout
+ce mécanisme de fraîcheur existe pour empêcher.
+
 **La colonne tarif** vient de
 [GlobalPetrolPrices](https://www.globalpetrolprices.com/electricity_prices/), qui
 publie un prix résidentiel au kilowattheure — énergie, distribution, transport et

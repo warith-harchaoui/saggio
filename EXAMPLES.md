@@ -788,6 +788,22 @@ committed model means, silently, and leave every number looking exactly as
 trustworthy as before. So the command refuses and says that, rather than quietly
 doing it.
 
+**The timezone column** is checked rather than replaced, against the [IANA Time
+Zone Database](https://data.iana.org/time-zones/tzdb/zone1970.tab) that defines
+those names — the one every operating system ships, in the public domain, and
+versioned, so a row records which release it matched (`timezones_tzdb_version:
+"2026e"`) and not merely when somebody looked. The list is not rewritten: the
+database says which zones exist, not which of them a country uses in the way
+this catalogue means it, and the catalogue deliberately carries compatibility
+names like `Europe/Kiev` and `Asia/Calcutta` because those are what a real
+machine reports. A zone the database publishes under no name at all fails the
+command instead of being corrected, since that is a question and not a fix.
+
+Each column also runs on its own clock. A tariff and a grid mix move monthly; a
+timezone list is published a handful of times a year, and asking for it monthly
+would teach a maintainer to re-date rather than re-read — the habit the whole
+freshness mechanism exists to prevent.
+
 **The tariff column** comes from
 [GlobalPetrolPrices](https://www.globalpetrolprices.com/electricity_prices/),
 which publishes a residential price per kilowatt-hour — power, distribution,

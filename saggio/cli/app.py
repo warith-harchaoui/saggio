@@ -592,13 +592,14 @@ def _add_catalog(verbs: argparse._SubParsersAction) -> None:
     )
     refresh.add_argument(
         "--column",
-        choices=("carbon", "price", "both"),
+        choices=("carbon", "price", "timezones", "both", "all"),
         default="carbon",
         help=(
             "Which column of the grid catalogue to re-read. `carbon` asks Ember, "
-            "`price` asks the tariff page, `both` does the two in one pass. Each "
-            "column carries its own source and its own date, because they do not "
-            "come from the same place and do not move together."
+            "`price` asks the tariff page, `timezones` checks the names against the "
+            "IANA database that defines them, `both` does carbon and price, `all` "
+            "does the three. Each column carries its own source and its own date, "
+            "because they do not come from the same place and do not move together."
         ),
     )
     refresh.add_argument(

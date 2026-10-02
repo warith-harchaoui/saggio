@@ -64,23 +64,40 @@ def test_every_row_that_asserts_a_number_says_where_it_came_from(
 ) -> None:
     if not carries_numbers(row):
         return
-    assert row.get("source_url"), f"{kind} {key} asserts a number with no source"
-    assert ISO_DATE.match(str(row.get("retrieved_date", ""))), f"{kind} {key} has no ISO date"
+    # A row-level `source_url` used to be the whole claim, which is how a grid
+    # row ended up citing an emissions dataset for its electricity tariff: one
+    # URL stood for every field, including the ones nobody had checked. A row may
+    # now state its provenance per column instead, and either shape has to say
+    # where the numbers came from and when they were read.
+    sources = [name for name in row if name == "source_url" or name.endswith("_source_url")]
+    dates = [name for name in row if name == "retrieved_date" or name.endswith("_retrieved_date")]
+    assert sources, f"{kind} {key} asserts a number with no source"
+    for name in sources:
+        assert row[name], f"{kind} {key} has an empty {name}"
+    assert dates, f"{kind} {key} asserts a number with no date"
+    for name in dates:
+        assert ISO_DATE.match(str(row[name])), f"{kind} {key} has no ISO date in {name}"
 
 
 @pytest.mark.parametrize(("kind", "key", "row"), ROWS, ids=[f"{k}:{key}" for k, key, _ in ROWS])
 def test_no_provenance_date_is_in_the_future(kind: str, key: str, row: dict) -> None:
-    retrieved = row.get("retrieved_date")
-    if isinstance(retrieved, str) and ISO_DATE.match(retrieved):
-        assert date.fromisoformat(retrieved) <= date.today(), f"{kind} {key} was read in the future"
+    for name, value in row.items():
+        if name != "retrieved_date" and not name.endswith("_retrieved_date"):
+            continue
+        if isinstance(value, str) and ISO_DATE.match(value):
+            assert date.fromisoformat(value) <= date.today(), (
+                f"{kind} {key} was read in the future, per {name}"
+            )
 
 
 @pytest.mark.parametrize(("kind", "key", "row"), ROWS, ids=[f"{k}:{key}" for k, key, _ in ROWS])
 def test_a_source_url_is_a_link_or_an_admitted_default(kind: str, key: str, row: dict) -> None:
-    source = row.get("source_url")
-    if source is None:
-        return
-    assert str(source).startswith("http") or source == INTERNAL_DEFAULT_SOURCE
+    for name, source in row.items():
+        if name != "source_url" and not name.endswith("_source_url"):
+            continue
+        assert str(source).startswith("http") or source == INTERNAL_DEFAULT_SOURCE, (
+            f"{kind} {key}: {name} is neither a link nor an admitted internal default"
+        )
 
 
 @pytest.mark.parametrize("kind", sorted(SECTION_OF_KIND))
@@ -244,10 +261,19 @@ def test_the_command_line_reaches_only_the_library() -> None:
 # --- The platforms, said once and checked everywhere they are repeated --------
 
 
-def test_the_ci_matrix_matches_the_platforms_the_package_supports() -> None:
-    # The first time these drifted, the package had just stopped importing on
-    # Windows and the workflow still ran two Windows jobs that could only fail.
-    # A list of supported platforms that lives in two files needs a test.
+def test_ci_runs_only_on_platforms_the_package_supports() -> None:
+    """Every runner in the workflow is one `import saggio` would survive.
+
+    The first time these drifted, the package had just stopped importing on
+    Windows and the workflow still ran two Windows jobs that could only fail.
+
+    What this asserts changed when the workflow shrank to a single job. It used
+    to require the runners to *equal* the supported platforms, which quietly
+    also asserted that CI covered all of them. It does not: the workflow runs
+    Linux only, and says so in its own header. The invariant worth keeping is the
+    one that caught the real bug — no job may run somewhere the package refuses
+    to import.
+    """
     import re
 
     from saggio.analyze.capability import SUPPORTED_PLATFORMS
@@ -255,17 +281,27 @@ def test_the_ci_matrix_matches_the_platforms_the_package_supports() -> None:
     workflow = (
         _repository_root().joinpath(".github", "workflows", "ci.yml").read_text(encoding="utf-8")
     )
-    match = re.search(r"^\s*os:\s*\[([^\]]+)\]", workflow, re.MULTILINE)
-    assert match, "the workflow no longer declares an os matrix in a shape this can read"
-    runners = {name.strip() for name in match.group(1).split(",")}
-
-    expected = {"linux": "ubuntu-latest", "darwin": "macos-latest"}
-    assert set(SUPPORTED_PLATFORMS) == set(expected), (
+    runner_of_platform = {"linux": "ubuntu-latest", "darwin": "macos-latest"}
+    assert set(SUPPORTED_PLATFORMS) == set(runner_of_platform), (
         "a platform was added or removed; teach this test which runner it maps to"
     )
-    assert runners == set(expected.values()), (
-        f"the CI matrix runs on {sorted(runners)} but the package supports "
-        f"{sorted(SUPPORTED_PLATFORMS)}"
+
+    runners: set[str] = set()
+    for line in workflow.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("runs-on:"):
+            runners.add(stripped.split(":", 1)[1].strip())
+        elif stripped.startswith("os:"):
+            inside = re.search(r"\[([^\]]+)\]", stripped)
+            if inside:
+                runners.update(name.strip() for name in inside.group(1).split(","))
+    assert runners, "the workflow declares no runner at all"
+
+    allowed = set(runner_of_platform.values())
+    stray = {name for name in runners if not name.startswith("${{") and name not in allowed}
+    assert not stray, (
+        f"the workflow runs on {sorted(stray)}, which the package does not support "
+        f"({sorted(SUPPORTED_PLATFORMS)})"
     )
 
 
@@ -303,9 +339,9 @@ def test_each_grid_column_carries_its_own_source() -> None:
     import yaml
 
     root = Path(__file__).resolve().parents[2]
-    rows = yaml.safe_load(
-        (root / "saggio" / "data" / "grid.yaml").read_text(encoding="utf-8")
-    )["countries"]
+    rows = yaml.safe_load((root / "saggio" / "data" / "grid.yaml").read_text(encoding="utf-8"))[
+        "countries"
+    ]
     assert rows, "the grid catalogue is empty"
     for row in rows:
         key = row["key"]
@@ -332,9 +368,9 @@ def test_the_two_grid_columns_do_not_share_a_source() -> None:
     import yaml
 
     root = Path(__file__).resolve().parents[2]
-    rows = yaml.safe_load(
-        (root / "saggio" / "data" / "grid.yaml").read_text(encoding="utf-8")
-    )["countries"]
+    rows = yaml.safe_load((root / "saggio" / "data" / "grid.yaml").read_text(encoding="utf-8"))[
+        "countries"
+    ]
     for row in rows:
         carbon, price = row.get("carbon_source_url"), row.get("price_source_url")
         if carbon and price:
@@ -351,11 +387,84 @@ def test_the_tariff_sources_are_the_ones_the_module_names() -> None:
     from saggio.catalog.refresh import EMBER_API, PRICE_SOURCE
 
     root = Path(__file__).resolve().parents[2]
-    rows = yaml.safe_load(
-        (root / "saggio" / "data" / "grid.yaml").read_text(encoding="utf-8")
-    )["countries"]
+    rows = yaml.safe_load((root / "saggio" / "data" / "grid.yaml").read_text(encoding="utf-8"))[
+        "countries"
+    ]
     for row in rows:
         if row.get("carbon_source_url"):
             assert row["carbon_source_url"] == EMBER_API
         if row.get("price_source_url"):
             assert row["price_source_url"] == PRICE_SOURCE
+
+
+def test_the_timezone_names_are_the_ones_iana_publishes() -> None:
+    """Every zone on file carries the release it was checked against.
+
+    The third time the same defect turned up. Carbon cited Ember, which was
+    right; the tariff cited Ember, which publishes no tariff; and the timezone
+    list cited Ember too, which publishes no timezones either. The row-level
+    `source_url` covered whatever nobody had looked at.
+    """
+    import yaml
+
+    root = Path(__file__).resolve().parents[2]
+    rows = yaml.safe_load((root / "saggio" / "data" / "grid.yaml").read_text(encoding="utf-8"))[
+        "countries"
+    ]
+    for row in rows:
+        if not row.get("timezones"):
+            continue
+        url = row.get("timezones_source_url") or ""
+        assert "iana.org" in url, (
+            f"{row['key']}: the timezone list cites {url!r}, which is not the "
+            "database that defines those names"
+        )
+        assert row.get("timezones_tzdb_version"), (
+            f"{row['key']}: the timezone list does not say which tzdb release it "
+            "was checked against, so nobody can tell whether it still holds"
+        )
+
+
+def test_no_row_level_source_vouches_for_whatever_is_left() -> None:
+    """A row-level source_url now covers nothing, and covering nothing is how it lied.
+
+    Each column states its own. A bare `source_url` reappearing on a grid row
+    would mean some field has been added without being asked where it came
+    from, which is exactly how the tariff went eight months uncited.
+    """
+    import yaml
+
+    root = Path(__file__).resolve().parents[2]
+    rows = yaml.safe_load((root / "saggio" / "data" / "grid.yaml").read_text(encoding="utf-8"))[
+        "countries"
+    ]
+    for row in rows:
+        assert "source_url" not in row, (
+            f"{row['key']}: a row-level source_url is back. Which of this row's "
+            "fields does it claim to be the source of?"
+        )
+
+
+def test_a_column_that_does_not_move_monthly_is_not_asked_to() -> None:
+    """The reason STALE_AFTER_DAYS is a table, applied one level down.
+
+    A grid row carries three columns from three sources. A tariff moves
+    monthly; the list of timezone names a country uses is published a handful
+    of times a year. Under one clock the row would go stale every month on
+    account of a column nobody needed to re-read, which teaches a maintainer to
+    re-date rather than re-read.
+    """
+    from datetime import date as _date
+
+    from saggio.catalog.registry import is_stale
+
+    row = {"carbon_gco2e_per_kwh": 41.2}
+    today = _date(2026, 10, 2)
+    half_a_year = "2026-04-01"
+    assert not is_stale({**row, "timezones_retrieved_date": half_a_year}, "country", today=today)
+    assert is_stale({**row, "price_retrieved_date": half_a_year}, "country", today=today)
+    # But a column with a longer clock still has one.
+    assert is_stale({**row, "timezones_retrieved_date": "2024-04-01"}, "country", today=today)
+    # And one fresh column does not excuse a stale one.
+    both = {**row, "price_retrieved_date": "2026-10-01", "timezones_retrieved_date": "2024-01-01"}
+    assert is_stale(both, "country", today=today)

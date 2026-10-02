@@ -75,31 +75,53 @@ DIMENSIONLESS: Final[frozenset[str]] = frozenset({"ratio", "", "1", "x", "factor
 #: this package has never heard of.
 _UNITS: Final[dict[str, tuple[float, dict[str, int]]]] = {
     # Time.
-    "s": (1.0, {"s": 1}), "sec": (1.0, {"s": 1}), "secs": (1.0, {"s": 1}),
-    "second": (1.0, {"s": 1}), "seconds": (1.0, {"s": 1}),
-    "min": (60.0, {"s": 1}), "mins": (60.0, {"s": 1}), "minute": (60.0, {"s": 1}),
+    "s": (1.0, {"s": 1}),
+    "sec": (1.0, {"s": 1}),
+    "secs": (1.0, {"s": 1}),
+    "second": (1.0, {"s": 1}),
+    "seconds": (1.0, {"s": 1}),
+    "min": (60.0, {"s": 1}),
+    "mins": (60.0, {"s": 1}),
+    "minute": (60.0, {"s": 1}),
     "minutes": (60.0, {"s": 1}),
-    "h": (3600.0, {"s": 1}), "hr": (3600.0, {"s": 1}), "hour": (3600.0, {"s": 1}),
+    "h": (3600.0, {"s": 1}),
+    "hr": (3600.0, {"s": 1}),
+    "hour": (3600.0, {"s": 1}),
     "hours": (3600.0, {"s": 1}),
-    "d": (86_400.0, {"s": 1}), "day": (86_400.0, {"s": 1}), "days": (86_400.0, {"s": 1}),
+    "d": (86_400.0, {"s": 1}),
+    "day": (86_400.0, {"s": 1}),
+    "days": (86_400.0, {"s": 1}),
     # A year here is the Julian year the rest of the package amortises over.
-    "y": (31_557_600.0, {"s": 1}), "yr": (31_557_600.0, {"s": 1}),
-    "year": (31_557_600.0, {"s": 1}), "years": (31_557_600.0, {"s": 1}),
+    "y": (31_557_600.0, {"s": 1}),
+    "yr": (31_557_600.0, {"s": 1}),
+    "year": (31_557_600.0, {"s": 1}),
+    "years": (31_557_600.0, {"s": 1}),
     # Energy and power. A watt is a joule per second, which is what lets seconds
     # times watts come out as energy without a special case for it.
-    "J": (1.0, {"J": 1}), "kJ": (1_000.0, {"J": 1}), "MJ": (1_000_000.0, {"J": 1}),
-    "Wh": (3_600.0, {"J": 1}), "kWh": (3_600_000.0, {"J": 1}),
-    "MWh": (3_600_000_000.0, {"J": 1}), "GWh": (3_600_000_000_000.0, {"J": 1}),
-    "W": (1.0, {"J": 1, "s": -1}), "kW": (1_000.0, {"J": 1, "s": -1}),
+    "J": (1.0, {"J": 1}),
+    "kJ": (1_000.0, {"J": 1}),
+    "MJ": (1_000_000.0, {"J": 1}),
+    "Wh": (3_600.0, {"J": 1}),
+    "kWh": (3_600_000.0, {"J": 1}),
+    "MWh": (3_600_000_000.0, {"J": 1}),
+    "GWh": (3_600_000_000_000.0, {"J": 1}),
+    "W": (1.0, {"J": 1, "s": -1}),
+    "kW": (1_000.0, {"J": 1, "s": -1}),
     "MW": (1_000_000.0, {"J": 1, "s": -1}),
     # Carbon dioxide equivalent.
-    "gCO2e": (1.0, {"gCO2e": 1}), "kgCO2e": (1_000.0, {"gCO2e": 1}),
+    "gCO2e": (1.0, {"gCO2e": 1}),
+    "kgCO2e": (1_000.0, {"gCO2e": 1}),
     "tCO2e": (1_000_000.0, {"gCO2e": 1}),
     # Water.
-    "L": (1.0, {"L": 1}), "mL": (0.001, {"L": 1}), "m3": (1_000.0, {"L": 1}),
+    "L": (1.0, {"L": 1}),
+    "mL": (0.001, {"L": 1}),
+    "m3": (1_000.0, {"L": 1}),
     # Data.
-    "B": (1.0, {"B": 1}), "kB": (1_000.0, {"B": 1}), "MB": (1_000_000.0, {"B": 1}),
-    "GB": (1_000_000_000.0, {"B": 1}), "TB": (1_000_000_000_000.0, {"B": 1}),
+    "B": (1.0, {"B": 1}),
+    "kB": (1_000.0, {"B": 1}),
+    "MB": (1_000_000.0, {"B": 1}),
+    "GB": (1_000_000_000.0, {"B": 1}),
+    "TB": (1_000_000_000_000.0, {"B": 1}),
 }
 
 #: An ISO 4217 code, which a model writes as a money unit. Treated as a base
@@ -257,9 +279,7 @@ def _arrangements(
     return distinct
 
 
-def candidates(
-    inputs: list[tuple[float, str | None]], unit: str | None
-) -> list[float] | None:
+def candidates(inputs: list[tuple[float, str | None]], unit: str | None) -> list[float] | None:
     """Return every value the inputs could give in the claimed unit.
 
     The general form, and the one the validator uses. Where exactly one

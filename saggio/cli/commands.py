@@ -48,6 +48,8 @@ from ..catalog.refresh import (
     PRICE_CROSSCHECK_RATE,
     apply_grid,
     apply_prices,
+    apply_timezone_check,
+    check_timezones,
     fetch_grid,
     fetch_prices,
 )
@@ -680,6 +682,71 @@ def catalog_freshness(args: argparse.Namespace) -> int:
     return INVALID if stale else OK
 
 
+def _check_timezones(args: argparse.Namespace, current: dict[str, Any]) -> int:
+    """Check the timezone names against IANA and stamp the release they match.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        With ``write`` and ``json``.
+    current : dict
+        The catalogue as it stands.
+
+    Returns
+    -------
+    int
+        An exit code. A zone the database does not publish fails the command
+        rather than being written over: the catalogue lists compatibility names
+        on purpose, so a mismatch is a question, not a correction to apply.
+
+    Examples
+    --------
+    >>> import argparse, contextlib, io
+    >>> with contextlib.redirect_stdout(io.StringIO()):
+    ...     verdict = _check_timezones(argparse.Namespace(write=None, json=False), {})
+    >>> verdict
+    0
+    """
+    try:
+        check = check_timezones(current)
+    except RuntimeError as exc:
+        osh.error(str(exc))
+        return UNAVAILABLE
+
+    if args.json:
+        _emit(
+            {
+                "source": check.source,
+                "tzdb_version": check.version,
+                "checked": check.known,
+                "unknown": check.unknown,
+                "read_on": check.retrieved,
+            },
+            as_json=True,
+        )
+    else:
+        print(f"{check.source} — tzdb {check.version or 'unknown'}, {check.known} zone(s) checked")
+        for key, zones in sorted(check.unknown.items()):
+            print(f"  {key}: {', '.join(zones)} — the database publishes no such zone")
+        if check.ok:
+            print("  every zone on file is one the database publishes.")
+        if args.write is None:
+            print("Read-only. Pass --write PATH to stamp the release onto each row.")
+
+    if not check.ok:
+        osh.error(
+            "Some zones are not in the database. Nothing was stamped; a list marked "
+            "as checked when it did not check out would be this package's own "
+            "mistake, in miniature."
+        )
+        return INVALID
+
+    if args.write is not None:
+        written = apply_timezone_check(Path(args.write), check)
+        print(f"Stamped {written} timezone row(s) in {args.write}.")
+    return OK
+
+
 def _refresh_prices(args: argparse.Namespace, current: dict[str, Any]) -> int:
     """Re-read the tariff column and report, or write it.
 
@@ -786,7 +853,11 @@ def catalog_refresh(args: argparse.Namespace) -> int:
 
     current = Catalog.bundled("grid").rows("countries")
     column = getattr(args, "column", "carbon")
-    if column in ("price", "both"):
+    if column in ("timezones", "all"):
+        verdict = _check_timezones(args, current)
+        if verdict != OK or column == "timezones":
+            return verdict
+    if column in ("price", "both", "all"):
         verdict = _refresh_prices(args, current)
         if verdict != OK or column == "price":
             return verdict

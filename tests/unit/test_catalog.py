@@ -309,13 +309,30 @@ def test_nothing_expiring_is_an_empty_report() -> None:
 
 
 def test_a_row_near_the_end_of_its_window_is_named_with_the_days_left() -> None:
-    from datetime import date
+    from datetime import date, timedelta
 
-    from saggio.catalog.registry import expiring_report
+    from saggio.catalog import Catalog
+    from saggio.catalog.registry import COLUMN_STALE_AFTER_DAYS, expiring_report, stale_after_days
 
-    # The bundled grid rows were read on 2026-09-12 and country rows last a
-    # month, so on 2026-10-11 they have two days left.
-    report = expiring_report(today=date(2026, 10, 11), within=7)
+    # Worked out from the catalogue rather than from a date typed into the test.
+    # Naming a day here meant the test failed the first time the catalogue was
+    # refreshed, which is the one thing this package is built to do.
+    rows = Catalog.bundled("grid").rows("countries")
+    default = stale_after_days("country")
+    expiries = [
+        date.fromisoformat(value) + timedelta(days=COLUMN_STALE_AFTER_DAYS.get(column, default))
+        for row in rows.values()
+        for column, value in (
+            (name[: -len("_retrieved_date")], value)
+            for name, value in row.items()
+            if name.endswith("_retrieved_date")
+        )
+    ]
+    assert expiries, "no grid row says when it was read"
+    soonest = min(expiries)
+
+    # Two days before the first column runs out, every row has two days left.
+    report = expiring_report(today=soonest - timedelta(days=2), within=7)
     assert "country" in report
     assert all(left == 2 for _, left in report["country"])
 
