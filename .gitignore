@@ -29,6 +29,7 @@ env-for-saggio/
 !*.env.example
 secrets.yaml
 secrets.yml
+settings.yaml
 
 # Cost models a run produces here, as opposed to the ones a project commits.
 /scratch/
