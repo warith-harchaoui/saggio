@@ -31,7 +31,12 @@ from pathlib import Path
 import pytest
 
 from saggio.analyze import cpu as cpu_module
-from saggio.analyze import power as power_module
+
+# The RAPL readers moved into the module that owns them when power became a
+# package. Patching the package's re-export would not reach them: `rapl.py`
+# imports the glob, so the name it looks up lives there. Patch where it is
+# looked up, not where it is defined.
+from saggio.analyze.power import rapl as power_module
 
 # --- The processor counter ----------------------------------------------------
 

@@ -33,6 +33,24 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### The power meter is a package, and the last long file is gone
+
+- `power.py` was 1,227 lines: 28 constants and 20 symbols covering four
+  different hardware interfaces. Now `saggio/analyze/power/`, nine modules,
+  split by **where the energy comes from** rather than by what kind of thing
+  each symbol is — which is the structure the problem actually has, since each
+  interface has its own units, its own failure mode and its own scope:
+  `tables`, `sysfs`, `rapl`, `accelerator`, `graphics`, `soc`, `reading`,
+  `meter`.
+- **Behaviour identical**, against a baseline captured before the first cut and
+  verified first by halving a figure on purpose and confirming it noticed.
+- The monkeypatch lesson a third time, and costlier here: **28 patch targets**
+  across three test files, all naming `saggio.analyze.power.<x>` for names that
+  now live in submodules. A patch on the package's re-export does not reach the
+  module that imported the name. Among them one I wrote myself last week.
+- With this, **no file in the package is over a thousand lines**. `auditor.py`
+  1,319 → 9 modules, `static.py` 1,649 → 10, `power.py` 1,227 → 9.
+
 ### Two more examples, and the two defects they found
 
 - The gallery gains **detectron2**, the first example read as **inference** —

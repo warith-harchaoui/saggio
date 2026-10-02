@@ -38,7 +38,7 @@ def _zone(root: Path, directory: str, name: str, **files: str) -> Path:
 
 
 def _point_at(monkeypatch: pytest.MonkeyPatch, root: Path) -> None:
-    monkeypatch.setattr("saggio.analyze.power.RAPL_ZONE_GLOB", f"{root}/[ai]*-rapl:*")
+    monkeypatch.setattr("saggio.analyze.power.rapl.RAPL_ZONE_GLOB", f"{root}/[ai]*-rapl:*")
 
 
 def test_every_interface_reports_a_known_state() -> None:
