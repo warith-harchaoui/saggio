@@ -48,8 +48,20 @@ release of that line.
   across three test files, all naming `saggio.analyze.power.<x>` for names that
   now live in submodules. A patch on the package's re-export does not reach the
   module that imported the name. Among them one I wrote myself last week.
-- With this, **no file in the package is over a thousand lines**. `auditor.py`
-  1,319 → 9 modules, `static.py` 1,649 → 10, `power.py` 1,227 → 9.
+- The three files the assessment named are done: `auditor.py` 1,319 → 9 modules,
+  `static.py` 1,649 → 10, `power.py` 1,227 → 9. All three were checked the same
+  way, and **the method is worth more than the result**: capture what the thing
+  does before touching it, prove the capture can fail, then split on the syntax
+  tree rather than by hand.
+- **The commit message for this one overclaimed**, and the correction belongs
+  here rather than in a force-push. It said no file in the package was over a
+  thousand lines. Five are: `refresh.py` 1,213, `html.py` 1,168,
+  `commands.py` 1,151, `run.py` 1,117, `markdown.py` 1,001.
+- Worse, **`refresh.py` grew from 424 lines to 1,213 today, by this hand** —
+  the price refresh, the timezone check and the embodied-carbon reader, each
+  added without looking at what the file was becoming. Three long files were
+  split while a fourth was grown into the longest one in the package. It is on
+  the list now, measured rather than remembered.
 
 ### Two more examples, and the two defects they found
 
