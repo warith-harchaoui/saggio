@@ -22,7 +22,7 @@ saggio audit https://github.com/karpathy/nanoGPT --country FR --no-llm -o exampl
 saggio render examples/nanoGPT.yaml -f md -o examples/nanoGPT.md
 ```
 
-## Les cinq dépôts
+## Les huit dépôts
 
 | Modèle | Dépôt | Lu comme | Ce qui est intéressant |
 |---|---|---|---|
@@ -33,6 +33,8 @@ saggio render examples/nanoGPT.yaml -f md -o examples/nanoGPT.md
 | [`airflow`](examples/airflow.yaml) · [rapport](examples/airflow.md) | `apache/airflow` | service | Neuf langages, huit services payants, trente-six modèles |
 | [`saggio`](examples/saggio.yaml) · [rapport](examples/saggio.md) | ce dépôt-ci | outil en ligne de commande | Tout ce qu'il semble appeler, il ne l'appelle que dans ses tests |
 
+| [`detectron2`](examples/detectron2.yaml) · [rapport](examples/detectron2.md) | `facebookresearch/detectron2` | inférence | Le premier exemple lu comme inférence, et rien d'inventé pour le remplir |
+| [`xberg`](examples/xberg.yaml) · [rapport](examples/xberg.md) | `xberg-io/xberg` | service | Quatorze langages, dont 3,6 % seulement de Python |
 ### nanoGPT — la taille d'une exécution n'est pas un seul nombre
 
 Lu comme une charge d'**entraînement** important PyTorch, transformers et NumPy.
@@ -138,6 +140,50 @@ Rien d'autre dans ce paquet n'énonce la quantité de travail d'une exécution :
 seul énoncé l'emporte donc. C'est la bonne réponse à la question posée et la
 mauvaise à la question visée, et le modèle nomme le fichier : la différence est à
 une ligne de là.
+
+### detectron2 — le premier lu comme inférence
+
+Lu comme **inférence**, ce qu'aucun exemple précédent n'était. Les six d'avant
+couvraient l'entraînement deux fois, un service une fois et un outil en ligne de
+commande trois fois : l'archétype qui compte le plus pour qui tarifie une requête
+n'avait jamais été exercé. 497 fichiers Python aux côtés de C, C++ et Shell ;
+PyTorch et NumPy trouvés, et rien d'autre affirmé.
+
+Ce qui mérite le regard, c'est tout ce que ce modèle laisse ouvert. Aucun point
+d'entrée trouvé, donc pas d'exécution à chronométrer ; aucun identifiant de
+modèle ni service payant nommé, donc rien à tarifer ; la taille de travail n'est
+pas énoncée, donc la durée reste `TODO`. Un outil soucieux de paraître utile
+aurait rempli tout cela depuis le zoo de modèles de la documentation. Celui-ci
+rapporte une main vide, ce qui est la lecture honnête d'un *cadriciel* de
+détection : ce qu'il coûte dépend entièrement du modèle qu'on lui donne, et le
+dépôt ne choisit pas à votre place.
+
+### xberg — quatorze langages, dont 3,6 % de Python
+
+Tous les autres exemples de cette galerie sont des dépôts Python. Celui-ci est
+[xberg](https://github.com/xberg-io/xberg) — anciennement Kreuzberg, ce que la
+redirection indique toujours — un moteur d'intelligence documentaire dont le
+cœur est en Rust, avec des liaisons pour quinze langages. Le lecteur trouve 2 278
+fichiers Rust, 435 Java, 400 C#, 391 Kotlin et 143 Python, et le rapporte comme
+mixte plutôt que de le réduire au langage le plus présent. C'est la promesse que
+[`PAYSAGE.md`](PAYSAGE.md) fait sur l'étendue, démontrée sur un dépôt qui aurait
+pu la mettre en défaut.
+
+**Il a aussi cassé deux choses, depuis corrigées.** La règle de détection de
+suite était de forme Python et JavaScript : `tests/`, `test_*.py`, `*.test.ts`.
+Rust met ses tests dans un *fichier* nommé `tests.rs`, si bien que dix
+identifiants nommés `test-model` ou `mock-model` arrivaient sans la moindre mise
+en garde. La règle reconnaît désormais une suite quelle que soit sa langue, et
+refuse `latest.rs` et `contest.py`, qu'une première tentative trop lâche avait
+emportés.
+
+**Et une qui n'est pas corrigée, et qui est nommée ici plutôt que cachée.** Rust
+garde ses tests unitaires *à l'intérieur* du fichier qu'ils testent, dans un bloc
+`#[cfg(test)] mod tests`. Une détection au niveau du fichier ne peut pas voir
+cela, si bien que des fixtures comme `trusted/model` et `gpt-test` figurent
+encore à côté des vrais `openai/gpt-4o` et `anthropic/claude-sonnet-4-20250514`
+que ce moteur appelle réellement. Lire à l'intérieur d'un fichier pour y trouver
+un module de test en ligne est un travail autre, et plus grand, que lire son nom.
 
 ## La démonstration pas à pas : une charge, quatre étapes
 
@@ -270,6 +316,17 @@ alphabétique, si bien que `configs/eval` battait `configs/train` et que le nomb
 d'époques de DINOv2 sortait d'une configuration d'évaluation. Les fichiers ci-dessus
 sont régénérés, et aucun des trois n'apparaît plus.
 
+**Un constat trouvé mais non livré ici.** vLLM a été audité aussi et ne figure pas
+au tableau : son modèle fait 162 ko, dont 95 % sont une liste de 333 identifiants
+de modèles que personne ne lira. Le constat vaut mieux que le fichier. 127 de ces
+occurrences venaient d'`examples/` et de `benchmarks/`, qui font partie d'un dépôt
+sans faire partie de ce qu'il fait pour vivre — le raisonnement même qui refusait
+déjà de prendre la durée d'un entraînement dans une configuration d'évaluation, et
+qui n'avait simplement jamais été appliqué à ce que le code *appelle*. Ces
+occurrences portent désormais la mise en garde, et le signal est passé de 152
+identifiants sans réserve à 17. Auditez-le vous-même avec la commande en fin de
+page pour le voir.
+
 **Un quatrième qu'elle a trouvé, refermé en ajoutant une commande.** La troisième
 étape du walkthrough devait être écrite par un script appelant l'API Python, parce
 que rien en ligne de commande ne savait mettre une mesure dans un modèle existant :
@@ -277,6 +334,12 @@ coller une durée dans du YAML laisse périmé tout ce qui en découle.
 `saggio measure --into` le fait désormais, et le script a disparu.
 
 **Ce qui ne va toujours pas, dans ces fichiers, aujourd'hui.**
+
+- **Un module de test Rust en ligne est invisible.** Rust garde ses tests
+  unitaires dans le fichier qu'ils testent, dans un bloc `#[cfg(test)] mod
+  tests`, si bien que `xberg` rapporte des fixtures comme `trusted/model` et
+  `gpt-test` à côté des modèles qu'il appelle vraiment. Une détection au niveau
+  du fichier ne voit pas à l'intérieur d'un fichier.
 
 - **La durée d'exécution de ce paquet vient d'un jouet.** `saggio.yaml` rapporte
   `num_samples: 5000` depuis `examples/walkthrough/counter/config.py`, la fixture

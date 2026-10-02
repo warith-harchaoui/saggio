@@ -18,8 +18,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .tables import FOUND_ONLY_IN_SUITE
-from .walking import is_test_path
+from .tables import FOUND_ONLY_IN_SIDE_ERRAND, FOUND_ONLY_IN_SUITE
+from .walking import is_side_errand_path, is_test_path
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,6 +106,8 @@ class ServiceHit:
         }
         if is_test_path(Path(self.path)):
             mapping["caveat"] = FOUND_ONLY_IN_SUITE
+        elif is_side_errand_path(Path(self.path)):
+            mapping["caveat"] = FOUND_ONLY_IN_SIDE_ERRAND
         return mapping
 
 
@@ -162,6 +164,8 @@ class ModelHit:
         }
         if is_test_path(Path(self.path)):
             mapping["caveat"] = FOUND_ONLY_IN_SUITE
+        elif is_side_errand_path(Path(self.path)):
+            mapping["caveat"] = FOUND_ONLY_IN_SIDE_ERRAND
         return mapping
 
 

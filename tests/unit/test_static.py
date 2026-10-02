@@ -458,3 +458,75 @@ def test_a_lookalike_package_does_not_match_a_service_hint(tmp_path) -> None:
     assert all(hit.key != "openai" for hit in detect_services(tmp_path))
     (tmp_path / "real.py").write_text("from openai import OpenAI\n", encoding="utf-8")
     assert any(hit.key == "openai" for hit in detect_services(tmp_path))
+
+
+# --- The suite is not the workload, in every language ---------------------------
+
+
+@pytest.mark.parametrize(
+    ("path", "is_suite"),
+    [
+        # Python and JavaScript, which the rule was originally written for.
+        ("tests/unit/test_static.py", True),
+        ("src/app_test.py", True),
+        ("src/conftest.py", True),
+        ("src/thing.test.ts", True),
+        # Rust, Go, Ruby, Java, C#, Kotlin: a test *file*, not a test directory.
+        # Auditing a Rust repository is what surfaced this -- ten model
+        # identifiers called `test-model` and `mock-model` arrived with no
+        # caveat, because they live in `tests.rs` rather than under `tests/`.
+        ("rust/src/server/src/routes/tests.rs", True),
+        ("rust/src/mock-engine/src/tests.rs", True),
+        ("pkg/handler_test.go", True),
+        ("spec/models/user_spec.rb", True),
+        ("src/main/java/UserTest.java", True),
+        ("src/ServiceTests.cs", True),
+        ("src/LoginSpec.kt", True),
+        # And the words that merely end in those letters, which a looser rule
+        # swept up on the first attempt.
+        ("src/latest.rs", False),
+        ("src/greatest.rs", False),
+        ("src/contest.py", False),
+        ("pkg/protest.go", False),
+        ("src/Attest.java", False),
+        ("vllm/engine/llm_engine.py", False),
+    ],
+)
+def test_a_suite_is_recognised_whatever_language_it_is_written_in(
+    path: str, is_suite: bool
+) -> None:
+    from pathlib import Path
+
+    from saggio.analyze.static import is_test_path
+
+    assert is_test_path(Path(path)) is is_suite
+
+
+@pytest.mark.parametrize(
+    ("path", "aside"),
+    [
+        ("examples/vision/demo.py", True),
+        ("benchmarks/throughput.py", True),
+        ("docs/quickstart.py", True),
+        ("notebooks/explore.ipynb", True),
+        ("vllm/engine/llm_engine.py", False),
+        ("src/app.py", False),
+    ],
+)
+def test_an_example_is_not_the_workload_either(path: str, aside: bool) -> None:
+    """The reasoning that decides the work size, applied to what the code calls.
+
+    An epoch count read from an evaluation directory is not the length of a
+    training run, and the package already refused that. A model named in an
+    example is a model being demonstrated, not one the workload pays for, and
+    for a long time it was reported without that caveat.
+
+    Audited without this, vLLM reported 333 model identifiers across 150 files,
+    127 of them from `examples/` and `benchmarks/`. A list that long is not an
+    answer anybody can act on.
+    """
+    from pathlib import Path
+
+    from saggio.analyze.static import is_side_errand_path
+
+    assert is_side_errand_path(Path(path)) is aside

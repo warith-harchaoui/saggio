@@ -55,6 +55,7 @@ from .tables import (
     DEFAULT_SCALING_GROWTH,
     DEFAULT_SCALING_STEPS,
     ENTRYPOINT_NAMES,
+    FOUND_ONLY_IN_SIDE_ERRAND,
     FOUND_ONLY_IN_SUITE,
     FRAMEWORK_INVOCATIONS,
     FRAMEWORK_MODULES,
@@ -69,7 +70,12 @@ from .tables import (
     TRAINING_DIRECTORIES,
     WORK_SIZE_KEYS,
 )
-from .walking import _is_prose_line, _iter_source_files, is_test_path
+from .walking import (
+    _is_prose_line,
+    _iter_source_files,
+    is_side_errand_path,
+    is_test_path,
+)
 from .worksize import find_work_size
 
 __all__ = [
@@ -79,6 +85,7 @@ __all__ = [
     "DEFAULT_SCALING_GROWTH",
     "DEFAULT_SCALING_STEPS",
     "ENTRYPOINT_NAMES",
+    "FOUND_ONLY_IN_SIDE_ERRAND",
     "FOUND_ONLY_IN_SUITE",
     "FRAMEWORK_INVOCATIONS",
     "FRAMEWORK_MODULES",
@@ -106,6 +113,7 @@ __all__ = [
     "detect_tests",
     "find_entrypoint",
     "find_work_size",
+    "is_side_errand_path",
     "is_test_path",
     "model_named_on",
     "read_repository",

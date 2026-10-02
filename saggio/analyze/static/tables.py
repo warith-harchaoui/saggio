@@ -343,6 +343,14 @@ DEFAULT_SCALING_GROWTH: Final[float] = 4.0
 
 #: Said of a service or a model whose only evidence line is in the suite. It is
 #: reported rather than dropped, and it is flagged rather than counted, because
+#: Said of a hit found in an example, a benchmark, a demo or the documentation.
+#: Those are part of the repository and are not part of what it does for a
+#: living, so a model named there is being demonstrated rather than paid for.
+FOUND_ONLY_IN_SIDE_ERRAND: Final[str] = (
+    "Found only in an example, benchmark or documentation directory, which is "
+    "not the workload. Confirm before pricing it."
+)
+
 #: the suite calling an API is not the workload calling it.
 FOUND_ONLY_IN_SUITE: Final[str] = (
     "Found only in the code that tests this repository, so it may not be part of "

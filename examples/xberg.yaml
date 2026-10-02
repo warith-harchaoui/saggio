@@ -1,0 +1,560 @@
+schema_version: '2.1'
+date_updated: '2026-10-02'
+project:
+  name: xberg
+  audited_from: https://github.com/xberg-io/xberg
+unit_of_work:
+  name: one request handled end to end
+  description: 'Proposed from the repository''s shape, which reads as service. Confirm or replace it:
+    every number below is per one of these, so the whole model means whatever this sentence means.'
+  status: placeholder
+  out_of_scope: []
+deployment:
+  provider: on-prem
+  country: FR
+  country_provenance: Stated by the caller.
+  operating_system: darwin
+  logical_cores: 12
+  physical_cores: 12
+  cpu: Apple M2 Max
+  machine_provenance: This describes the machine that ran the audit, not where the code runs. https://github.com/xberg-io/xberg
+    was cloned and read here. Replace the machine, the provider and the country with the ones it actually
+    runs on before any number below means anything about this project.
+assumptions:
+  power_draw:
+    value: 83.75999999999999
+    status: estimated
+    unit: W
+    source_url: https://doi.org/10.1002/advs.202100707
+    retrieved_date: '2026-09-12'
+    notes: 'Nameplate sum, Green Algorithms method: 12 cores x 4.0 W + 96 GB x 0.3725 W/GB'
+  pue:
+    value: 1.5
+    status: estimated
+    unit: ratio
+    source_url: https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024
+    retrieved_date: '2026-09-12'
+    notes: Power usage effectiveness published by On-premises.
+  electricity_price:
+    value: 0.276
+    status: estimated
+    unit: USD/kWh
+    currency: USD
+    source_url: https://www.globalpetrolprices.com/electricity_prices/
+    retrieved_date: '2026-10-02'
+    notes: Indicative tariff for France. Collected Q3 2026.
+  grid_carbon_intensity:
+    value: 41.2
+    status: estimated
+    unit: gCO2e/kWh
+    source_url: https://api.ember-energy.org/v1/carbon-intensity/yearly
+    retrieved_date: '2026-10-02'
+    notes: Annual average for France, data year 2025.
+  water_usage_effectiveness:
+    value: null
+    status: TODO
+    unit: L/kWh
+    notes: On-premises publishes no water usage effectiveness. Leave this open rather than inventing a
+      figure.
+  hardware_embodied_carbon:
+    value: null
+    status: TODO
+    unit: kgCO2e
+    notes: No product carbon footprint is on file for apple-m2-max. Add `embodied_kgco2e` to its catalogue
+      row with the footprint's own URL and the date it was read; `saggio catalog add cpu` does the rest.
+  hardware_lifetime:
+    value: null
+    status: TODO
+    unit: years
+    notes: How long this hardware stays in service, which only you know. The published footprints are
+      cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster
+      between three and six years; choosing within that range moves the embodied carbon by a factor of
+      two, which is why this is asked rather than assumed.
+  machine_energy:
+    value: null
+    status: TODO
+    unit: kWh
+    derived_from:
+    - scenarios[0].runtime
+    - assumptions.power_draw
+    notes: Needs both a runtime and an average power draw.
+external_services:
+- key: google-gemini
+  name: Google Gemini API
+  detected_at: tools/benchmark-harness/scripts/generate_markdown_gt.py:33
+  evidence: from google import genai
+  pricing_source_url: https://ai.google.dev/pricing
+  price_per_unit:
+    value: null
+    status: TODO
+    unit: currency
+    source_url: https://ai.google.dev/pricing
+    notes: Read the current price from the page above and record what one unit of work spends. It is left
+      open because a price copied today is wrong by next quarter.
+models_called:
+- model: test
+  detected_at: crates/xberg/src/llm/client.rs:733
+  evidence: '"model": "test",'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: openai/gpt-4o
+  detected_at: crates/xberg/src/llm/client.rs:752
+  evidence: 'model: "openai/gpt-4o".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: bedrock/anthropic.claude-3-sonnet-20240229-v1:0
+  detected_at: crates/xberg/src/llm/client.rs:882
+  evidence: 'model: "bedrock/anthropic.claude-3-sonnet-20240229-v1:0".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: vertex_ai/gemini-1.5-pro
+  detected_at: crates/xberg/src/llm/client.rs:1764
+  evidence: 'model: "vertex_ai/gemini-1.5-pro".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: azure/gpt-4o
+  detected_at: crates/xberg/src/llm/client.rs:1783
+  evidence: 'model: "azure/gpt-4o".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: anthropic/claude-sonnet-4-20250514
+  detected_at: crates/xberg/src/llm/client.rs:2043
+  evidence: 'model: "anthropic/claude-sonnet-4-20250514".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: openai/text-embedding-3-small
+  detected_at: crates/xberg/src/embeddings/mod.rs:1420
+  evidence: 'model: "openai/text-embedding-3-small".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: gpt-test
+  detected_at: crates/xberg/src/core/split.rs:868
+  evidence: 'model: "gpt-test".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: test/model
+  detected_at: crates/xberg/src/doctor/ocr.rs:551
+  evidence: 'model: "test/model".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: trusted/model
+  detected_at: crates/xberg/src/mcp/format.rs:212
+  evidence: 'model: "trusted/model".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: caller/model
+  detected_at: crates/xberg/src/mcp/format.rs:229
+  evidence: '"ocr": {"vlm_config": {"model": "caller/model", "headers": {"Authorization": "secret"}}}'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: openai/gpt-4o-mini
+  detected_at: crates/xberg/src/mcp/server.rs:1326
+  evidence: '"llm": {"model": "openai/gpt-4o-mini", "api_key": "must-not-leak"}'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: chunking-core-word-count-tokenizer
+  detected_at: crates/xberg/src/chunking/core.rs:2059
+  evidence: 'model: "chunking-core-word-count-tokenizer".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: bert-base-uncased
+  detected_at: crates/xberg/src/chunking/tokenizer_cache.rs:323
+  evidence: let model = "bert-base-uncased";
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: model-a
+  detected_at: crates/xberg/src/chunking/tokenizer_cache.rs:472
+  evidence: 'model: "model-a",'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: chunking-yaml-word-count-tokenizer
+  detected_at: crates/xberg/src/chunking/yaml_section.rs:752
+  evidence: 'model: "chunking-yaml-word-count-tokenizer".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: chunking-yaml-oversized-word-count-tokenizer
+  detected_at: crates/xberg/src/chunking/yaml_section.rs:805
+  evidence: 'model: "chunking-yaml-oversized-word-count-tokenizer".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: example/deepseek-ocr
+  detected_at: crates/xberg/src/candle_ocr/deepseek_ocr_backend.rs:484
+  evidence: 'backend_options: Some(serde_json::json!({"model_id": "example/deepseek-ocr", "hf_revision":
+    "abc123"})),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: example/paddle
+  detected_at: crates/xberg/src/candle_ocr/config.rs:380
+  evidence: '"model_id": "example/paddle",'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: some-org/custom-paddleocr-vl
+  detected_at: crates/xberg/src/candle_ocr/paddleocr_vl_backend.rs:490
+  evidence: '"model_id": "some-org/custom-paddleocr-vl"'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: chunking-semantic-word-count-tokenizer
+  detected_at: crates/xberg/src/chunking/semantic/mod.rs:591
+  evidence: 'model: "chunking-semantic-word-count-tokenizer".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: features-code-chunk-word-count-tokenizer
+  detected_at: crates/xberg/src/core/pipeline/features.rs:1844
+  evidence: 'model: "features-code-chunk-word-count-tokenizer".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: safe
+  detected_at: crates/xberg/src/core/config/request_security.rs:109
+  evidence: '{"vlm_config": {"model": "safe"}},'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: org/splade
+  detected_at: crates/xberg/src/core/config/sparse_embedding.rs:166
+  evidence: 'model_id: "org/splade".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: '{other}'
+  detected_at: crates/xberg/src/core/config/layout.rs:64
+  evidence: '"unknown table model: ''{other}''. Valid: tatr, slanet_wired, slanet_wireless, slanet_plus,
+    slanet_auto, disabled"'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: cross-encoder/ms-marco-MiniLM-L6-v2
+  detected_at: crates/xberg/src/core/config/reranker.rs:328
+  evidence: 'model_id: "cross-encoder/ms-marco-MiniLM-L6-v2".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: example/model
+  detected_at: crates/xberg/src/core/config/reranker.rs:400
+  evidence: r#"{"type":"custom","model_id":"example/model","head":"classification"}"#,
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: base
+  detected_at: crates/xberg/src/core/config/transcription.rs:188
+  evidence: 'let json = r#"{"enabled": true, "model": "base", "timestamps": true}"#;'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: org/colbert
+  detected_at: crates/xberg/src/core/config/late_interaction.rs:186
+  evidence: 'model_id: "org/colbert".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: gpt-4o-mini
+  detected_at: crates/xberg/src/core/config/extraction/env.rs:545
+  evidence: 'model: "gpt-4o-mini".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: gliner2_candle_bytes
+  detected_at: crates/xberg-gliner/src/candle/model.rs:91
+  evidence: 'model_id: "gliner2_candle_bytes".to_string(),'
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: stub/vlm
+  detected_at: crates/xberg/tests/issue_55_image_ocr_result_fields.rs:70
+  evidence: 'model: "stub/vlm".to_string(),'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: stub/model
+  detected_at: crates/xberg/tests/issue_58_captioning_prepass_merge.rs:133
+  evidence: 'model: "stub/model".to_string(),'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: v2
+  detected_at: crates/xberg/tests/issue_1941_external_redaction_json_boundary.rs:52
+  evidence: '{"category":"Person","offset":19,"length":12,"confidenceScore":0.8,"providerMetadata":{"model":"v2"}}'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: recovery-model
+  detected_at: crates/xberg/src/extractors/pdf/ocr/tests.rs:9833
+  evidence: 'model: "recovery-model".to_string(),'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: synthetic-caption-model
+  detected_at: crates/xberg/src/core/pipeline/tests.rs:1554
+  evidence: 'model: "synthetic-caption-model".to_string(),'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: synthetic-extraction-model
+  detected_at: crates/xberg/src/core/pipeline/tests.rs:1582
+  evidence: 'model: "synthetic-extraction-model".to_string(),'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: ignored
+  detected_at: crates/xberg/src/core/config/processing/tests.rs:41
+  evidence: assert!(serde_json::from_str::<ChunkSizing>(r#"{"type":"characters","model":"ignored"}"#).is_err());
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: sentence-transformers/all-MiniLM-L6-v2
+  detected_at: crates/xberg/src/core/config/processing/tests.rs:171
+  evidence: 'model_id: "sentence-transformers/all-MiniLM-L6-v2".to_string(),'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: '#),'
+  detected_at: crates/xberg/src/core/config/processing/tests.rs:177
+  evidence: assert!(json.contains(r#""model_id":"#), "Should contain model_id field");
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: custom/model
+  detected_at: crates/xberg/src/core/config/processing/tests.rs:199
+  evidence: 'model_id: "custom/model".to_string(),'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: my-org/model
+  detected_at: crates/xberg/src/core/config/processing/tests.rs:354
+  evidence: 'model_id: "my-org/model".to_string(),'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+scenarios:
+- name: as-audited
+  description: One unit of work as this audit found it, on the machine it ran on.
+  runtime:
+    value: null
+    status: TODO
+    unit: s
+    notes: No run was measured. Measure the real command with `saggio measure`, or audit again with --run.
+  costs:
+    time:
+      value: null
+      status: TODO
+      unit: s
+      derived_from:
+      - scenarios[0].runtime
+      notes: No run was measured. Measure the real command with `saggio measure`, or audit again with
+        --run.
+    energy:
+      value: null
+      status: TODO
+      unit: kWh
+      derived_from:
+      - assumptions.machine_energy
+      - assumptions.pue
+      notes: Needs the machine's own energy and the site's power usage effectiveness.
+    money:
+      value: null
+      status: TODO
+      unit: currency
+      currency: USD
+      derived_from:
+      - scenarios[0].costs.energy
+      - assumptions.electricity_price
+      notes: Needs the energy drawn and a price per kilowatt-hour.
+    carbon:
+      value: null
+      status: TODO
+      unit: gCO2e
+      derived_from:
+      - scenarios[0].costs.energy
+      - assumptions.grid_carbon_intensity
+      notes: Needs the energy drawn and the grid carbon intensity where it runs.
+    embodied_carbon:
+      value: null
+      status: TODO
+      unit: gCO2e
+      derived_from:
+      - assumptions.hardware_embodied_carbon
+      - assumptions.hardware_lifetime
+      - scenarios[0].runtime
+      notes: No product carbon footprint is on file for this hardware, so the carbon of building it is
+        open. Nobody has read one for this part; that is not the same as it having been free to build.
+        Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was
+        read.
+    water:
+      value: null
+      status: TODO
+      unit: L
+      derived_from:
+      - assumptions.machine_energy
+      - assumptions.water_usage_effectiveness
+      notes: Needs the machine's energy and a published water usage effectiveness.
+analysis:
+  evidence_source: static
+  archetype: service
+  languages:
+  - Rust
+  - Java
+  - C#
+  - Kotlin
+  - Python
+  - Shell
+  - TypeScript
+  - Swift
+  - PHP
+  - Go
+  - Ruby
+  - JavaScript
+  - C
+  - C++
+  language_file_counts:
+    Rust: 2278
+    Java: 435
+    C#: 400
+    Kotlin: 391
+    Python: 143
+    Shell: 121
+    TypeScript: 70
+    Swift: 48
+    PHP: 42
+    Go: 28
+    Ruby: 26
+    JavaScript: 19
+    C: 6
+    C++: 2
+  frameworks:
+  - numpy
+  has_tests: true
+exclusions:
+- Making the hardware. Only the electricity to run it is counted.
+- The people. Salaries, offices, and travel are out of scope.
+- Idle capacity. This is the cost of one unit of work, not of being ready.
+provenance_rules:
+- Every sourced value carries source_url and retrieved_date.
+- A derived value names its inputs and never outranks the weakest of them.
+- The country is stated by a human, never inferred from a developer's locale.

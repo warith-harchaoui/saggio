@@ -33,6 +33,35 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### Two more examples, and the two defects they found
+
+- The gallery gains **detectron2**, the first example read as **inference** —
+  the archetype that matters most to anyone pricing a request, and the one the
+  six before it never exercised — and **xberg** (formerly Kreuzberg), a
+  document-intelligence engine whose core is Rust: 2,278 Rust files, 435 Java,
+  400 C#, 391 Kotlin and 143 Python. **Every other example here is Python**, so
+  this is the breadth claim demonstrated on a repository that could have
+  embarrassed it.
+- **The suite-detection rule was Python- and JavaScript-shaped**: `tests/`,
+  `test_*.py`, `*.test.ts`. Rust puts its tests in a *file* called `tests.rs`,
+  so ten model identifiers named `test-model` and `mock-model` arrived with no
+  caveat at all. It now recognises a suite in whatever language it is written —
+  and refuses `latest.rs`, `contest.py` and `protest.go`, which a looser first
+  attempt swept up before a probe caught it.
+- **An example is not the workload either.** The package already refused to take
+  a training run's length from an evaluation config; the same reasoning had never
+  been applied to what the code *calls*. A model named in `examples/` or
+  `benchmarks/` now carries a caveat saying so. Auditing vLLM is what showed it:
+  333 model identifiers across 150 files, 127 of them from those directories.
+  The signal went from 152 uncaveated identifiers to 17.
+- vLLM itself is **not shipped**: its model is 162 KB, 95% of it a list nobody
+  will read. The finding is in the gallery, the file is not, and the page says
+  so rather than letting the omission pass.
+- **One defect named rather than hidden**: Rust keeps unit tests inside the file
+  they test, in a `#[cfg(test)] mod tests` block. File-level detection cannot see
+  inside a file, so fixtures still appear beside the genuine `openai/gpt-4o` and
+  `anthropic/claude-sonnet-4-20250514` that xberg really calls.
+
 ### The static reader is a package too
 
 - `static.py` was 1,649 lines — the ledger said 1,584, which was another stale

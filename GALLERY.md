@@ -22,7 +22,7 @@ saggio audit https://github.com/karpathy/nanoGPT --country FR --no-llm -o exampl
 saggio render examples/nanoGPT.yaml -f md -o examples/nanoGPT.md
 ```
 
-## The five repositories
+## The eight repositories
 
 | Model | Repository | What it was read as | The interesting part |
 |---|---|---|---|
@@ -33,6 +33,8 @@ saggio render examples/nanoGPT.yaml -f md -o examples/nanoGPT.md
 | [`airflow`](examples/airflow.yaml) · [report](examples/airflow.md) | `apache/airflow` | service | Nine languages, eight paid services, thirty-six models |
 | [`saggio`](examples/saggio.yaml) · [report](examples/saggio.md) | this repository | command-line tool | Everything it appears to call, it calls only in tests |
 
+| [`detectron2`](examples/detectron2.yaml) · [report](examples/detectron2.md) | `facebookresearch/detectron2` | inference | The first example read as inference, and nothing invented to fill it |
+| [`xberg`](examples/xberg.yaml) · [report](examples/xberg.md) | `xberg-io/xberg` | service | Fourteen languages, only 3.6% of it Python |
 ### nanoGPT — the size of a run is not one number
 
 Read as a **training** workload importing PyTorch, transformers and NumPy. A full
@@ -129,6 +131,48 @@ page. Nothing else in this package states how much work a run performs, so the
 only statement wins. It is the right answer to the question as asked and the wrong
 answer to the question meant, and the model names the file so the difference is
 one line away.
+
+### detectron2 — the first one read as inference
+
+Read as **inference**, which no earlier example was. The six before it covered
+training twice, a service once and a command-line tool three times, so the
+archetype that matters most to anyone pricing a request had never been
+exercised. 497 Python files alongside C, C++ and Shell; PyTorch and NumPy found,
+and nothing else claimed.
+
+What is worth looking at is how much of this model is open. No entry point was
+found, so there is no run to time; no model identifier and no paid service are
+named, so there is nothing to price; the work size is unstated, so the run
+length stays `TODO`. A tool keen to look useful would have filled those from the
+model zoo in the documentation. This one reports an empty hand, which is the
+honest reading of a detection *framework*: what it costs depends entirely on
+which model you point it at, and the repository does not choose for you.
+
+### xberg — fourteen languages, and Python is 3.6% of it
+
+Every other example in this gallery is a Python repository. This one is
+[xberg](https://github.com/xberg-io/xberg) — formerly Kreuzberg, which is what
+the redirect still says — a document-intelligence engine whose core is Rust with
+bindings for fifteen languages. The reader finds 2,278 Rust files, 435 Java, 400
+C#, 391 Kotlin and 143 Python, and reports it as mixed rather than reducing it
+to whichever language has most files. That is the claim
+[`LANDSCAPE.md`](LANDSCAPE.md) makes about breadth, demonstrated on a repository
+that could have embarrassed it.
+
+**It also broke two things, both since fixed.** The suite-detection rule was
+Python- and JavaScript-shaped: `tests/`, `test_*.py`, `*.test.ts`. Rust puts its
+tests in a *file* called `tests.rs`, so ten model identifiers named `test-model`
+and `mock-model` arrived with no caveat at all. The rule now recognises a suite
+in whatever language it is written, and refuses `latest.rs` and `contest.py`,
+which a looser first attempt swept up.
+
+**And one that is not fixed, and is named here rather than hidden.** Rust keeps
+unit tests *inside* the file they test, in a `#[cfg(test)] mod tests` block.
+File-level detection cannot see that, so fixtures like `trusted/model` and
+`gpt-test` still appear beside the genuine `openai/gpt-4o` and
+`anthropic/claude-sonnet-4-20250514` that this engine really does call. Reading
+inside a file for an inline test module is a different and larger job than
+reading its name.
 
 ## The walkthrough: one workload, four stages
 
@@ -257,6 +301,16 @@ a run was alphabetical, so `configs/eval` beat `configs/train` and DINOv2's epoc
 count came out of an evaluation config. The files above are regenerated, and none
 of the three shows any more.
 
+**One it found that is not shipped here.** vLLM was audited too and is not in the
+table: its model is 162 KB, and 95% of that is a list of 333 model identifiers
+nobody will read. The finding is worth more than the file. 127 of those hits came
+from `examples/` and `benchmarks/`, which are part of a repository and are not
+part of what it does for a living — the same reasoning that already refused to
+take a training run's length from an evaluation config, which had simply never
+been applied to what the code *calls*. Those hits now carry a caveat saying so,
+and the signal went from 152 uncaveated identifiers to 17. Audit it yourself with
+the command at the end of this page if you want to see it.
+
 **One more it found, and closed by adding a command.** The third stage of the
 walkthrough had to be written by a script calling the Python API, because nothing
 on the command line could put a measurement into an existing model: pasting a
@@ -264,6 +318,11 @@ runtime into YAML leaves everything derived from it stale. `saggio measure --int
 now does it, and the script is gone.
 
 **What is still wrong, in these files, today.**
+
+- **A Rust inline test module is invisible.** Rust keeps unit tests inside the
+  file they test, in a `#[cfg(test)] mod tests` block, so `xberg` reports
+  fixtures like `trusted/model` and `gpt-test` beside the models it really
+  calls. File-level detection cannot see inside a file.
 
 - **This package's own run length comes from a toy.** `saggio.yaml` reports
   `num_samples: 5000` from `examples/walkthrough/counter/config.py`, which is the

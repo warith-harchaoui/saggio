@@ -20,6 +20,7 @@ from pathlib import Path
 from .tables import (
     _CONFIG_READ_BYTES,
     PROSE_MARKERS,
+    SIDE_ERRAND_DIRECTORIES,
     SKIPPED_DIRECTORIES,
     TEST_DIRECTORIES,
 )
@@ -48,11 +49,68 @@ def is_test_path(path: Path) -> bool:
     if any(part.lower() in TEST_DIRECTORIES for part in path.parts):
         return True
     name = path.name.lower()
+    if name == "conftest.py" or name.startswith("test_"):
+        return True
+    if name.endswith((".test.ts", ".test.js", ".spec.ts", ".spec.js")):
+        return True
+    # Everything above is a Python or JavaScript convention, and for a long time
+    # that was the whole rule -- which meant every other language's suite was
+    # read as workload. Auditing a Rust repository is what showed it: ten model
+    # identifiers called `test-model` and `mock-model` arrived with no caveat at
+    # all, because they live in files named `tests.rs` rather than under a
+    # directory named `tests`.
+    #
+    # `stem` and `suffix` rather than a list of extensions, so a language nobody
+    # here has thought of is covered by the same convention it already follows.
+    # A separator is required, so `latest.rs`, `contest.py` and `protest.go` stay
+    # workload. The Java and Kotlin convention is a capital T -- `UserTest.java`
+    # -- which is why the unlowered stem is checked for it: lowercasing first
+    # loses the only thing separating that convention from an ordinary word.
+    stem = path.stem
+    lowered = stem.lower()
     return (
-        name == "conftest.py"
-        or name.startswith("test_")
-        or name.endswith(("_test.py", ".test.ts", ".test.js", ".spec.ts", ".spec.js"))
+        lowered in {"test", "tests"}
+        or lowered.endswith(("_test", "_tests", "_spec", "_specs"))
+        or (stem.endswith(("Test", "Tests", "Spec")) and not stem.isupper())
     )
+
+
+def is_side_errand_path(path: Path) -> bool:
+    """Return whether a path sits in a directory that is not the workload.
+
+    Examples, benchmarks, demos, notebooks, tutorials and documentation are part
+    of a repository and are not part of what it does for a living. The same
+    reasoning already decides which file states the length of a run -- an epoch
+    count read from an evaluation directory is not the length of a training run
+    -- and it holds just as well for what the code calls: a model named in an
+    example is a model being demonstrated, not one the workload pays for.
+
+    Applying it only to the work-size read was an oversight with a measurable
+    price. Audited without this, vLLM reported 333 model identifiers across 150
+    files, and 181 of those came from `examples/` and `benchmarks/`. A list that
+    long is not an answer anybody can act on.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        A path relative to the repository root.
+
+    Returns
+    -------
+    bool
+        True when any directory on the way to it is a side errand.
+
+    Examples
+    --------
+    >>> from pathlib import Path
+    >>> is_side_errand_path(Path("examples/vision/demo.py"))
+    True
+    >>> is_side_errand_path(Path("benchmarks/throughput.py"))
+    True
+    >>> is_side_errand_path(Path("vllm/engine/llm_engine.py"))
+    False
+    """
+    return any(part.lower() in SIDE_ERRAND_DIRECTORIES for part in path.parts[:-1])
 
 
 def _iter_source_files(root: Path):
