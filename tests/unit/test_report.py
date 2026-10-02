@@ -219,7 +219,11 @@ def test_an_unknown_office_format_is_refused_by_name() -> None:
 
 def _model_with_a_projection() -> dict[str, Any]:
     """A model carrying what the run would cost on another accelerator."""
-    from saggio.auditor import AuditOptions, _projections
+    # `_projections` moved into the module that owns it when the auditor became
+    # a package. The public surface did not move; this is a private name, and a
+    # test reaching for one points at where it lives.
+    from saggio.auditor import AuditOptions
+    from saggio.auditor.projections import _projections
     from saggio.estimate.machine import MachineProfile
 
     block, _ = _projections(

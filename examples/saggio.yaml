@@ -1,5 +1,5 @@
 schema_version: '2.1'
-date_updated: '2026-10-01'
+date_updated: '2026-10-02'
 project:
   name: saggio
   audited_from: ~/saggio
@@ -37,16 +37,16 @@ assumptions:
     status: estimated
     unit: USD/kWh
     currency: USD
-    source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    retrieved_date: "2026-10-02"
-    notes: "Indicative tariff for France. Collected Q3 2026."
+    source_url: https://www.globalpetrolprices.com/electricity_prices/
+    retrieved_date: '2026-10-02'
+    notes: Indicative tariff for France. Collected Q3 2026.
   grid_carbon_intensity:
     value: 41.2
     status: estimated
     unit: gCO2e/kWh
-    source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    retrieved_date: "2026-10-02"
-    notes: "Annual average for France, data year 2025."
+    source_url: https://api.ember-energy.org/v1/carbon-intensity/yearly
+    retrieved_date: '2026-10-02'
+    notes: Annual average for France, data year 2025.
   water_usage_effectiveness:
     value: null
     status: TODO
@@ -57,9 +57,8 @@ assumptions:
     value: null
     status: TODO
     unit: kgCO2e
-    notes: No accelerator was identified, so the carbon of building one is not this model's to carry.
-      A processor's own footprint is not in the catalogue yet; it is excluded rather than assumed to be
-      zero.
+    notes: No product carbon footprint is on file for apple-m2-max. Add `embodied_kgco2e` to its catalogue
+      row with the footprint's own URL and the date it was read; `saggio catalog add cpu` does the rest.
   hardware_lifetime:
     value: null
     status: TODO
@@ -191,13 +190,13 @@ analysis:
   - Python
   - JavaScript
   language_file_counts:
-    Python: 78
+    Python: 94
     JavaScript: 2
   frameworks:
   - ffmpeg
   total_work:
     unit: num_samples
-    stated_as: '5000'
+    stated_as: '400000'
     source: examples/walkthrough/counter/config.py::num_samples
   has_tests: true
 exclusions:

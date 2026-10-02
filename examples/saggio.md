@@ -2,7 +2,7 @@
 
 **This model is only as good as its weakest number, which is `TODO`.** A human must supply this before the model can be trusted.
 
-Last updated 2026-10-01. Schema 2.1.
+Last updated 2026-10-02. Schema 2.1.
 
 ## Honesty
 
@@ -53,7 +53,7 @@ One unit of work as this audit found it, on the machine it ran on.
 | `electricity_price` | 0.276 USD | `estimated` | [source](https://www.globalpetrolprices.com/electricity_prices/), read 2026-10-02 | Indicative tariff for France. Collected Q3 2026. |
 | `grid_carbon_intensity` | 41.2 gCO2e/kWh | `estimated` | [source](https://api.ember-energy.org/v1/carbon-intensity/yearly), read 2026-10-02 | Annual average for France, data year 2025. |
 | `water_usage_effectiveness` | not known | `TODO` | — | On-premises publishes no water usage effectiveness. Leave this open rather than inventing a figure. |
-| `hardware_embodied_carbon` | not known | `TODO` | — | No accelerator was identified, so the carbon of building one is not this model's to carry. A processor's own footprint is not in the catalogue yet; it is excluded rather than assumed to be zero. |
+| `hardware_embodied_carbon` | not known | `TODO` | — | No product carbon footprint is on file for apple-m2-max. Add `embodied_kgco2e` to its catalogue row with the footprint's own URL and the date it was read; `saggio catalog add cpu` does the rest. |
 | `hardware_lifetime` | not known | `TODO` | — | How long this hardware stays in service, which only you know. The published footprints are cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster between three and six years; choosing within that range moves the embodied carbon by a factor of two, which is why this is asked rather than assumed. |
 | `machine_energy` | not known | `TODO` | — | Needs both a runtime and an average power draw. |
 

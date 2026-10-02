@@ -33,6 +33,39 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### The auditor is a package, not a file with seven jobs
+
+- `auditor.py` was 1,319 lines carrying seven unrelated concerns, which made the
+  one question a reader arrives with — where does *this* number come from —
+  answerable only by reading the whole thing. It is now
+  `saggio/auditor/`, nine modules, the largest 331 lines: `paths`, `options`,
+  `naming`, `blocks`, `assumptions`, `measuring`, `projections`, `build`.
+- **The public surface did not move.** `from saggio.auditor import audit,
+  AuditOptions, AuditResult, audit_git_url, repository_name` resolves exactly as
+  before, because the file became a package of the same name.
+- **The output did not move either**, and that was checked rather than assumed: a
+  baseline of three audits, the repository-naming helper and the command
+  renderer was captured before the first line was cut and compared after every
+  step. Byte-for-byte identical throughout.
+- The dotted-path constants lost their leading underscore. A name private to one
+  module was the right spelling while there was one module; now that six of them
+  share these paths, the underscore would describe the old shape.
+- Two things a split breaks that a test suite catches and a reader would not:
+  **private imports** (`_projections` moved to the module that owns it) and
+  **monkeypatch targets** (25 of them, now naming the module that *looks the name
+  up* rather than the one that defines it, which is where patching has to
+  happen once a name is imported).
+- And one that `ruff` cannot catch: `--fix` removed imports used only by
+  **doctests**, because F401 reads code and an example in a docstring is not
+  code until it runs. Six examples were made self-contained rather than left
+  leaning on their module's namespace — which is what made them fragile.
+- `audit` itself is still long, and deliberately: it is a linear recipe, and
+  breaking a recipe into steps called once each makes a reader jump about to
+  recover an order they were already being told. The package docstring says so.
+- `examples/saggio.yaml` is regenerated. Its embodied-carbon note still said a
+  processor's footprint "is not in the catalogue yet", which stopped being true
+  with the previous release.
+
 ### The gallery compares, without pretending the numbers do
 
 - The gallery showed one tool's output on six repositories and said nothing
