@@ -33,6 +33,32 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### The static reader is a package too
+
+- `static.py` was 1,649 lines — the ledger said 1,584, which was another stale
+  figure — across 27 symbols and **26 constants scattered through the file**,
+  some above the first function and some between the last two. That scattering
+  was most of the problem: a reader asking "why did it decide that" is nearly
+  always asking about a table, and had to go hunting.
+- Now `saggio/analyze/static/`, ten modules, the largest 350: `tables`,
+  `walking`, `findings`, `languages`, `archetype`, `worksize`, `calls`,
+  `running`, `read`. Every import path resolves as before.
+- The tables live together and apart from the code that reads with them.
+  `FRAMEWORK_PATTERNS` is built rather than written, so the small function that
+  builds it sits there too — it makes a table rather than reading one.
+- **Verified against a behaviour baseline**, and the baseline was itself
+  verified: deliberately breaking a detector changed it, which is what proves a
+  witness is not blind. After the split, the only difference across fifteen
+  probes was this repository's own Python file count, 94 → 103 — the ten modules
+  added less the one removed, which is the reader correctly reporting a changed
+  repository rather than a changed reader.
+- The first extraction pass cut the header at the first `def` and lost every
+  constant below it. Redone over the **syntax tree**, which finds a top-level
+  assignment wherever it sits, with an assertion that nothing was left unplaced.
+- Four more doctests made self-contained, the same lesson as the auditor: an
+  example that leans on its module's namespace breaks the moment the module
+  moves.
+
 ### The freshness job gives notice before the deadline, not after
 
 - The scheduled job ran `saggio catalog freshness` bare. That prints "every
