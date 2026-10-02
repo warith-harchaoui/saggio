@@ -177,14 +177,18 @@ def test_the_json_report_says_what_changed_and_what_did_not(
 ) -> None:
     import saggio.cli.commands as commands
 
+    # Deliberately far from anything the catalogue could hold, so that FR lands
+    # in `changed` whatever this week's refresh put there. Picking a plausible
+    # number here made the test pass only until the catalogue caught up with it.
+    invented = 999.5
     monkeypatch.setattr(
         commands,
         "fetch_grid",
-        lambda *a, **k: GridRefresh(2025, {"FR": 41.4}, {"ZZ": "no code"}, "ember"),
+        lambda *a, **k: GridRefresh(2025, {"FR": invented}, {"ZZ": "no code"}, "ember"),
     )
     args = argparse.Namespace(catalog="grid", api_key=None, year=None, write=None, json=True)
     catalog_refresh(args)
     payload = json.loads(capsys.readouterr().out)
     assert payload["data_year"] == 2025
-    assert payload["changed"]["FR"]["now"] == pytest.approx(41.4)
+    assert payload["changed"]["FR"]["now"] == pytest.approx(invented)
     assert payload["skipped"] == {"ZZ": "no code"}

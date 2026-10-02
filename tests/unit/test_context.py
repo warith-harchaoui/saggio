@@ -72,8 +72,15 @@ def test_a_country_the_catalogue_does_not_know_is_still_the_users_word() -> None
 
 
 def test_the_grid_intensity_comes_with_its_source() -> None:
+    # The name of this test is the claim: what has to hold is that the figure
+    # arrives with provenance attached, and that it is the catalogue's figure
+    # rather than one invented on the way. Restating the number here made a
+    # routine refresh look like a regression.
+    from saggio.catalog import Catalog
+
+    expected = Catalog.bundled("grid").rows("countries")["PL"]["carbon_gco2e_per_kwh"]
     intensity = build(country="PL").grid_intensity()
-    assert intensity.value == 773
+    assert intensity.value == pytest.approx(float(expected))
     assert intensity.source_url
     assert intensity.retrieved_date
 
@@ -81,7 +88,11 @@ def test_the_grid_intensity_comes_with_its_source() -> None:
 def test_norway_survives_yaml_reading_it_as_a_boolean() -> None:
     # Unquoted, YAML reads NO as false and Norway vanishes from the catalogue
     # with no error anywhere. The keys are quoted; this is the guard for it.
-    assert build(country="NO").grid_intensity().value == 19
+    # What proves it is that Norway resolves at all, not what its grid emits.
+    intensity = build(country="NO").grid_intensity()
+    assert intensity.status != "TODO"
+    assert isinstance(intensity.value, (int, float))
+    assert intensity.source_url
 
 
 def test_an_inferred_country_carries_its_provenance_into_what_it_derives(

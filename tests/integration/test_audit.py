@@ -57,8 +57,16 @@ def test_an_unresolved_country_is_said_out_loud(tmp_path: Path) -> None:
 
 
 def test_a_stated_country_fills_in_the_grid_and_the_tariff(training_repository: Path) -> None:
+    # Against the catalogue rather than against a number copied out of it. A
+    # package built to refresh its own data cannot have tests that break every
+    # time it does: restating 56 here made the refresh look like a regression.
+    from saggio.catalog import Catalog
+
+    expected = Catalog.bundled("grid").rows("countries")["FR"]["carbon_gco2e_per_kwh"]
     result = audit(training_repository, options=static_options(country="FR"))
-    assert result.model.get("assumptions.grid_carbon_intensity")["value"] == 56
+    intensity = result.model.get("assumptions.grid_carbon_intensity")
+    assert intensity["value"] == pytest.approx(float(expected))
+    assert intensity["unit"] == "gCO2e/kWh"
     assert result.model.get("assumptions.electricity_price")["currency"] == "USD"
 
 

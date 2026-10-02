@@ -27,10 +27,13 @@ Usage example
 -------------
 >>> from saggio.estimate.context import DeploymentContext
 >>> context = DeploymentContext.build(country="FR", provider="on-prem")
->>> context.grid_intensity().value
-56
->>> context.grid_intensity().status
-'estimated'
+>>> intensity = context.grid_intensity()
+>>> intensity.unit, intensity.status, bool(intensity.source_url)
+('gCO2e/kWh', 'estimated', True)
+
+What the figure *is* belongs to the catalogue and moves when the catalogue is
+refreshed. What this module promises is that it arrives with its unit, its
+status and the page it was read from, which is what the example shows.
 
 Author
 ------
@@ -172,8 +175,9 @@ class DeploymentContext:
 
     Examples
     --------
-    >>> DeploymentContext.build(country="SE").grid_intensity().value
-    13
+    >>> intensity = DeploymentContext.build(country="SE").grid_intensity()
+    >>> intensity.status, bool(intensity.retrieved_date)
+    ('estimated', True)
     """
 
     country: str | None = None

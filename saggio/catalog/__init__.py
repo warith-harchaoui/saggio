@@ -12,8 +12,16 @@ matches how fast each kind of fact actually moves.
 Usage example
 -------------
 >>> from saggio.catalog import Catalog
->>> Catalog.bundled("grid").row("countries", "SE")["carbon_gco2e_per_kwh"]
-13
+>>> row = Catalog.bundled("grid").row("countries", "SE")
+>>> row["name"], isinstance(row["carbon_gco2e_per_kwh"], (int, float))
+('Sweden', True)
+>>> row["carbon_source_url"].startswith("https://")
+True
+
+The figure itself is deliberately not shown here. It is a number this package
+refreshes, and an example that restated it would be wrong the first time
+somebody ran ``saggio catalog refresh grid`` -- which is the whole point of
+shipping that command.
 
 Author
 ------
