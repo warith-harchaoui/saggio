@@ -36,13 +36,13 @@ assumptions:
     retrieved_date: '2026-09-12'
     notes: Power usage effectiveness published by On-premises.
   electricity_price:
-    value: 0.24
+    value: 0.276
     status: estimated
     unit: USD/kWh
     currency: USD
-    source_url: https://ember-energy.org/data/electricity-data-explorer/
-    retrieved_date: '2026-09-12'
-    notes: Indicative tariff for France.
+    source_url: "https://www.globalpetrolprices.com/electricity_prices/"
+    retrieved_date: "2026-10-02"
+    notes: "Indicative tariff for France. Collected Q3 2026."
   grid_carbon_intensity:
     value: 41.2
     status: estimated

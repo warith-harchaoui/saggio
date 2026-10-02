@@ -591,6 +591,17 @@ def _add_catalog(verbs: argparse._SubParsersAction) -> None:
         "--year", type=int, default=None, help="Data year. The most recent one by default."
     )
     refresh.add_argument(
+        "--column",
+        choices=("carbon", "price", "both"),
+        default="carbon",
+        help=(
+            "Which column of the grid catalogue to re-read. `carbon` asks Ember, "
+            "`price` asks the tariff page, `both` does the two in one pass. Each "
+            "column carries its own source and its own date, because they do not "
+            "come from the same place and do not move together."
+        ),
+    )
+    refresh.add_argument(
         "--write",
         default=None,
         metavar="PATH",

@@ -43,7 +43,14 @@ from ..analyze.capability import measurable, paths_read, probe, summary
 from ..analyze.power import PowerMeter
 from ..analyze.run import record_consent, run_slice
 from ..auditor import AuditOptions, audit, audit_git_url
-from ..catalog.refresh import apply_grid, fetch_grid
+from ..catalog.refresh import (
+    PRICE_CROSSCHECK,
+    PRICE_CROSSCHECK_RATE,
+    apply_grid,
+    apply_prices,
+    fetch_grid,
+    fetch_prices,
+)
 from ..catalog.registry import (
     SECTION_OF_KIND,
     Catalog,
@@ -673,6 +680,71 @@ def catalog_freshness(args: argparse.Namespace) -> int:
     return INVALID if stale else OK
 
 
+def _refresh_prices(args: argparse.Namespace, current: dict[str, Any]) -> int:
+    """Re-read the tariff column and report, or write it.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        With ``write`` and ``json``.
+    current : dict
+        The catalogue as it stands.
+
+    Returns
+    -------
+    int
+        An exit code.
+
+    Examples
+    --------
+    >>> import argparse, contextlib, io
+    >>> with contextlib.redirect_stdout(io.StringIO()):
+    ...     verdict = _refresh_prices(argparse.Namespace(write=None, json=False), {})
+    >>> verdict
+    0
+    """
+    names = {key: row.get("name", "") for key, row in current.items()}
+    try:
+        refresh = fetch_prices(sorted(current), names=names)
+    except RuntimeError as exc:
+        osh.error(str(exc))
+        return UNAVAILABLE
+
+    moved = refresh.changed(current)
+    if args.json:
+        _emit(
+            {
+                "source": refresh.source,
+                "cross_check": PRICE_CROSSCHECK,
+                "cross_check_rate": PRICE_CROSSCHECK_RATE,
+                "collected": refresh.collected,
+                "read_on": refresh.retrieved,
+                "changed": {key: {"was": was, "now": now} for key, (was, now) in moved.items()},
+                "unchanged": sorted(set(refresh.rows) - set(moved)),
+                "skipped": refresh.skipped,
+            },
+            as_json=True,
+        )
+    else:
+        when = f", collected {refresh.collected}" if refresh.collected else ""
+        print(f"{refresh.source} — {len(refresh.rows)} countries{when}")
+        for key, (was, now) in sorted(moved.items()):
+            shown = "nothing" if was is None else f"{was}"
+            print(f"  {key}: {shown} -> {now} USD/kWh")
+        if not moved:
+            print("  nothing moved by more than the catalogue's own precision.")
+        for key, reason in sorted(refresh.skipped.items()):
+            print(f"  {key}: left alone — {reason}")
+        print(f"  cross-check, not the source: {PRICE_CROSSCHECK}")
+        if args.write is None:
+            print("Read-only. Pass --write PATH to apply this to a catalogue file.")
+
+    if args.write is not None:
+        written = apply_prices(Path(args.write), refresh)
+        print(f"Wrote {written} tariff row(s) to {args.write}.")
+    return OK
+
+
 def catalog_refresh(args: argparse.Namespace) -> int:
     """Re-read a catalogue's numbers from the source it cites.
 
@@ -713,6 +785,12 @@ def catalog_refresh(args: argparse.Namespace) -> int:
         return USAGE
 
     current = Catalog.bundled("grid").rows("countries")
+    column = getattr(args, "column", "carbon")
+    if column in ("price", "both"):
+        verdict = _refresh_prices(args, current)
+        if verdict != OK or column == "price":
+            return verdict
+
     try:
         refresh = fetch_grid(sorted(current), api_key=args.api_key, year=args.year)
     except RuntimeError as exc:

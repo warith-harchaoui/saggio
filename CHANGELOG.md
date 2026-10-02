@@ -33,6 +33,44 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### The tariff column gets a source that publishes tariffs
+
+- Every row cited one URL for the whole row. The carbon intensity came from
+  Ember; the tariff beside it did not and could not — that page publishes
+  generation, emissions, capacity and demand, and **no price at all**. Thirty-
+  eight rows carried a `source_url` that did not contain the number next to it.
+  The defect dates to the first commit and was invisible until splitting the
+  carbon provenance out left the tariff alone with a citation that was never
+  about it.
+- `saggio catalog refresh grid --column price` re-reads the tariffs from
+  [GlobalPetrolPrices](https://www.globalpetrolprices.com/electricity_prices/),
+  which publishes a residential price per kilowatt-hour — power, distribution,
+  transmission and all taxes — for every country in one table and one currency.
+  `--column both` does the two in one pass.
+- Each column now carries `*_source_url`, `*_retrieved_date`, and the period the
+  figure describes: `carbon_data_year: 2025`, `price_collected: "Q3 2026"`. The
+  day a number was read is not the period it covers.
+- [Eurostat](https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?format=JSON&lang=EN&nrg_cons=KWH2500-4999&tax=I_TAX&currency=EUR&unit=KWH&lastTimePeriod=1)
+  is the more authoritative body for Europe and was read — as a **check**, not
+  as the source. It publishes in euros and for Europe only, so taking it would
+  have meant a second source for the exchange rate, a conversion going stale
+  daily, and eighteen rows that could not be compared with the other twenty.
+  Converted at the [ECB reference
+  rate](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml), the two
+  agree to a median of 7% across the eighteen countries both cover and diverge
+  by more than 15% for six — Finland, Romania, Poland, Norway, Sweden, Italy —
+  which is a difference of method, not an error in either. All three URLs are in
+  the source so the comparison can be run again.
+- `DeploymentContext.electricity_price` reads the tariff's own provenance and
+  names the collection period.
+- Three contract tests now hold the line: every column cites a source of its own
+  and says when it was read; the two columns may never share a URL, since that
+  would mean one of them is vouched for by a page that does not publish it; and
+  the URLs on file are the ones the refresh would write. Putting the original
+  defect back makes the first of them fail by name.
+- The two walkthrough models had a money figure derived from the old tariff.
+  The arithmetic check caught both, with the right answer beside them.
+
 ### Tests stop restating what the package refreshes
 
 - Seven tests failed on the refresh, every one because it had copied a catalogue

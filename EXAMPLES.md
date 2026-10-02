@@ -762,19 +762,52 @@ When something does go stale, there is a way to answer it rather than re-date it
 saggio catalog refresh grid
 ```
 
-Read-only. It prints what Ember says today against what the catalogue holds, and
-writes nothing. `--write saggio/data/grid.yaml` is the deliberate second step,
-and it touches one column: the carbon intensity and the provenance that belongs
-to it. The row's price and timezones came from elsewhere and keep their own.
+Read-only. It prints what the source says today against what the catalogue
+holds, and writes nothing. `--write saggio/data/grid.yaml` is the deliberate
+second step. `--column` picks what to re-read — `carbon` by default, `price`, or
+`both` — because the two columns do not come from the same place and do not move
+together:
 
-It needs a free [Ember API key](https://ember-energy.org/data/), in
-`EMBER_API_KEY` or `--api-key`, and it will not substitute anything else. There
-is one tempting alternative — Our World in Data publishes an Ember-derived
-series through a stable CSV with no key at all — and it is wrong: its own
-metadata calls it *lifecycle* carbon intensity, while this column is *operating*
-emissions. Swapping one for the other would change what every committed model
-means, silently, and leave every number looking exactly as trustworthy as
-before. So the command refuses and says that, rather than quietly doing it.
+```bash
+saggio catalog refresh grid --column price
+saggio catalog refresh grid --column both --write saggio/data/grid.yaml
+```
+
+Each column carries its own `*_source_url`, its own `*_retrieved_date`, and the
+period the figure describes — `carbon_data_year: 2025`, `price_collected: "Q3
+2026"`. The date a number was *read* is not the period it describes, and a row
+that recorded only the first would let a figure from 2019 look like today's.
+
+**The carbon column** comes from [Ember](https://ember-energy.org/data/), through
+its API, and needs a free key in `EMBER_API_KEY` or `--api-key`. Nothing else is
+substituted. There is one tempting alternative — Our World in Data publishes an
+Ember-derived series through a stable CSV with no key at all — and it is wrong:
+its own metadata calls it *lifecycle* carbon intensity, while this column is
+*operating* emissions. Swapping one for the other would change what every
+committed model means, silently, and leave every number looking exactly as
+trustworthy as before. So the command refuses and says that, rather than quietly
+doing it.
+
+**The tariff column** comes from
+[GlobalPetrolPrices](https://www.globalpetrolprices.com/electricity_prices/),
+which publishes a residential price per kilowatt-hour — power, distribution,
+transmission and all taxes — for every country in one table and one currency.
+That table is written by a script rather than served, so the refresh renders the
+page in a headless browser; with no browser installed it says so and stops
+rather than guessing.
+
+The more authoritative body for Europe is
+[Eurostat](https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?format=JSON&lang=EN&nrg_cons=KWH2500-4999&tax=I_TAX&currency=EUR&unit=KWH&lastTimePeriod=1),
+and it was read — as a **check**, not as the source. It publishes in euros and
+for Europe only, so taking it would have meant a second source for the exchange
+rate, a conversion going stale daily, and eighteen rows that could not be
+compared with the other twenty. Converted at the [European Central Bank's
+reference rate](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml),
+the two agree to a median of 7% across the eighteen countries both cover, and
+disagree by more than 15% for six: Finland, Romania, Poland, Norway, Sweden and
+Italy. That is a difference of method rather than an error in either — Eurostat
+averages a half-year by consumption band, the other is one collection. All three
+URLs are in the source, so the comparison can be run again.
 
 A country the source does not answer for is left alone and named. Nothing is
 interpolated, carried over, or averaged.

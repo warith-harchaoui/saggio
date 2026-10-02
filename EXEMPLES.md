@@ -784,20 +784,54 @@ redater :
 saggio catalog refresh grid
 ```
 
-En lecture seule. Elle affiche ce que dit Ember aujourd'hui face à ce que tient
-le catalogue, et n'écrit rien. `--write saggio/data/grid.yaml` est le second
-geste, délibéré, et il ne touche qu'une colonne : l'intensité carbone et la
-provenance qui lui appartient. Le prix de l'électricité et les fuseaux de la
-ligne viennent d'ailleurs et gardent les leurs.
+En lecture seule. Elle affiche ce que dit la source aujourd'hui face à ce que
+tient le catalogue, et n'écrit rien. `--write saggio/data/grid.yaml` est le
+second geste, délibéré. `--column` choisit quoi relire — `carbon` par défaut,
+`price`, ou `both` — parce que les deux colonnes ne viennent pas du même endroit
+et ne bougent pas ensemble :
 
-Elle demande une [clé d'API Ember](https://ember-energy.org/data/) gratuite, dans
-`EMBER_API_KEY` ou `--api-key`, et ne substitue rien d'autre. Il existe une
-alternative tentante — Our World in Data publie une série dérivée d'Ember par un
-CSV stable, sans clé — et elle est fausse : sa propre métadonnée l'appelle
-intensité carbone *de cycle de vie*, là où cette colonne est l'émission
-*opératoire*. Échanger l'une contre l'autre changerait en silence le sens de
-chaque modèle commité, sans rien changer à la confiance qu'il inspire. La
-commande refuse et le dit, plutôt que de le faire discrètement.
+```bash
+saggio catalog refresh grid --column price
+saggio catalog refresh grid --column both --write saggio/data/grid.yaml
+```
+
+Chaque colonne porte son `*_source_url`, son `*_retrieved_date`, et la période
+que le chiffre décrit — `carbon_data_year: 2025`, `price_collected: "Q3 2026"`.
+La date à laquelle un nombre a été *lu* n'est pas la période qu'il décrit, et une
+ligne qui ne noterait que la première laisserait un chiffre de 2019 passer pour
+celui d'aujourd'hui.
+
+**La colonne carbone** vient d'[Ember](https://ember-energy.org/data/), par son
+API, et demande une clé gratuite dans `EMBER_API_KEY` ou `--api-key`. Rien
+d'autre n'est substitué. Il existe une alternative tentante — Our World in Data
+publie une série dérivée d'Ember par un CSV stable, sans clé — et elle est
+fausse : sa propre métadonnée l'appelle intensité carbone *de cycle de vie*, là
+où cette colonne est l'émission *opératoire*. Échanger l'une contre l'autre
+changerait en silence le sens de chaque modèle commité, sans rien changer à la
+confiance qu'il inspire. La commande refuse et le dit, plutôt que de le faire
+discrètement.
+
+**La colonne tarif** vient de
+[GlobalPetrolPrices](https://www.globalpetrolprices.com/electricity_prices/), qui
+publie un prix résidentiel au kilowattheure — énergie, distribution, transport et
+toutes taxes — pour chaque pays dans une seule table et une seule monnaie. Cette
+table est écrite par un script plutôt que servie, donc le rafraîchissement rend
+la page dans un navigateur sans interface ; sans navigateur installé, il le dit
+et s'arrête au lieu de deviner.
+
+L'institution qui fait le plus autorité en Europe est
+[Eurostat](https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?format=JSON&lang=EN&nrg_cons=KWH2500-4999&tax=I_TAX&currency=EUR&unit=KWH&lastTimePeriod=1),
+et elle a été lue — comme **contre-test**, pas comme source. Elle publie en euros
+et pour l'Europe seulement : la retenir aurait imposé une seconde source pour le
+taux de change, une conversion qui périme chaque jour, et dix-huit lignes
+incomparables avec les vingt autres. Converties au [taux de référence de la
+Banque centrale européenne](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml),
+les deux concordent à 7 % en médiane sur les dix-huit pays couverts par les deux,
+et divergent de plus de 15 % pour six : Finlande, Roumanie, Pologne, Norvège,
+Suède et Italie. C'est une différence de méthode, pas une erreur de l'une ou de
+l'autre — Eurostat moyenne un semestre par tranche de consommation, l'autre est
+un relevé. Les trois URL sont dans le code, pour que la comparaison puisse être
+refaite.
 
 Un pays pour lequel la source ne répond pas est laissé tel quel et nommé. Rien
 n'est interpolé, reporté ni moyenné.

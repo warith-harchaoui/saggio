@@ -446,13 +446,19 @@ class DeploymentContext:
                 f" The provider {self.provider!r} is not in the catalogue, so the "
                 "local tariff stands in; add the provider row to price it properly."
             )
+        # The period the tariff describes, which is not the day it was read. A
+        # figure read today out of a Q3 release is a Q3 figure, and a reader
+        # comparing two countries deserves to know they are the same vintage.
+        collected = row.get("price_collected")
+        if collected:
+            note += f" Collected {collected}."
         return Quantity(
             value=row["price_usd_per_kwh"],
             unit=f"{CATALOG_CURRENCY}/kWh",
             currency=CATALOG_CURRENCY,
             status=ESTIMATED,
-            source_url=row.get("source_url"),
-            retrieved_date=row.get("retrieved_date"),
+            source_url=row.get("price_source_url") or row.get("source_url"),
+            retrieved_date=row.get("price_retrieved_date") or row.get("retrieved_date"),
             notes=self._country_derived_note(note),
         )
 

@@ -285,3 +285,77 @@ def test_no_job_runs_on_a_platform_that_was_excluded() -> None:
 def _repository_root() -> Path:
     """Return the checkout this test file lives in."""
     return Path(__file__).resolve().parents[2]
+
+
+# --- Every figure cites the source that actually contains it -----------------
+
+
+def test_each_grid_column_carries_its_own_source() -> None:
+    """The check that would have caught the catalogue's longest-standing untruth.
+
+    Every row of `grid.yaml` cited one URL for the whole row. The carbon
+    intensity came from Ember; the tariff beside it did not, and could not —
+    that page publishes generation, emissions, capacity and demand, and no
+    price at all. Thirty-eight rows carried a `source_url` that did not contain
+    the number next to it, which is the precise failure this package exists to
+    object to, and nothing in the suite looked.
+    """
+    import yaml
+
+    root = Path(__file__).resolve().parents[2]
+    rows = yaml.safe_load(
+        (root / "saggio" / "data" / "grid.yaml").read_text(encoding="utf-8")
+    )["countries"]
+    assert rows, "the grid catalogue is empty"
+    for row in rows:
+        key = row["key"]
+        figure_of = {"carbon": "carbon_gco2e_per_kwh", "price": "price_usd_per_kwh"}
+        for column, field in figure_of.items():
+            if row.get(field) is None:
+                continue
+            url = row.get(f"{column}_source_url")
+            read = row.get(f"{column}_retrieved_date")
+            assert url and url.startswith("https://"), (
+                f"{key}: the {column} figure has no source of its own. Inheriting "
+                "the row's means citing a page that may not contain it"
+            )
+            assert read, f"{key}: the {column} figure does not say when it was read"
+
+
+def test_the_two_grid_columns_do_not_share_a_source() -> None:
+    """Carbon and tariff come from different places, and the file has to show it.
+
+    Not a style rule. If both columns ever point at one URL again, one of them
+    is being vouched for by a page that does not publish it, which is how the
+    original defect looked from the outside: entirely tidy.
+    """
+    import yaml
+
+    root = Path(__file__).resolve().parents[2]
+    rows = yaml.safe_load(
+        (root / "saggio" / "data" / "grid.yaml").read_text(encoding="utf-8")
+    )["countries"]
+    for row in rows:
+        carbon, price = row.get("carbon_source_url"), row.get("price_source_url")
+        if carbon and price:
+            assert carbon != price, (
+                f"{row['key']}: the carbon figure and the tariff cite the same page. "
+                "One of them is not published there"
+            )
+
+
+def test_the_tariff_sources_are_the_ones_the_module_names() -> None:
+    """The catalogue's URLs are the ones the refresh would write, not strays."""
+    import yaml
+
+    from saggio.catalog.refresh import EMBER_API, PRICE_SOURCE
+
+    root = Path(__file__).resolve().parents[2]
+    rows = yaml.safe_load(
+        (root / "saggio" / "data" / "grid.yaml").read_text(encoding="utf-8")
+    )["countries"]
+    for row in rows:
+        if row.get("carbon_source_url"):
+            assert row["carbon_source_url"] == EMBER_API
+        if row.get("price_source_url"):
+            assert row["price_source_url"] == PRICE_SOURCE
