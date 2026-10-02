@@ -33,6 +33,22 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### The freshness job gives notice before the deadline, not after
+
+- The scheduled job ran `saggio catalog freshness` bare. That prints "every
+  catalogue row is within its refresh window" every Monday until the week the
+  rows expire, and only then fails — **notice after the deadline**, which is no
+  notice at all for a figure somebody is about to quote. It now passes
+  `--within 21`: four Mondays of warning, each carrying the refresh command
+  already printed beside it.
+- It still does **not** fail on a merely-expiring row, and that was left alone
+  deliberately. A gate that turns red overnight gets the date bumped in a hurry
+  rather than the source re-read, which is the one outcome the whole mechanism
+  exists to prevent. Expiring is a reminder; stale is a defect; collapsing
+  either into the other breaks it in a different direction.
+- Two contract tests hold both halves, and removing the flag or shortening it
+  below two weekly runs fails the one named for it.
+
 ### The auditor is a package, not a file with seven jobs
 
 - `auditor.py` was 1,319 lines carrying seven unrelated concerns, which made the

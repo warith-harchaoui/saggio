@@ -468,3 +468,65 @@ def test_a_column_that_does_not_move_monthly_is_not_asked_to() -> None:
     # And one fresh column does not excuse a stale one.
     both = {**row, "price_retrieved_date": "2026-10-01", "timezones_retrieved_date": "2024-01-01"}
     assert is_stale(both, "country", today=today)
+
+
+def test_the_scheduled_job_gives_notice_before_a_row_expires() -> None:
+    """The freshness job has to warn in advance, not report after the fact.
+
+    Without `--within`, that step prints "every catalogue row is within its
+    refresh window" every Monday until the week the rows expire, and only then
+    fails. That is notice after the deadline, which is no notice at all for a
+    figure somebody is about to quote.
+
+    It still must not *fail* on a merely-expiring row. A gate that turns red
+    overnight gets the date bumped in a hurry rather than the source re-read,
+    which is the one outcome the whole mechanism exists to prevent -- so this
+    checks for the flag, not for a non-zero exit.
+    """
+    import re
+
+    workflow = (
+        _repository_root().joinpath(".github", "workflows", "ci.yml").read_text(encoding="utf-8")
+    )
+    call = re.search(r"saggio catalog freshness([^\n]*)", workflow)
+    assert call, "the scheduled job no longer runs the freshness command"
+    within = re.search(r"--within\s+(\d+)", call.group(1))
+    assert within, (
+        "the freshness job runs without --within, so it says nothing about what "
+        "is about to expire until the week it already has"
+    )
+    # The job runs weekly, and a country row lasts a month. Anything under two
+    # weeks is a single Monday's warning, which one person being away defeats.
+    assert int(within.group(1)) >= 14, (
+        f"--within {within.group(1)} is less than two weekly runs of warning"
+    )
+
+
+def test_an_expiring_row_warns_without_failing_and_a_stale_one_fails() -> None:
+    """Both halves of that policy, held in place.
+
+    The distinction is the whole design: expiring is a reminder, stale is a
+    defect. Collapsing either into the other breaks it in a different direction.
+    """
+    from datetime import date, timedelta
+
+    from saggio.catalog import Catalog
+    from saggio.catalog.registry import expiring_report, stale_after_days, stale_report
+
+    rows = Catalog.bundled("grid").rows("countries")
+    read = min(
+        date.fromisoformat(value)
+        for row in rows.values()
+        for name, value in row.items()
+        if name.endswith("_retrieved_date")
+    )
+    expires = read + timedelta(days=stale_after_days("country"))
+
+    # A week before: a warning, and nothing is stale.
+    before = expires - timedelta(days=7)
+    assert "country" in expiring_report(today=before, within=21)
+    assert "country" not in stale_report(today=before)
+
+    # A week after: stale, which is what fails the job.
+    after = expires + timedelta(days=7)
+    assert "country" in stale_report(today=after)
