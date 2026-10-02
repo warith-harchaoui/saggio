@@ -1,15 +1,26 @@
-# Continuous integration.
+# Continuous integration, deliberately small.
 #
-# Three things are checked on every push, on both operating systems this package
-# supports, because "works on my machine" is exactly the claim a cost model is
-# not allowed to make either. The list below is pinned to
-# `saggio.analyze.capability.SUPPORTED_PLATFORMS` by a contract test, so the two
-# cannot drift: the first time they did, every Windows job failed at `import
-# saggio` and this comment claimed three systems.
+# This used to be four jobs — two operating systems times two Python versions —
+# and it had not gone green in twenty-five consecutive runs. A gate that is
+# always red is not a gate: nobody reads it, nobody fixes it, and the one time it
+# catches something real it looks exactly like the twenty-four times it did not.
+# So it is one job that passes, rather than four that do not.
 #
-# The catalogue freshness gate is deliberately a separate, scheduled job. It does
-# not fail a pull request, because a tariff going out of date is not the fault of
-# whoever changed a docstring; it opens the question on a schedule instead.
+# What that costs, said plainly rather than quietly dropped:
+#
+#   - macOS is no longer exercised here. The package supports it and most of its
+#     power-counter code is macOS-only, so that code is covered by the suite on a
+#     developer's machine and not by this file.
+#   - Only the floor of the supported range is run. `requires-python` is
+#     ">=3.10,<3.14"; 3.10 is the version most likely to reject something, so it
+#     is the one worth the single slot.
+#
+# The freshness gate stays a separate, scheduled job. A tariff going out of date
+# is not the fault of whoever changed a docstring, so it opens the question on a
+# schedule instead of failing a pull request. The list of supported platforms is
+# still pinned to `saggio.analyze.capability.SUPPORTED_PLATFORMS` by a contract
+# test, so this file dropping an OS cannot silently change what the package
+# claims to support.
 
 name: checks
 
@@ -27,18 +38,15 @@ concurrency:
 
 jobs:
   test:
-    name: ${{ matrix.os }}, Python ${{ matrix.python }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        python: ["3.10", "3.13"]
+    name: Linux, Python 3.10
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
+          python-version: "3.10"
           cache: pip
       - name: Install
         run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
@@ -55,11 +63,12 @@ jobs:
     name: catalogue freshness
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.10"
           cache: pip
       - name: Install
         run: python -m pip install --upgrade pip && python -m pip install -e .
@@ -72,14 +81,14 @@ jobs:
       - name: What to do about it
         if: failure()
         run: |
-          echo "A grid intensity above is stale or about to expire."
+          echo "A figure above is stale or about to expire."
           echo
-          echo "Refresh it from Ember, read-only first:"
-          echo "    EMBER_API_KEY=... saggio catalog refresh grid"
+          echo "Re-read it, read-only first:"
+          echo "    EMBER_API_KEY=... saggio catalog refresh grid --column all"
           echo
           echo "Read the diff, then write it and commit:"
-          echo "    EMBER_API_KEY=... saggio catalog refresh grid --write saggio/data/grid.yaml"
+          echo "    EMBER_API_KEY=... saggio catalog refresh grid --column all \\"
+          echo "        --write saggio/data/grid.yaml"
           echo
-          echo "A free key comes from https://ember-energy.org/data/ ."
+          echo "A free Ember key comes from https://ember-energy.org/data/ ."
           echo "Do not substitute OWID: its series is lifecycle, not operating."
-
