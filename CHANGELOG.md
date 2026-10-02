@@ -33,6 +33,41 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### The embodied-carbon promise meets its catalogue
+
+- The README offered the four terms of ISO/IEC 21031. The arithmetic had them;
+  the catalogue had **three footprints across 25 accelerator rows and none at
+  all across 12 processors**, so most real machines got a `TODO`. Both halves
+  are addressed: the catalogue is extended where it honestly can be, and the
+  promise now states its own coverage rather than implying more.
+- `saggio catalog refresh hardware --column embodied` reads processor footprints
+  from [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/), an
+  open keyless API over a crowd-sourced database of die sizes. **Four of twelve**
+  processors are accepted; the other eight are refused by name, with the reason.
+- Two guards, both earned by probing the source rather than trusting it:
+  - It answers about a chip it was not asked about. Asked for an **Apple M4 Max
+    it returns an Apple M1 Max** — four generations earlier — and says so
+    nowhere in the reply. Three Apple rows would have carried an M1 Max figure.
+  - It answers for a die size it does not have by filling in a family average.
+    Asked about a chip called `banana chip 9000` it returns **19.0 kgCO2e**
+    without a word. The footprint is a function of the die, so a default die is
+    a default footprint wearing the chip's name. Two Xeon rows would have
+    carried one.
+- The accelerator half of that API is **refused outright and in words**: asked
+  for any GPU by name it answers 575.1 kgCO2e — the same number for a GTX 1080
+  Ti, an A100 and an H100, because it holds one archetype called "Large GPU".
+  That is three and a half times NVIDIA's own verified figure for an H100.
+- The auditor falls back from the accelerator to the processor. Its old note
+  said a processor's footprint "is not in the catalogue yet", which stopped
+  being true the day four of them were: a machine whose only chip is known would
+  have gone on reporting `TODO` while the figure sat in the file beside it. A
+  generic default chip still reports `TODO`, because a default's footprint is a
+  default too.
+- `STANDARDS.md` / `NORMES.md` carry the seven figures in one table, keep the
+  two strengths of claim apart rather than averaging them into one word, and
+  list the eight refusals with their reasons. The README says the catalogue is
+  incomplete and why, instead of leaving it to be discovered.
+
 ### Every column of a grid row says where it came from, and runs on its own clock
 
 - The same defect a third time. Carbon cited Ember, which was right. The tariff

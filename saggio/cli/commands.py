@@ -44,12 +44,16 @@ from ..analyze.power import PowerMeter
 from ..analyze.run import record_consent, run_slice
 from ..auditor import AuditOptions, audit, audit_git_url
 from ..catalog.refresh import (
+    EMBODIED_METHOD_URL,
+    GPU_REFUSAL,
     PRICE_CROSSCHECK,
     PRICE_CROSSCHECK_RATE,
+    apply_embodied,
     apply_grid,
     apply_prices,
     apply_timezone_check,
     check_timezones,
+    fetch_embodied,
     fetch_grid,
     fetch_prices,
 )
@@ -682,6 +686,70 @@ def catalog_freshness(args: argparse.Namespace) -> int:
     return INVALID if stale else OK
 
 
+def _refresh_embodied(args: argparse.Namespace) -> int:
+    """Re-read the processor footprints, and say what was refused and why.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        With ``column``, ``write`` and ``json``.
+
+    Returns
+    -------
+    int
+        An exit code.
+
+    Examples
+    --------
+    >>> import argparse, contextlib, io
+    >>> args = argparse.Namespace(column="carbon", write=None, json=False)
+    >>> with contextlib.redirect_stdout(io.StringIO()):
+    ...     verdict = _refresh_embodied(args)
+    >>> verdict  # the hardware catalogue has only one column to refresh
+    2
+    """
+    if getattr(args, "column", "carbon") not in ("embodied", "all"):
+        osh.error(
+            "The hardware catalogue has one refreshable column: `--column embodied`. "
+            "Everything else there is a datasheet figure a person reads."
+        )
+        return USAGE
+
+    rows = Catalog.bundled("hardware").rows("cpus")
+    refresh = fetch_embodied(sorted(rows))
+
+    if args.json:
+        _emit(
+            {
+                "source": refresh.source,
+                "method": EMBODIED_METHOD_URL,
+                "read_on": refresh.retrieved,
+                "found": {
+                    key: {"kgco2e": value, "matched": matched, "die_mm2": die}
+                    for key, (value, matched, die) in refresh.rows.items()
+                },
+                "refused": refresh.refused,
+                "accelerators": GPU_REFUSAL,
+            },
+            as_json=True,
+        )
+    else:
+        print(f"{refresh.source} — {len(refresh.rows)} of {len(rows)} processor(s)")
+        for key, (value, matched, die) in sorted(refresh.rows.items()):
+            print(f"  {key}: {value} kgCO2e — {matched}, die {die} mm2")
+        for key, why in sorted(refresh.refused.items()):
+            print(f"  {key}: refused — {why}")
+        print(f"  method, so a reader can judge rather than take: {EMBODIED_METHOD_URL}")
+        print(f"  accelerators: {GPU_REFUSAL}")
+        if args.write is None:
+            print("Read-only. Pass --write PATH to apply this to a catalogue file.")
+
+    if args.write is not None:
+        written = apply_embodied(Path(args.write), refresh)
+        print(f"Wrote {written} processor footprint(s) to {args.write}.")
+    return OK
+
+
 def _check_timezones(args: argparse.Namespace, current: dict[str, Any]) -> int:
     """Check the timezone names against IANA and stamp the release they match.
 
@@ -843,11 +911,13 @@ def catalog_refresh(args: argparse.Namespace) -> int:
     >>> verdict  # a catalogue with no machine-readable source is a usage error
     2
     """
+    if args.catalog == "hardware":
+        return _refresh_embodied(args)
     if args.catalog != "grid":
         osh.error(
-            f"There is no refresh for the {args.catalog} catalogue. Only `grid` cites a "
-            "source that answers a machine; the others are datasheets and published "
-            "rates that a person reads."
+            f"There is no refresh for the {args.catalog} catalogue. Only `grid` and "
+            "`hardware` cite a source that answers a machine; the others are "
+            "datasheets and published rates that a person reads."
         )
         return USAGE
 

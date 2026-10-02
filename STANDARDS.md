@@ -54,14 +54,40 @@ H100 over a four-year life, that is 164 kg × 1 h / 35 064 h × 1 ≈ **4.7 gCO2
 — small next to the ~400 W-hour the same run draws, and not nothing, and
 emphatically not zero.
 
-Three footprints ship in the catalogue, each read from its own primary source
-and carrying the boundary in words beside the number:
+Seven footprints ship in the catalogue — **three accelerators out of 25 rows,
+four processors out of 12** — each read from its own primary source and carrying
+the boundary in words beside the number:
 
 | Part | kgCO2e per device | Boundary | Source |
 |---|---|---|---|
 | A100 (SXM 40GB) | 127.6 | Cradle-to-gate, teardown LCA with primary elemental analysis | [arXiv:2509.00093](https://arxiv.org/abs/2509.00093) |
 | H100 | 164.0 | One of eight on an HGX H100 baseboard: 1,312 kg ÷ 8, ISO 14067, third-party reviewed | [NVIDIA PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) |
 | B200 | 284.25 | One of eight on an HGX B200 baseboard: 2,274 kg ÷ 8, same method | [NVIDIA PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) |
+| EPYC 7742 | 40.66 | Cradle-to-gate, from a 1,600 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
+| EPYC 9654 | 33.98 | Cradle-to-gate, from a 1,261 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
+| Core i9-13900K | 14.2 | Cradle-to-gate, from a 257 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
+| Ryzen 9 7950X | 14.34 | Cradle-to-gate, from a 264 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
+
+The two kinds of row are not the same strength of claim, and the table keeps
+them apart rather than averaging them into one word. The accelerators are
+vendor-published or torn down and weighed. The processors are **computed from
+the chip's die size by a published model** — a weaker thing, and the reason the
+method is linked rather than only the figure.
+
+The eight remaining processors are refused rather than filled. Four are refused
+because that source answers about a chip it was not asked about: asked for an
+Apple M4 Max it returns an Apple M1 Max, four generations earlier, with no
+warning anywhere in the reply. Two are refused because the die size it computed
+from is a family average rather than this chip's, which makes the footprint a
+family average wearing the chip's name. Two are generic catalogue defaults,
+whose footprint would be a default too.
+
+Accelerators cannot be filled this way at all. The same source, asked for any
+GPU by name, answers 575.1 kgCO2e — the same number for a GTX 1080 Ti, an A100
+and an H100, because it holds one archetype called "Large GPU". That is three
+and a half times NVIDIA's own verified figure for an H100, and it arrives
+wearing the model name that was asked for. The refresh refuses it by name
+and says why.
 
 A part with no row gives a `TODO`, with a sentence saying that nobody has read a
 footprint for it — which is not the same as it having been free to build.
@@ -83,10 +109,13 @@ than assumed.
 at the factory gate. Recycling and disposal are real and are not in these
 numbers, and the report says so rather than letting the omission pass as a zero.
 
-**Only the accelerator is counted.** The processor, the board, the memory, the
-network and the storage all had to be made too. None of them is in the
-catalogue, so none of them is in the figure, and the figure says which part it
-covers.
+**The board, the memory, the network and the storage are not counted.** They all
+had to be made too. None of them is in the catalogue, so none of them is in the
+figure, and the figure says which part it covers. The processor is counted now
+where one is on file, and only then: a machine with an accelerator reports the
+accelerator, a machine without one reports its processor if that chip is known,
+and otherwise reports `TODO`. Nothing is added across parts, because no source
+here covers two of them under one boundary.
 
 **The amortisation is calendar time, not busy time.** The specification defines
 the time share as duration over expected lifespan, so a card idle for half its

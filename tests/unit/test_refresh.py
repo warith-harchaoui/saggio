@@ -529,3 +529,129 @@ def test_the_query_names_the_parameter_the_api_actually_has(
     fetch_grid(["FR"], api_key="irrelevant")
     assert "is_aggregate_entity=false" in seen["url"]
     assert "is_aggregate_series" not in seen["url"]
+
+
+# --- The processor footprints, and the two guards that make them usable ---------
+#
+# Both guards exist because the source fails silently in two different ways, and
+# each failure produces a number indistinguishable from a real one, under the
+# name that was asked for. These are the tests that keep the guards in place.
+
+
+def boavizta(name: str, die_source: str, value: float = 40.66, die: object = 1600) -> str:
+    """Return a reply in the shape that API answers with."""
+    return json.dumps(
+        {
+            "impacts": {"gwp": {"embedded": {"value": value, "min": value, "max": value}}},
+            "verbose": {
+                "name": {"value": name, "status": "COMPLETED", "source": "fuzzy match"},
+                "die_size": {"value": die, "status": "COMPLETED", "source": die_source},
+            },
+        }
+    )
+
+
+def answer_embodied(monkeypatch: pytest.MonkeyPatch, body: str) -> None:
+    """Make the next footprint call return this body instead of opening a socket."""
+    import saggio.catalog.refresh as module
+
+    monkeypatch.setattr(
+        module.urllib.request, "urlopen", lambda request, timeout=0: FakeResponse(body)
+    )
+
+
+def test_a_footprint_for_the_chip_that_was_asked_about_is_kept(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from saggio.catalog.refresh import fetch_embodied
+
+    answer_embodied(
+        monkeypatch, boavizta("AMD EPYC 7742", "io_die_size (416 mm2) + die_size (16x 74 mm²)")
+    )
+    refresh = fetch_embodied(["epyc-7742"])
+    assert refresh.rows["epyc-7742"][0] == 40.66
+    assert refresh.refused == {}
+
+
+def test_a_chip_the_source_substituted_is_refused_by_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Asked for an Apple M4 Max, that source answers about an Apple M1 Max --
+    # four generations earlier -- and says so nowhere in the reply. Without this
+    # guard the catalogue would carry an M1 Max footprint under three different
+    # Apple rows, each looking exactly as well-founded as the vendor figures.
+    from saggio.catalog.refresh import fetch_embodied
+
+    answer_embodied(monkeypatch, boavizta("Apple M1 Max", "die_size (432 mm²)", 17.65, 432))
+    refresh = fetch_embodied(["apple-m4-max"])
+    assert refresh.rows == {}
+    assert "Apple M1 Max" in refresh.refused["apple-m4-max"]
+
+
+@pytest.mark.parametrize(
+    "die_source",
+    [
+        "Average value for all families",
+        "Linear regression of cpu_manufacture : Completed from name",
+    ],
+)
+def test_a_footprint_computed_from_a_die_it_invented_is_refused(
+    monkeypatch: pytest.MonkeyPatch, die_source: str
+) -> None:
+    # The footprint is a function of the die, so a default die is a default
+    # footprint wearing this chip's name. Asked about a chip called
+    # `banana chip 9000` that source returns 19.0 kgCO2e by this route, without
+    # a word about the chip not existing.
+    from saggio.catalog.refresh import fetch_embodied
+
+    answer_embodied(monkeypatch, boavizta("Intel Xeon Gold 6248", die_source, 19.0, 522.0))
+    refresh = fetch_embodied(["xeon-gold-6248"])
+    assert refresh.rows == {}
+    assert "not this chip's" in refresh.refused["xeon-gold-6248"]
+
+
+def test_a_key_with_no_vendor_name_is_refused_rather_than_guessed() -> None:
+    from saggio.catalog.refresh import fetch_embodied
+
+    refresh = fetch_embodied(["default-server-cpu"])
+    assert refresh.rows == {}
+    assert "no vendor name" in refresh.refused["default-server-cpu"]
+
+
+def test_the_accelerator_half_of_that_source_is_refused_in_words() -> None:
+    # Asked for any GPU by name it answers 575.1 kgCO2e -- the same number for a
+    # GTX 1080 Ti, an A100 and an H100 -- because it holds one archetype called
+    # "Large GPU". That is three and a half times NVIDIA's own verified figure
+    # for an H100. The refusal is a published string so the reason travels with
+    # the decision rather than living in a commit message.
+    from saggio.catalog.refresh import GPU_REFUSAL
+
+    assert "575.1" in GPU_REFUSAL
+    assert "archetype" in GPU_REFUSAL
+
+
+def test_writing_a_footprint_states_the_die_it_came_from(tmp_path: pathlib.Path) -> None:
+    # A figure computed from a die size is a weaker claim than one a vendor
+    # published, and the row has to carry which it is.
+    from saggio.catalog.refresh import EmbodiedRefresh, apply_embodied
+
+    target = tmp_path / "hardware.yaml"
+    target.write_text('cpus:\n  - key: "epyc-7742"\n    tdp_w: 225\n', encoding="utf-8")
+    apply_embodied(target, EmbodiedRefresh({"epyc-7742": (40.66, "AMD EPYC 7742", "1600")}, {}))
+    body = target.read_text(encoding="utf-8")
+    assert "embodied_kgco2e: 40.66" in body
+    assert "1600 mm2" in body
+    assert "embodied_source_url:" in body
+    assert "embodied_retrieved_date:" in body
+
+
+def test_writing_twice_replaces_rather_than_stacks(tmp_path: pathlib.Path) -> None:
+    from saggio.catalog.refresh import EmbodiedRefresh, apply_embodied
+
+    target = tmp_path / "hardware.yaml"
+    target.write_text('cpus:\n  - key: "epyc-7742"\n    tdp_w: 225\n', encoding="utf-8")
+    apply_embodied(target, EmbodiedRefresh({"epyc-7742": (40.0, "AMD EPYC 7742", "1600")}, {}))
+    apply_embodied(target, EmbodiedRefresh({"epyc-7742": (40.66, "AMD EPYC 7742", "1600")}, {}))
+    body = target.read_text(encoding="utf-8")
+    assert body.count("embodied_kgco2e:") == 1
+    assert "40.66" in body

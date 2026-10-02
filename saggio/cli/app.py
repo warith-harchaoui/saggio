@@ -576,7 +576,7 @@ def _add_catalog(verbs: argparse._SubParsersAction) -> None:
         help="Re-read a catalogue's numbers from the source it cites. Read-only "
         "unless --write is given.",
     )
-    refresh.add_argument("catalog", help="Which catalogue. Only `grid` can be refreshed.")
+    refresh.add_argument("catalog", help="Which catalogue: `grid` or `hardware`.")
     refresh.add_argument(
         "--api-key",
         default=None,
@@ -592,14 +592,15 @@ def _add_catalog(verbs: argparse._SubParsersAction) -> None:
     )
     refresh.add_argument(
         "--column",
-        choices=("carbon", "price", "timezones", "both", "all"),
+        choices=("carbon", "price", "timezones", "embodied", "both", "all"),
         default="carbon",
         help=(
-            "Which column of the grid catalogue to re-read. `carbon` asks Ember, "
-            "`price` asks the tariff page, `timezones` checks the names against the "
-            "IANA database that defines them, `both` does carbon and price, `all` "
-            "does the three. Each column carries its own source and its own date, "
-            "because they do not come from the same place and do not move together."
+            "Which column to re-read. For `grid`: `carbon` asks Ember, `price` asks "
+            "the tariff page, `timezones` checks the names against the IANA database "
+            "that defines them, `both` does carbon and price, `all` does the three. "
+            "For `hardware`: `embodied` asks for processor footprints. Each column "
+            "carries its own source and its own date, because they do not come from "
+            "the same place and do not move together."
         ),
     )
     refresh.add_argument(

@@ -347,26 +347,39 @@ def _embodied_assumption(machine: MachineProfile, options: AuditOptions) -> Quan
     >>> _embodied_assumption(MachineProfile(platform="darwin"), AuditOptions()).status
     'TODO'
     """
-    if machine.gpu_key is None:
+    catalog = Catalog.load("hardware", overlay=options.overlay)
+    if machine.gpu_key is not None:
+        part, section, row = machine.gpu_key, "gpu", catalog.rows("gpus").get(machine.gpu_key, {})
+    elif machine.cpu_key is not None and not machine.cpu_is_fallback:
+        # No accelerator, so the processor is the hardware this work reserved. Its
+        # footprint used to be refused on the grounds that none was catalogued,
+        # which stopped being true the day four of them were: a machine whose only
+        # chip is known would have gone on reporting TODO while the figure sat in
+        # the file beside it.
+        part, section, row = machine.cpu_key, "cpu", catalog.rows("cpus").get(machine.cpu_key, {})
+    else:
         return Quantity(
             unit="kgCO2e",
             status=TODO,
             notes=(
-                "No accelerator was identified, so the carbon of building one is not "
-                "this model's to carry. A processor's own footprint is not in the "
-                "catalogue yet; it is excluded rather than assumed to be zero."
+                "No accelerator was identified, and the processor resolved only to a "
+                "generic default, whose footprint would be a generic default too. "
+                "Excluded rather than assumed to be zero."
+                if machine.cpu_key is not None
+                else "Neither an accelerator nor a processor could be identified, so "
+                "the carbon of building this machine is not something this model can "
+                "state. Excluded rather than assumed to be zero."
             ),
         )
-    row = Catalog.load("hardware", overlay=options.overlay).rows("gpus").get(machine.gpu_key, {})
     figure = row.get("embodied_kgco2e")
     if not isinstance(figure, (int, float)):
         return Quantity(
             unit="kgCO2e",
             status=TODO,
             notes=(
-                f"No product carbon footprint is on file for {machine.gpu_key}. Add "
+                f"No product carbon footprint is on file for {part}. Add "
                 "`embodied_kgco2e` to its catalogue row with the footprint's own URL "
-                "and the date it was read; `saggio catalog add gpu` does the rest."
+                f"and the date it was read; `saggio catalog add {section}` does the rest."
             ),
         )
     return Quantity(

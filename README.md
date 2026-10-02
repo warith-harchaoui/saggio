@@ -118,8 +118,19 @@ dimension amortises a published product carbon footprint over the share of the
 hardware's life one unit of work reserved — which completes the four terms of
 [ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/), the
 Software Carbon Intensity standard, whose shape this package already had.
-[`STANDARDS.md`](STANDARDS.md) says which part of it is satisfied and which part
-is still yours to supply.
+
+The arithmetic is complete; **the catalogue is not, and will not pretend to
+be.** Seven footprints ship: three accelerators out of 25 rows and four
+processors out of 12. Everything else reports `TODO` with a sentence saying
+nobody has read a footprint for it, which is not the same as it having been free
+to build. The reason the gap is that wide is that most vendors publish a
+footprint for a whole server and not for the part inside it, and the one open
+database that covers processors answers for a chip it does not have by
+substituting the nearest one it does — asked for an Apple M4 Max it returns an
+Apple M1 Max, four generations earlier, with no warning. Those answers are
+refused by name rather than imported.
+[`STANDARDS.md`](STANDARDS.md) has the table, the boundary of every figure, and
+the eight refusals with their reasons.
 
 **Writes reports that people read.** Markdown for a pull request. A single
 self-contained HTML page for everyone else: offline, light and dark, English and
