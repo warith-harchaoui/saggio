@@ -289,7 +289,15 @@ def fetch_grid(
     query = urllib.parse.urlencode(
         {
             "entity_code": ",".join(sorted(wanted)),
-            "is_aggregate_series": "false",
+            # `is_aggregate_entity`, spelled exactly as the published schema
+            # spells it. An earlier version sent `is_aggregate_series`, which is
+            # not a parameter this API has: unknown query parameters are ignored
+            # rather than refused, so the filter the code believed it was setting
+            # was never set. Harmless here, because every entity_code asked for
+            # is a country rather than a region, but a line that states an intent
+            # it does not achieve is the kind of thing this package exists to
+            # object to.
+            "is_aggregate_entity": "false",
             "api_key": key,
             **({"start_date": str(year), "end_date": str(year)} if year else {}),
         }
