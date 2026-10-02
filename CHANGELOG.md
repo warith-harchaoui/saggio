@@ -33,6 +33,31 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### The hardware detection is exercised on hardware this machine is not
+
+- `machine.py` **72% → 98%** and `capability.py` **78% → 87%**. Almost every
+  branch in the detection is one that does *not* match — a processor nobody has
+  catalogued, two different accelerators in one box, a machine that cannot be
+  inspected at all — and none of those happen on a developer's laptop or a cloud
+  runner, so the paths that matter most to somebody with unusual hardware were
+  the least exercised.
+- Nothing is mocked. Each test supplies the dictionary `hardware_info()` really
+  returns, **taken from a live call** rather than imagined, and lets the real
+  code read it. The first draft passed GPU names as strings; the code reads
+  mappings, and the failure said so.
+- A graphics hwmon tree is built the way the kernel publishes one, which also
+  lifts the capability probe: a counter that reads, a sensor this user may not
+  read, and a node belonging to a fan rather than a card. **Absent and blocked
+  are different answers** — collapsing them would send somebody looking for
+  hardware they already have.
+- **A comment in the detection stated a mechanism that does not exist.** It said
+  an overlay could remove the generic processor rows, and the branch below it
+  was written for that. An overlay merges *over* the bundled catalogue: it can
+  add or override a row, never delete one. The comment now says what is true,
+  the branch is reached the one way it is reachable, and a contract test keeps
+  the fallback rows in the catalogue — they are easy to delete while tidying,
+  because nothing names them except the fallback that needs them.
+
 ### The refresh commands are tested on the half a user sees
 
 - `commands.py` was at **73%**, not the 76% the assessment claimed, and the

@@ -530,3 +530,26 @@ def test_an_expiring_row_warns_without_failing_and_a_stale_one_fails() -> None:
     # A week after: stale, which is what fails the job.
     after = expires + timedelta(days=7)
     assert "country" in stale_report(today=after)
+
+
+def test_the_catalogue_keeps_the_generic_rows_the_detection_falls_back_to() -> None:
+    """A machine with an uncatalogued processor leans on these two rows.
+
+    Without them the detection reports no key at all, and every power figure
+    downstream becomes a `TODO` — correct, and useless. They are easy to delete
+    by accident while tidying the catalogue, because nothing names them except
+    the fallback that needs them.
+    """
+    import yaml
+
+    from saggio.estimate.machine import _FALLBACK_DESKTOP_CPU, _FALLBACK_SERVER_CPU
+
+    rows = yaml.safe_load(
+        (_repository_root() / "saggio" / "data" / "hardware.yaml").read_text(encoding="utf-8")
+    )["cpus"]
+    keys = {row["key"] for row in rows}
+    for fallback in (_FALLBACK_DESKTOP_CPU, _FALLBACK_SERVER_CPU):
+        assert fallback in keys, (
+            f"{fallback} is gone from the catalogue, so a machine whose processor "
+            "is not catalogued now gets no per-core power at all"
+        )

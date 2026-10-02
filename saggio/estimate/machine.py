@@ -295,10 +295,17 @@ def detect_machine(*, overlay: Path | None = None) -> MachineProfile:
             cpu_key = fallback
             cpu_is_fallback = True
         else:
-            # An overlay can remove the generic rows. Handing out a key the
-            # catalogue cannot honour would surface later as a baffling TODO
-            # telling the user to add the *fallback*; better to say now that
-            # even the generic figure is unavailable.
+            # Defensive, and narrower than it used to claim. This comment said
+            # an overlay could remove the generic rows; it cannot -- an overlay
+            # merges *over* the bundled catalogue and can add or override a row
+            # but never delete one. What this guards is the bundled rows
+            # themselves going missing, which is an editing mistake rather than
+            # a user's choice, and a contract test now keeps them there.
+            #
+            # Either way, handing out a key the catalogue cannot honour would
+            # surface later as a baffling TODO telling the user to add the
+            # *fallback*; better to say now that even the generic figure is
+            # unavailable.
             cpu_key = None
             misses.append(
                 f"the generic fallback {fallback!r} is missing from the hardware "

@@ -277,3 +277,166 @@ def test_every_memory_zone_of_a_two_socket_machine_is_summed(
     )
     monkeypatch.setattr(power_module, "RAPL_ZONE_GLOB", glob)
     assert power_module.read_memory_energy_microjoules() == 1_100_000
+
+
+# --- The graphics device, from a tree this machine does not have ----------------
+
+
+def build_hwmon(tmp_path: Path, nodes: dict[str, dict[str, object]]) -> str:
+    """Build a graphics hwmon tree and return the glob that finds it.
+
+    The real shape: Linux hangs a monitoring node off each graphics device at
+    ``/sys/class/drm/card*/device/hwmon/hwmon*``, and the driver writes its own
+    name in a ``name`` file beside the sensors. That name is what separates a
+    graphics device from the dozen other hwmon nodes a machine publishes.
+
+    Parameters
+    ----------
+    tmp_path : pathlib.Path
+        Where to build it.
+    nodes : dict
+        Node directory name to the files it should contain.
+
+    Returns
+    -------
+    str
+        A glob matching the nodes, shaped like the one the module uses.
+    """
+    root = tmp_path / "drm"
+    for directory, files in nodes.items():
+        here = root / directory / "device" / "hwmon" / "hwmon0"
+        here.mkdir(parents=True, exist_ok=True)
+        for filename, content in files.items():
+            (here / filename).write_text(f"{content}\n", encoding="utf-8")
+    return str(root / "card*" / "device" / "hwmon" / "hwmon*")
+
+
+def point_graphics_at(monkeypatch: pytest.MonkeyPatch, glob: str) -> None:
+    """Point every reader of the graphics glob at this tree.
+
+    Two modules look the name up: the one that finds the directories and the
+    one that probes them for a report. Patching the package's re-export would
+    reach neither.
+    """
+    from saggio.analyze.power import graphics
+
+    monkeypatch.setattr(graphics, "GRAPHICS_HWMON_GLOB", glob)
+
+
+def test_an_amd_card_publishing_a_counter_is_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from saggio.analyze.power import graphics
+
+    point_graphics_at(
+        monkeypatch,
+        build_hwmon(tmp_path, {"card0": {"name": "amdgpu", "energy1_input": 7_000_000}}),
+    )
+    assert len(graphics._graphics_hwmon_directories()) == 1
+    assert graphics.read_graphics_energy_microjoules() == 7_000_000
+
+
+def test_an_intel_card_publishing_instantaneous_watts_is_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # i915 and xe publish microwatts rather than a running total, so the figure
+    # is a sample rather than a counter and the scope sentence has to say so.
+    from saggio.analyze.power import graphics
+
+    point_graphics_at(
+        monkeypatch,
+        build_hwmon(tmp_path, {"card0": {"name": "i915", "power1_average": 23_000_000}}),
+    )
+    assert graphics.read_graphics_watts() == pytest.approx(23.0)
+    assert graphics.read_graphics_energy_microjoules() is None
+
+
+def test_a_node_that_is_not_a_graphics_driver_is_not_a_graphics_device(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A machine publishes hwmon nodes for fans, batteries and chipsets. Reading
+    # the driver's own name is what keeps a fan tachometer out of the energy
+    # figure.
+    from saggio.analyze.power import graphics
+
+    point_graphics_at(
+        monkeypatch,
+        build_hwmon(tmp_path, {"card0": {"name": "nouveau", "energy1_input": 5_000_000}}),
+    )
+    assert graphics._graphics_hwmon_directories() == []
+    assert graphics.read_graphics_energy_microjoules() is None
+
+
+def test_two_cards_are_summed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from saggio.analyze.power import graphics
+
+    point_graphics_at(
+        monkeypatch,
+        build_hwmon(
+            tmp_path,
+            {
+                "card0": {"name": "amdgpu", "energy1_input": 3_000_000},
+                "card1": {"name": "amdgpu", "energy1_input": 4_000_000},
+            },
+        ),
+    )
+    assert graphics.read_graphics_energy_microjoules() == 7_000_000
+
+
+# --- What the capability report says about a machine it is not running on ------
+
+
+def test_a_graphics_counter_is_reported_as_readable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from saggio.analyze import capability
+
+    point_graphics_at(
+        monkeypatch,
+        build_hwmon(tmp_path, {"card0": {"name": "amdgpu", "energy1_input": 9_000_000}}),
+    )
+    found = capability._graphics_interface()
+    assert found.state == "reads"
+    assert "no privileges" in found.detail
+
+
+def test_a_machine_with_no_graphics_sensor_says_so_plainly(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from saggio.analyze import capability
+
+    point_graphics_at(monkeypatch, str(tmp_path / "nothing" / "*"))
+    found = capability._graphics_interface()
+    assert found.state == "absent"
+    assert "No graphics device" in found.detail
+
+
+def test_a_sensor_this_user_cannot_read_is_blocked_rather_than_absent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The distinction the whole report exists for.
+
+    Absent means the machine does not publish it; blocked means it does and
+    this user may not read it. Collapsing the two would tell somebody to go
+    looking for hardware they already have.
+    """
+    import os
+
+    from saggio.analyze import capability
+
+    glob = build_hwmon(tmp_path, {"card0": {"name": "amdgpu", "energy1_input": 9_000_000}})
+    point_graphics_at(monkeypatch, glob)
+    import glob as globbing
+
+    for directory in globbing.glob(glob):
+        (Path(directory) / "energy1_input").chmod(0o000)
+    try:
+        found = capability._graphics_interface()
+        # Running as root defeats the permission, and that is not a failure of
+        # the code under test; skip rather than assert something untrue.
+        if os.getuid() == 0:
+            pytest.skip("root can read a file with no permission bits")
+        assert found.state == "blocked"
+    finally:
+        for directory in globbing.glob(glob):
+            (Path(directory) / "energy1_input").chmod(0o644)
