@@ -41,11 +41,11 @@ One unit of work as this audit found it, on the machine it ran on.
 | Money | 1.575e-06 USD | `estimated` | `scenarios[0].costs.energy`, `assumptions.electricity_price` | Facility energy x price per kilowatt-hour; hardware and staff are not included. |
 | Time | 0.4941 s | `measured` | `scenarios[0].runtime` | Wall-clock time of `python3.13 predict.py --num_samples 400`. |
 | Energy | 6.564e-06 kWh | `estimated` | `assumptions.machine_energy`, `assumptions.pue` | Machine energy x power usage effectiveness: what the building draws. |
-| Carbon | 0.0003676 gCO2e | `estimated` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Facility energy x grid carbon intensity, operating emissions only. |
+| Carbon | 0.0002704 gCO2e | `estimated` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Facility energy x grid carbon intensity, operating emissions only. |
 | Embodied carbon | not known | `TODO` | `assumptions.hardware_embodied_carbon`, `assumptions.hardware_lifetime`, `scenarios[0].runtime` | No product carbon footprint is on file for this hardware, so the carbon of building it is open. Nobody has read one for this part; that is not the same as it having been free to build. Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was read. |
 | Water | not known | `TODO` | `assumptions.machine_energy`, `assumptions.water_usage_effectiveness` | Needs the machine's energy and a published water usage effectiveness. |
 
-*A million units emit about 0.401 tree-months · 2.101 km by car (EU average) · 1% of a Paris–London flight — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
+*A million units emit about 0.295 tree-months · 1.545 km by car (EU average) · 1% of a Paris–London flight — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
 
 ## What the numbers rest on
 
@@ -54,7 +54,7 @@ One unit of work as this audit found it, on the machine it ran on.
 | `power_draw` | 31.88 W | `measured` | — | Read from the machine while the slice ran. The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses. |
 | `pue` | 1.5 ratio | `estimated` | [source](https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024), read 2026-09-12 | Power usage effectiveness published by On-premises. |
 | `electricity_price` | 0.24 USD | `estimated` | [source](https://ember-energy.org/data/electricity-data-explorer/), read 2026-09-12 | Indicative tariff for France. |
-| `grid_carbon_intensity` | 56 gCO2e/kWh | `estimated` | [source](https://ember-energy.org/data/electricity-data-explorer/), read 2026-09-12 | Annual average for France. |
+| `grid_carbon_intensity` | 41.2 gCO2e/kWh | `estimated` | [source](https://api.ember-energy.org/v1/carbon-intensity/yearly), read 2026-10-02 | Annual average for France, data year 2025. |
 | `water_usage_effectiveness` | not known | `TODO` | — | On-premises publishes no water usage effectiveness. Leave this open rather than inventing a figure. |
 | `hardware_embodied_carbon` | not known | `TODO` | — | No accelerator was identified, so the carbon of building one is not this model's to carry. A processor's own footprint is not in the catalogue yet; it is excluded rather than assumed to be zero. |
 | `hardware_lifetime` | not known | `TODO` | — | How long this hardware stays in service, which only you know. The published footprints are cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster between three and six years; choosing within that range moves the embodied carbon by a factor of two, which is why this is asked rather than assumed. |

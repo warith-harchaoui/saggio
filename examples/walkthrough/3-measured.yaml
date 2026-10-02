@@ -47,12 +47,12 @@ assumptions:
     retrieved_date: '2026-09-12'
     notes: Indicative tariff for France.
   grid_carbon_intensity:
-    value: 56
+    value: 41.2
     status: estimated
     unit: gCO2e/kWh
-    source_url: https://ember-energy.org/data/electricity-data-explorer/
-    retrieved_date: '2026-09-12'
-    notes: Annual average for France.
+    source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
+    retrieved_date: "2026-10-02"
+    notes: "Annual average for France, data year 2025."
   water_usage_effectiveness:
     value: null
     status: TODO
@@ -120,7 +120,7 @@ scenarios:
       - assumptions.electricity_price
       notes: Facility energy x price per kilowatt-hour; hardware and staff are not included.
     carbon:
-      value: 9.584369221e-07
+      value: 7.051357355449999e-07
       status: estimated
       unit: gCO2e
       source_url: https://doi.org/10.1002/advs.202100707

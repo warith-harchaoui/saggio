@@ -373,13 +373,22 @@ class DeploymentContext:
                     else f"No grid intensity catalogued for {self.country}."
                 ),
             )
+        # A refreshed row carries its own carbon provenance, because the carbon
+        # figure and the tariff beside it do not come from the same place and do
+        # not move together. Falling back to the row's means reporting a figure
+        # read from one source under the URL of another, which is precisely the
+        # mistake this package exists to object to.
+        data_year = row.get("carbon_data_year")
+        note = f"Annual average for {row.get('name')}."
+        if data_year is not None:
+            note = f"Annual average for {row.get('name')}, data year {data_year}."
         return Quantity(
             value=row["carbon_gco2e_per_kwh"],
             unit="gCO2e/kWh",
             status=ESTIMATED,
-            source_url=row.get("source_url"),
-            retrieved_date=row.get("retrieved_date"),
-            notes=self._country_derived_note(f"Annual average for {row.get('name')}."),
+            source_url=row.get("carbon_source_url") or row.get("source_url"),
+            retrieved_date=row.get("carbon_retrieved_date") or row.get("retrieved_date"),
+            notes=self._country_derived_note(note),
         )
 
     def electricity_price(self) -> Quantity:

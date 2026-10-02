@@ -51,6 +51,18 @@ electricity is around 56 gCO2e/kWh. Writing either from memory, rather than from
 the catalogue, produces a model that looks identical and is worthless, because
 nobody can tell which numbers were checked.
 
+That second figure is the demonstration. 56 was the catalogue's own number until
+a refresh replaced it with Ember's 2025 figure, which is **41.2**. A model
+carrying 56 today is wrong by a third, reads exactly like a correct one, and has
+no field anywhere that would tell a reader which it is. Look it up:
+
+```bash
+python -c "from saggio.estimate.context import DeploymentContext as D; print(D.build(country='FR').grid_intensity())"
+```
+
+The answer comes back with its unit, its status, the URL it was read from and the
+date it was read. Those four are the reason to ask rather than to remember.
+
 The four statuses:
 
 - `measured` — a counter on the machine said so.
@@ -172,8 +184,9 @@ of how much difference it would make. Something like:
 > money, and carbon are all open.
 >
 > What is established: the machine draws an estimated 600 W (RTX 4090 datasheet
-> plus a host allowance), the French grid is at an estimated 56 gCO2e/kWh (Ember,
-> read today), and the code calls the OpenAI API from `app/handlers.py:14`.
+> plus a host allowance), the French grid is at an estimated 41.2 gCO2e/kWh
+> (Ember, 2025 data year, read today), and the code calls the OpenAI API from
+> `app/handlers.py:14`.
 >
 > Two things would close most of it. Running `audit --run` would measure the
 > runtime and turn the whole chain into real numbers. Reading the OpenAI pricing

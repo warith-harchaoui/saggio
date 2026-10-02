@@ -7,6 +7,47 @@ release of that line.
 
 ## 1.3.0 — 2026-10-02
 
+### The grid catalogue is one vintage, from one source
+
+- The 38 country intensities are refreshed from the Ember API, data year 2025.
+  Each row now carries `carbon_source_url`, `carbon_retrieved_date` and
+  `carbon_data_year` of its own, rather than inheriting the row's: the carbon
+  figure and the tariff beside it do not come from the same place and do not
+  move together.
+- Checking the old figures against Ember's full series first — year by year,
+  to confirm the catalogue was merely a year behind — showed it was not. The
+  committed values best-matched Ember years scattered from 2000 to 2025, and
+  **eight countries matched no Ember year within 8%**. Sweden sat at 13
+  gCO2e/kWh where the lowest figure Ember has ever published for it is 34.91.
+  Every row cited Ember. A `source_url` that does not contain the number beside
+  it is the exact failure this package exists to object to.
+- `DeploymentContext.grid_intensity` reads the carbon provenance rather than the
+  row's. Without that it reported an API figure read today under the URL and date
+  of a web page read last month — a false provenance introduced by the very
+  commit that fixed the numbers.
+- `saggio catalog refresh grid` sent `is_aggregate_series`, which is not a
+  parameter this API has; the published schema spells it `is_aggregate_entity`.
+  Unknown query parameters are ignored rather than refused, so the filter the
+  code believed it was setting was never set.
+- The two walkthrough models had a carbon figure derived from the old intensity.
+  The arithmetic check added in this same release caught both, by name and with
+  the right answer beside them, which is what it was written for.
+
+### Tests stop restating what the package refreshes
+
+- Seven tests failed on the refresh, every one because it had copied a catalogue
+  number into an assertion instead of reading it. A package whose argument is
+  that it refreshes its own facts cannot have a suite that breaks when it does:
+  the refresh read as a regression.
+- Each now asserts what its own name claims. The audit and context tests compare
+  against the catalogue; the Norway test checks that Norway resolves at all,
+  which is what guards against YAML reading `NO` as false; the JSON-report test
+  stubs a value far from anything the catalogue could hold, rather than a
+  plausible one that passed only until the catalogue caught up with it.
+- Three doctests now show the unit, the status and that a `source_url` came with
+  the figure, rather than the figure. An example restating a refreshable number
+  is wrong the first time somebody runs the refresh command this package ships.
+
 ### A derivation is checked, not just declared
 
 - `derived_from` bought a status check and nothing else. A value could name its

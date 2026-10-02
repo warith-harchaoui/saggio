@@ -802,6 +802,24 @@ commande refuse et le dit, plutôt que de le faire discrètement.
 Un pays pour lequel la source ne répond pas est laissé tel quel et nommé. Rien
 n'est interpolé, reporté ni moyenné.
 
+**Ce qu'a trouvé la première vraie exécution.** Avant d'écrire quoi que ce soit,
+les chiffres rafraîchis ont été confrontés à la série Ember complète, année par
+année, pour confirmer que le catalogue avait simplement une année de retard. Ce
+n'était pas le cas. Les valeurs commitées correspondaient à des années Ember
+éparpillées de 2000 à 2025, et huit pays ne correspondaient à aucune année Ember
+à 8 % près — la Suède était à 13 gCO2e/kWh là où le plus bas chiffre jamais
+publié par Ember pour elle est 34,91. Chaque ligne citait pourtant Ember. Un
+`source_url` qui ne contient pas le chiffre qu'il accompagne est exactement la
+faute que ce paquet existe pour dénoncer, et elle était dans ses propres données
+jusqu'à ce que `saggio catalog refresh grid` remplace l'ensemble par un seul
+millésime 2025 vérifiable.
+
+Sept tests ont alors cassé, tous parce qu'ils avaient recopié une valeur du
+catalogue dans une assertion au lieu de la lire. Un paquet dont l'argument est
+qu'il rafraîchit ses propres faits ne peut pas avoir une suite qui casse quand il
+le fait — le rafraîchissement se lisait comme une régression. Ils vérifient
+désormais ce que leur nom annonce.
+
 Elle dit aussi ce qui est *sur le point* de périmer, sans faire échouer :
 
 ```bash

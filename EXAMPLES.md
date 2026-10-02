@@ -779,6 +779,21 @@ before. So the command refuses and says that, rather than quietly doing it.
 A country the source does not answer for is left alone and named. Nothing is
 interpolated, carried over, or averaged.
 
+**What the first real run found.** Before writing anything, the refreshed figures
+were checked against Ember's full series, year by year, to confirm the catalogue
+was simply a year behind. It was not. The committed values best-matched Ember
+years scattered from 2000 to 2025, and eight countries matched no Ember year
+within 8% — Sweden sat at 13 gCO2e/kWh where the lowest figure Ember has ever
+published for it is 34.91. Every row cited Ember. A `source_url` that does not
+contain the number beside it is the exact failure this package exists to object
+to, and it was in the package's own data until `saggio catalog refresh grid`
+replaced the lot with one verifiable 2025 vintage.
+
+Seven tests then failed, every one of them because it had copied a catalogue
+number into an assertion rather than reading it. A package whose argument is that
+it refreshes its own facts cannot have a suite that breaks when it does — the
+refresh read as a regression. They now assert what their names claim.
+
 It also says what is *about* to expire, without failing:
 
 ```bash
