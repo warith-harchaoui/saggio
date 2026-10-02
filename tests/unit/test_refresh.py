@@ -228,7 +228,7 @@ USD 0.179 kWh for residential users and USD 0.172 USD per kWh for businesses.</p
 def test_the_tariff_table_is_read_by_the_name_each_country_is_listed_under(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import saggio.catalog.refresh as module
+    from saggio.catalog.refresh import tariffs as module
 
     monkeypatch.setattr(module, "_rendered", lambda url, timeout: TARIFF_DOCUMENT)
     refresh = module.fetch_prices(
@@ -245,7 +245,7 @@ def test_the_tariff_table_is_read_by_the_name_each_country_is_listed_under(
 def test_the_quarter_the_prices_describe_is_not_the_day_they_were_read(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import saggio.catalog.refresh as module
+    from saggio.catalog.refresh import tariffs as module
 
     monkeypatch.setattr(module, "_rendered", lambda url, timeout: TARIFF_DOCUMENT)
     refresh = module.fetch_prices(["FR"], names={"FR": "France"})
@@ -256,7 +256,7 @@ def test_the_quarter_the_prices_describe_is_not_the_day_they_were_read(
 def test_a_country_the_page_does_not_list_is_named_rather_than_guessed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import saggio.catalog.refresh as module
+    from saggio.catalog.refresh import tariffs as module
 
     monkeypatch.setattr(module, "_rendered", lambda url, timeout: TARIFF_DOCUMENT)
     refresh = module.fetch_prices(["FR", "ZZ"], names={"FR": "France", "ZZ": "Atlantis"})
@@ -270,7 +270,7 @@ def test_the_percentage_rows_are_not_mistaken_for_tariffs(
     # The same table carries a continent summary whose cells are percentages.
     # Reading "1.05%" as a price would put Africa in the catalogue at a dollar
     # a kilowatt-hour, and nothing downstream would question it.
-    import saggio.catalog.refresh as module
+    from saggio.catalog.refresh import tariffs as module
 
     monkeypatch.setattr(module, "_rendered", lambda url, timeout: TARIFF_DOCUMENT)
     refresh = module.fetch_prices(["ZA"], names={"ZA": "Africa"})
@@ -281,7 +281,7 @@ def test_the_percentage_rows_are_not_mistaken_for_tariffs(
 def test_no_browser_means_no_tariff_rather_than_a_guess(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import saggio.catalog.refresh as module
+    from saggio.catalog.refresh import tariffs as module
 
     monkeypatch.setattr(module, "_rendered", lambda url, timeout: "")
     with pytest.raises(RuntimeError, match="headless browser"):
@@ -313,7 +313,7 @@ def test_a_compatibility_name_is_as_real_as_a_canonical_one(
     # what a real machine reports, and a country this package cannot recognise
     # from its own machine's timezone is a country the user has to type by hand.
     # Checking against the canonical table alone would condemn both.
-    import saggio.catalog.refresh as module
+    from saggio.catalog.refresh import timezones as module
 
     monkeypatch.setattr(module, "_iana_zones", lambda timeout: (_names(), "2026e"))
     check = module.check_timezones(
@@ -346,7 +346,7 @@ def _names() -> set[str]:
 def test_a_zone_the_database_does_not_publish_is_reported_not_corrected(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import saggio.catalog.refresh as module
+    from saggio.catalog.refresh import timezones as module
 
     monkeypatch.setattr(module, "_iana_zones", lambda timeout: (_names(), "2026e"))
     check = module.check_timezones({"ZZ": {"timezones": ["Mars/Olympus", "Europe/Paris"]}})
@@ -408,7 +408,7 @@ class FakeResponse:
 
 def answer_with(monkeypatch: pytest.MonkeyPatch, payload: str) -> None:
     """Make the next Ember call return this body instead of opening a socket."""
-    import saggio.catalog.refresh as module
+    from saggio.catalog.refresh import carbon as module
 
     monkeypatch.setattr(
         module.urllib.request, "urlopen", lambda request, timeout=0: FakeResponse(payload)
@@ -501,7 +501,7 @@ def test_a_source_that_does_not_answer_raises_rather_than_returns_empty(
 ) -> None:
     # An empty refresh and a failed refresh look identical to a caller that only
     # checks `rows`, and one of them should not write anything.
-    import saggio.catalog.refresh as module
+    from saggio.catalog.refresh import carbon as module
 
     def refuse(request: object, timeout: int = 0) -> None:
         raise module.urllib.error.URLError("no route to host")
@@ -517,7 +517,7 @@ def test_the_query_names_the_parameter_the_api_actually_has(
     # It once sent `is_aggregate_series`, which this API has no such parameter
     # for. Unknown query parameters are ignored rather than refused, so the
     # filter the code believed it was setting was never set, and nothing failed.
-    import saggio.catalog.refresh as module
+    from saggio.catalog.refresh import carbon as module
 
     seen: dict[str, str] = {}
 
@@ -553,7 +553,7 @@ def boavizta(name: str, die_source: str, value: float = 40.66, die: object = 160
 
 def answer_embodied(monkeypatch: pytest.MonkeyPatch, body: str) -> None:
     """Make the next footprint call return this body instead of opening a socket."""
-    import saggio.catalog.refresh as module
+    from saggio.catalog.refresh import embodied as module
 
     monkeypatch.setattr(
         module.urllib.request, "urlopen", lambda request, timeout=0: FakeResponse(body)

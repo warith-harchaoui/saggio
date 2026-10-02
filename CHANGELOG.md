@@ -33,6 +33,28 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### The refresh is four sources, so it is four modules
+
+- `refresh.py` reached 1,213 lines, from 424 that morning. The three sources
+  added over a single afternoon each went in without anyone looking at what the
+  file was becoming — named in the previous release rather than quietly fixed,
+  and fixed here.
+- Four modules, one per source: `carbon` (Ember), `tariffs` (the price and its
+  Eurostat cross-check), `timezones` (IANA), `embodied` (processor footprints).
+  They share **nothing**: no constant, no helper, no record type. Each holds the
+  same three things — what the source said, how to ask it, how to write the
+  answer into a catalogue — and each carries the reason it is that source rather
+  than a more convenient one.
+- **The witness was blind on its first try**, and that is the part worth keeping.
+  Sabotaging the chip-name comparison — dropping the underscore from the
+  characters it ignores — changed nothing the baseline measured, because none of
+  the probe cases used an underscore. The probe was widened to exercise each
+  separator on its own, and only then did it catch the sabotage. A baseline that
+  cannot fail proves nothing, and this one could not until it was asked to.
+- Eleven patch targets routed again, the fourth time in three refactors: a test
+  importing the package cannot patch a binding that lives in a submodule.
+- Longest file in the package is now `html.py` at 1,168.
+
 ### The power meter is a package, and the last long file is gone
 
 - `power.py` was 1,227 lines: 28 constants and 20 symbols covering four
