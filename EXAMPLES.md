@@ -899,8 +899,8 @@ overhead = Quantity(value=1.2, unit="ratio", status="estimated")
 energy = energy_from_runtime(runtime, power, overhead)
 carbon = carbon_from_energy(energy, Quantity(value=56, unit="gCO2e/kWh", status="estimated"))
 
-print(energy.value, energy.status)   # 0.48 estimated
-print(carbon.value, carbon.status)   # 26.88 estimated
+print(energy.value, energy.status)  # 0.48 estimated
+print(carbon.value, carbon.status)  # 26.88 estimated
 ```
 
 The status is `estimated` rather than `measured` even though the runtime was

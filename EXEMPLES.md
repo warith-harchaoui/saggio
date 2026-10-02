@@ -927,8 +927,8 @@ surcout = Quantity(value=1.2, unit="ratio", status="estimated")
 energie = energy_from_runtime(duree, puissance, surcout)
 carbone = carbon_from_energy(energie, Quantity(value=56, unit="gCO2e/kWh", status="estimated"))
 
-print(energie.value, energie.status)   # 0.48 estimated
-print(carbone.value, carbone.status)   # 26.88 estimated
+print(energie.value, energie.status)  # 0.48 estimated
+print(carbone.value, carbone.status)  # 26.88 estimated
 ```
 
 Le statut est `estimated` et non `measured` bien que la durée ait été mesurée,
