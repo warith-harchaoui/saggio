@@ -33,6 +33,27 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### The refresh commands are tested on the half a user sees
+
+- `commands.py` was at **73%**, not the 76% the assessment claimed, and the
+  shadow was concentrated in the four handlers added that same afternoon:
+  `_refresh_embodied` at 46% covered, `catalog_refresh` at 73%,
+  `_check_timezones` at 79%. The fetching was stubbed and tested; **what a user
+  actually reads was not**.
+- Nine tests cover it now: what each command prints, every refusal it names, the
+  cross-check URL the tariff refresh has to carry, the `Read-only` line that
+  stops a reader believing the catalogue already moved, and the deliberate
+  second step that writes. 73% → **83%**.
+- Among them the one case where a refresh *fails* rather than reports: a
+  timezone list that did not check out is not stamped, and the test asserts the
+  file is byte-identical afterwards.
+- **`commands.py` was not split**, and that is a decision rather than an
+  omission. The four files split this week each mixed unrelated concerns; this
+  one has a single concern — implement the verbs — and is long because the CLI
+  has many. Splitting a flat list of twenty-two handlers would add import
+  plumbing and a fifth round of patch-target churn for no behavioural gain. The
+  coverage was the defect; the length is cosmetic.
+
 ### The refresh is four sources, so it is four modules
 
 - `refresh.py` reached 1,213 lines, from 424 that morning. The three sources

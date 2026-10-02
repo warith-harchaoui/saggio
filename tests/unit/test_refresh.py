@@ -655,3 +655,213 @@ def test_writing_twice_replaces_rather_than_stacks(tmp_path: pathlib.Path) -> No
     body = target.read_text(encoding="utf-8")
     assert body.count("embodied_kgco2e:") == 1
     assert "40.66" in body
+
+
+# --- What each refresh command prints, and what it writes -----------------------
+#
+# The commands added over one afternoon were the least-covered code in the
+# package the morning after: `_refresh_embodied` at 46%, `catalog_refresh` at
+# 73%. What went untested was not the fetching -- that is stubbed above -- but
+# the half a user actually sees: the lines printed, the refusals named, and the
+# second, deliberate step that writes.
+
+
+def grid_args(**over: object) -> argparse.Namespace:
+    """Return the arguments `saggio catalog refresh` is called with."""
+    base = {
+        "catalog": "grid",
+        "api_key": None,
+        "year": None,
+        "write": None,
+        "json": False,
+        "column": "carbon",
+    }
+    return argparse.Namespace(**(base | over))
+
+
+def test_the_carbon_refresh_prints_what_moved_and_offers_the_write(
+    capsys, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import saggio.cli.commands as commands
+
+    monkeypatch.setattr(
+        commands,
+        "fetch_grid",
+        lambda *a, **k: GridRefresh(2025, {"FR": 999.5}, {"ZZ": "no code"}, "ember"),
+    )
+    assert catalog_refresh(grid_args()) == 0
+    out = capsys.readouterr().out
+    assert "FR" in out and "999.5" in out
+    assert "ZZ" in out and "no code" in out
+    # A read-only run has to say it was read-only, or a reader may believe the
+    # catalogue already moved.
+    assert "Read-only" in out
+
+
+def test_the_carbon_refresh_writes_only_when_told(
+    tmp_path: pathlib.Path, capsys, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import saggio.cli.commands as commands
+
+    target = tmp_path / "grid.yaml"
+    target.write_text('countries:\n  - key: "FR"\n    carbon_gco2e_per_kwh: 56\n', encoding="utf-8")
+    monkeypatch.setattr(
+        commands, "fetch_grid", lambda *a, **k: GridRefresh(2025, {"FR": 41.2}, {}, "ember")
+    )
+    assert catalog_refresh(grid_args(write=str(target))) == 0
+    assert "Wrote 1 row" in capsys.readouterr().out
+    assert "41.2" in target.read_text(encoding="utf-8")
+
+
+def test_a_source_that_does_not_answer_fails_the_command(
+    monkeypatch: pytest.MonkeyPatch, capsys
+) -> None:
+    import saggio.cli.commands as commands
+
+    def refuse(*_a: object, **_k: object) -> None:
+        raise RuntimeError("Ember did not answer: no route to host")
+
+    monkeypatch.setattr(commands, "fetch_grid", refuse)
+    # 4 is the exit code for an external dependency that failed, which is not
+    # the same as the catalogue being wrong.
+    assert catalog_refresh(grid_args()) == 4
+
+
+def test_the_tariff_refresh_prints_its_cross_check(capsys, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Naming the check matters as much as naming the source.
+
+    The tariffs come from one page and are checked against another. A run that
+    printed only the source would leave a reader unable to find the comparison.
+    """
+    import saggio.cli.commands as commands
+    from saggio.catalog.refresh import PRICE_CROSSCHECK, PriceRefresh
+
+    monkeypatch.setattr(
+        commands,
+        "fetch_prices",
+        lambda *a, **k: PriceRefresh({"FR": 0.276}, {"ZZ": "not listed"}, "gpp", "Q3 2026"),
+    )
+    assert catalog_refresh(grid_args(column="price")) == 0
+    out = capsys.readouterr().out
+    assert "Q3 2026" in out
+    assert "ZZ" in out and "not listed" in out
+    assert PRICE_CROSSCHECK in out
+
+
+def test_the_timezone_check_refuses_to_stamp_a_list_that_did_not_check_out(
+    tmp_path: pathlib.Path, capsys, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The one case where this command fails rather than reports.
+
+    Stamping a list as verified when it did not verify would be the package's
+    own mistake in miniature, so the exit code says the catalogue is wrong.
+    """
+    import saggio.cli.commands as commands
+    from saggio.catalog.refresh import TimezoneCheck
+
+    monkeypatch.setattr(
+        commands,
+        "check_timezones",
+        lambda *a, **k: TimezoneCheck("2026e", 3, {"ZZ": ["Mars/Olympus"]}),
+    )
+    target = tmp_path / "grid.yaml"
+    target.write_text(
+        'countries:\n  - key: "ZZ"\n    timezones: ["Mars/Olympus"]\n', encoding="utf-8"
+    )
+    before = target.read_text(encoding="utf-8")
+    assert catalog_refresh(grid_args(column="timezones", write=str(target))) == 1
+    out = capsys.readouterr().out
+    assert "Mars/Olympus" in out
+    assert target.read_text(encoding="utf-8") == before, "a failed check stamped the file anyway"
+
+
+def test_the_timezone_check_stamps_the_release_when_it_passes(
+    tmp_path: pathlib.Path, capsys, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import saggio.cli.commands as commands
+    from saggio.catalog.refresh import TimezoneCheck
+
+    monkeypatch.setattr(commands, "check_timezones", lambda *a, **k: TimezoneCheck("2026e", 1, {}))
+    target = tmp_path / "grid.yaml"
+    target.write_text(
+        'countries:\n  - key: "FR"\n    timezones: ["Europe/Paris"]\n', encoding="utf-8"
+    )
+    assert catalog_refresh(grid_args(column="timezones", write=str(target))) == 0
+    assert "2026e" in target.read_text(encoding="utf-8")
+    assert "Stamped 1" in capsys.readouterr().out
+
+
+def test_the_footprint_refresh_names_every_refusal_and_the_method(
+    capsys, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The least-covered handler in the package, and the one that refuses most.
+
+    Eight of twelve processors are refused, each for its own reason. A run that
+    printed only the four it accepted would read as a complete answer.
+    """
+    import saggio.cli.commands as commands
+    from saggio.catalog.refresh import EMBODIED_METHOD_URL, GPU_REFUSAL, EmbodiedRefresh
+
+    monkeypatch.setattr(
+        commands,
+        "fetch_embodied",
+        lambda *a, **k: EmbodiedRefresh(
+            {"epyc-7742": (40.66, "AMD EPYC 7742", "1600")},
+            {"apple-m4-max": "the source answered about 'Apple M1 Max'"},
+        ),
+    )
+    assert (
+        catalog_refresh(
+            argparse.Namespace(
+                catalog="hardware",
+                api_key=None,
+                year=None,
+                write=None,
+                json=False,
+                column="embodied",
+            )
+        )
+        == 0
+    )
+    out = capsys.readouterr().out
+    assert "40.66" in out and "1600" in out
+    assert "apple-m4-max" in out and "Apple M1 Max" in out
+    # The method, because a figure computed from a die size is a weaker claim
+    # than a published one and a reader has to be able to judge which.
+    assert EMBODIED_METHOD_URL in out
+    assert GPU_REFUSAL[:40] in out
+
+
+def test_the_footprint_refresh_as_json_carries_the_same_refusals(
+    capsys, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import saggio.cli.commands as commands
+    from saggio.catalog.refresh import EmbodiedRefresh
+
+    monkeypatch.setattr(
+        commands,
+        "fetch_embodied",
+        lambda *a, **k: EmbodiedRefresh(
+            {"epyc-7742": (40.66, "AMD EPYC 7742", "1600")}, {"xeon-gold-6248": "default die"}
+        ),
+    )
+    catalog_refresh(
+        argparse.Namespace(
+            catalog="hardware", api_key=None, year=None, write=None, json=True, column="embodied"
+        )
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["found"]["epyc-7742"]["kgco2e"] == 40.66
+    assert payload["refused"] == {"xeon-gold-6248": "default die"}
+    assert "accelerators" in payload
+
+
+def test_the_hardware_catalogue_has_only_one_refreshable_column(capsys) -> None:
+    assert (
+        catalog_refresh(
+            argparse.Namespace(
+                catalog="hardware", api_key=None, year=None, write=None, json=False, column="carbon"
+            )
+        )
+        == 2
+    )
