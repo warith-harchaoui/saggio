@@ -33,6 +33,32 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### The samplers are tested, threads and subprocesses and all
+
+- `power/graphics.py` **65% → 100%** and `power/accelerator.py` **69% → 86%**.
+  Both hold a sampler, and a sampler is the one thing in this package whose
+  arithmetic nobody can check by looking: a thread, a file, and a mean.
+- Nothing is mocked. The graphics tests write a real sensor file and **change
+  its contents while the thread is running**, which is what proves the figure is
+  a mean rather than the last reading. The accelerator tests write a **stand-in
+  `nvidia-smi`** — a real executable that prints what the real one prints, for
+  the same flags — and let the real subprocess, the real log file and the
+  shipped arithmetic do the rest.
+- Four claims that were asserted nowhere before, and are now held by tests named
+  for them: the figure is a **mean**, not the last or the highest reading; an
+  unreadable sample is **skipped**, never counted as a zero; a two-board node
+  draws **twice** one board's power; and a mean of too few readings is **no
+  figure at all** rather than a thin one. Each was verified by breaking it on
+  purpose and watching the right test fail.
+- **One test was wrong and the code was right**: it expected the accelerator
+  sampler to skip `[N/A]` in a stream, but a board answering `[N/A]` voids the
+  query *before* any sampler starts. The stand-in now answers a one-shot query
+  and a stream separately, which is also what a real driver does when a board
+  drops out of a stream it was answering a moment ago.
+- Timing is polled, never slept: a test tuned to one machine's speed fails on
+  another for no reason anybody can act on. Both files were run repeatedly to
+  check for flakiness before being committed.
+
 ### The hardware detection is exercised on hardware this machine is not
 
 - `machine.py` **72% → 98%** and `capability.py` **78% → 87%**. Almost every

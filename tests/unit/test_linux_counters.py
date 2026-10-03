@@ -440,3 +440,154 @@ def test_a_sensor_this_user_cannot_read_is_blocked_rather_than_absent(
     finally:
         for directory in globbing.glob(glob):
             (Path(directory) / "energy1_input").chmod(0o644)
+
+
+# --- The sampler, which is a thread reading a real file ------------------------
+#
+# AMD's driver publishes instantaneous board power rather than a running total,
+# so the honest figure over a run is a mean of readings taken across it. That
+# mean is arithmetic nobody can check by looking, and it was the least covered
+# code in the package after the power split: a thread, a file, and an average.
+#
+# Nothing here is mocked. A real file is written, a real thread reads it, and
+# the contents change underneath while it runs. Only the sampling interval is
+# shortened -- a tuning constant, not the behaviour under test -- so the test
+# takes a moment rather than several seconds.
+
+
+def quicken_sampling(monkeypatch: pytest.MonkeyPatch, milliseconds: int = 10) -> None:
+    """Sample fast enough that a test does not spend seconds waiting."""
+    from saggio.analyze.power import graphics
+
+    monkeypatch.setattr(graphics, "_SAMPLE_INTERVAL_MS", milliseconds)
+
+
+def wait_for_readings(sampler: object, at_least: int, seconds: float = 5.0) -> bool:
+    """Wait until the sampler has collected this many readings.
+
+    Polling beats sleeping a fixed amount: a loaded machine takes longer, and a
+    test that slept exactly long enough on one machine is a test that fails on
+    another for no reason anybody can act on.
+    """
+    import time
+
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        if len(sampler.readings) >= at_least:  # type: ignore[attr-defined]
+            return True
+        time.sleep(0.005)
+    return False
+
+
+def test_no_graphics_sensor_means_no_sampler(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from saggio.analyze.power.graphics import GraphicsSampler
+
+    point_graphics_at(monkeypatch, str(tmp_path / "nothing" / "*"))
+    assert GraphicsSampler.start() is None
+
+
+def test_a_card_publishing_watts_is_sampled_across_the_run(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from saggio.analyze.power.graphics import GraphicsSampler
+
+    quicken_sampling(monkeypatch)
+    point_graphics_at(
+        monkeypatch,
+        build_hwmon(tmp_path, {"card0": {"name": "amdgpu", "power1_average": 18_000_000}}),
+    )
+    sampler = GraphicsSampler.start()
+    assert sampler is not None
+    assert wait_for_readings(sampler, 3), "the sampling thread never read the file"
+    result = sampler.stop()
+    assert result is not None
+    watts, count = result
+    assert watts == pytest.approx(18.0)
+    assert count >= 3
+
+
+def test_the_figure_is_a_mean_and_not_the_last_reading(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The claim the scope sentence makes, checked rather than assumed.
+
+    A card that draws 10 W for half a run and 30 W for the other half did not
+    draw 30 W. Reporting the last value read, or the highest, would be a
+    different and wrong quantity under the same name.
+    """
+    import glob as globbing
+
+    from saggio.analyze.power.graphics import GraphicsSampler
+
+    quicken_sampling(monkeypatch)
+    pattern = build_hwmon(tmp_path, {"card0": {"name": "amdgpu", "power1_average": 10_000_000}})
+    point_graphics_at(monkeypatch, pattern)
+    sensor = Path(next(iter(globbing.glob(pattern)))) / "power1_average"
+
+    sampler = GraphicsSampler.start()
+    assert sampler is not None
+    assert wait_for_readings(sampler, 4), "no readings at the first wattage"
+    low = len(sampler.readings)
+
+    # The card's draw changes mid-run, which is the whole reason this is sampled.
+    sensor.write_text("30000000\n", encoding="utf-8")
+    assert wait_for_readings(sampler, low + 4), "no readings at the second wattage"
+
+    result = sampler.stop()
+    assert result is not None
+    watts, count = result
+    assert 10.0 < watts < 30.0, f"{watts} is not between the two draws it saw"
+    assert count >= 8
+
+
+def test_too_few_readings_is_no_figure_rather_than_a_thin_one(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A mean of one reading is not a mean, and must not be presented as one."""
+    from saggio.analyze.power import graphics
+    from saggio.analyze.power.graphics import GraphicsSampler
+
+    quicken_sampling(monkeypatch)
+    point_graphics_at(
+        monkeypatch,
+        build_hwmon(tmp_path, {"card0": {"name": "amdgpu", "power1_average": 12_000_000}}),
+    )
+    # One more reading than the thread can possibly have taken, so the refusal
+    # is the one under test rather than a race.
+    monkeypatch.setattr(graphics, "_MINIMUM_SAMPLES", 10_000)
+    sampler = GraphicsSampler.start()
+    assert sampler is not None
+    assert sampler.stop() is None
+
+
+def test_a_sensor_that_stops_answering_mid_run_does_not_poison_the_mean(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An unreadable sample is skipped, never counted as a zero.
+
+    A zero would say the card drew nothing for that moment, which is the
+    invented number this package exists to refuse.
+    """
+    import glob as globbing
+
+    from saggio.analyze.power.graphics import GraphicsSampler
+
+    quicken_sampling(monkeypatch)
+    pattern = build_hwmon(tmp_path, {"card0": {"name": "amdgpu", "power1_average": 20_000_000}})
+    point_graphics_at(monkeypatch, pattern)
+    sensor = Path(next(iter(globbing.glob(pattern)))) / "power1_average"
+
+    sampler = GraphicsSampler.start()
+    assert sampler is not None
+    assert wait_for_readings(sampler, 3)
+    sensor.write_text("not a number\n", encoding="utf-8")
+    import time
+
+    time.sleep(0.1)
+
+    result = sampler.stop()
+    assert result is not None
+    watts, _count = result
+    assert watts == pytest.approx(20.0), "an unreadable sample was counted as a zero"
