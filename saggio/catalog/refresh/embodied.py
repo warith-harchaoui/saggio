@@ -36,7 +36,12 @@ from typing import Final
 EMBODIED_CPU_API: Final[str] = "https://api.boavizta.org/v1/component/cpu"
 
 
-#: The method behind that figure, so a reader can judge it rather than take it.
+#: The method behind that figure, and what a row cites. The endpoint below is
+#: where the number came from and what a refresh queries, but it is not what a
+#: reader should be sent to: asked for nothing in particular it answers 19.0
+#: kgCO2e -- the default for an unnamed chip, which is the very figure this
+#: module refuses -- so a row citing it would display a wrong number to anybody
+#: who followed the link. The endpoint is named in each row's scope instead.
 EMBODIED_METHOD_URL: Final[str] = "https://doc.api.boavizta.org/Explanations/components/cpu/"
 
 
@@ -279,11 +284,12 @@ def apply_embodied(path: Path, refresh: EmbodiedRefresh, *, section: str = "cpus
             value, matched, die = refresh.rows[current]
             scope = (
                 f"One {matched} package, cradle-to-gate, computed from its die of "
-                f"{die} mm2. Excludes the use phase and, per the source, end of life."
+                f"{die} mm2 by {EMBODIED_CPU_API}. Excludes the use phase and, per "
+                "the source, end of life."
             )
             out.append(f"{indent}embodied_kgco2e: {value}\n")
             out.append(f'{indent}embodied_scope: "{scope}"\n')
-            out.append(f'{indent}embodied_source_url: "{refresh.source}"\n')
+            out.append(f'{indent}embodied_source_url: "{EMBODIED_METHOD_URL}"\n')
             out.append(f'{indent}embodied_retrieved_date: "{refresh.retrieved}"\n')
             written += 1
     path.write_text("".join(out), encoding="utf-8")

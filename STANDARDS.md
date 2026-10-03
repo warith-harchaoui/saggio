@@ -74,6 +74,17 @@ vendor-published or torn down and weighed. The processors are **computed from
 the chip's die size by a published model** — a weaker thing, and the reason the
 method is linked rather than only the figure.
 
+**What a `source_url` is, and what it is not.** It exists so a reader can check
+the figure beside it, which means it has to be something a person can open. Two
+of the sources here are APIs, and they behave differently when a reader follows
+the link rather than a program: Ember answers `{"detail":"No API key set"}`,
+which is unhelpful but true, while Boavizta answers **19.0 kgCO2e** — the
+default for an unnamed chip, and the exact figure this package refuses on
+import. Four processor rows cited it, so anybody who clicked saw a number with
+nothing to do with the processor on that row. Those rows now cite the page that
+explains the method, and name the endpoint they were computed by in their scope,
+where it is provenance rather than an invitation.
+
 **The one non-vendor figure here has been checked against an independent one.**
 The A100 number comes from a teardown with primary elemental analysis; a
 parametric model published separately, over 174 NVIDIA cards from 2013 to 2024

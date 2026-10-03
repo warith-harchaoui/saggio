@@ -664,6 +664,84 @@ def _check_arithmetic(
     )
 
 
+def _check_derivation_cycles(model: CostModel, report: Report) -> None:
+    """Report a set of values that derive from each other and from nothing else.
+
+    A direct self-reference is caught where the derivation is read, one quantity
+    at a time. A cycle through an intermediate is not visible from there: each
+    row names an input that exists, carries a plausible status, and resolves. It
+    only shows when the whole graph is laid out.
+
+    Why this matters more than it looks. The weakest-link rule assumes a chain
+    can be walked back to something measured or sourced. A cycle has no bottom:
+    every value in it is grounded in another value in it, and nothing in the set
+    rests on a fact. The package would then compute a status out of nothing and
+    state it with the same confidence as the rest of the page, which is the one
+    thing it exists to refuse.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model under validation.
+    report : Report
+        Accumulator for the verdict.
+
+    Examples
+    --------
+    >>> report = Report()
+    >>> _check_derivation_cycles(CostModel.from_mapping({"assumptions": {
+    ...     "a": {"value": 1.0, "derived_from": ["assumptions.b"]},
+    ...     "b": {"value": 1.0, "derived_from": ["assumptions.a"]}}}), report)
+    >>> "circle" in report.to_text()
+    True
+    >>> report = Report()
+    >>> _check_derivation_cycles(CostModel.from_mapping({"assumptions": {
+    ...     "a": {"value": 1.0, "derived_from": ["assumptions.b"]},
+    ...     "b": {"value": 1.0, "source_url": "https://example.invalid"}}}), report)
+    >>> report.to_text()
+    ''
+    """
+    edges: dict[str, list[str]] = {}
+    for path, raw in model.quantities():
+        references = raw.get("derived_from")
+        if isinstance(references, list):
+            edges[path] = [str(reference) for reference in references]
+
+    # Depth-first, keeping the path walked so a cycle can be named in the order
+    # a reader would follow it rather than as an unordered set.
+    unvisited, walking, done = 0, 1, 2
+    colour: dict[str, int] = dict.fromkeys(edges, unvisited)
+    reported: set[frozenset[str]] = set()
+
+    def walk(node: str, trail: list[str]) -> None:
+        colour[node] = walking
+        trail.append(node)
+        for other in edges.get(node, ()):
+            if other not in colour:
+                # Names nothing in this model, which is already reported where
+                # the derivation is read.
+                continue
+            if colour[other] == walking:
+                circle = [*trail[trail.index(other) :], other]
+                mark = frozenset(circle)
+                if mark not in reported:
+                    reported.add(mark)
+                    report.error(
+                        node,
+                        f"derives in a circle: {' -> '.join(circle)}. Every value in "
+                        "it is founded on another value in it, so none of them rests "
+                        "on anything measured or sourced",
+                    )
+            elif colour[other] == unvisited:
+                walk(other, trail)
+        trail.pop()
+        colour[node] = done
+
+    for node in list(edges):
+        if colour[node] == unvisited:
+            walk(node, [])
+
+
 def _check_bare_numbers(model: CostModel, report: Report) -> None:
     """Report every number that escaped its quantity.
 
@@ -885,6 +963,7 @@ def validate(model: CostModel | dict[str, Any]) -> Report:
     _check_bare_numbers(wrapped, report)
     for path, raw in wrapped.quantities():
         _check_quantity(path, raw, wrapped, report)
+    _check_derivation_cycles(wrapped, report)
     _check_dimensions(wrapped, report)
     _check_assumption_provenance(wrapped, report)
     return report

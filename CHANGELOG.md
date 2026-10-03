@@ -33,6 +33,37 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### A derivation that goes in a circle is reported
+
+- Direct self-reference was caught; **a circle through an intermediate was
+  not**. Two assumptions deriving from each other validated clean, with no
+  error and no warning. The weakest-link rule assumes a chain can be walked
+  back to a fact, and a circle has no bottom: the package computed a status out
+  of nothing and stated it as confidently as the rest of the page.
+- Found by an adversarial probe against shapes not tried in earlier rounds, and
+  confirmed by printing the entire report rather than filtering it. Circles of
+  two, three and five steps are reported now, including one reached from
+  outside and two separate circles in one model, and the message names the
+  circle **in the order a reader would follow it**.
+- A diamond, a long honest chain and one input named twice stay silent — a walk
+  that marked a node *visited* rather than *being visited* would call every
+  diamond a circle.
+
+### A citation a reader follows must not show them a different number
+
+- `source_url` exists so a reader can check the figure beside it. Two of the
+  sources are APIs, and they answer a reader differently from a program: Ember
+  returns `{"detail":"No API key set"}`, unhelpful but true, while **Boavizta
+  returns 19.0 kgCO2e** — the default for an unnamed chip, and the exact figure
+  this package refuses on import. Four processor rows cited it, so anybody who
+  clicked saw a number with nothing to do with that row's processor.
+- Those rows now cite the page explaining the method, and name the endpoint
+  they were computed by in their scope, where it is provenance rather than an
+  invitation. A contract test refuses that endpoint in any field a reader
+  follows, and putting it back fails by row name.
+- **Introduced by the commit that split provenance per column** — the fields
+  were made honest and the links were never followed as a reader.
+
 ### The embodied figures are cross-checked against an independent dataset
 
 - The dataset the last release was waiting on has been published:

@@ -551,3 +551,120 @@ def test_an_unknown_unit_gets_the_benefit_of_the_doubt() -> None:
 
     assert _a_run_can_observe("sheep") is True
     assert _a_run_can_observe("gCO2e") is False
+
+
+# --- A derivation that goes round in a circle ---------------------------------
+
+
+def grounded(*references: str) -> dict:
+    """Return a quantity, derived from these or sourced when given none."""
+    body: dict = {"value": 1.0, "unit": "s", "status": "estimated"}
+    if references:
+        body["derived_from"] = [f"assumptions.{name}" for name in references]
+    else:
+        body |= {"source_url": "https://example.invalid", "retrieved_date": "2026-10-01"}
+    return body
+
+
+def model_with_assumptions(assumptions: dict) -> CostModel:
+    """Return a model complete enough to validate, with these assumptions."""
+    return CostModel.from_mapping(
+        {
+            "schema_version": "2.1",
+            "date_updated": "2026-10-03",
+            "unit_of_work": {"name": "one request", "status": "estimated"},
+            "deployment": {"provider": "on-prem", "country": "FR"},
+            "assumptions": assumptions,
+            "scenarios": [
+                {
+                    "name": "default",
+                    "costs": {
+                        "time": {"value": 1.0, "unit": "s", "status": "measured", "notes": "t"}
+                    },
+                }
+            ],
+        }
+    )
+
+
+def goes_in_a_circle(assumptions: dict) -> bool:
+    """Return whether the validator reports a circle in these assumptions."""
+    return "circle" in validate(model_with_assumptions(assumptions)).to_text()
+
+
+@pytest.mark.parametrize(
+    ("name", "assumptions"),
+    [
+        ("two steps", {"a": grounded("b"), "b": grounded("a")}),
+        ("three steps", {"a": grounded("b"), "b": grounded("c"), "c": grounded("a")}),
+        (
+            "five steps",
+            {
+                "a": grounded("b"),
+                "b": grounded("c"),
+                "c": grounded("d"),
+                "d": grounded("e"),
+                "e": grounded("a"),
+            },
+        ),
+        (
+            "reached from outside it",
+            {"root": grounded("a"), "a": grounded("b"), "b": grounded("a")},
+        ),
+        (
+            "two separate circles",
+            {"a": grounded("b"), "b": grounded("a"), "c": grounded("d"), "d": grounded("c")},
+        ),
+    ],
+)
+def test_a_derivation_that_goes_in_a_circle_is_reported(name: str, assumptions: dict) -> None:
+    """The weakest-link rule assumes a chain can be walked back to a fact.
+
+    A circle has no bottom: every value in it is founded on another value in it,
+    so none of them rests on anything measured or sourced. The package would
+    compute a status out of nothing and state it as confidently as the rest of
+    the page.
+
+    Direct self-reference was already caught, one quantity at a time. A circle
+    through an intermediate is invisible from there -- each row names an input
+    that exists, carries a plausible status, and resolves -- and only shows when
+    the whole graph is laid out.
+    """
+    assert goes_in_a_circle(assumptions), f"a circle of {name} was not reported"
+
+
+@pytest.mark.parametrize(
+    ("name", "assumptions"),
+    [
+        (
+            "a diamond",
+            {
+                "top": grounded("left", "right"),
+                "left": grounded("base"),
+                "right": grounded("base"),
+                "base": grounded(),
+            },
+        ),
+        (
+            "a long honest chain",
+            {"a": grounded("b"), "b": grounded("c"), "c": grounded("d"), "d": grounded()},
+        ),
+        ("one input named twice", {"a": grounded("b", "b"), "b": grounded()}),
+    ],
+)
+def test_a_graph_that_merely_rejoins_itself_is_not_a_circle(name: str, assumptions: dict) -> None:
+    """Two paths to the same fact is ordinary, and must not be called a circle.
+
+    A depth-first walk that marked a node visited rather than *being visited*
+    would report every diamond, and a model that states one assumption twice is
+    the commonest shape there is.
+    """
+    assert not goes_in_a_circle(assumptions), f"{name} was reported as a circle"
+
+
+def test_the_circle_is_named_in_the_order_a_reader_would_follow_it() -> None:
+    """An unordered set of names leaves the reader to work out the direction."""
+    text = validate(
+        model_with_assumptions({"a": grounded("b"), "b": grounded("c"), "c": grounded("a")})
+    ).to_text()
+    assert "assumptions.a -> assumptions.b -> assumptions.c -> assumptions.a" in text

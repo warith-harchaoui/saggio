@@ -553,3 +553,40 @@ def test_the_catalogue_keeps_the_generic_rows_the_detection_falls_back_to() -> N
             f"{fallback} is gone from the catalogue, so a machine whose processor "
             "is not catalogued now gets no per-core power at all"
         )
+
+
+def test_no_row_cites_an_endpoint_that_would_show_a_reader_a_wrong_number() -> None:
+    """A citation exists so a reader can check the figure beside it.
+
+    One source here answers a bare request with a default: asked about nothing
+    in particular, Boavizta's CPU endpoint returns 19.0 kgCO2e, the figure for
+    an unnamed chip. Four rows cited it, so anybody following the link saw a
+    number that had nothing to do with the processor on that row -- and it was
+    the very default this package refuses when importing.
+
+    The rule is narrow on purpose: a row may name an endpoint in its *scope*,
+    where it is provenance of method, but not in the field a reader is invited
+    to follow.
+    """
+    import yaml
+
+    #: Endpoints that answer a bare GET with something other than the row's
+    #: figure. Named rather than guessed from the URL shape, because an API that
+    #: does answer with the figure is a perfectly good citation.
+    shows_the_wrong_thing = ("api.boavizta.org/v1/component/cpu",)
+
+    root = _repository_root()
+    for name in ("hardware.yaml", "grid.yaml"):
+        rows = yaml.safe_load((root / "saggio" / "data" / name).read_text(encoding="utf-8"))
+        for section in rows.values():
+            if not isinstance(section, list):
+                continue
+            for row in section:
+                for field, value in row.items():
+                    if not field.endswith("source_url") or not isinstance(value, str):
+                        continue
+                    for endpoint in shows_the_wrong_thing:
+                        assert endpoint not in value, (
+                            f"{name}:{row.get('key')} cites {value} in {field}; that "
+                            "endpoint shows a reader a default figure, not this row's"
+                        )

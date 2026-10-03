@@ -266,9 +266,9 @@ cpus:
     notes: "150 W TDP / 20 cores."
   - key: epyc-7742
     embodied_kgco2e: 40.66
-    embodied_scope: "One AMD EPYC 7742 package, cradle-to-gate, computed from its die of 1600 mm2. Excludes the use phase and, per the source, end of life."
-    embodied_source_url: "https://api.boavizta.org/v1/component/cpu"
-    embodied_retrieved_date: "2026-10-02"
+    embodied_scope: "One AMD EPYC 7742 package, cradle-to-gate, computed from its die of 1600 mm2 by https://api.boavizta.org/v1/component/cpu. Excludes the use phase and, per the source, end of life."
+    embodied_source_url: "https://doc.api.boavizta.org/Explanations/components/cpu/"
+    embodied_retrieved_date: "2026-10-03"
     w_per_core: 3.5
     cores: 64
     source_url: "https://www.amd.com/en/products/cpu/amd-epyc-7742"
@@ -276,9 +276,9 @@ cpus:
     notes: "225 W TDP / 64 cores."
   - key: epyc-9654
     embodied_kgco2e: 33.98
-    embodied_scope: "One AMD EPYC 9654 package, cradle-to-gate, computed from its die of 1261 mm2. Excludes the use phase and, per the source, end of life."
-    embodied_source_url: "https://api.boavizta.org/v1/component/cpu"
-    embodied_retrieved_date: "2026-10-02"
+    embodied_scope: "One AMD EPYC 9654 package, cradle-to-gate, computed from its die of 1261 mm2 by https://api.boavizta.org/v1/component/cpu. Excludes the use phase and, per the source, end of life."
+    embodied_source_url: "https://doc.api.boavizta.org/Explanations/components/cpu/"
+    embodied_retrieved_date: "2026-10-03"
     w_per_core: 3.75
     cores: 96
     source_url: "https://www.amd.com/en/products/cpu/amd-epyc-9654"
@@ -315,18 +315,18 @@ cpus:
     retrieved_date: "2026-09-12"
   - key: core-i9-13900k
     embodied_kgco2e: 14.2
-    embodied_scope: "One Intel Core i9-13900K package, cradle-to-gate, computed from its die of 257 mm2. Excludes the use phase and, per the source, end of life."
-    embodied_source_url: "https://api.boavizta.org/v1/component/cpu"
-    embodied_retrieved_date: "2026-10-02"
+    embodied_scope: "One Intel Core i9-13900K package, cradle-to-gate, computed from its die of 257 mm2 by https://api.boavizta.org/v1/component/cpu. Excludes the use phase and, per the source, end of life."
+    embodied_source_url: "https://doc.api.boavizta.org/Explanations/components/cpu/"
+    embodied_retrieved_date: "2026-10-03"
     w_per_core: 8.75
     source_url: "https://www.intel.com/content/www/us/en/products/sku/230496/"
     retrieved_date: "2026-09-12"
     notes: "125 W base TDP over 8 performance cores; 253 W at turbo."
   - key: ryzen-9-7950x
     embodied_kgco2e: 14.34
-    embodied_scope: "One AMD Ryzen 9 7950X package, cradle-to-gate, computed from its die of 264 mm2. Excludes the use phase and, per the source, end of life."
-    embodied_source_url: "https://api.boavizta.org/v1/component/cpu"
-    embodied_retrieved_date: "2026-10-02"
+    embodied_scope: "One AMD Ryzen 9 7950X package, cradle-to-gate, computed from its die of 264 mm2 by https://api.boavizta.org/v1/component/cpu. Excludes the use phase and, per the source, end of life."
+    embodied_source_url: "https://doc.api.boavizta.org/Explanations/components/cpu/"
+    embodied_retrieved_date: "2026-10-03"
     w_per_core: 10.6
     cores: 16
     source_url: "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7950x.html"

@@ -75,6 +75,18 @@ publiés par le fabricant ou démontés et pesés. Les processeurs sont **calcul
 depuis la taille du die par un modèle publié** — chose plus faible, et la raison
 pour laquelle la méthode est liée et pas seulement le chiffre.
 
+**Ce qu'est un `source_url`, et ce qu'il n'est pas.** Il existe pour qu'un
+lecteur vérifie le chiffre d'à côté, donc il doit être ouvrable par un humain.
+Deux des sources ici sont des API, et elles se comportent autrement quand un
+lecteur suit le lien plutôt qu'un programme : Ember répond
+`{"detail":"No API key set"}`, inutile mais vrai, tandis que Boavizta répond
+**19,0 kgCO2e** — la valeur par défaut d'une puce anonyme, et le chiffre exact
+que ce paquet refuse à l'import. Quatre lignes processeur la citaient : qui
+cliquait voyait un nombre sans rapport avec le processeur de la ligne. Ces
+lignes citent désormais la page qui explique la méthode, et nomment dans leur
+portée l'endpoint qui les a calculées, où c'est de la provenance et non une
+invitation.
+
 **Le seul chiffre non constructeur a été recoupé avec un chiffre indépendant.**
 Le nombre de l'A100 vient d'un démontage avec analyse élémentaire primaire ; un
 modèle paramétrique publié séparément, sur 174 cartes NVIDIA de 2013 à 2024
