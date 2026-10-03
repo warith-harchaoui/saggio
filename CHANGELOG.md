@@ -33,6 +33,23 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### Word and PDF output is tested without Word or a PDF engine
+
+- `report/office.py` **56% → 100%**, the last module in the package that was
+  notably low. Everything in it that is not a one-line guard happens around a
+  subprocess, and none of it runs unless `md2star` and Pandoc are installed — so
+  on most machines, and on the cloud runner, the whole conversion never executed.
+- A stand-in `md2star` is written instead: a real executable taking the real
+  flags, writing a real file or failing the way the real one fails. The
+  subprocess is real and the arithmetic is the shipped arithmetic.
+- Held now: the house template reaches the converter as `--reference-doc` and is
+  absent when none was given; the scratch Markdown is cleaned up; the output
+  directory is created rather than demanded; a hung converter is given up on by
+  name and by seconds; and **a failure that says nothing still produces a
+  message**. That last one is not hypothetical — the code carries a comment
+  saying an empty tail once crashed the messenger instead of delivering it, and
+  removing the guard reproduces the exact `IndexError`.
+
 ### The samplers are tested, threads and subprocesses and all
 
 - `power/graphics.py` **65% → 100%** and `power/accelerator.py` **69% → 86%**.
