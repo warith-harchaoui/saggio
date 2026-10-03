@@ -224,6 +224,14 @@ moitié.
 - [Spécification Software Carbon Intensity](https://sci.greensoftware.foundation/), ISO/IEC 21031:2024 · [SCI for AI](https://greensoftware.foundation/standards/sci-ai/)
 - [Résumé PCF NVIDIA HGX H100](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) · [HGX B200](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) — ISO 14067, revue par un tiers, du berceau à la sortie d'usine.
 - *More than Carbon: Cradle-to-Grave environmental impacts of GenAI training on the NVIDIA A100 GPU*, [arXiv:2509.00093](https://arxiv.org/abs/2509.00093).
+- *The Rising Unsustainability of AI Graphics Cards Production*,
+  [arXiv:2607.01258](https://arxiv.org/abs/2607.01258), avec son
+  [jeu de données](https://doi.org/10.5281/zenodo.20321644) de 174 cartes NVIDIA
+  (CC-BY-4.0) — utilisé ici pour recouper les chiffres d'accélérateurs, jamais
+  pour en fournir un.
+- [Méthode processeur de Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/)
+  — comment une empreinte est calculée depuis une taille de die, ce que citent
+  les quatre lignes processeur.
 - [Lignes directrices UE pour les fournisseurs de modèles à usage général](https://digital-strategy.ec.europa.eu/en/faqs/guidelines-obligations-general-purpose-ai-providers) · [SCI for AI et conformité au règlement IA](https://greensoftware.foundation/policy/research/sci-ai-eu-ai-act/)
 - [Green Algorithms](https://doi.org/10.1002/advs.202100707) — l'arithmétique opérationnelle, extraite dans [`skills/saggio/references/green-algorithms.md`](skills/saggio/references/green-algorithms.md).
 

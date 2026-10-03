@@ -33,6 +33,20 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### A Sources section that is merely most of the sources
+
+- `STANDARDS.md` and `NORMES.md` cited **three sources in their body that the
+  Sources list did not name**: the parametric-model paper, its dataset, and the
+  processor-footprint method the four CPU rows point at. All three were added
+  to the page over two days without anybody going back to the list.
+- A reader who checks the list and finds nothing about the processor footprints
+  concludes they rest on nothing, which is worse than no list at all. Fixed in
+  both languages, and held by a contract test that fails naming the URL.
+- Two addresses for the SCI specification both answer and neither redirects, so
+  they are declared the same source rather than inferred to be — a rule that
+  guessed would hide real omissions behind a heuristic.
+- Found by looking at the rendered page rather than by reading the Markdown.
+
 ### A derivation that goes in a circle is reported
 
 - Direct self-reference was caught; **a circle through an intermediate was

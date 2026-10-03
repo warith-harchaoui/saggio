@@ -376,3 +376,56 @@ def test_every_link_to_a_section_lands_on_a_heading(page: str) -> None:
         assert anchor.lower() in _anchors_in(landing), (
             f"{page} links to #{anchor} in {landing.name}, which has no such heading"
         )
+
+
+#: Pages whose `Sources` section is a promise: everything the body cites is
+#: listed there, so a reader has one place to find what the page rests on.
+PAGES_THAT_LIST_THEIR_SOURCES: tuple[str, ...] = ("STANDARDS.md", "NORMES.md")
+
+#: Two addresses for one thing. The SCI specification answers at both, and
+#: neither redirects to the other, so citing one in the body and the other in
+#: the list is not an omission. Stated rather than inferred, because a rule that
+#: guessed which URLs are "the same" would hide real omissions behind a
+#: heuristic.
+SAME_SOURCE: tuple[frozenset[str], ...] = (
+    frozenset(
+        {
+            "https://sci.greensoftware.foundation/",
+            "https://greensoftware.foundation/standards/sci/",
+        }
+    ),
+)
+
+
+@pytest.mark.parametrize("page", PAGES_THAT_LIST_THEIR_SOURCES)
+def test_everything_a_page_cites_is_in_the_sources_it_lists(page: str) -> None:
+    """A Sources section that is merely most of the sources is worse than none.
+
+    A reader who checks the list and finds nothing about, say, the processor
+    footprints concludes they rest on nothing. This caught three real omissions
+    the day it was written: the parametric-model paper, its dataset, and the
+    method the four processor rows cite -- all added to the body of the page
+    over two days without anybody going back to the list.
+    """
+    import re
+
+    text = (ROOT / page).read_text(encoding="utf-8")
+    heading = "## Sources"
+    assert heading in text, f"{page} has no Sources section"
+    body, listed = text.split(heading, 1)
+
+    def addresses(block: str) -> set[str]:
+        return {u.rstrip(".,;)") for u in re.findall(r"https?://[^)\s\"]+", block)}
+
+    def canonical(url: str) -> str:
+        for group in SAME_SOURCE:
+            if url in group:
+                return min(group)
+        return url
+
+    cited = {canonical(u) for u in addresses(body)}
+    in_list = {canonical(u) for u in addresses(listed)}
+    missing = sorted(cited - in_list)
+    assert not missing, (
+        f"{page} cites these in its body and does not list them under Sources: {missing}"
+    )
