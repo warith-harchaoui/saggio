@@ -74,6 +74,33 @@ vendor-published or torn down and weighed. The processors are **computed from
 the chip's die size by a published model** — a weaker thing, and the reason the
 method is linked rather than only the figure.
 
+**The one non-vendor figure here has been checked against an independent one.**
+The A100 number comes from a teardown with primary elemental analysis; a
+parametric model published separately, over 174 NVIDIA cards from 2013 to 2024
+([dataset](https://doi.org/10.5281/zenodo.20321644), CC-BY-4.0, from
+[arXiv:2607.01258](https://arxiv.org/abs/2607.01258)), reaches the figure a
+different way:
+
+| Part | Here | That dataset | Apart |
+|---|---|---|---|
+| A100 SXM4 40GB | 127.6 | 123.2 | **3.4%** |
+| H100 SXM5 80GB | 164.0 | 196.5 | **19.8%** |
+| B200 | 284.25 | not covered | — |
+
+Two methods that share no inputs landing 3.4% apart on the A100 is the best
+evidence available that the number is about right. The H100 is a different
+story, and the paper says why itself: it estimates the memory higher than
+NVIDIA does, from a different life-cycle database, while estimating the
+processor and the board lower. **The vendor figure is kept** — it is
+third-party verified under ISO 14067 and it is about the exact part — but a
+reader should know a credible independent estimate puts it a fifth higher.
+
+The dataset is a **check, not a source**, for the same reason Eurostat is a
+check on the tariffs: it is a parametric model, and a model is a weaker claim
+than a teardown or a verified vendor disclosure. Nothing in the catalogue comes
+from it.
+
+
 The eight remaining processors are refused rather than filled. Four are refused
 because that source answers about a chip it was not asked about: asked for an
 Apple M4 Max it returns an Apple M1 Max, four generations earlier, with no

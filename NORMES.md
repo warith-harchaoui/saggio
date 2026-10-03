@@ -75,6 +75,33 @@ publiés par le fabricant ou démontés et pesés. Les processeurs sont **calcul
 depuis la taille du die par un modèle publié** — chose plus faible, et la raison
 pour laquelle la méthode est liée et pas seulement le chiffre.
 
+**Le seul chiffre non constructeur a été recoupé avec un chiffre indépendant.**
+Le nombre de l'A100 vient d'un démontage avec analyse élémentaire primaire ; un
+modèle paramétrique publié séparément, sur 174 cartes NVIDIA de 2013 à 2024
+([jeu de données](https://doi.org/10.5281/zenodo.20321644), CC-BY-4.0, issu
+d'[arXiv:2607.01258](https://arxiv.org/abs/2607.01258)), y parvient autrement :
+
+| Pièce | Ici | Ce jeu de données | Écart |
+|---|---|---|---|
+| A100 SXM4 40 Go | 127,6 | 123,2 | **3,4 %** |
+| H100 SXM5 80 Go | 164,0 | 196,5 | **19,8 %** |
+| B200 | 284,25 | non couvert | — |
+
+Deux méthodes ne partageant aucune entrée qui tombent à 3,4 % l'une de l'autre
+sur l'A100, c'est la meilleure preuve disponible que ce nombre est à peu près
+juste. La H100 est une autre histoire, et le papier en donne lui-même la raison :
+il estime la mémoire plus haut que NVIDIA, depuis une autre base de données de
+cycle de vie, tout en estimant le processeur et la carte plus bas. **Le chiffre
+du constructeur est conservé** — vérifié par un tiers selon ISO 14067 et portant
+sur la pièce exacte — mais un lecteur doit savoir qu'une estimation indépendante
+crédible le situe un cinquième plus haut.
+
+Ce jeu de données est un **contre-test, pas une source**, pour la même raison
+qu'Eurostat l'est pour les tarifs : c'est un modèle paramétrique, et un modèle
+est une affirmation plus faible qu'un démontage ou une déclaration constructeur
+vérifiée. Rien du catalogue n'en provient.
+
+
 Les huit processeurs restants sont refusés plutôt que remplis. Quatre parce que
 cette source répond à propos d'une puce qu'on ne lui a pas demandée : interrogée
 sur une Apple M4 Max, elle renvoie une Apple M1 Max, quatre générations plus tôt,

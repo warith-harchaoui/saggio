@@ -33,6 +33,30 @@ release of that line.
   The arithmetic check added in this same release caught both, by name and with
   the right answer beside them, which is what it was written for.
 
+### The embodied figures are cross-checked against an independent dataset
+
+- The dataset the last release was waiting on has been published:
+  [Zenodo 10.5281/zenodo.20321644](https://doi.org/10.5281/zenodo.20321644),
+  CC-BY-4.0, 174 NVIDIA cards from 2013 to 2024, from
+  [arXiv:2607.01258](https://arxiv.org/abs/2607.01258). It was fetched and the
+  comparison run.
+- **A100: 127.6 here, 123.2 there — 3.4% apart.** Two methods sharing no inputs
+  — a teardown with primary elemental analysis, and a parametric model from die
+  area and memory — landing that close is the best evidence available that the
+  one non-vendor figure in the catalogue is about right.
+- **H100: 164.0 here, 196.5 there — 19.8% apart.** The paper explains it itself:
+  it estimates memory higher than NVIDIA does, from a different life-cycle
+  database, and the processor and board lower. The vendor figure is kept —
+  third-party verified under ISO 14067, about the exact part — and
+  `STANDARDS.md` now says a credible independent estimate puts it a fifth
+  higher, because a reader quoting 164 deserves to know that.
+- The dataset is a **check, not a source**, for the same reason Eurostat checks
+  the tariffs rather than supplying them. Nothing in the catalogue comes from it.
+- Matching was done on **exact product names**. The first attempt matched on
+  substrings and paired `L4` with `L40`, `T4` with `T400` and `P100` with
+  `Quadro GP100` — the same fuzzy-match failure this package refused from
+  Boavizta two releases ago, nearly repeated by hand.
+
 ### Word and PDF output is tested without Word or a PDF engine
 
 - `report/office.py` **56% → 100%**, the last module in the package that was
