@@ -7,8 +7,7 @@ any other dimension you decide to watch, per unit of work, with every number
 saying how far it can be trusted.
 
 <p>
-  <img src="https://raw.githubusercontent.com/warith-harchaoui/saggio/master/assets/logo.png"
-       alt="saggio logo" ">
+  <img src="https://raw.githubusercontent.com/warith-harchaoui/saggio/master/assets/logo.png" alt="saggio logo">
 </p>
 
 The answer is a YAML file you commit next to the code, and reports rendered from
