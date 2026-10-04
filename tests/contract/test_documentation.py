@@ -476,27 +476,47 @@ def test_the_version_the_package_reports_is_the_version_it_ships_as() -> None:
 
 
 def test_the_readme_links_still_work_once_it_leaves_the_repository() -> None:
-    """README.md is republished elsewhere, so its links cannot be relative.
+    """README.md is republished elsewhere, so nothing in it can be relative.
 
     It is the long description: whatever a package index is given, it renders
-    on its own domain. A relative link resolves against that domain rather
+    on its own domain. A relative reference resolves against that domain rather
     than against the repository, so `](EXAMPLES.md)` becomes a link to a page
-    on the index that was never there.
+    that was never there.
 
-    Nothing catches this locally, because every one of those links works in a
+    Nothing catches this locally, because every such reference works in a
     checkout and works on the forge. It only breaks on the one surface the
     maintainer does not look at.
 
-    The other documents keep their relative links on purpose: they are read
-    where they live, and a relative link is the one that survives a fork.
+    The first version of this looked only at Markdown link syntax, and so
+    walked straight past the header logo, which is an HTML `<img>` tag. The
+    lesson is that the defect is "a reference that is not absolute", not "a
+    Markdown link that is not absolute" -- so every form a reference can take
+    is checked here, including the two attribute spellings.
+
+    Images have a second trap this cannot check: on the forge, `blob/` serves
+    an HTML page and only the raw host serves the bytes, so an image pointed at
+    `blob/` is absolute and still broken.
+
+    The other documents keep their relative references on purpose: they are
+    read where they live, and a relative link is the one that survives a fork.
     """
     text = (ROOT / "README.md").read_text(encoding="utf-8")
-    relative = [
-        target
-        for _, target in re.findall(r"\[([^\]]*)\]\(([^)\s]+)\)", text)
-        if not target.startswith(("http://", "https://", "#", "mailto:"))
-    ]
-    assert not relative, (
+
+    def is_absolute(target: str) -> bool:
+        return target.startswith(("http://", "https://", "#", "mailto:"))
+
+    offenders: list[str] = []
+    for _, target in re.findall(r"\[([^\]]*)\]\(([^)\s]+)\)", text):
+        if not is_absolute(target):
+            offenders.append(f"markdown link -> {target}")
+    for attribute, target in re.findall(r'\b(src|href)\s*=\s*"([^"]+)"', text):
+        if not is_absolute(target):
+            offenders.append(f"html {attribute} -> {target}")
+    for label, target in re.findall(r"^\[([^\]]+)\]:\s*(\S+)", text, re.M):
+        if not is_absolute(target):
+            offenders.append(f"reference link [{label}] -> {target}")
+
+    assert not offenders, (
         "README.md is shipped as the package's long description, where these "
-        f"resolve against the index's own domain: {sorted(set(relative))}"
+        f"resolve against the index's own domain: {sorted(set(offenders))}"
     )
