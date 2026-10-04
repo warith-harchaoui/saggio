@@ -36,14 +36,38 @@ SAGGIO = [sys.executable, "-m", "saggio"]
 OK, FAILED_ITS_RULES, MISUSED = 0, 1, 2
 
 
-def run(*arguments: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
-    """Run saggio the way a shell would, and return what happened."""
+def run(
+    *arguments: str,
+    cwd: Path | None = None,
+    answerable: bool = True,
+    home: Path | None = None,
+) -> subprocess.CompletedProcess[str]:
+    """Run saggio the way a shell would, and return what happened.
+
+    Parameters
+    ----------
+    arguments : str
+        What follows ``saggio`` on the command line.
+    cwd : pathlib.Path or None, optional
+        Where to run it.
+    answerable : bool, optional
+        Whether anything can answer a question. ``False`` closes standard
+        input, which is how a scheduled job and a container invoke this: a
+        command that needs consent cannot get it, and has to carry on without.
+    home : pathlib.Path or None, optional
+        A home directory of its own, so a consent recorded by the person
+        running the tests does not decide what the test sees.
+    """
+    import os
+
     return subprocess.run(  # noqa: S603 - a fixed argument list, never a shell.
         [*SAGGIO, *arguments],
         capture_output=True,
         text=True,
         cwd=cwd,
         timeout=300,
+        stdin=None if answerable else subprocess.DEVNULL,
+        env={**os.environ, "HOME": str(home)} if home else None,
     )
 
 
@@ -148,29 +172,69 @@ def test_a_model_that_lies_about_its_arithmetic_fails_the_gate(tmp_path: Path) -
     assert "does not follow" in done.stdout + done.stderr
 
 
-def test_running_a_slice_turns_an_open_runtime_into_a_measured_one(
-    project: Path, tmp_path: Path
-) -> None:
-    """The step that makes a model mean something, through the command line.
+def test_asking_for_a_measurement_never_invents_one(project: Path, tmp_path: Path) -> None:
+    """`--run` either measures the runtime or leaves it open, and says which.
 
-    Before: the runtime is open and everything derived from it is open too.
-    After: a counter answered, and the chain below it moves with it.
+    The first draft asserted the happy path -- that `--run` produces a measured
+    runtime -- and it failed on the continuous-integration runner, where
+    nothing could consent to executing somebody's code and the runtime stayed
+    open. The runner was right and the test was wrong. Leaving it open is the
+    correct answer on a machine that cannot or may not measure, and the promise
+    worth holding is the one true on either.
+
+    Both branches are exercised here rather than whichever the machine
+    happens to take: once with nothing able to answer the consent question,
+    which is how a scheduled job and a container invoke this, and once
+    normally.
     """
     before = tmp_path / "before.yaml"
-    after = tmp_path / "after.yaml"
     assert (
         run("audit", str(project), "--country", "FR", "--no-llm", "-o", str(before)).returncode
         == OK
     )
-    opened = yaml.safe_load(before.read_text(encoding="utf-8"))
-    assert opened["scenarios"][0]["runtime"]["status"] == "TODO"
+    assert (
+        yaml.safe_load(before.read_text(encoding="utf-8"))["scenarios"][0]["runtime"]["status"]
+        == "TODO"
+    )
 
-    done = run("audit", str(project), "--country", "FR", "--no-llm", "--run", "-o", str(after))
-    if done.returncode != OK or not after.is_file():
-        pytest.skip(f"this machine would not run the slice: {done.stderr[-200:]}")
-    measured = yaml.safe_load(after.read_text(encoding="utf-8"))
-    assert measured["scenarios"][0]["runtime"]["status"] == "measured"
-    assert run("validate", str(after)).returncode == OK
+    # Nothing can answer, so nothing is run -- and nothing is invented either.
+    unasked = tmp_path / "unasked.yaml"
+    assert (
+        run(
+            "audit",
+            str(project),
+            "--country",
+            "FR",
+            "--no-llm",
+            "--run",
+            "-o",
+            str(unasked),
+            answerable=False,
+            home=tmp_path / "elsewhere",
+        ).returncode
+        == OK
+    )
+    open_runtime = yaml.safe_load(unasked.read_text(encoding="utf-8"))["scenarios"][0]["runtime"]
+    assert open_runtime["status"] == "TODO"
+    assert open_runtime.get("value") is None, "an open runtime carrying a number anyway"
+    assert open_runtime.get("notes"), "an open runtime that does not say what would close it"
+    assert run("validate", str(unasked)).returncode == OK
+
+    # And when it does run, the figure carries what measured it.
+    measured_path = tmp_path / "measured.yaml"
+    assert (
+        run(
+            "audit", str(project), "--country", "FR", "--no-llm", "--run", "-o", str(measured_path)
+        ).returncode
+        == OK
+    )
+    runtime = yaml.safe_load(measured_path.read_text(encoding="utf-8"))["scenarios"][0]["runtime"]
+    if runtime["status"] == "measured":
+        assert isinstance(runtime.get("value"), (int, float)) and runtime["value"] > 0
+        assert runtime.get("notes"), "a measured runtime that says nothing about what measured it"
+    else:
+        assert runtime.get("value") is None
+    assert run("validate", str(measured_path)).returncode == OK
 
 
 def test_a_cost_that_worsens_fails_the_drift_gate(tmp_path: Path) -> None:
