@@ -1,6 +1,6 @@
 # saggio
 
-[🇫🇷 LISEZMOI.md](LISEZMOI.md) · 🇬🇧 English
+[🇫🇷 LISEZMOI.md](https://github.com/warith-harchaoui/saggio/blob/master/LISEZMOI.md) · 🇬🇧 English
 
 **What does it cost to run your code?** Money, time, energy, carbon, water, and
 any other dimension you decide to watch, per unit of work, with every number
@@ -129,7 +129,7 @@ database that covers processors answers for a chip it does not have by
 substituting the nearest one it does — asked for an Apple M4 Max it returns an
 Apple M1 Max, four generations earlier, with no warning. Those answers are
 refused by name rather than imported.
-[`STANDARDS.md`](STANDARDS.md) has the table, the boundary of every figure, and
+[`STANDARDS.md`](https://github.com/warith-harchaoui/saggio/blob/master/STANDARDS.md) has the table, the boundary of every figure, and
 the eight refusals with their reasons.
 
 **Writes reports that people read.** Markdown for a pull request. A single
@@ -228,14 +228,14 @@ print(result.report.summary())
 print(saggio.render_markdown(result.model))
 ```
 
-[`EXAMPLES.md`](EXAMPLES.md) is the cookbook, [`MEASURING.md`](MEASURING.md) is
+[`EXAMPLES.md`](https://github.com/warith-harchaoui/saggio/blob/master/EXAMPLES.md) is the cookbook, [`MEASURING.md`](https://github.com/warith-harchaoui/saggio/blob/master/MEASURING.md) is
 which counters this machine will let you read and what each of them covers,
-[`GALLERY.md`](GALLERY.md) is what it says about nanoGPT, Whisper, DINOv2,
+[`GALLERY.md`](https://github.com/warith-harchaoui/saggio/blob/master/GALLERY.md) is what it says about nanoGPT, Whisper, DINOv2,
 FastAPI and Airflow with the files committed beside it,
-[`docs/api.md`](docs/api.md) is every name `import saggio` gives you, and
-[`docs/`](docs/README.md) is the map of the rest.
+[`docs/api.md`](https://github.com/warith-harchaoui/saggio/blob/master/docs/api.md) is every name `import saggio` gives you, and
+[`docs/`](https://github.com/warith-harchaoui/saggio/blob/master/docs/README.md) is the map of the rest.
 
-[`ANALYSIS.md`](ANALYSIS.md) is the investigation behind the division of labour
+[`ANALYSIS.md`](https://github.com/warith-harchaoui/saggio/blob/master/ANALYSIS.md) is the investigation behind the division of labour
 above: what static and dynamic analysis have actually been shown to deliver for
 complexity and for consumption, which of it belongs here, and which of it is
 refused and why.
@@ -296,7 +296,7 @@ the machine, because water usage effectiveness is defined per kilowatt-hour of I
 load and using the building figure would count the cooling twice.
 
 Hardware wattages, grid intensities, tariffs, and datacenter overheads live in
-[`saggio/data/`](saggio/data/), one row each
+[`saggio/data/`](https://github.com/warith-harchaoui/saggio/tree/master/saggio/data), one row each
 with its source and its date. Missing a row is a normal outcome, and the tool
 tells you which one by name:
 
@@ -333,7 +333,7 @@ The dependency direction only points one way, so the command line can do nothing
 library caller cannot.
 
 The HTML report's own pieces are authored outside the package, in
-[`reporting/`](reporting/): the document shell with the tokens the renderer
+[`reporting/`](https://github.com/warith-harchaoui/saggio/tree/master/reporting): the document shell with the tokens the renderer
 fills, the stylesheet, the script, the translations. They are a stylesheet and a
 script there rather than strings quoted inside Python, and `reporting/sync.py`
 copies them into the package that ships them, with a test that fails the build if
@@ -341,9 +341,9 @@ the two ever drift apart. Copy that trio to render reports of your own shape.
 
 ## Contributing
 
-[`CONTRIBUTING.md`](CONTRIBUTING.md) has the details. The short version: add a
+[`CONTRIBUTING.md`](https://github.com/warith-harchaoui/saggio/blob/master/CONTRIBUTING.md) has the details. The short version: add a
 catalogue row with its source and its date, or a test that pins a behaviour you
-care about. [`CODING.md`](CODING.md) is the style this repository is written in.
+care about. [`CODING.md`](https://github.com/warith-harchaoui/saggio/blob/master/CODING.md) is the style this repository is written in.
 
 ```bash
 pip install -e ".[dev]"
@@ -354,7 +354,7 @@ ruff format --check .
 
 ## Related work
 
-[`LANDSCAPE.md`](LANDSCAPE.md) places this alongside CodeCarbon, Green Algorithms,
+[`LANDSCAPE.md`](https://github.com/warith-harchaoui/saggio/blob/master/LANDSCAPE.md) places this alongside CodeCarbon, Green Algorithms,
 Scaphandre, PowerAPI, Cloud Carbon Footprint, and the rest of the field, and is
 honest about where each of them is the better tool.
 
@@ -368,4 +368,4 @@ records where every figure came from and on what date somebody read it.
 
 ## Licence
 
-[BSD 3-Clause](LICENSE). Warith Harchaoui, Ph.D.
+[BSD 3-Clause](https://github.com/warith-harchaoui/saggio/blob/master/LICENSE). Warith Harchaoui, Ph.D.

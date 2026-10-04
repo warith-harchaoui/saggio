@@ -5,14 +5,52 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
-## 1.4.0 — 2026-10-04
+## 1.4.1 — 2026-10-04
 
-Twenty-one entries that accumulated under the previous heading before anybody
-stopped to cut a release. Nothing here is breaking. Two of 1.3.0's own claims
-were corrected along the way, and those corrections are described below rather
-than quietly folded into the text above: *A derivation is checked* was closed
-only for the shapes it had been tested against, and the catalogue's provenance
-was honest per row before it was honest per column.
+A release that contains what its notes describe, which 1.4.0 did not.
+
+### 1.4.0 was tagged before the work its notes claimed
+
+- The tag was cut at a commit whose continuous integration **failed**, and the
+  two sections that opened its notes described commits that landed after it.
+  Anybody installing that tag got neither.
+- Nothing has been moved or rewritten to hide that: the tag stays where it is,
+  the two sections move down here to sit beside the commits they describe, and
+  this entry says what happened. A project that asks every figure to declare how
+  far it can be trusted does not get to quietly re-point a release.
+- Its own preface had already noticed, without anybody reading it: it announced
+  twenty-one entries and carried twenty-three. Moving the two that did not
+  belong to it makes the sentence true rather than having to edit it.
+
+### A measurement is not promised on a machine that cannot take one
+
+- The end-to-end journey for `--run` asserted that a runtime comes back
+  **measured**. That holds on a laptop, where the slice really does run, and it
+  failed on the continuous-integration runner, where nothing could consent to
+  executing somebody's code and the runtime stayed open. The runner was right.
+- Leaving a runtime open is the correct answer on a machine that cannot or may
+  not measure. The journey now checks the promise that holds either way: a
+  measured runtime carries a positive number and a note naming what was timed,
+  and an open one carries no number at all.
+- It takes **both** branches on purpose rather than whichever the machine
+  offers — once with standard input closed and a home directory of its own,
+  which is how a scheduled job and a container invoke this and which no consent
+  can reach, and once normally.
+
+### The README's links survive being republished
+
+- Fourteen links in `README.md` were relative. It is also the package's long
+  description, and an index renders that on its own domain, where
+  `](EXAMPLES.md)` resolves to a page that was never there. Every one of them
+  works in a checkout and on the forge; they would only have broken on the one
+  surface nobody looks at.
+- They are absolute now, and a contract test refuses a relative link in that
+  one file. The other documents keep theirs: they are read where they live,
+  where a relative link is the one that survives a fork.
+- Found by building the wheel, installing it into an empty environment outside
+  the repository, and running the journeys against it — which also confirmed
+  that all twelve catalogue and template files ship, and that the console
+  script reports the version the metadata declares.
 
 ### Fewer tests, more of them functional, and a job half as long
 
@@ -48,6 +86,17 @@ was honest per row before it was honest per column.
 - It reads the version with a narrow expression now, scoped to the `[project]`
   table so a version pinned for a dependency further down cannot be mistaken
   for the package's own. Checked on both 3.10 and 3.13 before being pushed.
+
+
+## 1.4.0 — 2026-10-04
+
+Twenty-one entries that accumulated under the previous heading before anybody
+stopped to cut a release. Nothing here is breaking. Two of 1.3.0's own claims
+were corrected along the way, and those corrections are described below rather
+than quietly folded into the text above: *A derivation is checked* was closed
+only for the shapes it had been tested against, and the catalogue's provenance
+was honest per row before it was honest per column.
+
 
 ### The grid catalogue is one vintage, from one source
 
