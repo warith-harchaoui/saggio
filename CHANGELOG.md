@@ -14,6 +14,30 @@ than quietly folded into the text above: *A derivation is checked* was closed
 only for the shapes it had been tested against, and the catalogue's provenance
 was honest per row before it was honest per column.
 
+### Fewer tests, more of them functional, and a job half as long
+
+- **2,174 cases become 1,701**, with nothing stopped being checked. Three
+  catalogue rules were parametrised over all 111 rows and one documentation
+  rule over all 152 commands — 333 and 152 cases each saying the same sentence
+  about a different key. Collapsed, each is one test that walks everything and
+  **names every offender in one failure**, which is what somebody fixing them
+  needs rather than whichever row pytest stopped at.
+- **Eight functional journeys** added, through the command line as a shell runs
+  it: start a model, audit then render then read, fail a lying model, turn an
+  open runtime into a measured one, fail a drift gate, produce an HTML report
+  that reaches for nothing, tell a usage error from a verdict by exit code, and
+  report freshness for the weekly job. The whole file runs in **11 seconds**,
+  and gutting the validator or collapsing an exit code fails the journey named
+  for it.
+- **`python -m saggio` now works.** The package had a console script and no
+  `__main__`, so it answered *"'saggio' is a package and cannot be directly
+  executed"* — which reads as a broken tool rather than a missing file. Found
+  because the functional tests need to run *this* working tree rather than
+  whatever is on the PATH.
+- The job runs `pytest -n auto`. Every test still runs; it is spread across the
+  runner's cores. **144 seconds to 53** locally, and it stays short as the suite
+  grows — which is the only way a gate remains one somebody waits for.
+
 ### A test that only ran on the author's Python
 
 - The contract added in this release to hold `pyproject.toml` against

@@ -57,7 +57,12 @@ jobs:
       - name: Test
         # The doctests run here too: every example in every docstring is executed,
         # so the documentation cannot drift away from the code.
-        run: python -m pytest
+        #
+        # `-n auto` spreads the suite across the runner's cores. It is not a
+        # shortcut past anything: every test still runs. It is what keeps the
+        # job short as the suite grows, which is the only way a gate stays one
+        # somebody waits for rather than one they learn to ignore.
+        run: python -m pytest -n auto
 
   freshness:
     name: catalogue freshness

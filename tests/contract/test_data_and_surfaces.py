@@ -58,46 +58,89 @@ def test_every_bundled_catalogue_declares_the_current_schema(name: str) -> None:
     assert yaml.safe_load(text)["schema_version"] == SCHEMA_VERSION
 
 
-@pytest.mark.parametrize(("kind", "key", "row"), ROWS, ids=[f"{k}:{key}" for k, key, _ in ROWS])
-def test_every_row_that_asserts_a_number_says_where_it_came_from(
-    kind: str, key: str, row: dict
-) -> None:
-    if not carries_numbers(row):
-        return
-    # A row-level `source_url` used to be the whole claim, which is how a grid
-    # row ended up citing an emissions dataset for its electricity tariff: one
-    # URL stood for every field, including the ones nobody had checked. A row may
-    # now state its provenance per column instead, and either shape has to say
-    # where the numbers came from and when they were read.
-    sources = [name for name in row if name == "source_url" or name.endswith("_source_url")]
-    dates = [name for name in row if name == "retrieved_date" or name.endswith("_retrieved_date")]
-    assert sources, f"{kind} {key} asserts a number with no source"
-    for name in sources:
-        assert row[name], f"{kind} {key} has an empty {name}"
-    assert dates, f"{kind} {key} asserts a number with no date"
-    for name in dates:
-        assert ISO_DATE.match(str(row[name])), f"{kind} {key} has no ISO date in {name}"
+def offenders(check) -> list[str]:
+    """Return what every catalogue row has to say against one rule.
+
+    One claim, checked over every row, reporting all of them. These were
+    parametrised per row, which turned three rules into 333 cases that each
+    said the same sentence about a different key. Collapsing them loses
+    nothing and gains the thing that matters when one actually fails: every
+    offending row named at once, rather than whichever pytest stopped at.
+    """
+    found: list[str] = []
+    for kind, key, row in ROWS:
+        complaint = check(kind, key, row)
+        if complaint:
+            found.append(complaint)
+    return found
 
 
-@pytest.mark.parametrize(("kind", "key", "row"), ROWS, ids=[f"{k}:{key}" for k, key, _ in ROWS])
-def test_no_provenance_date_is_in_the_future(kind: str, key: str, row: dict) -> None:
-    for name, value in row.items():
-        if name != "retrieved_date" and not name.endswith("_retrieved_date"):
-            continue
-        if isinstance(value, str) and ISO_DATE.match(value):
-            assert date.fromisoformat(value) <= date.today(), (
-                f"{kind} {key} was read in the future, per {name}"
-            )
+def test_every_row_that_asserts_a_number_says_where_it_came_from() -> None:
+    """A row-level `source_url` used to be the whole claim.
+
+    That is how a grid row ended up citing an emissions dataset for its
+    electricity tariff: one URL stood for every field, including the ones
+    nobody had checked. A row may state its provenance per column instead, and
+    either shape has to say where the numbers came from and when they were read.
+    """
+
+    def check(kind: str, key: str, row: dict) -> str | None:
+        if not carries_numbers(row):
+            return None
+        sources = [n for n in row if n == "source_url" or n.endswith("_source_url")]
+        dates = [n for n in row if n == "retrieved_date" or n.endswith("_retrieved_date")]
+        if not sources:
+            return f"{kind} {key} asserts a number with no source"
+        empty = [n for n in sources if not row[n]]
+        if empty:
+            return f"{kind} {key} has an empty {', '.join(empty)}"
+        if not dates:
+            return f"{kind} {key} asserts a number with no date"
+        unparsed = [n for n in dates if not ISO_DATE.match(str(row[n]))]
+        if unparsed:
+            return f"{kind} {key} has no ISO date in {', '.join(unparsed)}"
+        return None
+
+    found = offenders(check)
+    assert not found, "\n".join(found)
 
 
-@pytest.mark.parametrize(("kind", "key", "row"), ROWS, ids=[f"{k}:{key}" for k, key, _ in ROWS])
-def test_a_source_url_is_a_link_or_an_admitted_default(kind: str, key: str, row: dict) -> None:
-    for name, source in row.items():
-        if name != "source_url" and not name.endswith("_source_url"):
-            continue
-        assert str(source).startswith("http") or source == INTERNAL_DEFAULT_SOURCE, (
-            f"{kind} {key}: {name} is neither a link nor an admitted internal default"
+def test_no_provenance_date_is_in_the_future() -> None:
+    """A date later than today is a typo, and must not buy unearned freshness."""
+
+    def check(kind: str, key: str, row: dict) -> str | None:
+        ahead = [
+            name
+            for name, value in row.items()
+            if (name == "retrieved_date" or name.endswith("_retrieved_date"))
+            and isinstance(value, str)
+            and ISO_DATE.match(value)
+            and date.fromisoformat(value) > date.today()
+        ]
+        return f"{kind} {key} was read in the future, per {', '.join(ahead)}" if ahead else None
+
+    found = offenders(check)
+    assert not found, "\n".join(found)
+
+
+def test_a_source_url_is_a_link_or_an_admitted_default() -> None:
+    """Either a reader can follow it, or it says plainly that nobody read one."""
+
+    def check(kind: str, key: str, row: dict) -> str | None:
+        bad = [
+            name
+            for name, source in row.items()
+            if (name == "source_url" or name.endswith("_source_url"))
+            and not (str(source).startswith("http") or source == INTERNAL_DEFAULT_SOURCE)
+        ]
+        return (
+            f"{kind} {key}: {', '.join(bad)} is neither a link nor an admitted default"
+            if bad
+            else None
         )
+
+    found = offenders(check)
+    assert not found, "\n".join(found)
 
 
 @pytest.mark.parametrize("kind", sorted(SECTION_OF_KIND))

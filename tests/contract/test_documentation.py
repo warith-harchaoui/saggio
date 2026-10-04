@@ -64,8 +64,13 @@ def commands_in(document: str) -> list[tuple[int, str]]:
     return found
 
 
-ALL_COMMANDS = [
-    pytest.param(document, number, command, id=f"{document}:{number}")
+#: Every invocation the documentation shows, as ``(document, line, command)``.
+#: It held :func:`pytest.param` objects while each one was its own test case;
+#: once the check was collapsed into a single test those wrappers were just a
+#: shape to unpack around, and unpacking them wrongly is how the collapse first
+#: went in.
+ALL_COMMANDS: list[tuple[str, int, str]] = [
+    (document, number, command)
     for document in DOCUMENTS
     for number, command in commands_in(document)
 ]
@@ -77,23 +82,30 @@ def test_the_documents_actually_show_commands() -> None:
     assert len(ALL_COMMANDS) > 25
 
 
-@pytest.mark.parametrize(("document", "number", "command"), ALL_COMMANDS)
-def test_every_documented_command_parses(document: str, number: int, command: str) -> None:
+def test_every_documented_command_parses() -> None:
+    """Every invocation the documentation shows is one the parser accepts.
+
+    One claim over 152 commands. It was parametrised, which meant 152 cases
+    saying the same sentence about a different line, and a run that stopped at
+    whichever one pytest reached first. Collapsed, a failure lists every
+    command that does not parse, which is what somebody fixing the docs needs.
+    """
     parser = build_parser()
-    # The prose pipes output into other tools and writes URLs with an ellipsis in
-    # the middle; neither is the parser's business.
-    command = command.split("|", 1)[0]
-    argv = [
-        "https://example.invalid" if part.startswith("http") else part
-        for part in shlex.split(command, comments=True)
-        if part not in {"...", "…"}
-    ]
-    try:
-        parser.parse_args(argv)
-    except SystemExit as exit_info:  # argparse exits on a flag it does not know.
-        pytest.fail(
-            f"{document}:{number} shows `{command}`, which the parser rejects ({exit_info})"
-        )
+    rejected: list[str] = []
+    for document, number, command in ALL_COMMANDS:
+        # The prose pipes output into other tools and writes URLs with an
+        # ellipsis in the middle; neither is the parser's business.
+        head = command.split("|", 1)[0]
+        argv = [
+            "https://example.invalid" if part.startswith("http") else part
+            for part in shlex.split(head, comments=True)
+            if part not in {"...", "\u2026"}
+        ]
+        try:
+            parser.parse_args(argv)
+        except SystemExit as exit_info:  # argparse exits on a flag it does not know.
+            rejected.append(f"{document}:{number} shows `{head.strip()}` ({exit_info})")
+    assert not rejected, "the parser rejects these documented commands:\n" + "\n".join(rejected)
 
 
 @pytest.mark.parametrize("document", DOCUMENTS)

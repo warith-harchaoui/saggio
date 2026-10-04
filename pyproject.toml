@@ -67,6 +67,7 @@ office = ["md2star>=1.0"]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
+    "pytest-xdist>=3.6",
     # Pinned exactly, and not out of caution. `ruff format` is a gate, and an
     # unpinned gate changes its own rules: 0.16 began formatting the Python
     # inside Markdown fences, so continuous integration started failing on files
