@@ -23,12 +23,14 @@ from __future__ import annotations
 
 import stat
 import sys
+from datetime import date
 from pathlib import Path
 
 import pytest
 
 from saggio.model import CostModel
-from saggio.report.office import render_office
+from saggio.report.markdown import render_markdown
+from saggio.report.office import DEFAULT_AUTHOR, render_office
 
 #: A model small enough to read and complete enough to render.
 MODEL = CostModel.from_mapping(
@@ -193,6 +195,73 @@ def test_no_reference_document_means_no_flag(
     render_office(MODEL, tmp_path / "cost.docx", output_format="docx")
     argv = (tmp_path / "cost.docx.argv").read_text(encoding="utf-8").splitlines()
     assert "--reference-doc" not in argv
+
+
+def test_the_document_says_what_produced_it_and_when(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A reader holding the PDF should be able to tell it was generated."""
+    point_at(monkeypatch, stand_in_md2star(tmp_path))
+    render_office(MODEL, tmp_path / "cost.docx", output_format="docx")
+    argv = (tmp_path / "cost.docx.argv").read_text(encoding="utf-8").splitlines()
+    assert argv[argv.index("--author") + 1] == DEFAULT_AUTHOR
+    assert argv[argv.index("--date") + 1] == date.today().isoformat()
+
+
+def test_the_author_line_can_be_left_out(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Somebody producing a client deliverable may not want our name on it."""
+    point_at(monkeypatch, stand_in_md2star(tmp_path))
+    render_office(MODEL, tmp_path / "cost.docx", output_format="docx", author=None)
+    argv = (tmp_path / "cost.docx.argv").read_text(encoding="utf-8").splitlines()
+    assert "--author" not in argv
+    assert "--date" in argv, "dropping the author must not drop the date with it"
+
+
+def test_the_date_the_document_was_made_is_not_the_date_the_model_changed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Two different facts, and conflating them is how a stale figure looks fresh.
+
+    *Last updated* in the body says when somebody last changed a number. The
+    date in the title block says when this file was made. A document produced
+    today from a model nobody has touched since June has to say both.
+    """
+    point_at(monkeypatch, stand_in_md2star(tmp_path))
+    render_office(MODEL, tmp_path / "cost.docx", output_format="docx", generated=date(2026, 6, 21))
+    argv = (tmp_path / "cost.docx.argv").read_text(encoding="utf-8").splitlines()
+    assert argv[argv.index("--date") + 1] == "2026-06-21"
+    body = render_markdown(MODEL)
+    assert "2026-06-21" not in body, "stamping the document rewrote the model's own dates"
+
+
+def test_a_date_that_is_not_a_date_is_passed_through_untouched(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`2026-Q2` and `submitted 14 March` are what some documents actually say."""
+    point_at(monkeypatch, stand_in_md2star(tmp_path))
+    render_office(MODEL, tmp_path / "cost.docx", output_format="docx", generated="2026-Q2")
+    argv = (tmp_path / "cost.docx.argv").read_text(encoding="utf-8").splitlines()
+    assert argv[argv.index("--date") + 1] == "2026-Q2"
+
+
+def test_the_network_can_be_refused_and_is_not_refused_by_default(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The converter fetches a template over HTTP unless told not to.
+
+    That is a pleasant default and a surprising one: a render fails on a train,
+    and two renders of one model differ when the template moves. Neither is a
+    defect, but a caller who needs determinism has to be able to say so.
+    """
+    point_at(monkeypatch, stand_in_md2star(tmp_path))
+    render_office(MODEL, tmp_path / "plain.docx", output_format="docx")
+    relaxed = (tmp_path / "plain.docx.argv").read_text(encoding="utf-8").splitlines()
+    assert "--offline" not in relaxed
+
+    render_office(MODEL, tmp_path / "sealed.docx", output_format="docx", offline=True)
+    sealed = (tmp_path / "sealed.docx.argv").read_text(encoding="utf-8").splitlines()
+    assert "--offline" in sealed
+    assert "--no-remote-templates" in sealed
 
 
 # --- When it goes wrong ---------------------------------------------------------

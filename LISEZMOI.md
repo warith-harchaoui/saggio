@@ -141,7 +141,9 @@ vôtre à fournir.
 page HTML autonome pour tous les autres : hors ligne, clair et sombre, anglais et
 français, avec un panneau qui recalcule le modèle pour un autre pays dans le
 navigateur et un graphique de ce que le réseau électrique ferait au carbone
-ailleurs. Word et PDF via `md2star` quand c'est un document qu'on attend. Chaque
+ailleurs. Word et PDF via `md2star` quand c'est un document qu'on attend, leur bloc de
+titre nommant ce qui les a produits et la date de production — qui n'est pas
+celle de la dernière modification du modèle, et le dit. Chaque
 chiffre de carbone connu est aussi restitué en termes qu'un lecteur peut
 ressentir — des mois-arbre de séquestration, des kilomètres en voiture moyenne,
 une fraction d'un vol Paris–Londres — avec les coefficients de

@@ -105,7 +105,7 @@ which `help()` will show you.
 |---|---|
 | `render_markdown(model: 'CostModel \| dict[str, Any]') -> 'str'` | Render a cost model as a Markdown report. |
 | `render_html(model: 'CostModel \| dict[str, Any]', *, overlay: 'Any' = None) -> 'str'` | Render a cost model as one self-contained HTML page. |
-| `render_office(model: 'CostModel \| dict[str, Any]', output: 'str \| Path', *, output_format: 'str' = 'docx', reference_document: 'str \| Path \| None' = None) -> 'Path'` | Render a cost model to Word or PDF. |
+| `render_office(model: 'CostModel \| dict[str, Any]', output: 'str \| Path', *, output_format: 'str' = 'docx', reference_document: 'str \| Path \| None' = None, author: 'str \| None' = 'saggio', generated: 'date \| str \| None' = None, offline: 'bool' = False) -> 'Path'` | Render a cost model to Word or PDF. |
 | `render_dashboard(models: 'list[CostModel \| dict[str, Any]]') -> 'str'` | Render several cost models as one self-contained HTML page. |
 | `template_text(name: 'str' = 'minimal') -> 'str'` | Return a template's YAML text. |
 | `template_mapping(name: 'str' = 'minimal') -> 'dict[str, Any]'` | Return a template already parsed. |

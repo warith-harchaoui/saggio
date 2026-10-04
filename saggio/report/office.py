@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+from datetime import date
 from pathlib import Path
 from typing import Any, Final
 
@@ -46,6 +47,19 @@ MD2STAR_COMMAND: Final[str] = "md2star"
 #: How long a conversion may take. Pandoc with a LaTeX engine is slow on a first
 #: run because it builds font caches, so the limit is generous.
 _CONVERSION_TIMEOUT_SECONDS: Final[float] = 600.0
+
+#: Who the document says produced it. A cost model is written by a person and
+#: argued over in review; the Word file and the PDF are produced by this program
+#: from that model, and the title block should say which of the two the reader
+#: is holding.
+DEFAULT_AUTHOR: Final[str] = "saggio"
+
+#: Passed to ``md2star`` when a caller asks for no network. Since its 2.5.0 the
+#: wrapper fetches a branded template over HTTP whenever no reference document
+#: is given, which is a pleasant default and a surprising one: a render can fail
+#: on a train, and two renders of one model can differ because a template moved.
+#: Neither is a defect, but neither should be undeclared.
+_OFFLINE_ARGUMENTS: Final[tuple[str, ...]] = ("--offline", "--no-remote-templates")
 
 #: What to tell a caller who does not have the toolchain installed.
 _MISSING_MESSAGE: Final[str] = (
@@ -71,12 +85,53 @@ def md2star_available() -> bool:
     return shutil.which(MD2STAR_COMMAND) is not None
 
 
+def _stamp(generated: date | str | None) -> str:
+    """Return the date the document says it was produced on.
+
+    The body of the report already carries *Last updated*, which is a fact about
+    the **model**: when somebody last changed a number in it. This is a fact
+    about the **document**: when this particular file was made. A PDF produced
+    today from a model nobody has touched since June should say both, and saying
+    only one of them is how a stale figure acquires a fresh-looking date.
+
+    Parameters
+    ----------
+    generated : datetime.date or str or None
+        The date to stamp. A string is passed through untouched, so a caller who
+        wants ``2026-Q2`` or ``submitted 14 March`` gets exactly that. ``None``
+        stamps today.
+
+    Returns
+    -------
+    str
+        What to hand to the converter.
+
+    Examples
+    --------
+    >>> import datetime
+    >>> _stamp(datetime.date(2026, 6, 21))
+    '2026-06-21'
+    >>> _stamp("submitted 14 March")
+    'submitted 14 March'
+    >>> _stamp(None) == datetime.date.today().isoformat()
+    True
+    """
+    if generated is None:
+        return date.today().isoformat()
+    if isinstance(generated, str):
+        return generated
+    return generated.isoformat()
+
+
 def render_office(
     model: CostModel | dict[str, Any],
     output: str | Path,
     *,
     output_format: str = "docx",
     reference_document: str | Path | None = None,
+    author: str | None = DEFAULT_AUTHOR,
+    generated: date | str | None = None,
+    offline: bool = False,
 ) -> Path:
     """Render a cost model to Word or PDF.
 
@@ -90,6 +145,19 @@ def render_office(
         ``docx`` or ``pdf``.
     reference_document : str or pathlib.Path or None, optional
         A ``.docx`` whose styles the output should follow.
+    author : str or None, optional
+        Who the title block names as having produced the document. Defaults to
+        the program, because the program is what produced it: a reader holding
+        the PDF should be able to tell it was generated rather than written.
+        Pass ``None`` to leave the line out.
+    generated : datetime.date or str or None, optional
+        The date the document states it was made on, which is **not** the date
+        the model was last changed -- see :func:`_stamp`. Defaults to today.
+    offline : bool, optional
+        Refuse every network-touching step of the conversion. The converter
+        otherwise fetches a branded template over HTTP when no reference
+        document is given, which makes a render fail without a connection and
+        lets two renders of one model differ.
 
     Returns
     -------
@@ -122,8 +190,13 @@ def render_office(
     with osh.temporary_filename(suffix=".md", delete=True) as scratch:
         Path(scratch).write_text(render_markdown(model), encoding="utf-8")
         command = [MD2STAR_COMMAND, output_format, scratch, "--output", str(target)]
+        if author:
+            command += ["--author", author]
+        command += ["--date", _stamp(generated)]
         if reference_document is not None:
             command += ["--reference-doc", str(reference_document)]
+        if offline:
+            command += list(_OFFLINE_ARGUMENTS)
         try:
             completed = subprocess.run(  # noqa: S603 - a list, never a shell.
                 command,

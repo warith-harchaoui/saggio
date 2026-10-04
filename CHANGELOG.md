@@ -5,6 +5,34 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
+## Unreleased
+
+### A Word file and a PDF say what made them, and when
+
+- The title block of a `docx` and a `pdf` now names **saggio** as the author and
+  carries the date the document was produced. Before this, both were blank:
+  a reader holding the PDF had no way to tell whether it had been written by a
+  person or generated, nor when.
+- The date is deliberately **not** the one already in the body. *Last updated*
+  is a fact about the model — when somebody last changed a number in it — and
+  the title block is a fact about the file. A document produced today from a
+  model untouched since June states both, which is the whole point: a stale
+  figure must not acquire a fresh-looking date by being exported again. A test
+  holds the two apart.
+- `--author` puts a different name on a client deliverable, `--generated`
+  states the date verbatim (`2026-Q2`, `submitted 14 March`), and passing no
+  author at all drops the line without dropping the date with it.
+
+### The conversion can be told to refuse the network
+
+- Found while reading what the converter actually does: since its 2.5.0 it
+  fetches a branded template over HTTP whenever no reference document is given.
+  That is a pleasant default and a surprising one — a render fails on a train,
+  and two renders of one model can differ because a template moved.
+- Neither is a defect, and neither was declared. `--offline` now refuses every
+  network-touching step, and the behaviour without it is written down rather
+  than left to be discovered.
+
 ## 1.4.2 — 2026-10-04
 
 The first release published to a package index, and the one whose long

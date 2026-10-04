@@ -259,6 +259,9 @@ def render(args: argparse.Namespace) -> int:
                 args.output,
                 output_format=args.format,
                 reference_document=args.reference_doc,
+                author=args.author,
+                generated=args.generated,
+                offline=args.offline,
             )
         except RuntimeError as exc:
             osh.error(str(exc))

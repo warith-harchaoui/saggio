@@ -661,7 +661,30 @@ saggio render cost_of_running.yaml -f pdf -o cost_of_running.pdf
 # In your own house style.
 saggio render cost_of_running.yaml -f docx -o cost_of_running.docx \
     --reference-doc assets/template.docx
+
+# Whose name is on it, and what date it claims.
+saggio render cost_of_running.yaml -f pdf -o annexe.pdf \
+    --author "Acme Ltd" --generated "2026-Q2"
+
+# No network at any point of the conversion.
+saggio render cost_of_running.yaml -f docx -o cost_of_running.docx --offline
 ```
+
+The Word and PDF title block names **saggio** as the author and carries the date
+the document was produced. That date is not the one in the body: *Last updated*
+is a fact about the model, when somebody last changed a number in it, and the
+title block is a fact about the file, when this copy was made. A PDF produced
+today from a model nobody has touched since June says both, which is the point —
+a stale figure must not acquire a fresh-looking date by being re-exported.
+
+Pass `--author` to put a different name on a client deliverable, or `--generated`
+to state the date verbatim (`2026-Q2`, `submitted 14 March`). Both default to
+what actually produced the file and when.
+
+`--offline` matters more than it looks. The converter fetches a branded template
+over HTTP whenever no `--reference-doc` is given, so without it a render needs a
+connection and two renders of one model can differ because the template moved.
+Neither is a defect; neither should be undeclared.
 
 The HTML page carries its own stylesheet, script, logo, and catalogue data, so it
 opens with no network at all. Its what-if panel recomputes carbon and money for a

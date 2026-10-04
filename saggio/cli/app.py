@@ -34,7 +34,7 @@ from ..catalog.registry import EXPIRING_WITHIN_DAYS, SECTION_OF_KIND
 from ..diff import DEFAULT_DRIFT_THRESHOLD_PERCENT
 from ..estimate.extrapolate import DEFAULT_PRECISION
 from ..model.taxonomy import STATUS_ORDER
-from ..report.office import OFFICE_FORMATS
+from ..report.office import DEFAULT_AUTHOR, OFFICE_FORMATS
 from ..templates import DEFAULT_TEMPLATE, TEMPLATES, template_names
 from . import commands
 from .exit_codes import MEANINGS, USAGE
@@ -201,6 +201,34 @@ def _add_render(verbs: argparse._SubParsersAction) -> None:
         "--reference-doc",
         default=None,
         help="A .docx whose styles a Word or PDF output should follow.",
+    )
+    parser.add_argument(
+        "--author",
+        default=DEFAULT_AUTHOR,
+        help=(
+            "Who the Word or PDF title block names as having produced it. "
+            f"Defaults to {DEFAULT_AUTHOR!r}, which is what did."
+        ),
+    )
+    parser.add_argument(
+        "--generated",
+        default=None,
+        metavar="DATE",
+        help=(
+            "The date the document states it was made on, used verbatim. Not the "
+            "date the model was last changed, which the report already carries. "
+            "Defaults to today."
+        ),
+    )
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help=(
+            "Refuse every network step of a Word or PDF conversion. Without it the "
+            "converter fetches a branded template over HTTP when no --reference-doc "
+            "is given, so a render needs a connection and can change when that "
+            "template does."
+        ),
     )
 
 

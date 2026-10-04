@@ -136,7 +136,9 @@ the eight refusals with their reasons.
 self-contained HTML page for everyone else: offline, light and dark, English and
 French, with a panel that recomputes the model for a different country in the
 browser and a chart of how the grid would move the carbon elsewhere. Word and PDF
-through `md2star` when a document is what somebody wants. Every known carbon
+through `md2star` when a document is what somebody wants, their title block
+naming what produced them and the date they were produced — which is not the
+date the model last changed, and says so. Every known carbon
 figure is also restated in terms a reader can feel — tree-months of
 sequestration, kilometres in an average car, a fraction of a Paris–London
 flight — with the [Green Algorithms](https://doi.org/10.1002/advs.202100707)

@@ -679,7 +679,30 @@ saggio render cost_of_running.yaml -f pdf -o cost_of_running.pdf
 # À votre charte graphique.
 saggio render cost_of_running.yaml -f docx -o cost_of_running.docx \
     --reference-doc assets/template.docx
+
+# Quel nom figure dessus, et quelle date il revendique.
+saggio render cost_of_running.yaml -f pdf -o annexe.pdf \
+    --author "Acme SAS" --generated "2026-T2"
+
+# Aucun accès réseau pendant la conversion.
+saggio render cost_of_running.yaml -f docx -o cost_of_running.docx --offline
 ```
+
+Le bloc de titre du Word et du PDF nomme **saggio** comme auteur et porte la date
+de production du document. Ce n'est pas la date du corps : *Last updated* dit
+quand quelqu'un a modifié un nombre du modèle, le bloc de titre dit quand ce
+fichier-ci a été fabriqué. Un PDF produit aujourd'hui depuis un modèle inchangé
+depuis juin affiche les deux, et c'est tout l'intérêt : un chiffre périmé ne doit
+pas se refaire une fraîcheur en étant réexporté.
+
+`--author` met un autre nom sur un livrable client ; `--generated` écrit la date
+telle quelle (`2026-T2`, `remis le 14 mars`). Les deux valent par défaut ce qui a
+réellement produit le fichier, et quand.
+
+`--offline` compte plus qu'il n'y paraît. Le convertisseur va chercher un gabarit
+de document en HTTP dès qu'aucun `--reference-doc` n'est donné : sans ce drapeau,
+un rendu exige une connexion et deux rendus d'un même modèle peuvent différer
+parce que le gabarit a bougé. Ce n'est pas un défaut ; cela ne doit pas être tu.
 
 La page HTML embarque sa propre feuille de style, son script, son logo et les
 données de catalogue dont elle a besoin : elle s'ouvre sans aucun réseau. Son
