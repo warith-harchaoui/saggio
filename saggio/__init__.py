@@ -63,7 +63,7 @@ if not any(sys.platform.startswith(name) for name in SUPPORTED_PLATFORMS):
     )
 
 #: The installed version, kept in step with pyproject.toml at release.
-__version__: Final[str] = "1.4.1"
+__version__: Final[str] = "1.4.2"
 
 __author__: Final[str] = "Warith Harchaoui, Ph.D."
 __email__: Final[str] = "warith.harchaoui@sev7n.io"

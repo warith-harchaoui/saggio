@@ -17,7 +17,7 @@ compatibility: >-
   the [office] extra and Pandoc.
 metadata:
   author: Warith Harchaoui
-  version: "1.4.1"
+  version: "1.4.2"
   homepage: https://github.com/warith-harchaoui/saggio
 ---
 

@@ -5,6 +5,40 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
+## 1.4.2 — 2026-10-04
+
+The first release published to a package index, and the one whose long
+description works there.
+
+### The header logo points at a host that serves images
+
+- `README.md` is the long description, so an index renders it as the project
+  page. Its header logo was an HTML `<img>` with a **relative** source, which
+  on an index resolves against the index's own domain and shows nothing.
+- The round of absolute links in 1.4.1 walked past it, because the check that
+  found those read Markdown link syntax and an `<img>` tag is not Markdown link
+  syntax. The contract now reads every form a reference can take — link, `src`,
+  `href`, and the reference-style spelling.
+- Images carry a second trap: on the forge, `blob/` answers with an HTML page
+  and only the raw host answers with the image bytes. Both were measured —
+  225 KB of `text/html` against 3.2 MB of `image/png` — before choosing, because
+  a rewrite to `blob/` would have been absolute and still broken.
+- This is a separate release rather than a correction folded into 1.4.1
+  because the long description is baked into the metadata: shipping it under
+  that number would have put content on the index that the `1.4.1` tag does not
+  contain. That is the defect 1.4.1 itself was cut to stop repeating.
+
+### A malformed tag that no renderer complained about
+
+- The repair above went out once with the tag mangled — a stray quote, the
+  attributes before it gone. It was correct when written and correct when
+  rendered; it was not correct when it was staged, and nothing in between
+  looked again.
+- Worth knowing for anyone relying on `twine check`: the renderer **accepted**
+  the malformed tag without a word and silently dropped the attributes it could
+  not parse. The page would have rendered a logo that simply looked wrong, with
+  no tool anywhere reporting a fault.
+
 ## 1.4.1 — 2026-10-04
 
 A release that contains what its notes describe, which 1.4.0 did not.

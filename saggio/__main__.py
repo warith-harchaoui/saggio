@@ -18,7 +18,7 @@ Usage example
 .. code-block:: console
 
    $ python -m saggio --version
-   saggio 1.4.1
+   saggio 1.4.2
 
 Author
 ------
