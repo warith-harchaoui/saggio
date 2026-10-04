@@ -14,6 +14,17 @@ than quietly folded into the text above: *A derivation is checked* was closed
 only for the shapes it had been tested against, and the catalogue's provenance
 was honest per row before it was honest per column.
 
+### A test that only ran on the author's Python
+
+- The contract added in this release to hold `pyproject.toml` against
+  `__version__` reached for `tomllib`, which **arrived in 3.11**. This package
+  supports 3.10, and continuous integration runs 3.10 precisely because it is
+  the version most likely to refuse something. It refused this, on the commit
+  that added it — green on a 3.13 laptop, red on the floor of the range.
+- It reads the version with a narrow expression now, scoped to the `[project]`
+  table so a version pinned for a dependency further down cannot be mistaken
+  for the package's own. Checked on both 3.10 and 3.13 before being pushed.
+
 ### The grid catalogue is one vintage, from one source
 
 - The 38 country intensities are refreshed from the Ember API, data year 2025.

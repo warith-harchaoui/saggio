@@ -443,10 +443,21 @@ def test_the_version_the_package_reports_is_the_version_it_ships_as() -> None:
     heading were both checked against `__version__`, and `pyproject.toml`, the
     one that decides what `pip install` actually delivers, was not.
     """
-    import tomllib
+    import re
 
-    declared = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    shipped = declared["project"]["version"]
+    # `tomllib` arrived in 3.11 and this package supports 3.10, which is the
+    # version continuous integration runs precisely because it is the one most
+    # likely to refuse something. It refused this, on the commit that added it.
+    #
+    # A narrow read instead: the first `version = "..."` inside the `[project]`
+    # table, and nowhere else, so a version pinned for a dependency further down
+    # the file cannot be mistaken for the package's own.
+    text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    project = re.search(r"^\[project\]$(.*?)^\[", text, re.M | re.S)
+    assert project, "pyproject.toml has no [project] table"
+    found = re.search(r'^version\s*=\s*"([^"]+)"', project.group(1), re.M)
+    assert found, "[project] declares no version"
+    shipped = found.group(1)
     assert shipped == __version__, (
         f"pyproject.toml ships {shipped!r} and the package reports {__version__!r}"
     )
