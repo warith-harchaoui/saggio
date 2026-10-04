@@ -5,7 +5,14 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
-## 1.3.0 — 2026-10-02
+## 1.4.0 — 2026-10-04
+
+Twenty-one entries that accumulated under the previous heading before anybody
+stopped to cut a release. Nothing here is breaking. Two of 1.3.0's own claims
+were corrected along the way, and those corrections are described below rather
+than quietly folded into the text above: *A derivation is checked* was closed
+only for the shapes it had been tested against, and the catalogue's provenance
+was honest per row before it was honest per column.
 
 ### The grid catalogue is one vintage, from one source
 
@@ -510,6 +517,8 @@ release of that line.
 - Three doctests now show the unit, the status and that a `source_url` came with
   the figure, rather than the figure. An example restating a refreshable number
   is wrong the first time somebody runs the refresh command this package ships.
+
+## 1.3.0 — 2026-10-02
 
 ### A derivation is checked, not just declared
 

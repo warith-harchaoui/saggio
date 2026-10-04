@@ -429,3 +429,24 @@ def test_everything_a_page_cites_is_in_the_sources_it_lists(page: str) -> None:
     assert not missing, (
         f"{page} cites these in its body and does not list them under Sources: {missing}"
     )
+
+
+def test_the_version_the_package_reports_is_the_version_it_ships_as() -> None:
+    """`__version__` and the packaging metadata have to be the same number.
+
+    They are written in two files and nothing connected them. If they drift, a
+    user runs `saggio --version`, reads one number, reports a bug against it,
+    and the maintainer looks at a different release — which is a particularly
+    tiring way to waste two people's afternoon.
+
+    Found while cutting 1.4.0: the skill's frontmatter and the changelog
+    heading were both checked against `__version__`, and `pyproject.toml`, the
+    one that decides what `pip install` actually delivers, was not.
+    """
+    import tomllib
+
+    declared = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    shipped = declared["project"]["version"]
+    assert shipped == __version__, (
+        f"pyproject.toml ships {shipped!r} and the package reports {__version__!r}"
+    )
