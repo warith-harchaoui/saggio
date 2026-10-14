@@ -9,6 +9,7 @@ import pytest
 from saggio.estimate.context import (
     COUNTRY_ENVIRONMENT_VARIABLE,
     DeploymentContext,
+    _names_a_zone,
     country_from_timezone,
     local_timezone_name,
 )
@@ -59,7 +60,71 @@ def test_a_country_in_two_countries_timezone_resolves_to_neither() -> None:
 
 def test_the_timezone_reader_returns_a_zone_or_nothing() -> None:
     name = local_timezone_name()
-    assert name is None or "/" in name
+    assert name is None or _names_a_zone(name)
+
+
+def test_a_zone_name_without_a_slash_is_still_a_zone_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The assertion this replaces failed on the first machine that was not ours.
+
+    `UTC`, `GMT`, `Japan`, `Singapore`, `Israel` and `EST5EDT` are all real
+    entries in the timezone database and none of them has a slash. The reader
+    filtered on the slash, so on a machine set to any of them the `TZ` somebody
+    had deliberately set was discarded and the machine's own zone used instead:
+    a stated input silently replaced by a different one, answering with a
+    perfectly ordinary-looking country.
+
+    Found by putting macOS back in the gate. A CI runner is set to UTC, which no
+    developer's laptop is, and the suite had never run anywhere that was.
+    """
+    monkeypatch.setenv("TZ", "UTC")
+    assert local_timezone_name() == "UTC"
+
+
+def test_a_zone_the_user_asked_for_beats_the_machine_it_runs_on(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The user-visible half of the same defect. `TZ=Japan` used to be dropped,
+    # and the country came back as whatever the laptop was in -- which is a
+    # different country's grid, in a file somebody will quote.
+    monkeypatch.setenv("TZ", "Japan")
+    assert local_timezone_name() == "Japan"
+
+
+def test_an_unresolvable_zone_gives_no_country_rather_than_the_laptop_s(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """And the catalogue not knowing a name is not a licence to use another.
+
+    `Japan` is a compatibility name the database keeps; the catalogue lists
+    `Asia/Tokyo`. So the country stays open. That is the right outcome and the
+    point of the fix: before it, this resolved to the country the developer
+    happened to be sitting in.
+    """
+    monkeypatch.delenv(COUNTRY_ENVIRONMENT_VARIABLE, raising=False)
+    monkeypatch.setenv("TZ", "Japan")
+    assert country_from_timezone("Japan") is None
+    assert build().country is None
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "EST5EDT,M3.2.0,M11.1.0",  # a POSIX rule string, not a zone name
+        "/etc/passwd",  # an absolute path, which zoneinfo refuses outright
+        "../../etc/passwd",  # and one climbing out of the database
+        "Europe/Nowhere",  # a plausible shape the database does not have
+        "",
+    ],
+)
+def test_what_is_not_a_zone_name_is_not_taken_for_one(
+    value: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The other direction of the same question. A slash was never evidence: a
+    # POSIX rule string can carry one and names no zone at all.
+    monkeypatch.setenv("TZ", value)
+    assert local_timezone_name() != value
 
 
 def test_a_country_the_catalogue_does_not_know_is_still_the_users_word() -> None:

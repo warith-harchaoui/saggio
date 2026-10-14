@@ -7,6 +7,47 @@ release of that line.
 
 ## Unreleased
 
+### macOS is back in the gate, and it found something on its first run
+
+- Nearly all of this package's power-counter code is macOS-only, and no CI job
+  had read a line of it since the matrix was cut to one. A regression in
+  `IOReport` would have shipped and been found by a user. The runner is Apple
+  Silicon, which is the hardware that code is for.
+- It was dropped because it was red. What made it red was fixed afterwards, in a
+  different commit, without anybody going back to check — tests that encoded a
+  developer's machine rather than the product. Bringing it back cost nothing but
+  the look.
+- `workflow_dispatch`, so a change to the gate can be tried on its own branch. A
+  CI change that can only be tested by merging it is a CI change nobody tests;
+  this one was wrong on its first run and right on its second, on a branch.
+- Each run prints `saggio power` before the suite, so a counter that stops
+  answering says so in its own words rather than through whichever test happens
+  to notice.
+
+### `TZ=Japan` was being silently ignored in favour of the laptop
+
+- The first macOS run failed on an assertion that a timezone name contains a
+  slash. A CI runner is set to **UTC**, which no developer's laptop is, and the
+  suite had never run anywhere that was.
+- The assertion was the smaller half. `UTC`, `GMT`, `Japan`, `Singapore`,
+  `Israel` and `EST5EDT` are all real entries in the timezone database and none
+  of them has a slash, so the reader **discarded the `TZ` somebody had
+  deliberately set** and used the machine's own zone instead. Setting
+  `TZ=Japan` on a laptop in Paris did not get you Japan; it got you France,
+  silently, with a French grid intensity in a file somebody would quote.
+- The slash was never evidence in the other direction either: a POSIX `TZ`
+  *rule* string can contain one and names no zone, and `TZ=/etc/passwd` was
+  returned as a timezone name because it has a slash in it.
+- All three sources — the environment variable, the `/etc/localtime` symlink,
+  the standard library — now ask the **timezone database** the same question,
+  through `zoneinfo`. No network and no dependency: those are the files
+  `/etc/localtime` already points into.
+- A name the catalogue does not list still gives **no country rather than
+  another one**. `Japan` is a compatibility name the database keeps and the
+  catalogue lists `Asia/Tokyo`, so the country stays open — which is the right
+  answer and the whole point: before the fix it resolved to wherever the
+  developer was sitting.
+
 ### A number now says which line of a GHG inventory it goes on
 
 - The gap this closes is the one between the two people who have to agree: an

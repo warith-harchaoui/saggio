@@ -43,6 +43,7 @@ Warith Harchaoui
 from __future__ import annotations
 
 import os
+import zoneinfo
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Final
@@ -63,6 +64,58 @@ _LOCALTIME_LINK: Final[Path] = Path("/etc/localtime")
 #: The path component that precedes the IANA zone name inside that symlink.
 _ZONEINFO_MARKER: Final[str] = "zoneinfo/"
 
+
+def _names_a_zone(candidate: str) -> bool:
+    """Return whether the system's timezone database knows this name.
+
+    The three sources below used to be filtered by asking whether the name
+    contained a slash, which is a guess at what a zone name looks like rather
+    than a question about what one is. It is wrong in both directions. `UTC`,
+    `GMT`, `Japan`, `Singapore`, `Israel` and `EST5EDT` are all real entries in
+    the database and have no slash, so a machine set to any of them had its `TZ`
+    silently discarded and its own zone used instead -- a stated input replaced
+    by a different one, with no warning and a perfectly plausible answer. In the
+    other direction a POSIX `TZ` *rule* string can contain a slash and names no
+    zone at all.
+
+    Asking the database settles both. There is no network here and no
+    dependency: the same files `/etc/localtime` points into are what
+    :mod:`zoneinfo` reads.
+
+    Parameters
+    ----------
+    candidate : str
+        A name that might be an IANA zone.
+
+    Returns
+    -------
+    bool
+        True when the database has it.
+
+    Examples
+    --------
+    >>> _names_a_zone("Europe/Paris")
+    True
+    >>> _names_a_zone("UTC")
+    True
+    >>> _names_a_zone("EST5EDT,M3.2.0,M11.1.0")
+    False
+    >>> _names_a_zone("")
+    False
+    """
+    if not candidate:
+        return False
+    try:
+        zoneinfo.ZoneInfo(candidate)
+    except (zoneinfo.ZoneInfoNotFoundError, ValueError, OSError):
+        # ValueError covers the names that cannot be a path at all -- an
+        # absolute one, or one climbing out with "..". OSError covers a database
+        # that is not installed, which leaves the zone unknowable rather than
+        # wrong, and the country falls to the next rung of the ladder.
+        return False
+    return True
+
+
 #: Provider assumed when a model names none: the machine in front of you.
 DEFAULT_PROVIDER: Final[str] = "on-prem"
 
@@ -80,22 +133,28 @@ def local_timezone_name() -> str | None:
     so it simply returns ``None`` and the country falls to the next rung of the
     ladder rather than being guessed.
 
+    Each of the three is checked against the timezone database by
+    :func:`_names_a_zone`, and all three are checked the same way. They used to
+    be checked three different ways, which is how ``TZ=Japan`` came to be
+    ignored in favour of the laptop it was set on.
+
     Returns
     -------
     str or None
-        Something like ``Europe/Paris``, or ``None``.
+        An IANA zone name such as ``Europe/Paris`` or ``UTC``, or ``None`` when
+        no source offered one the database recognises.
 
     Examples
     --------
     >>> name = local_timezone_name()
-    >>> name is None or "/" in name
+    >>> name is None or _names_a_zone(name)
     True
     """
     # POSIX allows a leading colon (":Europe/Paris") meaning "read this zone
     # file"; the colon is not part of the IANA name and would make the country
     # lookup fail on a perfectly resolvable timezone.
     from_env = os.environ.get("TZ", "").strip().lstrip(":")
-    if "/" in from_env:
+    if _names_a_zone(from_env):
         return from_env
 
     if osh.unix():
@@ -103,7 +162,9 @@ def local_timezone_name() -> str | None:
             if _LOCALTIME_LINK.is_symlink():
                 target = str(_LOCALTIME_LINK.readlink())
                 if _ZONEINFO_MARKER in target:
-                    return target.split(_ZONEINFO_MARKER, 1)[1]
+                    from_link = target.split(_ZONEINFO_MARKER, 1)[1]
+                    if _names_a_zone(from_link):
+                        return from_link
         except OSError:
             # An unreadable symlink is not worth an exception: fall through and
             # let the country stay unresolved, which the ladder handles.
@@ -113,7 +174,7 @@ def local_timezone_name() -> str | None:
         from datetime import datetime
 
         key = getattr(datetime.now().astimezone().tzinfo, "key", None)
-        if isinstance(key, str) and "/" in key:
+        if isinstance(key, str) and _names_a_zone(key):
             return key
     except (OSError, ValueError):
         pass
