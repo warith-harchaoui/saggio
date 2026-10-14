@@ -1,19 +1,34 @@
-# Continuous integration, deliberately small.
+# Continuous integration, deliberately small — and one job larger than it was.
 #
 # This used to be four jobs — two operating systems times two Python versions —
 # and it had not gone green in twenty-five consecutive runs. A gate that is
 # always red is not a gate: nobody reads it, nobody fixes it, and the one time it
 # catches something real it looks exactly like the twenty-four times it did not.
-# So it is one job that passes, rather than four that do not.
+# So it was cut to one job that passes.
 #
-# What that costs, said plainly rather than quietly dropped:
+# macOS is back, and the reason it was safe to bring back is that the thing that
+# kept it red was fixed rather than waited out. The tests that failed there were
+# tests that encoded a developer's machine — "`--run` measures power" is true on
+# a Mac with counters and false on a runner that cannot consent to executing
+# anybody's code — and they now state the property that holds on both: a
+# measured runtime carries a number and says what timed it; an open one carries
+# none. The whole suite is platform-independent except where it probes, and the
+# probes report rather than assert.
 #
-#   - macOS is no longer exercised here. The package supports it and most of its
-#     power-counter code is macOS-only, so that code is covered by the suite on a
-#     developer's machine and not by this file.
+# Why it matters enough to pay for a second runner: nearly all of the
+# power-counter code in this package is macOS-only. IOReport on Apple Silicon is
+# read by no other job here, so until now a regression in it would have shipped
+# and been found by a user. The runner is Apple Silicon, which is the hardware
+# that code is for.
+#
+# What is still not covered, said plainly rather than quietly dropped:
+#
 #   - Only the floor of the supported range is run. `requires-python` is
 #     ">=3.10,<3.14"; 3.10 is the version most likely to reject something, so it
-#     is the one worth the single slot.
+#     is the one worth the slot. macOS runs the same floor, so the matrix is two
+#     cells rather than four.
+#   - No runner has an accelerator. The NVIDIA and AMD paths are exercised by
+#     fakes in the suite and by nothing here.
 #
 # The freshness gate stays a separate, scheduled job. A tariff going out of date
 # is not the fault of whoever changed a docstring, so it opens the question on a
@@ -28,6 +43,9 @@ on:
   push:
     branches: [main, master]
   pull_request:
+  # Run it on demand, on any ref. Added while bringing macOS back: a CI change
+  # that can only be tested by merging it is a CI change nobody tests.
+  workflow_dispatch:
   schedule:
     # Monday morning, to ask whether the catalogue numbers still hold.
     - cron: "0 7 * * 1"
@@ -38,10 +56,25 @@ concurrency:
 
 jobs:
   test:
-    name: Linux, Python 3.10
-    runs-on: ubuntu-latest
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
     if: github.event_name != 'schedule'
-    timeout-minutes: 15
+    timeout-minutes: 20
+    strategy:
+      # Both cells run to the end. A failure on one platform is a fact about
+      # that platform, and cancelling the other job throws away the comparison
+      # that says which it is.
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            label: Linux, Python 3.10
+            lint: true
+          - os: macos-latest
+            label: macOS (Apple Silicon), Python 3.10
+            # Linting twice tells you nothing twice: ruff reads the same files
+            # and reaches the same verdict. This cell is here for the counters.
+            lint: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -51,9 +84,18 @@ jobs:
       - name: Install
         run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
       - name: Lint
+        if: matrix.lint
         run: ruff check .
       - name: Format
+        if: matrix.lint
         run: ruff format --check .
+      # What this runner will actually let the package read, printed before the
+      # suite rather than inferred from it. On a Mac this is the only place
+      # IOReport is exercised outside a developer's laptop, and when a counter
+      # stops answering the log should say so in its own words rather than
+      # through whichever test happened to notice.
+      - name: Which counters answer here
+        run: saggio power
       - name: Test
         # The doctests run here too: every example in every docstring is executed,
         # so the documentation cannot drift away from the code.
@@ -98,12 +140,14 @@ jobs:
         run: |
           echo "A figure above is stale or about to expire."
           echo
-          echo "Re-read it, read-only first:"
-          echo "    EMBER_API_KEY=... saggio catalog refresh grid --column all"
+          echo "Re-read it, read-only first. No key is needed: the carbon"
+          echo "column comes from the dataset Ember publishes openly."
+          echo "    saggio catalog refresh grid --column all"
           echo
           echo "Read the diff, then write it and commit:"
-          echo "    EMBER_API_KEY=... saggio catalog refresh grid --column all \\"
+          echo "    saggio catalog refresh grid --column all \\"
           echo "        --write saggio/data/grid.yaml"
           echo
-          echo "A free Ember key comes from https://ember-energy.org/data/ ."
-          echo "Do not substitute OWID: its series is lifecycle, not operating."
+          echo "EMBER_API_KEY=... reads Ember's API instead — the same series"
+          echo "through its machine interface. Either way, do not substitute"
+          echo "OWID: its series is lifecycle, not operating emissions."
