@@ -609,14 +609,23 @@ def _add_catalog(verbs: argparse._SubParsersAction) -> None:
         "--api-key",
         default=None,
         help=(
-            "Ember API key. Falls back to EMBER_API_KEY. Free from "
-            "https://ember-energy.org/data/ ; nothing else is used as a substitute, "
-            "because the open series that looks equivalent measures lifecycle rather "
-            "than operating emissions."
+            "Ember API key, optional. Falls back to EMBER_API_KEY. Without one the "
+            "carbon column is read from Ember's published yearly dataset, which is "
+            "the same series under CC-BY-4.0 and what every row cites; with one it "
+            "is read from Ember's API instead, and the run says which answered. "
+            "Nothing outside Ember is used as a substitute, because the other open "
+            "series that looks equivalent measures lifecycle rather than operating "
+            "emissions."
         ),
     )
     refresh.add_argument(
-        "--year", type=int, default=None, help="Data year. The most recent one by default."
+        "--year",
+        type=int,
+        default=None,
+        help=(
+            "Data year. By default the most recent each country has, which is not "
+            "the same year for every country: a row records its own."
+        ),
     )
     refresh.add_argument(
         "--column",

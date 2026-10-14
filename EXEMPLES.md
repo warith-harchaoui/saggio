@@ -824,15 +824,30 @@ La date à laquelle un nombre a été *lu* n'est pas la période qu'il décrit, 
 ligne qui ne noterait que la première laisserait un chiffre de 2019 passer pour
 celui d'aujourd'hui.
 
-**La colonne carbone** vient d'[Ember](https://ember-energy.org/data/), par son
-API, et demande une clé gratuite dans `EMBER_API_KEY` ou `--api-key`. Rien
-d'autre n'est substitué. Il existe une alternative tentante — Our World in Data
-publie une série dérivée d'Ember par un CSV stable, sans clé — et elle est
+**Et la période est par ligne, pas par fichier.** Ember ne publie pas tous les
+pays jusqu'à la même année : la plupart vont à 2025, la série ukrainienne s'arrête
+en 2022. Un millésime unique apposé sur tout le catalogue, c'est ainsi que le
+chiffre ukrainien de 2022 a été livré comme un chiffre de 2025 — un nombre banal
+sous une estampille qui était le seul endroit où l'écart de trois ans pouvait
+apparaître. Un rafraîchissement nomme désormais les pays que la source n'a pas
+rattrapés.
+
+**La colonne carbone** vient du [jeu de données annuel publié par
+Ember](https://ember-energy.org/data/yearly-electricity-data/), sous CC-BY-4.0 et
+sans aucune clé. Une clé dans `EMBER_API_KEY` ou `--api-key` fait lire l'API
+d'Ember à la place — la même série par son interface machine — et l'exécution
+imprime laquelle des deux a répondu. Les lignes citent la page dans les deux cas,
+parce que sans clé l'API répond à un lecteur par un HTTP 403 plutôt que par le
+chiffre, et une citation que personne ne peut suivre n'est pas une citation.
+
+Rien d'autre n'est substitué. Il existe une alternative tentante — Our World in
+Data publie une série *dérivée* d'Ember par un CSV stable, sans clé — et elle est
 fausse : sa propre métadonnée l'appelle intensité carbone *de cycle de vie*, là
 où cette colonne est l'émission *opératoire*. Échanger l'une contre l'autre
 changerait en silence le sens de chaque modèle commité, sans rien changer à la
 confiance qu'il inspire. La commande refuse et le dit, plutôt que de le faire
-discrètement.
+discrètement. Le jeu publié par Ember n'est pas cet échange, et il a été recoupé
+pays par pays contre l'API avant d'être adopté plutôt que supposé équivalent.
 
 **La colonne fuseaux** est vérifiée plutôt que remplacée, contre la [base de
 données des fuseaux de l'IANA](https://data.iana.org/time-zones/tzdb/zone1970.tab)

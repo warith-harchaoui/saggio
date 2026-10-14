@@ -48,6 +48,9 @@ release of that line.
   re-read is a column that stops being re-read, and what happens instead is that
   somebody bumps the date. That is the one outcome this whole mechanism exists
   to prevent.
+- `--api-key` and `EXAMPLES.md` / `EXEMPLES.md` said a key was required. Both now
+  say what is true, and `--year` says that the most recent year is not the same
+  year for every country.
 
 ### Ukraine's 2022 figure had been shipping as a 2025 one
 

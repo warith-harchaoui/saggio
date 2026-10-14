@@ -801,15 +801,30 @@ period the figure describes — `carbon_data_year: 2025`, `price_collected: "Q3
 2026"`. The date a number was *read* is not the period it describes, and a row
 that recorded only the first would let a figure from 2019 look like today's.
 
-**The carbon column** comes from [Ember](https://ember-energy.org/data/), through
-its API, and needs a free key in `EMBER_API_KEY` or `--api-key`. Nothing else is
-substituted. There is one tempting alternative — Our World in Data publishes an
-Ember-derived series through a stable CSV with no key at all — and it is wrong:
-its own metadata calls it *lifecycle* carbon intensity, while this column is
-*operating* emissions. Swapping one for the other would change what every
-committed model means, silently, and leave every number looking exactly as
-trustworthy as before. So the command refuses and says that, rather than quietly
-doing it.
+**And the period is per row, not per file.** Ember does not publish every country
+up to the same year: most reach 2025, Ukraine's series stops at 2022. A single
+data year stamped across the catalogue is how Ukraine's 2022 figure came to ship
+as a 2025 one — an unremarkable number under a stamp that was the only place the
+three-year gap could ever have shown. A refresh now names the countries the
+source has not caught up on.
+
+**The carbon column** comes from [Ember's published yearly
+dataset](https://ember-energy.org/data/yearly-electricity-data/), which is
+CC-BY-4.0 and needs no key. A key in `EMBER_API_KEY` or `--api-key` makes the
+command read Ember's API instead — the same series through its machine
+interface — and the run prints which of the two answered. The rows cite the page
+either way, because without a key the API answers a reader with HTTP 403 rather
+than with the figure, and a citation nobody can follow is not a citation.
+
+Nothing else is substituted. There is one tempting alternative — Our World in
+Data publishes an Ember-*derived* series through a stable CSV with no key at
+all — and it is wrong: its own metadata calls it *lifecycle* carbon intensity,
+while this column is *operating* emissions. Swapping one for the other would
+change what every committed model means, silently, and leave every number looking
+exactly as trustworthy as before. So the command refuses and says that, rather
+than quietly doing it. Ember's own published dataset is not that swap, and it was
+checked against the API country by country before being adopted rather than
+assumed equivalent.
 
 **The timezone column** is checked rather than replaced, against the [IANA Time
 Zone Database](https://data.iana.org/time-zones/tzdb/zone1970.tab) that defines
