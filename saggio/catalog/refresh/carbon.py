@@ -15,6 +15,8 @@ Warith Harchaoui
 
 from __future__ import annotations
 
+import csv
+import io
 import json
 import os
 import urllib.error
@@ -25,8 +27,43 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Final
 
-#: Where the figures the grid catalogue cites actually live, machine-readable.
+#: Where a machine reads the figures. Not what a row cites: asked without a key
+#: it answers ``{"detail": "No API key set"}`` and HTTP 403, so a reader who
+#: followed it from a catalogue row would be shown no number at all -- the same
+#: failure as :data:`~saggio.catalog.refresh.embodied.EMBODIED_CPU_API`, which
+#: answers a reader with the wrong number and is kept out of citations for it.
 EMBER_API: Final[str] = "https://api.ember-energy.org/v1/carbon-intensity/yearly"
+
+
+#: What a row cites, and what a reader can actually open. Ember publishes the
+#: same series here as a CC-BY-4.0 download, so this is not a page that merely
+#: discusses the figure: it is where the figure is published. Checked rather
+#: than assumed -- the file behind it agrees with the API on 36 of the 38
+#: countries on file to better than half a percent, thirty of them to better
+#: than a tenth, several to three decimal places. The two that disagreed said
+#: something worth knowing, and both are recorded in `CHANGELOG.md`.
+EMBER_CITATION: Final[str] = "https://ember-energy.org/data/yearly-electricity-data/"
+
+
+#: The file that page offers, which is what :func:`fetch_grid_public` reads. No
+#: key, which is the point: a catalogue whose most important column can only be
+#: re-read by whoever holds a credential is a catalogue that stops being re-read.
+EMBER_PUBLIC_CSV: Final[str] = (
+    "https://files.ember-energy.org/public-downloads/generation/outputs/"
+    "release_generation_yearly_global.csv"
+)
+
+
+#: The row of that file that carries the whole grid, rather than one fuel. The
+#: column holds an intensity per source as well, and reading the wrong row would
+#: put the carbon intensity of a country's coal fleet under its name.
+EMBER_TOTAL_ROW: Final[str] = "Total generation"
+
+
+#: The column that holds the figure, spelled as the file spells it. Named rather
+#: than found by position: the file has gained columns before, and a refresh that
+#: reads the wrong one would write plausible numbers under the right names.
+EMBER_INTENSITY_COLUMN: Final[str] = "Emissions intensity (gCO2e/kWh)"
 
 
 #: The environment variable this reads a key from, so a key never has to appear
@@ -112,19 +149,35 @@ class GridRefresh:
     Parameters
     ----------
     year : int or None
-        The data year the figures describe. Not today's date: a number read
-        today from a 2025 release is a 2025 number, and the row records both.
+        The newest data year anything in this refresh describes. Not today's
+        date: a number read today from a 2025 release is a 2025 number, and the
+        row records both. It is a headline, not a per-row fact -- see `years`.
     rows : dict
         ISO 3166-1 alpha-2 key to carbon intensity in gCO2e per kWh.
+    years : dict
+        Key to the data year *that country's own figure* describes. Separate
+        from `year` because the source does not publish every country up to the
+        same year, and collapsing the two is how the catalogue came to carry
+        Ukraine's 2022 figure stamped 2025: every other country had a 2025
+        reading, the newest year won, and one row was left claiming a currency
+        it did not have. A reader cannot see that from the number -- 250.5 is a
+        perfectly ordinary intensity -- so only the stamp could have said it.
     skipped : dict
         Key to the reason this refresh has nothing to say about it.
     source : str
         The URL that answered.
+    citation : str
+        The URL a refreshed row should cite, which is not always the one that
+        answered. An endpoint that needs a key answers a machine and shows a
+        reader an error; the page that publishes the same series shows them the
+        figure. Rows cite the second.
 
     Examples
     --------
     >>> GridRefresh(year=2025, rows={"FR": 41.0}, skipped={}, source="x").year
     2025
+    >>> GridRefresh(2025, {"UA": 250.5}, {}, "x", years={"UA": 2022}).years["UA"]
+    2022
     """
 
     year: int | None
@@ -132,6 +185,8 @@ class GridRefresh:
     skipped: dict[str, str]
     source: str
     retrieved: str = field(default_factory=lambda: date.today().isoformat())
+    years: dict[str, int] = field(default_factory=dict)
+    citation: str = EMBER_CITATION
 
     def changed(self, current: dict[str, Any], *, tolerance: float = 0.5) -> dict[str, tuple]:
         """Return the rows whose value actually moved, with both figures.
@@ -312,12 +367,143 @@ def fetch_grid(
         if code not in latest:
             skipped[code] = "the source returned no figure for this country."
 
-    years = {found for found, _ in latest.values()}
+    # One year per country, not one year for the refresh. Ember does not publish
+    # every country up to the same year -- Ukraine's series stops in 2022 while
+    # the rest reach 2025 -- and the newest of them is nobody's year but its own.
+    found_years = {code: found for code, (found, _) in latest.items()}
     return GridRefresh(
-        year=max(years) if years else year,
+        year=max(found_years.values()) if found_years else year,
         rows={code: value for code, (_, value) in latest.items()},
         skipped=skipped,
         source=EMBER_API,
+        years=found_years,
+    )
+
+
+def fetch_grid_public(
+    keys: list[str] | tuple[str, ...],
+    *,
+    year: int | None = None,
+    timeout: float = 120.0,
+) -> GridRefresh:
+    """Read the same figures from the dataset Ember publishes openly.
+
+    The API in :func:`fetch_grid` is Ember's machine interface and needs a key.
+    This reads Ember's published yearly dataset, which needs none, carries the
+    same series, and is the file behind the page every refreshed row cites. That
+    matters beyond convenience: a column that only a credential-holder can
+    re-read is a column that stops being re-read, and the alternative to
+    re-reading is re-dating.
+
+    It is not the substitution this module refuses. The refused one is a
+    *different measure* -- lifecycle rather than operating emissions -- wearing
+    the same units. This is the same publisher, the same series, and it was
+    checked against the API country by country rather than assumed: see
+    :data:`EMBER_CITATION`.
+
+    Parameters
+    ----------
+    keys : list or tuple of str
+        ISO 3166-1 alpha-2 country codes, as the catalogue keys them.
+    year : int or None, optional
+        Data year. ``None`` takes the most recent each country has, which is not
+        the same year for every country. A year given is taken literally: a
+        country the file does not publish for that year is named as skipped
+        rather than quietly served its nearest.
+    timeout : float, optional
+        Seconds to wait on the network. Generous by default: this is a download
+        of some tens of megabytes rather than a query.
+
+    Returns
+    -------
+    GridRefresh
+        What the file said, each country with its own data year, and what it
+        had nothing to say about.
+
+    Raises
+    ------
+    RuntimeError
+        When the file could not be read, or when its header no longer carries a
+        column this needs. The second is the one worth raising for: a renamed
+        column would otherwise yield an empty refresh, and an empty refresh
+        prints as "nothing moved", which reads exactly like a clean bill of
+        health.
+
+    Examples
+    --------
+    >>> fetch_grid_public([]).rows
+    {}
+    """
+    if not keys:
+        return GridRefresh(year=year, rows={}, skipped={}, source=EMBER_PUBLIC_CSV)
+
+    wanted: dict[str, str] = {}
+    skipped: dict[str, str] = {}
+    for code in keys:
+        iso3 = ISO3_OF_ISO2.get(code.upper())
+        if iso3 is None:
+            skipped[code] = (
+                "no ISO 3166-1 alpha-3 code on file for this key, so the source "
+                "cannot be asked about it. Add one to ISO3_OF_ISO2."
+            )
+        else:
+            wanted[iso3] = code.upper()
+
+    if not wanted:
+        return GridRefresh(year=year, rows={}, skipped=skipped, source=EMBER_PUBLIC_CSV)
+
+    request = urllib.request.Request(EMBER_PUBLIC_CSV, headers={"Accept": "text/csv"})
+    latest: dict[str, tuple[int, float]] = {}
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
+            stream = io.TextIOWrapper(response, encoding="utf-8", newline="")
+            reader = csv.DictReader(stream)
+            columns = set(reader.fieldnames or ())
+            needed = {"ISO 3 code", "Year", "Electricity source", EMBER_INTENSITY_COLUMN}
+            absent = sorted(needed - columns)
+            if absent:
+                raise RuntimeError(
+                    f"Ember's published dataset no longer has {', '.join(absent)}. "
+                    "The catalogue is untouched: a refresh that silently found "
+                    "nothing would print as a refresh that found nothing to change."
+                )
+            for record in reader:
+                if record.get("Electricity source") != EMBER_TOTAL_ROW:
+                    continue
+                code = wanted.get(str(record.get("ISO 3 code") or "").upper())
+                if code is None:
+                    continue
+                stamp = str(record.get("Year") or "")[:4]
+                raw = record.get(EMBER_INTENSITY_COLUMN) or ""
+                if not stamp.isdigit() or not raw:
+                    continue
+                try:
+                    value = float(raw)
+                except ValueError:
+                    continue
+                found_year = int(stamp)
+                if year is not None and found_year != year:
+                    continue
+                if code not in latest or found_year > latest[code][0]:
+                    latest[code] = (found_year, value)
+    except (urllib.error.URLError, TimeoutError, UnicodeDecodeError, csv.Error) as exc:
+        raise RuntimeError(f"Ember's published dataset did not read: {exc}") from exc
+
+    for code in wanted.values():
+        if code not in latest:
+            skipped[code] = (
+                f"the published dataset carries no intensity for this country in {year}."
+                if year is not None
+                else "the published dataset carries no intensity for this country."
+            )
+
+    found_years = {code: found for code, (found, _) in latest.items()}
+    return GridRefresh(
+        year=max(found_years.values()) if found_years else year,
+        rows={code: value for code, (_, value) in latest.items()},
+        skipped=skipped,
+        source=EMBER_PUBLIC_CSV,
+        years=found_years,
     )
 
 
@@ -334,6 +520,14 @@ def apply_grid(path: Path, refresh: GridRefresh) -> int:
     The row's price and timezones came from elsewhere and keep the row's own
     ``source_url`` and ``retrieved_date``, which is why the new dates are written
     under their own names.
+
+    Two things it writes are deliberately not the obvious ones. The row cites
+    ``refresh.citation`` rather than ``refresh.source``, because the URL that
+    answers a machine and the URL that shows a reader the figure are not the
+    same URL here. And each row is stamped with its *own* data year from
+    ``refresh.years``, falling back to the refresh's newest only where the
+    source did not say -- stamping every row with the newest is what left
+    Ukraine's 2022 reading claiming to be a 2025 one.
 
     Parameters
     ----------
@@ -372,6 +566,17 @@ def apply_grid(path: Path, refresh: GridRefresh) -> int:
     True
     >>> "carbon_data_year: 2025" in body
     True
+
+    A row whose own year is older than the refresh's newest keeps its own:
+
+    >>> with tempfile.TemporaryDirectory() as folder:
+    ...     target = pathlib.Path(folder) / "grid.yaml"
+    ...     _ = target.write_text(text.replace('"FR"', '"UA"'), encoding="utf-8")
+    ...     lagging = GridRefresh(2025, {"UA": 250.5}, {}, "ember", years={"UA": 2022})
+    ...     _ = apply_grid(target, lagging)
+    ...     body = target.read_text(encoding="utf-8")
+    >>> "carbon_data_year: 2022" in body
+    True
     """
     if not path.is_file():
         raise FileNotFoundError(
@@ -392,10 +597,14 @@ def apply_grid(path: Path, refresh: GridRefresh) -> int:
         ):
             indent = line[: len(line) - len(line.lstrip())]
             value = refresh.rows[current]
+            # This row's own data year, falling back to the refresh's newest only
+            # when the source did not say. Writing `refresh.year` on every row is
+            # what put a 2022 figure under a 2025 stamp.
+            stamp = refresh.years.get(current, refresh.year)
             out.append(f"{indent}carbon_gco2e_per_kwh: {value:.1f}\n")
-            out.append(f'{indent}carbon_source_url: "{refresh.source}"\n')
+            out.append(f'{indent}carbon_source_url: "{refresh.citation}"\n')
             out.append(f'{indent}carbon_retrieved_date: "{refresh.retrieved}"\n')
-            out.append(f"{indent}carbon_data_year: {refresh.year}\n")
+            out.append(f"{indent}carbon_data_year: {stamp}\n")
             written += 1
             continue
         # A previous refresh's own fields are replaced, not stacked.

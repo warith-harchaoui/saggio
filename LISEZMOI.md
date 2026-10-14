@@ -124,7 +124,7 @@ quatre termes d'[ISO/IEC 21031:2024](https://greensoftware.foundation/standards/
 la norme Software Carbon Intensity, dont ce paquet avait déjà la forme.
 
 L'arithmétique est complète ; **le catalogue ne l'est pas, et ne fera pas
-semblant de l'être.** Sept empreintes sont livrées : trois accélérateurs sur 25
+semblant de l'être.** Huit empreintes sont livrées : quatre accélérateurs sur 25
 lignes et quatre processeurs sur 12. Tout le reste rapporte `TODO` avec une
 phrase disant que personne n'a lu d'empreinte pour cette pièce — ce qui n'est pas
 la même chose que sa fabrication aurait été gratuite. Si l'écart est si large,

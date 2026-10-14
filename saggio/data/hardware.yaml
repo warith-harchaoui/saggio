@@ -184,8 +184,16 @@ gpus:
     memory_bandwidth_gbps: 1228
     memory_gb: 32
     peak_bf16_tflops: 275
+    embodied_kgco2e: 366.0
+    embodied_scope: "One TPU v4 chip, cradle-to-gate: manufacturing and transportation of the accelerator and the HBM stacks on it, modelled by the part's own designer from its tech node, die size and yield under ISO 14040/14044. Excludes the use phase. Also excludes, and the same table reports separately, the share of the host server's processor (210 kgCO2e per chip) and of datacenter construction (117) — so this is the part, on the same boundary as the NVIDIA rows above, not the machine it sits in."
+    embodied_source_url: "https://arxiv.org/abs/2502.01671"
+    embodied_retrieved_date: "2026-10-14"
     source_url: "https://cloud.google.com/tpu/docs/v4"
     retrieved_date: "2026-07-27"
+    notes: "The footprint's source publishes this part's peak BF16 as 275 TFLOP/s
+      and its memory as 32 GiB, which is what this row already said from Google's
+      own documentation — two readings of the same part agreeing, which is the
+      only reason to believe the footprint is about this row."
 
   # --- Consumer and workstation accelerators ---
   # Developer machines are where a cost model is usually written, so the cards

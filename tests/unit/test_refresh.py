@@ -3,17 +3,24 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import pathlib
 
 import pytest
+import yaml
 
 from saggio.catalog.refresh import (
+    EMBER_API,
+    EMBER_CITATION,
+    EMBER_INTENSITY_COLUMN,
     EMBER_KEY_VARIABLE,
+    EMBER_TOTAL_ROW,
     ISO3_OF_ISO2,
     GridRefresh,
     apply_grid,
     fetch_grid,
+    fetch_grid_public,
     missing_key_message,
 )
 from saggio.cli.commands import catalog_refresh
@@ -43,14 +50,57 @@ def test_the_command_refuses_a_catalogue_that_cites_no_machine_readable_source()
     assert catalog_refresh(args) == USAGE
 
 
-def test_the_command_reports_a_missing_key_as_an_unavailable_dependency(
-    monkeypatch: pytest.MonkeyPatch,
+def test_no_key_reads_the_dataset_ember_publishes_rather_than_refusing(
+    monkeypatch: pytest.MonkeyPatch, capsys
 ) -> None:
-    from saggio.cli.exit_codes import UNAVAILABLE
+    """A key opens a faster door, not the only one.
+
+    This used to exit 4 without a key, and that was the wrong shape of refusal.
+    What has to be refused is a *different measure* wearing the same units --
+    lifecycle where the column says operating -- and that refusal is intact and
+    tested above. Ember's own published yearly dataset is not that: same
+    publisher, same series, no key, and it is the file behind the page every
+    refreshed row cites. Making it unreachable without a credential is how a
+    column stops being re-read, and a column that stops being re-read gets
+    re-dated instead, which is the one outcome this whole mechanism exists to
+    prevent.
+    """
+    import saggio.cli.commands as commands
 
     monkeypatch.delenv(EMBER_KEY_VARIABLE, raising=False)
-    args = argparse.Namespace(catalog="grid", api_key=None, year=None, write=None, json=False)
-    assert catalog_refresh(args) == UNAVAILABLE
+
+    def not_the_keyed_path(*_a: object, **_k: object) -> None:
+        raise AssertionError("the keyed API was called with no key in sight")
+
+    monkeypatch.setattr(commands, "fetch_grid", not_the_keyed_path)
+    monkeypatch.setattr(
+        commands, "fetch_grid_public", lambda *a, **k: GridRefresh(2025, {"FR": 41.2}, {}, "public")
+    )
+    assert catalog_refresh(grid_args()) == 0
+    assert EMBER_CITATION in capsys.readouterr().out
+
+
+def test_a_key_in_the_environment_is_used_and_said_so(
+    monkeypatch: pytest.MonkeyPatch, capsys
+) -> None:
+    # Which of the two answered is printed rather than inferred from whether it
+    # worked. They agree, but "they agree" is a thing somebody checked once, not
+    # a thing a reader of the output should have to assume.
+    import saggio.cli.commands as commands
+
+    monkeypatch.setenv(EMBER_KEY_VARIABLE, "a-key")
+
+    def not_the_keyless_path(*_a: object, **_k: object) -> None:
+        raise AssertionError("the published dataset was read although a key was offered")
+
+    monkeypatch.setattr(commands, "fetch_grid_public", not_the_keyless_path)
+    monkeypatch.setattr(
+        commands,
+        "fetch_grid",
+        lambda *a, **k: GridRefresh(2025, {"FR": 41.2}, {}, source=EMBER_API),
+    )
+    assert catalog_refresh(grid_args()) == 0
+    assert EMBER_API in capsys.readouterr().out
 
 
 def test_asking_about_nothing_reaches_no_network() -> None:
@@ -128,9 +178,57 @@ def test_the_intensity_is_replaced(tmp_path: pathlib.Path) -> None:
 def test_the_carbon_figure_gets_its_own_provenance(tmp_path: pathlib.Path) -> None:
     # The row's price came from somewhere else and keeps the row's own dates.
     body = written_grid(tmp_path, GridRefresh(2025, {"FR": 41.44}, {}, "ember"))
-    assert 'carbon_source_url: "ember"' in body
+    assert f'carbon_source_url: "{EMBER_CITATION}"' in body
     assert "carbon_data_year: 2025" in body
     assert 'retrieved_date: "2026-09-12"' in body, "the row's own date must survive"
+
+
+def test_the_row_cites_what_a_reader_can_open_not_what_answered(
+    tmp_path: pathlib.Path,
+) -> None:
+    """The URL that answers a machine and the one that shows a reader differ here.
+
+    Thirty-eight rows cited `api.ember-energy.org`, which answers anybody
+    without a key with HTTP 403 and `{"detail": "No API key set"}`. Every one of
+    those citations was unfollowable, in a package whose whole claim is that a
+    number says where it came from, and the suite already had a test for this
+    exact fault -- written for Boavizta's endpoint and told about that one only.
+    """
+    body = written_grid(tmp_path, GridRefresh(2025, {"FR": 41.44}, {}, source=EMBER_API))
+    assert EMBER_API not in body, "a row is citing the endpoint again"
+    assert f'carbon_source_url: "{EMBER_CITATION}"' in body
+
+
+def test_a_country_the_source_has_not_caught_up_on_keeps_its_own_year(
+    tmp_path: pathlib.Path,
+) -> None:
+    """One data year for the refresh is one data year too few.
+
+    Ember publishes Ukraine only to 2022 and everybody else to 2025. The old
+    code took the newest year across all countries and stamped it on every row,
+    so the catalogue shipped Ukraine's 2022 reading of 250.5 gCO2e/kWh under
+    `carbon_data_year: 2025`. Nothing about the number itself could show that:
+    250.5 is an unremarkable intensity, and the stamp was the only place the
+    three-year gap was ever going to appear.
+    """
+    body = written_grid(
+        tmp_path,
+        GridRefresh(2025, {"FR": 41.4, "NO": 28.1}, {}, "ember", years={"FR": 2025, "NO": 2022}),
+    )
+    rows = {row["key"]: row for row in yaml.safe_load(body)["countries"]}
+    assert rows["FR"]["carbon_data_year"] == 2025
+    assert rows["NO"]["carbon_data_year"] == 2022, (
+        "the lagging row took the refresh's newest year rather than its own"
+    )
+
+
+def test_a_row_the_refresh_gives_no_year_for_falls_back_to_the_newest(
+    tmp_path: pathlib.Path,
+) -> None:
+    # Only where the source said nothing. Not a default to lean on: it exists so
+    # a caller that knows one year for everything still writes a year.
+    body = written_grid(tmp_path, GridRefresh(2025, {"FR": 41.4}, {}, "ember"))
+    assert "carbon_data_year: 2025" in body
 
 
 def test_a_country_the_source_did_not_answer_for_is_left_alone(
@@ -175,23 +273,133 @@ def test_it_edits_a_catalogue_and_never_creates_one(tmp_path: pathlib.Path) -> N
 def test_the_json_report_says_what_changed_and_what_did_not(
     tmp_path: pathlib.Path, capsys, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import saggio.cli.commands as commands
-
     # Deliberately far from anything the catalogue could hold, so that FR lands
     # in `changed` whatever this week's refresh put there. Picking a plausible
     # number here made the test pass only until the catalogue caught up with it.
     invented = 999.5
-    monkeypatch.setattr(
-        commands,
-        "fetch_grid",
-        lambda *a, **k: GridRefresh(2025, {"FR": invented}, {"ZZ": "no code"}, "ember"),
+    answer_both_carbon_paths(
+        monkeypatch,
+        GridRefresh(
+            2025,
+            {"FR": invented, "NO": 28.1},
+            {"ZZ": "no code"},
+            "ember",
+            years={"FR": 2025, "NO": 2022},
+        ),
     )
-    args = argparse.Namespace(catalog="grid", api_key=None, year=None, write=None, json=True)
-    catalog_refresh(args)
+    catalog_refresh(grid_args(json=True))
     payload = json.loads(capsys.readouterr().out)
     assert payload["data_year"] == 2025
     assert payload["changed"]["FR"]["now"] == pytest.approx(invented)
     assert payload["skipped"] == {"ZZ": "no code"}
+    # The per-country years, and the countries the source has not caught up on.
+    # A report that gave only the newest year is the report that let a 2022
+    # figure be committed as a 2025 one.
+    assert payload["data_year_by_country"] == {"FR": 2025, "NO": 2022}
+    assert payload["behind_the_newest_year"] == ["NO"]
+    assert payload["citation"] == EMBER_CITATION
+
+
+# --- Ember's published dataset, parsed without a network -------------------------
+#
+# The file is some tens of megabytes of every country, every year and every fuel.
+# What can go wrong in reading it is not arithmetic: it is picking the wrong row
+# of the three the file offers per country-year, or finding nothing at all and
+# reporting that as nothing having changed.
+
+
+#: The shape of Ember's published file, trimmed. The real spellings are kept --
+#: including the parenthesised unit in the column name -- because the spellings
+#: are what the reader matches on. Ukraine stops in 2022 here as it does there.
+PUBLIC_CSV = (
+    "Area,ISO 3 code,Year,Area type,Electricity source,"
+    f"{EMBER_INTENSITY_COLUMN}\n"
+    "France,FRA,2024,Country or economy,Coal,961.627\n"
+    f"France,FRA,2024,Country or economy,{EMBER_TOTAL_ROW},44.0\n"
+    f"France,FRA,2025,Country or economy,{EMBER_TOTAL_ROW},41.224\n"
+    "France,FRA,2025,Country or economy,Coal,961.627\n"
+    f"Ukraine,UKR,2022,Country or economy,{EMBER_TOTAL_ROW},250.525\n"
+    f"Germany,DEU,2025,Country or economy,{EMBER_TOTAL_ROW},\n"
+)
+
+
+def answer_with_file(monkeypatch: pytest.MonkeyPatch, body: str) -> None:
+    """Make the next download return this file instead of opening a socket."""
+    from saggio.catalog.refresh import carbon as module
+
+    monkeypatch.setattr(
+        module.urllib.request,
+        "urlopen",
+        lambda request, timeout=0: io.BytesIO(body.encode("utf-8")),
+    )
+
+
+def test_the_published_dataset_is_read_without_a_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv(EMBER_KEY_VARIABLE, raising=False)
+    answer_with_file(monkeypatch, PUBLIC_CSV)
+    refresh = fetch_grid_public(["FR", "UA"])
+    assert refresh.rows == {"FR": 41.224, "UA": 250.525}
+    assert refresh.citation == EMBER_CITATION
+    assert EMBER_API not in refresh.citation
+
+
+def test_each_country_gets_the_newest_year_it_has_and_not_the_newest_there_is(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The defect this whole reader exists around, read straight off the file.
+
+    France reaches 2025 and Ukraine stops at 2022. The refresh's newest year is
+    2025 and Ukraine's is not, and the two have to stay apart all the way to the
+    row that gets written.
+    """
+    answer_with_file(monkeypatch, PUBLIC_CSV)
+    refresh = fetch_grid_public(["FR", "UA"])
+    assert refresh.year == 2025
+    assert refresh.years == {"FR": 2025, "UA": 2022}
+
+
+def test_one_fuel_is_not_mistaken_for_the_whole_grid(monkeypatch: pytest.MonkeyPatch) -> None:
+    # The file carries an intensity per source as well as for the grid. Reading
+    # the wrong row would file French *coal* -- 961.6 -- under France, which is
+    # a real number, in the right unit, off by a factor of twenty-three.
+    answer_with_file(monkeypatch, PUBLIC_CSV)
+    assert fetch_grid_public(["FR"]).rows["FR"] == 41.224
+
+
+def test_a_year_that_is_asked_for_is_taken_literally(monkeypatch: pytest.MonkeyPatch) -> None:
+    answer_with_file(monkeypatch, PUBLIC_CSV)
+    refresh = fetch_grid_public(["FR", "UA"], year=2024)
+    assert refresh.rows == {"FR": 44.0}
+    assert "2024" in refresh.skipped["UA"], "a country without that year is named, not served 2022"
+
+
+def test_a_country_with_no_figure_in_the_file_is_named_rather_than_guessed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    answer_with_file(monkeypatch, PUBLIC_CSV)
+    refresh = fetch_grid_public(["FR", "DE"])
+    assert "DE" not in refresh.rows
+    assert "DE" in refresh.skipped
+
+
+def test_a_renamed_column_is_an_error_rather_than_an_empty_refresh(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Finding nothing and reporting nothing moved are the same output.
+
+    If the publisher renames the intensity column, every lookup misses and the
+    command prints "nothing moved by more than the catalogue's own precision" --
+    which is exactly what it prints when the catalogue is perfectly up to date.
+    The failure has to be loud at the point it happens.
+    """
+    answer_with_file(monkeypatch, PUBLIC_CSV.replace(EMBER_INTENSITY_COLUMN, "Intensity"))
+    with pytest.raises(RuntimeError) as caught:
+        fetch_grid_public(["FR"])
+    assert EMBER_INTENSITY_COLUMN in str(caught.value)
+
+
+def test_asking_the_published_dataset_about_nothing_reaches_no_network() -> None:
+    assert fetch_grid_public([]).rows == {}
 
 
 # --- The tariff and timezone readers, without a network --------------------------
@@ -679,15 +887,27 @@ def grid_args(**over: object) -> argparse.Namespace:
     return argparse.Namespace(**(base | over))
 
 
+def answer_both_carbon_paths(monkeypatch: pytest.MonkeyPatch, answer: object) -> None:
+    """Make either carbon reader return this, so no branch can reach a network.
+
+    The command picks the keyed API or the published dataset depending on
+    whether a key is around, which is an environment this suite does not
+    control. Stubbing one of the two left the other free to download thirty
+    megabytes and, worse, to pass: a test that patched the API path quietly
+    fetched the real file and agreed with it, because the real figure for France
+    happened to be the one the test had written down.
+    """
+    import saggio.cli.commands as commands
+
+    monkeypatch.setattr(commands, "fetch_grid", lambda *a, **k: answer)
+    monkeypatch.setattr(commands, "fetch_grid_public", lambda *a, **k: answer)
+
+
 def test_the_carbon_refresh_prints_what_moved_and_offers_the_write(
     capsys, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import saggio.cli.commands as commands
-
-    monkeypatch.setattr(
-        commands,
-        "fetch_grid",
-        lambda *a, **k: GridRefresh(2025, {"FR": 999.5}, {"ZZ": "no code"}, "ember"),
+    answer_both_carbon_paths(
+        monkeypatch, GridRefresh(2025, {"FR": 999.5}, {"ZZ": "no code"}, "ember")
     )
     assert catalog_refresh(grid_args()) == 0
     out = capsys.readouterr().out
@@ -701,13 +921,9 @@ def test_the_carbon_refresh_prints_what_moved_and_offers_the_write(
 def test_the_carbon_refresh_writes_only_when_told(
     tmp_path: pathlib.Path, capsys, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import saggio.cli.commands as commands
-
     target = tmp_path / "grid.yaml"
     target.write_text('countries:\n  - key: "FR"\n    carbon_gco2e_per_kwh: 56\n', encoding="utf-8")
-    monkeypatch.setattr(
-        commands, "fetch_grid", lambda *a, **k: GridRefresh(2025, {"FR": 41.2}, {}, "ember")
-    )
+    answer_both_carbon_paths(monkeypatch, GridRefresh(2025, {"FR": 41.2}, {}, "ember"))
     assert catalog_refresh(grid_args(write=str(target))) == 0
     assert "Wrote 1 row" in capsys.readouterr().out
     assert "41.2" in target.read_text(encoding="utf-8")
@@ -722,6 +938,7 @@ def test_a_source_that_does_not_answer_fails_the_command(
         raise RuntimeError("Ember did not answer: no route to host")
 
     monkeypatch.setattr(commands, "fetch_grid", refuse)
+    monkeypatch.setattr(commands, "fetch_grid_public", refuse)
     # 4 is the exit code for an external dependency that failed, which is not
     # the same as the catalogue being wrong.
     assert catalog_refresh(grid_args()) == 4

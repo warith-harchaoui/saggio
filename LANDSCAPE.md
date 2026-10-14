@@ -177,7 +177,7 @@ Being honest about the gaps, since that is the whole premise of the tool.
   this is the wrong shape of tool.
 - **Embodied carbon is implemented and barely catalogued.** The arithmetic is
   there — the four terms of ISO/IEC 21031, amortised over calendar time — and so
-  are seven footprints: three accelerators out of 25 rows and four processors out
+  are eight footprints: four accelerators out of 25 rows and four processors out
   of 12. Everything else reports `TODO`. The lifetime is still yours to state,
   because how long a card stays in service is a fact about a fleet rather than
   about a part. See [`STANDARDS.md`](STANDARDS.md) for the table and the eight

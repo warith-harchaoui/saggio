@@ -13,6 +13,18 @@
 # carbon_gco2e_per_kwh : annual average operating emissions of the national grid.
 # price_usd_per_kwh    : indicative price, household or small-business tariff.
 # timezones            : IANA zones used to offer, never to assert, a country.
+#
+# carbon_data_year is per row, and it is not the year the figure was read. Ember
+# does not publish every country up to the same year: most reach 2025, Ukraine's
+# series stops in 2022. One data year for the whole file used to be written onto
+# all thirty-eight rows, so Ukraine's 2022 reading shipped as a 2025 one. Nothing
+# about 250.5 gCO2e/kWh could have shown that; the stamp was the only place it
+# could appear, and it said the wrong thing.
+#
+# carbon_source_url is the page Ember publishes the series on, which a reader can
+# open. It is deliberately not `api.ember-energy.org`, where the refresh reads it
+# from: without a key that endpoint answers HTTP 403 and no number at all, so
+# thirty-eight rows cited a link that showed whoever followed it an error.
 
 schema_version: "2.1"
 
@@ -21,9 +33,9 @@ schema_version: "2.1"
 countries:
   - key: "AU"
     name: "Australia"
-    carbon_gco2e_per_kwh: 524.6
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 518.0
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.259
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -35,9 +47,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "AT"
     name: "Austria"
-    carbon_gco2e_per_kwh: 116.7
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 116.6
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.356
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -49,9 +61,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "BE"
     name: "Belgium"
-    carbon_gco2e_per_kwh: 125.8
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 151.3
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.409
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -63,9 +75,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "BR"
     name: "Brazil"
-    carbon_gco2e_per_kwh: 109.8
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 109.2
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.166
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -77,9 +89,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "CA"
     name: "Canada"
-    carbon_gco2e_per_kwh: 190.7
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 191.6
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.123
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -91,9 +103,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "CH"
     name: "Switzerland"
-    carbon_gco2e_per_kwh: 39.0
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 39.1
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.367
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -106,8 +118,8 @@ countries:
   - key: "CL"
     name: "Chile"
     carbon_gco2e_per_kwh: 290.6
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.231
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -120,8 +132,8 @@ countries:
   - key: "CN"
     name: "China"
     carbon_gco2e_per_kwh: 528.3
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.076
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -134,8 +146,8 @@ countries:
   - key: "CZ"
     name: "Czechia"
     carbon_gco2e_per_kwh: 401.4
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.35
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -148,8 +160,8 @@ countries:
   - key: "DE"
     name: "Germany"
     carbon_gco2e_per_kwh: 334.1
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.409
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -162,8 +174,8 @@ countries:
   - key: "DK"
     name: "Denmark"
     carbon_gco2e_per_kwh: 99.9
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.352
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -175,9 +187,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "EG"
     name: "Egypt"
-    carbon_gco2e_per_kwh: 563.3
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 557.2
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.023
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -190,8 +202,8 @@ countries:
   - key: "ES"
     name: "Spain"
     carbon_gco2e_per_kwh: 153.5
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.259
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -204,8 +216,8 @@ countries:
   - key: "FI"
     name: "Finland"
     carbon_gco2e_per_kwh: 57.2
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.177
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -218,8 +230,8 @@ countries:
   - key: "FR"
     name: "France"
     carbon_gco2e_per_kwh: 41.2
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.276
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -232,8 +244,8 @@ countries:
   - key: "GB"
     name: "United Kingdom"
     carbon_gco2e_per_kwh: 218.2
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.405
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -246,8 +258,8 @@ countries:
   - key: "IE"
     name: "Ireland"
     carbon_gco2e_per_kwh: 263.3
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.453
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -260,8 +272,8 @@ countries:
   - key: "IL"
     name: "Israel"
     carbon_gco2e_per_kwh: 492.9
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.188
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -274,8 +286,8 @@ countries:
   - key: "IN"
     name: "India"
     carbon_gco2e_per_kwh: 670.9
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.076
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -287,9 +299,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "IT"
     name: "Italy"
-    carbon_gco2e_per_kwh: 284.3
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 284.4
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.415
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -301,9 +313,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "JP"
     name: "Japan"
-    carbon_gco2e_per_kwh: 477.4
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 473.7
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.227
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -315,9 +327,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "KR"
     name: "South Korea"
-    carbon_gco2e_per_kwh: 417.1
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 417.7
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.126
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -329,9 +341,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "MX"
     name: "Mexico"
-    carbon_gco2e_per_kwh: 474.0
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 481.4
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.11
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -344,8 +356,8 @@ countries:
   - key: "NL"
     name: "Netherlands"
     carbon_gco2e_per_kwh: 253.7
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.287
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -358,8 +370,8 @@ countries:
   - key: "NO"
     name: "Norway"
     carbon_gco2e_per_kwh: 28.1
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.169
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -371,9 +383,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "PL"
     name: "Poland"
-    carbon_gco2e_per_kwh: 590.9
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 590.8
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.236
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -386,8 +398,8 @@ countries:
   - key: "PT"
     name: "Portugal"
     carbon_gco2e_per_kwh: 127.8
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.24
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -400,8 +412,8 @@ countries:
   - key: "RO"
     name: "Romania"
     carbon_gco2e_per_kwh: 259.2
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.233
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -413,9 +425,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "SA"
     name: "Saudi Arabia"
-    carbon_gco2e_per_kwh: 692.0
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 679.8
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.052
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -427,9 +439,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "SE"
     name: "Sweden"
-    carbon_gco2e_per_kwh: 35.3
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 35.4
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.247
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -441,9 +453,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "SG"
     name: "Singapore"
-    carbon_gco2e_per_kwh: 497.1
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 497.0
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.236
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -455,9 +467,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "SK"
     name: "Slovakia"
-    carbon_gco2e_per_kwh: 95.0
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 95.3
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.216
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -470,8 +482,8 @@ countries:
   - key: "TR"
     name: "Turkey"
     carbon_gco2e_per_kwh: 475.8
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.067
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -484,9 +496,9 @@ countries:
   - key: "UA"
     name: "Ukraine"
     carbon_gco2e_per_kwh: 250.5
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
-    carbon_data_year: 2025
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
+    carbon_data_year: 2022
     price_usd_per_kwh: 0.085
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
     price_retrieved_date: "2026-10-02"
@@ -497,9 +509,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "AE"
     name: "United Arab Emirates"
-    carbon_gco2e_per_kwh: 467.5
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 469.7
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.08
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -512,8 +524,8 @@ countries:
   - key: "US"
     name: "United States"
     carbon_gco2e_per_kwh: 384.4
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.19
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -525,9 +537,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "ZA"
     name: "South Africa"
-    carbon_gco2e_per_kwh: 699.0
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 699.1
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.215
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
@@ -539,9 +551,9 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "RU"
     name: "Russia"
-    carbon_gco2e_per_kwh: 449.6
-    carbon_source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
-    carbon_retrieved_date: "2026-10-02"
+    carbon_gco2e_per_kwh: 446.9
+    carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
+    carbon_retrieved_date: "2026-10-14"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.07
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"

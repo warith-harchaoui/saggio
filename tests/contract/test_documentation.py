@@ -129,6 +129,124 @@ def test_no_bundled_catalogue_names_a_command_that_does_not_exist(catalogue: str
         assert gone not in text, f"{catalogue}.yaml still mentions {gone!r}"
 
 
+#: How many of a thing the documents spell out in words, in both languages. Only
+#: as far as the catalogue could plausibly reach; a count past this is a count
+#: somebody should have written in digits.
+_SPELLED_OUT = {
+    # English. "six" is spelled the same in French and is not repeated below.
+    "zero": 0,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+    # French.
+    "aucune": 0,
+    "une": 1,
+    "deux": 2,
+    "trois": 3,
+    "quatre": 4,
+    "cinq": 5,
+    "sept": 7,
+    "huit": 8,
+    "neuf": 9,
+    "dix": 10,
+    "onze": 11,
+    "douze": 12,
+}
+
+#: The sentence six pages make about the embodied catalogue, in either language.
+#: Whitespace is collapsed before matching because every one of them wraps the
+#: claim across a line break, in a different place.
+_FOOTPRINT_CLAIM = re.compile(
+    r"(\w+) (?:accelerators out of|accélérateurs sur) (\d+)\s*(?:rows|lignes)"
+    r"[,.]?\s*(?:and\s+|et\s+)?(\w+) (?:processors out of|processeurs sur) (\d+)",
+    re.IGNORECASE,
+)
+
+
+def test_the_embodied_counts_the_documents_quote_are_the_catalogue_s_own() -> None:
+    """Six pages state how much of the catalogue carries a footprint. Nothing checked.
+
+    "Three accelerators out of 25 rows and four processors out of 12" is a claim
+    about a data file, written out in prose in two languages across six
+    documents, and a row added to `hardware.yaml` falsifies all six at once
+    without touching a test. It is the same shape as the defect that opened the
+    previous iteration -- a preface saying "twenty-one entries" above
+    twenty-three -- and the same shape as the citations that worked everywhere
+    except where they were read: a statement the repository makes about itself
+    on a surface nobody re-reads.
+
+    `CHANGELOG.md` is deliberately not scanned. Its old entries say "seven
+    footprints" and should go on saying it: they describe a release where that
+    was true, and a history rewritten to agree with today is not a history.
+    """
+    import yaml
+
+    catalogue = yaml.safe_load((ROOT / "saggio" / "data" / "hardware.yaml").read_text("utf-8"))
+    truth = {
+        section: (
+            sum("embodied_kgco2e" in row for row in catalogue[section]),
+            len(catalogue[section]),
+        )
+        for section in ("gpus", "cpus")
+    }
+    (with_gpu, gpus), (with_cpu, cpus) = truth["gpus"], truth["cpus"]
+
+    pages = sorted(
+        path
+        for path in ROOT.glob("*.md")
+        if path.name != "CHANGELOG.md"
+        and _FOOTPRINT_CLAIM.search(" ".join(path.read_text("utf-8").split()))
+    )
+    assert len(pages) >= 6, (
+        "the pages that quote the embodied counts have moved or been renamed, so "
+        f"this is checking {len(pages)} of them rather than six"
+    )
+    for page in pages:
+        collapsed = " ".join(page.read_text(encoding="utf-8").split())
+        for said_gpu, said_gpus, said_cpu, said_cpus in _FOOTPRINT_CLAIM.findall(collapsed):
+            where = page.name
+            assert _SPELLED_OUT.get(said_gpu.lower()) == with_gpu, (
+                f"{where} says {said_gpu} accelerators carry a footprint; "
+                f"the catalogue has {with_gpu}"
+            )
+            assert int(said_gpus) == gpus, (
+                f"{where} says {said_gpus} accelerator rows; the catalogue has {gpus}"
+            )
+            assert _SPELLED_OUT.get(said_cpu.lower()) == with_cpu, (
+                f"{where} says {said_cpu} processors carry a footprint; "
+                f"the catalogue has {with_cpu}"
+            )
+            assert int(said_cpus) == cpus, (
+                f"{where} says {said_cpus} processor rows; the catalogue has {cpus}"
+            )
+            # And the total the same sentence leads with, where it leads with one.
+            total = _SPELLED_OUT.get(
+                next(
+                    (
+                        word
+                        for word in re.findall(
+                            r"(\w+) (?:footprints|empreintes)", collapsed, re.IGNORECASE
+                        )
+                    ),
+                    "",
+                ).lower()
+            )
+            if total is not None:
+                assert total == with_gpu + with_cpu, (
+                    f"{where} leads with {total} footprints and then accounts for "
+                    f"{with_gpu + with_cpu}"
+                )
+
+
 def test_the_version_in_the_changelog_is_the_installed_one() -> None:
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     assert f"## {__version__}" in changelog

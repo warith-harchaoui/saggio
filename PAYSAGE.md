@@ -188,8 +188,8 @@ Autant être honnête sur les manques, puisque c'est toute la prémisse de l'out
 - **Pas de suivi continu.** Une tranche bornée, une fois. Si vous voulez une série
   temporelle, ce n'est pas la bonne forme d'outil.
 - **Le carbone incorporé est implémenté et à peine catalogué.** L'arithmétique est
-  là — les quatre termes d'ISO/IEC 21031, amortis en temps calendaire — et sept
-  empreintes aussi : trois accélérateurs sur 25 lignes et quatre processeurs sur
+  là — les quatre termes d'ISO/IEC 21031, amortis en temps calendaire — et huit
+  empreintes aussi : quatre accélérateurs sur 25 lignes et quatre processeurs sur
   12. Tout le reste rapporte `TODO`. La durée de vie reste à vous, parce que
   combien de temps une carte reste en service est un fait sur un parc et non sur
   une pièce. Voir [`NORMES.md`](NORMES.md) pour le tableau et les huit refus.

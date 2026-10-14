@@ -54,7 +54,7 @@ H100 over a four-year life, that is 164 kg × 1 h / 35 064 h × 1 ≈ **4.7 gCO2
 — small next to the ~400 W-hour the same run draws, and not nothing, and
 emphatically not zero.
 
-Seven footprints ship in the catalogue — **three accelerators out of 25 rows,
+Eight footprints ship in the catalogue — **four accelerators out of 25 rows,
 four processors out of 12** — each read from its own primary source and carrying
 the boundary in words beside the number:
 
@@ -63,6 +63,7 @@ the boundary in words beside the number:
 | A100 (SXM 40GB) | 127.6 | Cradle-to-gate, teardown LCA with primary elemental analysis | [arXiv:2509.00093](https://arxiv.org/abs/2509.00093) |
 | H100 | 164.0 | One of eight on an HGX H100 baseboard: 1,312 kg ÷ 8, ISO 14067, third-party reviewed | [NVIDIA PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) |
 | B200 | 284.25 | One of eight on an HGX B200 baseboard: 2,274 kg ÷ 8, same method | [NVIDIA PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) |
+| TPU v4 | 366.0 | One chip with its HBM, cradle-to-gate, ISO 14040/14044, modelled by the designer from its own node, die and yield | [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) |
 | EPYC 7742 | 40.66 | Cradle-to-gate, from a 1,600 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 | EPYC 9654 | 33.98 | Cradle-to-gate, from a 1,261 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 | Core i9-13900K | 14.2 | Cradle-to-gate, from a 257 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
@@ -70,20 +71,40 @@ the boundary in words beside the number:
 
 The two kinds of row are not the same strength of claim, and the table keeps
 them apart rather than averaging them into one word. The accelerators are
-vendor-published or torn down and weighed. The processors are **computed from
-the chip's die size by a published model** — a weaker thing, and the reason the
+vendor-published, torn down and weighed, or modelled by the part's own designer
+from parameters nobody outside has. The processors are **computed from the
+chip's die size by a published model** — a weaker thing, and the reason the
 method is linked rather than only the figure.
+
+**The four other TPU generations in that paper are not here, and the reason is a
+column rather than a doubt.** It publishes a footprint for v4i, v5e, v6e and v5p
+as well, and they would be as good as the v4 row. What it does not publish is a
+power figure of the kind every row here carries: `tdp_w` is a datasheet rating,
+and what the paper gives is a *measured mean across a production fleet* — a
+better number for estimating energy, and a different quantity. Putting one under
+the other's name would make the column mean two things, which is the substitution
+this package spends its time refusing. Those four need a published rating, or a
+column of their own.
 
 **What a `source_url` is, and what it is not.** It exists so a reader can check
 the figure beside it, which means it has to be something a person can open. Two
 of the sources here are APIs, and they behave differently when a reader follows
-the link rather than a program: Ember answers `{"detail":"No API key set"}`,
-which is unhelpful but true, while Boavizta answers **19.0 kgCO2e** — the
-default for an unnamed chip, and the exact figure this package refuses on
-import. Four processor rows cited it, so anybody who clicked saw a number with
-nothing to do with the processor on that row. Those rows now cite the page that
-explains the method, and name the endpoint they were computed by in their scope,
-where it is provenance rather than an invitation.
+the link rather than a program: Boavizta answers **19.0 kgCO2e** — the default
+for an unnamed chip, and the exact figure this package refuses on import — while
+Ember answers HTTP 403 and `{"detail":"No API key set"}`. Four processor rows
+cited the first, so anybody who clicked saw a number with nothing to do with the
+processor on that row.
+
+Thirty-eight grid rows cited the second, and that one took three more iterations
+to fix, because this page had already noticed it and talked itself out of it:
+*unhelpful but true*. It is not true. A citation is a claim that the figure can
+be checked there, and no figure can be checked at a 403 — the row was asserting
+something about a page that does not exist for the reader. Both are now named in
+the scope or in prose, where naming an endpoint is provenance of method, and
+neither is in a field a reader is invited to follow. The grid rows cite [Ember's
+published yearly dataset](https://ember-energy.org/data/yearly-electricity-data/),
+which is the same series under CC-BY-4.0, needs no key, and was checked against
+the API country by country before it was adopted rather than assumed equivalent.
 
 **The one non-vendor figure here has been checked against an independent one.**
 The A100 number comes from a teardown with primary elemental analysis; a
@@ -215,6 +236,13 @@ design: a standard you half-satisfy, and know exactly which half.
 - [Software Carbon Intensity specification](https://sci.greensoftware.foundation/), ISO/IEC 21031:2024 · [SCI for AI](https://greensoftware.foundation/standards/sci-ai/)
 - [NVIDIA HGX H100 PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) · [HGX B200 PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) — ISO 14067, third-party reviewed, cradle-to-gate.
 - *More than Carbon: Cradle-to-Grave environmental impacts of GenAI training on the NVIDIA A100 GPU*, [arXiv:2509.00093](https://arxiv.org/abs/2509.00093).
+- *Life-Cycle Emissions of AI Hardware: A Cradle-To-Grave Approach and
+  Generational Trends*, [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) —
+  Google's own LCA of five TPU generations, ISO 14040/14044, and the first
+  published manufacturing figure for an AI accelerator by the people who
+  designed it. The TPU v4 row comes from its Table 1.
+- [Ember's yearly electricity data](https://ember-energy.org/data/yearly-electricity-data/)
+  (CC-BY-4.0) — the grid carbon intensities, and what the 38 grid rows cite.
 - *The Rising Unsustainability of AI Graphics Cards Production*,
   [arXiv:2607.01258](https://arxiv.org/abs/2607.01258), with its
   [dataset](https://doi.org/10.5281/zenodo.20321644) of 174 NVIDIA cards

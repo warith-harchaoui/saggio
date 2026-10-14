@@ -427,7 +427,7 @@ def test_the_tariff_sources_are_the_ones_the_module_names() -> None:
     """The catalogue's URLs are the ones the refresh would write, not strays."""
     import yaml
 
-    from saggio.catalog.refresh import EMBER_API, PRICE_SOURCE
+    from saggio.catalog.refresh import EMBER_CITATION, PRICE_SOURCE
 
     root = Path(__file__).resolve().parents[2]
     rows = yaml.safe_load((root / "saggio" / "data" / "grid.yaml").read_text(encoding="utf-8"))[
@@ -435,7 +435,9 @@ def test_the_tariff_sources_are_the_ones_the_module_names() -> None:
     ]
     for row in rows:
         if row.get("carbon_source_url"):
-            assert row["carbon_source_url"] == EMBER_API
+            # The page Ember publishes the series on, not the API that serves it
+            # to a machine. The refresh writes the first and names the second.
+            assert row["carbon_source_url"] == EMBER_CITATION
         if row.get("price_source_url"):
             assert row["price_source_url"] == PRICE_SOURCE
 
@@ -598,6 +600,32 @@ def test_the_catalogue_keeps_the_generic_rows_the_detection_falls_back_to() -> N
         )
 
 
+def test_no_committed_example_cites_an_endpoint_a_reader_cannot_follow() -> None:
+    """The same rule, on the surface where a reader actually meets a citation.
+
+    A cost model copies the catalogue's provenance into itself at audit time, so
+    every example here inherited the catalogue's citations -- and inherited the
+    unfollowable one along with them, in eleven models and the eleven reports
+    rendered from them. The rule had been enforced on the catalogue and nowhere
+    downstream of it, which is how a fixed defect reappears in twenty-two files
+    nobody thought of as data.
+    """
+    from saggio.catalog.refresh import ENDPOINTS_A_READER_CANNOT_FOLLOW
+
+    root = _repository_root()
+    examples = sorted(
+        path for pattern in ("*.yaml", "*.md") for path in (root / "examples").rglob(pattern)
+    )
+    assert examples, "the examples are gone, so this checks nothing"
+    for path in examples:
+        body = path.read_text(encoding="utf-8")
+        for endpoint in ENDPOINTS_A_READER_CANNOT_FOLLOW:
+            assert endpoint not in body, (
+                f"{path.relative_to(root)} cites {endpoint}, which answers a reader "
+                "who follows it with an error rather than with the figure beside it"
+            )
+
+
 def test_no_row_cites_an_endpoint_that_would_show_a_reader_a_wrong_number() -> None:
     """A citation exists so a reader can check the figure beside it.
 
@@ -607,16 +635,33 @@ def test_no_row_cites_an_endpoint_that_would_show_a_reader_a_wrong_number() -> N
     number that had nothing to do with the processor on that row -- and it was
     the very default this package refuses when importing.
 
+    Ember's endpoint then sat in thirty-eight carbon rows for three more
+    iterations, passing this very test. Asked without a key it answers HTTP 403
+    and `{"detail": "No API key set"}`: not the wrong number, no number -- which
+    this test was not looking for, because it had been handed one URL and told
+    about that one. The list is now what the refresh modules declare, so a
+    module that gains an endpoint gains the check with it rather than waiting
+    for somebody to remember.
+
     The rule is narrow on purpose: a row may name an endpoint in its *scope*,
     where it is provenance of method, but not in the field a reader is invited
     to follow.
     """
     import yaml
 
+    from saggio.catalog.refresh import ENDPOINTS_A_READER_CANNOT_FOLLOW
+
     #: Endpoints that answer a bare GET with something other than the row's
-    #: figure. Named rather than guessed from the URL shape, because an API that
-    #: does answer with the figure is a perfectly good citation.
-    shows_the_wrong_thing = ("api.boavizta.org/v1/component/cpu",)
+    #: figure -- or with nothing. Declared by the modules that hold them rather
+    #: than listed here, because a list here is a list that goes out of date in
+    #: exactly the direction that hides a fault. An API that *does* answer with
+    #: the figure is a perfectly good citation and is not in it.
+    shows_the_wrong_thing = tuple(
+        url.split("://", 1)[-1] for url in ENDPOINTS_A_READER_CANNOT_FOLLOW
+    )
+    assert len(shows_the_wrong_thing) >= 2, (
+        "the modules declare fewer unfollowable endpoints than are known to exist"
+    )
 
     root = _repository_root()
     for name in ("hardware.yaml", "grid.yaml"):

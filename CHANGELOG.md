@@ -7,6 +7,109 @@ release of that line.
 
 ## Unreleased
 
+### Thirty-eight carbon rows cited a link that showed a reader an error
+
+- Every grid row cited `api.ember-energy.org/v1/carbon-intensity/yearly`. Asked
+  without a key, that endpoint answers **HTTP 403** and
+  `{"detail":"No API key set"}`. So every carbon figure in the catalogue —
+  and in the eleven committed example models, and the eleven reports rendered
+  from them — carried a citation that showed whoever followed it no number at
+  all, in a package whose entire proposition is that a figure says where it
+  came from and can be checked there.
+- The rows now cite [Ember's published yearly
+  dataset](https://ember-energy.org/data/yearly-electricity-data/): the same
+  series, CC-BY-4.0, no key, and a page that opens. The endpoint is still named
+  — in the catalogue header and in the module — where naming it is provenance
+  of method rather than an invitation to go and look.
+- **The suite already had a test for exactly this fault**, written when four
+  processor rows were found citing an endpoint that answers a reader with the
+  wrong number. It was handed one URL and told about that one, so Ember's sat in
+  thirty-eight rows for three iterations, passing it. The rule is now
+  `ENDPOINTS_A_READER_CANNOT_FOLLOW`, declared by the modules that hold the
+  endpoints, and it is checked over the examples as well as the catalogue — the
+  surface the first version never looked at, and where the defect had been
+  copied twenty-two times.
+- `STANDARDS.md` had *described* this defect and argued itself out of it:
+  Ember's answer was "unhelpful but true". It is not true. A citation claims the
+  figure is checkable there, and nothing is checkable at a 403.
+
+### A refresh now reads Ember without a key, and says which half answered
+
+- `saggio catalog refresh grid --column carbon` reads the published dataset by
+  default. A key is still used when one is offered, and the run prints which of
+  the two answered rather than leaving it to be inferred from whether it worked.
+- This is not the substitution this module refuses. The refused one is a
+  *different measure* wearing the same units — Our World in Data's **lifecycle**
+  intensity where this column is **operating** emissions — and that refusal is
+  intact. Ember's own dataset was checked against the API country by country
+  before being adopted: 36 of the 38 agreed to better than half a percent,
+  thirty of them to better than a tenth, several to three decimal places.
+- Why it matters beyond convenience: a column only a credential-holder can
+  re-read is a column that stops being re-read, and what happens instead is that
+  somebody bumps the date. That is the one outcome this whole mechanism exists
+  to prevent.
+
+### Ukraine's 2022 figure had been shipping as a 2025 one
+
+- The two countries that did *not* agree in that check are the interesting part.
+  **Ukraine** matched Ember's **2022** value to three decimal places — 250.5
+  against 250.525 — while its row said `carbon_data_year: 2025`.
+- The cause was one line. The refresh took the newest data year across all
+  thirty-eight countries and stamped it on every row. Ember publishes most
+  countries to 2025 and Ukraine only to 2022, so the one row the source had not
+  caught up on claimed a currency it did not have. Nothing about the number
+  could show it: 250.5 is an unremarkable intensity, and the stamp was the only
+  place the three-year gap was ever going to appear.
+- Each row now carries **its own** data year, and a refresh names the countries
+  the source has not caught up on rather than burying them in a maximum.
+- **Belgium** was the other: 125.8 on file against 151.3 published, a 20% upward
+  revision inside the one-month freshness window. Not a defect — a reminder that
+  the window is an upper bound on staleness, not a guarantee of accuracy. Eight
+  countries' figures moved on this re-read and all eight are now current.
+
+### A TPU v4 has a footprint, and four other TPUs deliberately do not
+
+- Google published a cradle-to-gate LCA of five TPU generations
+  ([arXiv:2502.01671](https://arxiv.org/abs/2502.01671), ISO 14040/14044) — the
+  first manufacturing figure for an AI accelerator from the people who designed
+  it, modelled from the node, die size and yield nobody outside has. Its Table 1
+  separates the accelerator's own emissions from the host processor's and the
+  datacenter's, which is the boundary this catalogue's other accelerator rows
+  already use.
+- `TPU-v4` carries **366.0 kgCO2e** per chip, HBM included, host and building
+  excluded and named. The eighth footprint in the catalogue, and the fourth
+  accelerator.
+- The same paper gives v4i, v5e, v6e and v5p, and they are **not** added. It
+  publishes no power figure of the kind every row here carries: `tdp_w` is a
+  datasheet rating and what the paper has is a measured mean across a production
+  fleet. A better number for estimating energy, a different quantity, and
+  putting one under the other's name would make the column mean two things.
+- A small confirmation worth recording: the paper's own specification for the
+  v4 — 275 TFLOP/s BF16, 32 GiB — is what the row already said from Google's
+  documentation. Two readings of the same part agreeing is the only reason to
+  believe the footprint belongs to this row.
+
+### Six pages quoted a count of the catalogue and nothing checked it
+
+- "Three accelerators out of 25 rows and four processors out of 12" appears in
+  `README.md`, `LISEZMOI.md`, `STANDARDS.md`, `NORMES.md`, `LANDSCAPE.md` and
+  `PAYSAGE.md`. Adding one row to `hardware.yaml` falsifies all six at once,
+  and no test looked — the same shape as the release preface that said
+  "twenty-one entries" above twenty-three.
+- A contract test now reads the counts out of the prose, in both languages and
+  both phrasings, and compares them with the catalogue. `CHANGELOG.md` is
+  exempt on purpose: its old entries say *seven footprints* and should go on
+  saying so, because they describe a release where that was true.
+
+### Three tests were reaching the network and one of them passed because of it
+
+- Found while changing which function the carbon refresh calls. A test that
+  stubbed the API path left the keyless path free to download the real
+  thirty-megabyte file — and then **agreed with it**, because the real figure
+  for France happened to be the number the test had written down.
+- Both paths are stubbed together now, through one helper, so neither branch can
+  reach a socket whichever one the environment selects.
+
 ### A Word file and a PDF say what made them, and when
 
 - The title block of a `docx` and a `pdf` now names **saggio** as the author and

@@ -55,7 +55,7 @@ heure d'une H100 pour une vie de quatre ans, cela fait 164 kg × 1 h / 35 064 h
 × 1 ≈ **4,7 gCO2e** — peu face aux ~400 Wh que la même exécution tire, pas rien,
 et surtout pas zéro.
 
-Sept empreintes sont livrées dans le catalogue — **trois accélérateurs sur 25
+Huit empreintes sont livrées dans le catalogue — **quatre accélérateurs sur 25
 lignes, quatre processeurs sur 12** — chacune lue à sa source primaire et portant
 sa frontière en toutes lettres à côté du nombre :
 
@@ -64,6 +64,7 @@ sa frontière en toutes lettres à côté du nombre :
 | A100 (SXM 40 Go) | 127,6 | Du berceau à la sortie d'usine, ACV par démontage avec analyse élémentaire primaire | [arXiv:2509.00093](https://arxiv.org/abs/2509.00093) |
 | H100 | 164,0 | Une des huit d'une carte mère HGX H100 : 1 312 kg ÷ 8, ISO 14067, revue par un tiers | [Résumé PCF NVIDIA](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) |
 | B200 | 284,25 | Une des huit d'une carte mère HGX B200 : 2 274 kg ÷ 8, même méthode | [Résumé PCF NVIDIA](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) |
+| TPU v4 | 366,0 | Une puce et sa HBM, du berceau à la sortie d'usine, ISO 14040/14044, modélisée par son concepteur depuis son nœud, son die et son rendement | [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) |
 | EPYC 7742 | 40,66 | Du berceau à la sortie d'usine, depuis un die de 1 600 mm² | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 | EPYC 9654 | 33,98 | Du berceau à la sortie d'usine, depuis un die de 1 261 mm² | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 | Core i9-13900K | 14,2 | Du berceau à la sortie d'usine, depuis un die de 257 mm² | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
@@ -71,21 +72,41 @@ sa frontière en toutes lettres à côté du nombre :
 
 Les deux sortes de ligne ne sont pas de la même force, et le tableau les tient
 séparées plutôt que de les moyenner sous un même mot. Les accélérateurs sont
-publiés par le fabricant ou démontés et pesés. Les processeurs sont **calculés
-depuis la taille du die par un modèle publié** — chose plus faible, et la raison
-pour laquelle la méthode est liée et pas seulement le chiffre.
+publiés par le fabricant, démontés et pesés, ou modélisés par le concepteur de la
+pièce depuis des paramètres que personne d'autre n'a. Les processeurs sont
+**calculés depuis la taille du die par un modèle publié** — chose plus faible, et
+la raison pour laquelle la méthode est liée et pas seulement le chiffre.
+
+**Les quatre autres générations de TPU de cet article ne sont pas là, et la
+raison est une colonne, pas un doute.** Il publie aussi une empreinte pour les
+v4i, v5e, v6e et v5p, et elles vaudraient la ligne v4. Ce qu'il ne publie pas,
+c'est une puissance de la sorte que porte chaque ligne ici : `tdp_w` est une
+valeur de fiche technique, et ce que l'article donne est une *moyenne mesurée sur
+une flotte de production* — meilleur nombre pour estimer une énergie, et une
+autre grandeur. Mettre l'un sous le nom de l'autre ferait dire deux choses à la
+colonne, ce qui est précisément la substitution que ce paquet passe son temps à
+refuser. Ces quatre-là attendent une valeur publiée, ou une colonne à elles.
 
 **Ce qu'est un `source_url`, et ce qu'il n'est pas.** Il existe pour qu'un
 lecteur vérifie le chiffre d'à côté, donc il doit être ouvrable par un humain.
 Deux des sources ici sont des API, et elles se comportent autrement quand un
-lecteur suit le lien plutôt qu'un programme : Ember répond
-`{"detail":"No API key set"}`, inutile mais vrai, tandis que Boavizta répond
-**19,0 kgCO2e** — la valeur par défaut d'une puce anonyme, et le chiffre exact
-que ce paquet refuse à l'import. Quatre lignes processeur la citaient : qui
-cliquait voyait un nombre sans rapport avec le processeur de la ligne. Ces
-lignes citent désormais la page qui explique la méthode, et nomment dans leur
-portée l'endpoint qui les a calculées, où c'est de la provenance et non une
-invitation.
+lecteur suit le lien plutôt qu'un programme : Boavizta répond **19,0 kgCO2e** —
+la valeur par défaut d'une puce anonyme, et le chiffre exact que ce paquet refuse
+à l'import — tandis qu'Ember répond HTTP 403 et `{"detail":"No API key set"}`.
+Quatre lignes processeur citaient la première : qui cliquait voyait un nombre
+sans rapport avec le processeur de la ligne.
+
+Trente-huit lignes du réseau citaient la seconde, et celle-là a mis trois
+itérations de plus à être réparée, parce que cette page l'avait déjà remarquée et
+s'en était dissuadée elle-même : *inutile mais vrai*. Ce n'est pas vrai. Une
+citation affirme que le chiffre est vérifiable là, et rien n'est vérifiable à un
+403 — la ligne affirmait quelque chose d'une page qui n'existe pas pour le
+lecteur. Les deux sont désormais nommées dans la portée ou en prose, où nommer un
+endpoint est de la provenance, et aucune n'est dans un champ qu'un lecteur est
+invité à suivre. Les lignes du réseau citent le [jeu de données annuel publié par
+Ember](https://ember-energy.org/data/yearly-electricity-data/), qui est la même
+série sous CC-BY-4.0, ne demande aucune clé, et a été recoupé pays par pays
+contre l'API avant d'être adopté plutôt que supposé équivalent.
 
 **Le seul chiffre non constructeur a été recoupé avec un chiffre indépendant.**
 Le nombre de l'A100 vient d'un démontage avec analyse élémentaire primaire ; un
@@ -224,6 +245,14 @@ moitié.
 - [Spécification Software Carbon Intensity](https://sci.greensoftware.foundation/), ISO/IEC 21031:2024 · [SCI for AI](https://greensoftware.foundation/standards/sci-ai/)
 - [Résumé PCF NVIDIA HGX H100](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) · [HGX B200](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) — ISO 14067, revue par un tiers, du berceau à la sortie d'usine.
 - *More than Carbon: Cradle-to-Grave environmental impacts of GenAI training on the NVIDIA A100 GPU*, [arXiv:2509.00093](https://arxiv.org/abs/2509.00093).
+- *Life-Cycle Emissions of AI Hardware: A Cradle-To-Grave Approach and
+  Generational Trends*, [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) —
+  l'ACV par Google de cinq générations de TPU, ISO 14040/14044, et la première
+  publication d'une empreinte de fabrication d'accélérateur par ceux qui l'ont
+  conçu. La ligne TPU v4 vient de son tableau 1.
+- [Données annuelles d'électricité d'Ember](https://ember-energy.org/data/yearly-electricity-data/)
+  (CC-BY-4.0) — les intensités carbone des réseaux, et ce que citent les
+  38 lignes pays.
 - *The Rising Unsustainability of AI Graphics Cards Production*,
   [arXiv:2607.01258](https://arxiv.org/abs/2607.01258), avec son
   [jeu de données](https://doi.org/10.5281/zenodo.20321644) de 174 cartes NVIDIA

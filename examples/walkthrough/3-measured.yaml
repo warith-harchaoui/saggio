@@ -50,7 +50,7 @@ assumptions:
     value: 41.2
     status: estimated
     unit: gCO2e/kWh
-    source_url: "https://api.ember-energy.org/v1/carbon-intensity/yearly"
+    source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     retrieved_date: "2026-10-02"
     notes: "Annual average for France, data year 2025."
   water_usage_effectiveness:

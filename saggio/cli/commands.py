@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -44,6 +45,7 @@ from ..analyze.power import PowerMeter
 from ..analyze.run import record_consent, run_slice
 from ..auditor import AuditOptions, audit, audit_git_url
 from ..catalog.refresh import (
+    EMBER_KEY_VARIABLE,
     EMBODIED_METHOD_URL,
     GPU_REFUSAL,
     PRICE_CROSSCHECK,
@@ -55,6 +57,7 @@ from ..catalog.refresh import (
     check_timezones,
     fetch_embodied,
     fetch_grid,
+    fetch_grid_public,
     fetch_prices,
 )
 from ..catalog.registry import (
@@ -935,18 +938,34 @@ def catalog_refresh(args: argparse.Namespace) -> int:
         if verdict != OK or column == "price":
             return verdict
 
+    # A key is used when one is offered and never required. Both paths are Ember
+    # and the same series; the one that answered is printed rather than left to
+    # be inferred from whether it worked.
+    offered = args.api_key or os.environ.get(EMBER_KEY_VARIABLE)
     try:
-        refresh = fetch_grid(sorted(current), api_key=args.api_key, year=args.year)
+        refresh = (
+            fetch_grid(sorted(current), api_key=offered, year=args.year)
+            if offered
+            else fetch_grid_public(sorted(current), year=args.year)
+        )
     except RuntimeError as exc:
         osh.error(str(exc))
         return UNAVAILABLE
 
     moved = refresh.changed(current)
+    # The countries the source has not caught up on. Printed on its own line
+    # because this is precisely the fact a single refresh-wide data year used to
+    # bury: every row got the newest year, including the rows that had not
+    # reached it, and the stamp was the only place it could ever have shown.
+    behind = sorted(key for key, found in refresh.years.items() if found != refresh.year)
     if args.json:
         _emit(
             {
                 "source": refresh.source,
+                "citation": refresh.citation,
                 "data_year": refresh.year,
+                "data_year_by_country": dict(sorted(refresh.years.items())),
+                "behind_the_newest_year": behind,
                 "read_on": refresh.retrieved,
                 "changed": {key: {"was": was, "now": now} for key, (was, now) in moved.items()},
                 "unchanged": sorted(set(refresh.rows) - set(moved)),
@@ -955,13 +974,19 @@ def catalog_refresh(args: argparse.Namespace) -> int:
             as_json=True,
         )
     else:
-        print(f"{refresh.source} — {len(refresh.rows)} countries, data year {refresh.year}")
+        print(f"{refresh.source} — {len(refresh.rows)} countries, newest data year {refresh.year}")
         for key, (was, now) in sorted(moved.items()):
             print(f"  {key}: {was} -> {now:.1f} gCO2e/kWh")
         if not moved:
             print("  nothing moved by more than the catalogue's own precision.")
+        for key in behind:
+            print(
+                f"  {key}: the source stops at {refresh.years[key]}, so that is what "
+                "this row will say it is"
+            )
         for key, reason in sorted(refresh.skipped.items()):
             print(f"  {key}: left alone — {reason}")
+        print(f"  rows will cite {refresh.citation}, which is where a reader can check them.")
         if args.write is None:
             print("Read-only. Pass --write PATH to apply this to a catalogue file.")
 
