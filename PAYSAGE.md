@@ -162,6 +162,68 @@ AWS Cost Explorer, GCP Billing, Azure Cost Management. Font autorité sur ce qui
 vous a été facturé, ce qui est exactement une dimension d'une question, après coup.
 **Prenez-les quand la question est « pourquoi la facture était-elle si grosse ».**
 
+## L'autre côté de la pièce : ce qu'une équipe RSE a déjà
+
+Les outils ci-dessus répondent à une question d'ingénierie. Ceux qui doivent
+*déclarer* un chiffre carbone en utilisent un tout autre jeu, et aucun ne figure
+dans le tableau en tête de page — délibérément, parce que les noter contre la
+niche de cet outil serait une comparaison peu flatteuse sur une question qu'ils
+ne cherchent pas à traiter.
+
+### Les plateformes de comptabilité carbone
+
+[Normative](https://normative.io/), [Greenly](https://greenly.earth/),
+[Sweep](https://www.sweep.net/), [Persefoni](https://www.persefoni.com/) et
+[Watershed](https://watershed.com/) sont le système de référence du bilan d'une
+organisation entière : tous les scopes, toutes les catégories, le processus de
+double matérialité, et dans plusieurs cas le dépôt balisé lui-même.
+
+Ce qui les distingue : aucune ne lit votre code. Le chiffre d'un logiciel est une
+*entrée* qu'elles ne peuvent pas produire, et ce qui leur parvient à la place est
+d'ordinaire une facture cloud divisée par quelque chose. **Servez-vous-en pour
+déclarer. Servez-vous de celui-ci pour produire la ligne logicielle qui leur
+manque** — [`INVENTAIRE.md`](INVENTAIRE.md) dit de quelle ligne il s'agit.
+
+### [Boavizta](https://boavizta.org/en/tools)
+
+Une association qui publie données et outils ouverts sur l'impact
+environnemental des équipements numériques : `BoaviztAPI` pour les équipements et
+les instances cloud, `Datavizta` pour explorer les empreintes des constructeurs,
+`cloud-scanner` pour lire un usage AWS réel, `e-footprint` pour modéliser un
+service numérique entier. Multicritère plutôt que carbone seul — énergie primaire
+et épuisement des ressources abiotiques à côté du potentiel de réchauffement.
+
+Ce paquet en dépend déjà : les quatre empreintes processeur du catalogue sont
+calculées par `BoaviztAPI`, et sa moitié GPU est **refusée nommément** parce
+qu'elle répond un archétype unique pour toutes les cartes. L'usage comme le refus
+sont exposés dans [`NORMES.md`](NORMES.md).
+
+Ce qui les distingue : Boavizta modélise un inventaire d'*équipements* — tant
+d'instances, pendant tant de temps. Celui-ci modélise une *unité de travail issue
+d'un dépôt*. Les deux se rejoignent au milieu et aucun ne remplace l'autre.
+**Boavizta pour poser une empreinte sur un parc. Celui-ci pour en poser une sur
+une requête.**
+
+### [Impact Framework](https://if.greensoftware.foundation/)
+
+La chaîne pilotée par manifeste de la Green Software Foundation : des greffons
+convertissent des métriques observables en impacts environnementaux, et c'est le
+véhicule par lequel la spécification SCI est habituellement mise en œuvre.
+
+Ce qui le distingue : c'est un graphe de calcul que l'on configure, pas un
+artefact commité portant un contrat de provenance. Un manifeste dit comment un
+chiffre a été calculé ; il ne refuse pas d'en produire un quand les entrées ne le
+justifient pas. **IF pour composer une chaîne entre plusieurs outils. Celui-ci
+quand la sortie doit être défendue.**
+
+### [Climatiq](https://www.climatiq.io/)
+
+Une API de facteurs d'émission : on envoie des données d'activité, on reçoit des
+émissions, contre une base de facteurs maintenue.
+
+Ce qui la distingue : elle répond *quel est le facteur*, pas *qu'a fait ce code*.
+Elle se place en amont d'un outil comme celui-ci plutôt qu'à côté.
+
 ## Là où celui-ci est le plus faible
 
 Autant être honnête sur les manques, puisque c'est toute la prémisse de l'outil.

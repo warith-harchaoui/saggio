@@ -10,12 +10,27 @@
 # kilowatt-hour at all: on a cloud instance you buy hours of a machine, and the
 # electricity is inside that price. When it is null, a money cost computed from
 # energy is a TODO, not a zero.
+#
+# `operated_by` says who runs the machine, and it is the one fact that decides
+# which GHG Protocol scope a cost belongs in. `self` means the reporting
+# organisation buys the kilowatt-hour and owns the hardware: the electricity is
+# its **scope 2**, the hardware its **scope 3 category 2** (capital goods).
+# `vendor` means it buys a service and somebody else buys the kilowatt-hour: both
+# are its **scope 3 category 1** (purchased goods and services), and are that
+# vendor's scope 2 and 3.2 rather than its own.
+#
+# It is a classification rather than a measurement, so it carries no source of
+# its own: the rule it feeds is cited where the rule lives, in
+# `saggio.estimate.ghg`. A row that omits it gets no scope at all rather than a
+# guessed one — the two answers differ by which company reports the emission,
+# which is not a detail anybody should infer from a provider's name.
 
 schema_version: "2.1"
 
 providers:
   - key: on-prem
     name: "On-premises"
+    operated_by: self
     pue: 1.5
     wue_l_per_kwh: null
     price_usd_per_kwh: null
@@ -24,6 +39,7 @@ providers:
     notes: "Industry-average PUE for a self-run room; measure your own if you can. Price comes from the country tariff."
   - key: aws
     name: "Amazon Web Services"
+    operated_by: vendor
     pue: 1.15
     wue_l_per_kwh: 0.18
     price_usd_per_kwh: null
@@ -31,6 +47,7 @@ providers:
     retrieved_date: "2026-09-12"
   - key: gcp
     name: "Google Cloud"
+    operated_by: vendor
     pue: 1.09
     wue_l_per_kwh: 0.99
     price_usd_per_kwh: null
@@ -38,6 +55,7 @@ providers:
     retrieved_date: "2026-09-12"
   - key: azure
     name: "Microsoft Azure"
+    operated_by: vendor
     pue: 1.18
     wue_l_per_kwh: 0.30
     price_usd_per_kwh: null
@@ -45,6 +63,7 @@ providers:
     retrieved_date: "2026-09-12"
   - key: oci
     name: "Oracle Cloud Infrastructure"
+    operated_by: vendor
     pue: 1.15
     wue_l_per_kwh: null
     price_usd_per_kwh: null
@@ -52,6 +71,7 @@ providers:
     retrieved_date: "2026-09-12"
   - key: lambda
     name: "Lambda Labs"
+    operated_by: vendor
     pue: 1.2
     wue_l_per_kwh: null
     price_usd_per_kwh: null
@@ -59,6 +79,7 @@ providers:
     retrieved_date: "2026-09-12"
   - key: paperspace
     name: "Paperspace (DigitalOcean)"
+    operated_by: vendor
     pue: 1.2
     wue_l_per_kwh: null
     price_usd_per_kwh: null
@@ -66,6 +87,7 @@ providers:
     retrieved_date: "2026-09-12"
   - key: laptop
     name: "Laptop or workstation"
+    operated_by: self
     pue: 1.0
     wue_l_per_kwh: 0.0
     price_usd_per_kwh: null

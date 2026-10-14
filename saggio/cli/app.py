@@ -49,6 +49,7 @@ _RENDER_FORMATS: Final[tuple[str, ...]] = ("md", "html", *sorted(OFFICE_FORMATS)
 _HANDLERS: Final[dict[str, Callable[[argparse.Namespace], int]]] = {
     "init": commands.initialise,
     "validate": commands.check,
+    "scopes": commands.scopes,
     "render": commands.render,
     "dashboard": commands.dashboard,
     "audit": commands.audit_command,
@@ -108,6 +109,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     _add_init(verbs)
     _add_validate(verbs)
+    _add_scopes(verbs)
     _add_render(verbs)
     _add_dashboard(verbs)
     _add_audit(verbs)
@@ -170,6 +172,38 @@ def _add_validate(verbs: argparse._SubParsersAction) -> None:
     )
     parser.add_argument("model", help="The cost model to check.")
     parser.add_argument("--json", action="store_true", help="Print the verdict as JSON.")
+
+
+def _add_scopes(verbs: argparse._SubParsersAction) -> None:
+    """Attach the ``scopes`` verb.
+
+    Parameters
+    ----------
+    verbs : argparse._SubParsersAction
+        The sub-parser collection.
+
+    Examples
+    --------
+    >>> build_parser().parse_args(["scopes", "m.yaml"]).model
+    'm.yaml'
+    """
+    parser = verbs.add_parser(
+        "scopes",
+        help="Say which GHG Protocol scope each of a model's costs belongs to.",
+        epilog=(
+            "The scope turns on who operates the machine, which the model already "
+            "states. A market-based scope 2 figure is never produced here: it "
+            "cannot be derived from a grid average, so what it would take is "
+            "printed instead."
+        ),
+    )
+    parser.add_argument("model", help="The cost model to place.")
+    parser.add_argument(
+        "--scenario",
+        default=None,
+        help="Which scenario's costs to place. The first one when omitted.",
+    )
+    parser.add_argument("--json", action="store_true", help="Print the placements as JSON.")
 
 
 def _add_render(verbs: argparse._SubParsersAction) -> None:

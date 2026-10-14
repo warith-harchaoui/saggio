@@ -17,6 +17,7 @@ main sauf [`api.md`](api.md), qui est dérivé des docstrings.
 | [`../MESURER.md`](../MESURER.md) | Quels compteurs cette machine me laissera-t-elle lire, et que couvrent-ils ? |
 | [`../ANALYSE.md`](../ANALYSE.md) | Lire le code, ou l'exécuter, peut-il dire sa complexité et son coût ? |
 | [`../NORMES.md`](../NORMES.md) | Quelle norme est-ce, et quelle part n'est pas encore satisfaite ? |
+| [`../INVENTAIRE.md`](../INVENTAIRE.md) | Sur quelle ligne d'un bilan GES ces chiffres se rangent-ils, et que ne couvrent-ils pas ? |
 
 ## Référence
 

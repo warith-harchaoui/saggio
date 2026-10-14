@@ -11,7 +11,9 @@ energy, carbon, water, and money; :mod:`equivalences` restates a carbon figure
 in tree-months, car kilometres, and reference flights so a reader can feel its
 size; :mod:`scaling` measures how the cost grows with the size of the job;
 :mod:`embodied` amortises the carbon of building the hardware onto one unit of
-work and assembles the SCI score;
+work and assembles the SCI score; :mod:`ghg` says which line of a corporate
+greenhouse-gas inventory each of those costs belongs on, and when nothing in the
+model settles it;
 :mod:`extrapolate` projects a measured slice to a whole run, and one
 machine's run to another's.
 
@@ -70,6 +72,18 @@ from .extrapolate import (
     project_to_machine,
     project_to_processor,
 )
+from .ghg import (
+    GHG_PROTOCOL_CORPORATE,
+    GHG_PROTOCOL_SCOPE2,
+    GHG_PROTOCOL_SCOPE3,
+    LOCATION_BASED,
+    MARKET_BASED_MISSING,
+    OPERATED_BY_SELF,
+    OPERATED_BY_VENDOR,
+    Placement,
+    placement,
+    placements,
+)
 from .machine import MachineProfile, detect_machine
 from .scaling import (
     DEFAULT_MINIMUM_R_SQUARED,
@@ -90,7 +104,14 @@ __all__ = [
     "DEFAULT_MINIMUM_R_SQUARED",
     "DEFAULT_PROVIDER",
     "FLIGHT_GCO2",
+    "GHG_PROTOCOL_CORPORATE",
+    "GHG_PROTOCOL_SCOPE2",
+    "GHG_PROTOCOL_SCOPE3",
     "GREEN_ALGORITHMS_SOURCE",
+    "LOCATION_BASED",
+    "MARKET_BASED_MISSING",
+    "OPERATED_BY_SELF",
+    "OPERATED_BY_VENDOR",
     "SCI_SOURCE",
     "MEMORY_POWER_W_PER_GB",
     "THROUGHPUT_PRECISIONS",
@@ -98,6 +119,7 @@ __all__ = [
     "DeploymentContext",
     "MachineProfile",
     "Observation",
+    "Placement",
     "Projection",
     "ScalingFit",
     "car_km",
@@ -113,6 +135,8 @@ __all__ = [
     "it_energy_from_runtime",
     "local_timezone_name",
     "money_from_energy",
+    "placement",
+    "placements",
     "node_power",
     "project_to_completion",
     "project_to_machine",

@@ -264,6 +264,7 @@ BILINGUAL_PAIRS: list[tuple[str, str]] = [
     ("LANDSCAPE.md", "PAYSAGE.md"),
     ("ANALYSIS.md", "ANALYSE.md"),
     ("STANDARDS.md", "NORMES.md"),
+    ("INVENTORY.md", "INVENTAIRE.md"),
     ("docs/README.md", "docs/LISEZMOI.md"),
 ]
 
@@ -510,7 +511,12 @@ def test_every_link_to_a_section_lands_on_a_heading(page: str) -> None:
 
 #: Pages whose `Sources` section is a promise: everything the body cites is
 #: listed there, so a reader has one place to find what the page rests on.
-PAGES_THAT_LIST_THEIR_SOURCES: tuple[str, ...] = ("STANDARDS.md", "NORMES.md")
+PAGES_THAT_LIST_THEIR_SOURCES: tuple[str, ...] = (
+    "STANDARDS.md",
+    "NORMES.md",
+    "INVENTORY.md",
+    "INVENTAIRE.md",
+)
 
 #: Two addresses for one thing. The SCI specification answers at both, and
 #: neither redirects to the other, so citing one in the body and the other in

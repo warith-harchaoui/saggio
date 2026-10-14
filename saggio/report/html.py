@@ -43,6 +43,7 @@ import yaml
 
 from ..catalog.registry import Catalog
 from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE
+from ..estimate.ghg import placements
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
 from ..model.quantity import Quantity, looks_like_quantity
@@ -685,6 +686,79 @@ def _assumptions_section(model: CostModel) -> str:
     )
 
 
+def _inventory_section(model: CostModel) -> str:
+    """Render where these costs land in a corporate greenhouse-gas inventory.
+
+    The section a sustainability team reads first and a developer never reads at
+    all. It places the emissions this report already carries, says which of the
+    two scope 2 methods the carbon figure follows, and names the one it cannot
+    produce rather than leaving a reader to assume the pair is complete.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model.
+
+    Returns
+    -------
+    str
+        The section markup, empty when no scenario carries an emission.
+
+    Examples
+    --------
+    >>> _inventory_section(CostModel.from_mapping({}))
+    ''
+    """
+    scenarios = model.scenarios()
+    if not scenarios:
+        return ""
+    costs = scenarios[0].get("costs")
+    if not isinstance(costs, dict):
+        return ""
+    emissions = [key for key in costs if key in ("carbon", "embodied_carbon")]
+    if not emissions:
+        return ""
+    deployment = model.data.get("deployment")
+    provider = deployment.get("provider") if isinstance(deployment, dict) else None
+    placed = placements(emissions, provider)
+
+    rows: list[str] = []
+    for key in emissions:
+        where = placed[key]
+        raw = costs.get(key)
+        quantity = Quantity.from_mapping(raw) if looks_like_quantity(raw) else None
+        label = _escape(where.label if not where.is_open else "not placed")
+        heading = (
+            f'<a href="{_escape(where.source_url)}" rel="noopener">{label}</a>'
+            if where.source_url
+            else label
+        )
+        rows.append(
+            f"<tr><td><code>{_escape(key)}</code></td>"
+            + (_quantity_cell(quantity) if quantity else "<td>—</td>")
+            + f"<td>{_badge(quantity.status) if quantity else '—'}</td>"
+            + f"<td>{heading}</td>"
+            + f'<td class="muted">{_escape(where.why)}</td></tr>'
+        )
+
+    scope_two = next((placed[key] for key in emissions if placed[key].scope == "2"), None)
+    caveat = (
+        '<p class="muted"><strong data-i18n="inventory.dual">Only half of what '
+        "scope 2 requires is here.</strong> " + _escape(scope_two.dual_reporting) + "</p>"
+        if scope_two is not None
+        else ""
+    )
+    return (
+        _heading(2, "Where this goes in a GHG inventory", "section.inventory")
+        + _table(
+            ["Cost", "Per unit", "Status", "GHG Protocol", "Why"],
+            rows,
+            widths=[14, 14, 11, 25, 36],
+        )
+        + caveat
+    )
+
+
 def _services_section(model: CostModel) -> str:
     """Render the paid services the code calls, with the evidence.
 
@@ -1143,6 +1217,7 @@ def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> st
             _costs_section(wrapped, registry),
             _projections_section(wrapped),
             _whatif_section(wrapped, overlay=overlay),
+            _inventory_section(wrapped),
             _assumptions_section(wrapped),
             _services_section(wrapped),
             _models_section(wrapped),

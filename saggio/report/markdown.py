@@ -29,10 +29,12 @@ Warith Harchaoui
 
 from __future__ import annotations
 
+from collections import Counter
 from typing import Any, Final
 from urllib.parse import quote
 
 from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE, equivalences
+from ..estimate.ghg import placements
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
 from ..model.quantity import Quantity, looks_like_quantity
@@ -628,6 +630,102 @@ def _assumptions_section(model: CostModel) -> list[str]:
     ]
 
 
+def _inventory_section(model: CostModel) -> list[str]:
+    """Render where these costs go in a corporate greenhouse-gas inventory.
+
+    The section for the reader who has to *file* the numbers rather than produce
+    them. Everything above answers what one unit of work costs; a sustainability
+    team needs to know whose emission it is and under which scope it is
+    declared, and that is settled by one fact the model states already — who
+    operates the machine.
+
+    It adds no figure. It places the ones that are there, says which method the
+    carbon figure follows, and names the second figure the standard requires and
+    this package cannot produce.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model.
+
+    Returns
+    -------
+    list of str
+        The section, or nothing when no scenario carries an emission.
+
+    Examples
+    --------
+    >>> _inventory_section(CostModel.from_mapping({}))
+    []
+    """
+    scenarios = model.scenarios()
+    if not scenarios:
+        return []
+    first = scenarios[0]
+    costs = first.get("costs") if isinstance(first.get("costs"), dict) else {}
+    if not costs:
+        return []
+    deployment = model.data.get("deployment")
+    provider = deployment.get("provider") if isinstance(deployment, dict) else None
+    placed = placements(list(costs), provider)
+    emissions = [key for key in costs if key in ("carbon", "embodied_carbon")]
+    if not emissions:
+        return []
+
+    rows: list[list[str]] = []
+    for key in emissions:
+        where = placed[key]
+        raw = costs.get(key)
+        quantity = Quantity.from_mapping(raw) if looks_like_quantity(raw) else None
+        heading = where.label if not where.is_open else "**not placed**"
+        link = f"[{heading}]({where.source_url})" if where.source_url else heading
+        rows.append(
+            [
+                f"`{key}`",
+                format_quantity(quantity) if quantity else "—",
+                f"`{quantity.status}`" if quantity else "—",
+                link,
+            ]
+        )
+
+    lines = [
+        "## Where this goes in a GHG inventory",
+        "",
+        _table(["Cost", "Per unit", "Status", "GHG Protocol"], rows),
+        "",
+        "The scope turns on who operates the machine, which is why the same code "
+        "lands on a different line of a different company's inventory depending "
+        "on where it runs.",
+        "",
+    ]
+    for key in emissions:
+        where = placed[key]
+        lines += [f"- **`{key}`** — {_escape(where.why)}", ""]
+    scope_two = next((placed[key] for key in emissions if placed[key].scope == "2"), None)
+    if scope_two is not None:
+        lines += [
+            "**Only half of what scope 2 requires is here.** " + _escape(scope_two.dual_reporting),
+            "",
+        ]
+    # The disclosure a filer is asked for, answered by counting words the model
+    # already carries rather than by asking anybody to estimate their own
+    # confidence after the fact.
+    counted = Counter(
+        Quantity.from_mapping(costs[key]).status
+        for key in emissions
+        if looks_like_quantity(costs.get(key))
+    )
+    if counted:
+        summary = ", ".join(f"{count} `{status}`" for status, count in sorted(counted.items()))
+        lines += [
+            f"How well founded these are: {summary}. A sustainability disclosure "
+            "is asked to state how much of an inventory rests on estimates rather "
+            "than readings; every number in this report already says so.",
+            "",
+        ]
+    return lines
+
+
 def _services_section(model: CostModel) -> list[str]:
     """Render the paid services the code calls.
 
@@ -980,6 +1078,7 @@ def render_markdown(model: CostModel | dict[str, Any]) -> str:
         for scenario in scenarios:
             lines += _scenario_section(wrapped, scenario, registry)
 
+    lines += _inventory_section(wrapped)
     lines += _assumptions_section(wrapped)
     lines += _services_section(wrapped)
     lines += _models_section(wrapped)

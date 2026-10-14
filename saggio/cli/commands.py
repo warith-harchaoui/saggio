@@ -35,6 +35,7 @@ import json
 import os
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -68,13 +69,19 @@ from ..catalog.registry import (
     stale_report,
 )
 from ..diff import compare
+from ..estimate.ghg import (
+    GHG_PROTOCOL_CORPORATE,
+    GHG_PROTOCOL_SCOPE2,
+    GHG_PROTOCOL_SCOPE3,
+    placements,
+)
 from ..estimate.machine import detect_machine
 from ..fold import fold_measurement
 from ..model.cost_model import CostModel
 from ..model.validate import overall_status, validate
 from ..report.dashboard import render_dashboard
 from ..report.html import render_html
-from ..report.markdown import render_markdown
+from ..report.markdown import format_number, render_markdown
 from ..report.office import OFFICE_FORMATS, render_office
 from ..templates import template_text
 from .exit_codes import DECLINED, INVALID, OK, UNAVAILABLE, USAGE
@@ -219,6 +226,169 @@ def check(args: argparse.Namespace) -> int:
         if weakest:
             print(f"Weakest number anywhere in the model: {weakest}.")
     return OK if report.ok else INVALID
+
+
+def _scenario_named(scenarios: list[Any], wanted: str | None) -> dict[str, Any] | None:
+    """Return the scenario asked for, or the first one when none was.
+
+    Parameters
+    ----------
+    scenarios : list
+        The model's scenarios block.
+    wanted : str or None
+        A scenario name, or None for the first.
+
+    Returns
+    -------
+    dict or None
+        None when a name was given and nothing carries it, which is a usage
+        error rather than a reason to quietly report the wrong scenario.
+
+    Examples
+    --------
+    >>> _scenario_named([{"name": "cold"}, {"name": "warm"}], "warm")["name"]
+    'warm'
+    >>> _scenario_named([{"name": "cold"}], None)["name"]
+    'cold'
+    >>> _scenario_named([{"name": "cold"}], "warm") is None
+    True
+    """
+    usable = [row for row in scenarios if isinstance(row, dict)]
+    if not usable:
+        return {}
+    if wanted is None:
+        return usable[0]
+    return next((row for row in usable if str(row.get("name")) == wanted), None)
+
+
+def scopes(args: argparse.Namespace) -> int:
+    """Say which line of a greenhouse-gas inventory each of a model's costs goes on.
+
+    The command this package was missing for the person who has to file the
+    numbers rather than produce them. A cost model answers *what one unit of work
+    costs*; an inventory asks *whose emission is it, and under which scope*. The
+    second question is settled by one fact the model already states — who
+    operates the machine — and nothing in the package said so out loud.
+
+    It reports no figure the model does not already carry, and it refuses the
+    one a reviewer most wants invented: a market-based scope 2 number cannot be
+    derived from a grid average, so the output says what it would take instead
+    of producing something plausible.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        With ``model``, ``scenario`` and ``json``.
+
+    Returns
+    -------
+    int
+        :data:`~saggio.cli.exit_codes.OK` even when placements are open.
+        An unplaceable cost is a question for a human, not a broken model, and
+        this is not a gate.
+
+    Examples
+    --------
+    >>> scopes(argparse.Namespace(model="/nonexistent.yaml", scenario=None, json=False))
+    2
+    """
+    try:
+        model = _load(args.model)
+    except (AssertionError, ValueError) as exc:
+        osh.error(str(exc))
+        return USAGE
+
+    deployment = model.get("deployment") if isinstance(model.get("deployment"), dict) else {}
+    provider = deployment.get("provider")
+    scenarios = model.get("scenarios") if isinstance(model.get("scenarios"), list) else []
+    chosen = _scenario_named(scenarios, args.scenario)
+    if chosen is None:
+        osh.error(
+            f"No scenario named {args.scenario!r}. The model has: "
+            + ", ".join(str(row.get("name", "?")) for row in scenarios if isinstance(row, dict))
+        )
+        return USAGE
+
+    costs = chosen.get("costs") if isinstance(chosen.get("costs"), dict) else {}
+    placed = placements(list(costs), provider)
+    unit = model.get("unit_of_work") if isinstance(model.get("unit_of_work"), dict) else {}
+
+    rows = []
+    for key, cost in costs.items():
+        where = placed[key]
+        quantity = cost if isinstance(cost, dict) else {}
+        rows.append(
+            {
+                "dimension": key,
+                "value": quantity.get("value"),
+                "unit": quantity.get("unit"),
+                "status": quantity.get("status"),
+                "scope": where.scope,
+                "category": where.category,
+                "label": where.label,
+                "why": where.why,
+                "source_url": where.source_url,
+                "dual_reporting": where.dual_reporting,
+            }
+        )
+
+    # The share of the inventory that rests on an estimate rather than a reading.
+    # Not decoration: the European standards require a filer to disclose it, and
+    # a model that already labels every number can answer without being asked.
+    counted = Counter(
+        str(row["status"]) for row in rows if row["scope"] is not None and row["status"]
+    )
+
+    if args.json:
+        _emit(
+            {
+                "unit_of_work": unit.get("name"),
+                "provider": provider,
+                "scenario": chosen.get("name"),
+                "placements": rows,
+                "by_status": dict(sorted(counted.items())),
+                "standards": {
+                    "corporate": GHG_PROTOCOL_CORPORATE,
+                    "scope_2_guidance": GHG_PROTOCOL_SCOPE2,
+                    "scope_3_standard": GHG_PROTOCOL_SCOPE3,
+                },
+            },
+            as_json=True,
+        )
+        return OK
+
+    named = unit.get("name") or "one unit of work"
+    print(f"Per {named}, on {provider or 'an unstated provider'}:\n")
+    for row in rows:
+        # The report's own rounding, so the same figure reads the same in both
+        # places. Seven decimal places of a derived gram are noise either way.
+        shown = (
+            "not known"
+            if row["value"] is None
+            else f"{format_number(row['value'])} {row['unit'] or ''}".strip()
+        )
+        print(f"  {row['dimension']:<17} {shown:<18} {row['label']}")
+    print()
+    for row in rows:
+        if row["scope"] is None and row["dimension"] in ("carbon", "embodied_carbon"):
+            print(f"{row['dimension']}: {row['why']}\n")
+    placed_rows = [row for row in rows if row["scope"] is not None]
+    for row in placed_rows:
+        print(f"{row['dimension']} — {row['label']}")
+        print(f"  {row['why']}")
+        if row["source_url"]:
+            print(f"  {row['source_url']}")
+        if row["dual_reporting"]:
+            print(f"  Dual reporting: {row['dual_reporting']}")
+        print()
+    if counted:
+        summary = ", ".join(f"{count} {status}" for status, count in sorted(counted.items()))
+        print(f"How well founded the placed figures are: {summary}.")
+        print(
+            "A filer is asked to disclose the share of an inventory that rests on "
+            "estimates rather than readings. This is that share, already."
+        )
+    return OK
 
 
 def render(args: argparse.Namespace) -> int:

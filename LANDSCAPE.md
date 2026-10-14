@@ -153,6 +153,67 @@ AWS Cost Explorer, GCP Billing, Azure Cost Management. Authoritative on what you
 were charged, which is exactly one dimension of one question, after the fact.
 **Use them when the question is "why was the bill that size".**
 
+## The other side of the room: what a sustainability team already has
+
+The tools above answer an engineering question. The people who have to *file* a
+carbon figure use a different set entirely, and none of them appears in the
+table at the top of this page — deliberately, because scoring them against this
+tool's niche would be an unflattering comparison on a question they are not
+trying to answer.
+
+### Corporate carbon accounting platforms
+
+[Normative](https://normative.io/), [Greenly](https://greenly.earth/),
+[Sweep](https://www.sweep.net/), [Persefoni](https://www.persefoni.com/) and
+[Watershed](https://watershed.com/) are the system of record for a whole
+organisation's inventory: every scope, every category, the double-materiality
+workflow, and in several cases the tagged filing itself.
+
+Where they differ: none of them reads your code. The figure for a piece of
+software is an *input* they cannot produce, and what reaches them instead is
+usually a cloud bill divided by something. **Use them to file. Use this to
+produce the software line they are missing** —
+[`INVENTORY.md`](INVENTORY.md) says which line that is.
+
+### [Boavizta](https://boavizta.org/en/tools)
+
+An association publishing open data and open tools for the environmental impact
+of digital equipment: `BoaviztAPI` for equipment and cloud instances, `Datavizta`
+to explore the manufacturers' footprints, `cloud-scanner` to read real AWS usage,
+`e-footprint` to model a whole digital service. Multi-criteria rather than carbon
+alone — primary energy and abiotic resource depletion beside the global warming
+potential.
+
+This package already depends on them: the four processor footprints in the
+catalogue are computed by `BoaviztAPI`, and its GPU half is **refused by name**
+because it answers with one archetype for every card. Both the use and the
+refusal are set out in [`STANDARDS.md`](STANDARDS.md).
+
+Where they differ: Boavizta models an inventory of *equipment* — this many
+instances, for this long. This models a *unit of work from a repository*. The two
+meet in the middle and neither replaces the other. **Use Boavizta to put a
+footprint on a fleet. Use this to put one on a request.**
+
+### [Impact Framework](https://if.greensoftware.foundation/)
+
+The Green Software Foundation's manifest-driven pipeline: plugins convert
+observable metrics into environmental impacts, and it is the vehicle the SCI
+specification is usually implemented through.
+
+Where it differs: it is a computation graph you configure, not a committed
+artefact carrying a provenance contract. A manifest says how a figure was
+computed; it does not refuse to produce one when the inputs do not justify it.
+**Use IF to compose a pipeline across several tools. Use this when the output has
+to be defended.**
+
+### [Climatiq](https://www.climatiq.io/)
+
+An emission-factor API: send activity data, receive emissions, against a
+maintained factor database.
+
+Where it differs: it answers *what is the factor*, not *what did this code do*.
+It sits upstream of a tool like this one rather than beside it.
+
 ## Where this one is weakest
 
 Being honest about the gaps, since that is the whole premise of the tool.

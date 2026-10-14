@@ -354,11 +354,22 @@ ruff check .
 ruff format --check .
 ```
 
+## For whoever has to file the number
+
+A cost model answers what one unit of work costs. A greenhouse-gas inventory asks
+whose emission it is and under which scope it is declared — and the answer turns
+on one fact the model already states, who operates the machine. `saggio scopes`
+prints it, every report carries it, and
+[`INVENTORY.md`](https://github.com/warith-harchaoui/saggio/blob/master/INVENTORY.md)
+sets out what that gives an assurance provider, what the scope 2 figure here is
+and is not, and the six things it does not cover.
+
 ## Related work
 
 [`LANDSCAPE.md`](https://github.com/warith-harchaoui/saggio/blob/master/LANDSCAPE.md) places this alongside CodeCarbon, Green Algorithms,
 Scaphandre, PowerAPI, Cloud Carbon Footprint, and the rest of the field, and is
-honest about where each of them is the better tool.
+honest about where each of them is the better tool — plus the tools a
+sustainability team already has, which answer a different question entirely.
 
 ## The name
 

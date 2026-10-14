@@ -365,11 +365,22 @@ ruff check .
 ruff format --check .
 ```
 
+## Pour qui doit déclarer le chiffre
+
+Un modèle de coût répond à ce que coûte une unité de travail. Un bilan GES
+demande à qui est l'émission et sous quel scope elle se déclare — et la réponse
+tient à un seul fait que le modèle énonce déjà : qui exploite la machine.
+`saggio scopes` l'imprime, chaque rapport le porte, et
+[`INVENTAIRE.md`](INVENTAIRE.md) expose ce que cela donne à un vérificateur, ce
+que le chiffre de scope 2 est et n'est pas, et les six choses qu'il ne couvre
+pas.
+
 ## Travaux voisins
 
 [`PAYSAGE.md`](PAYSAGE.md) situe cet outil à côté de CodeCarbon, Green Algorithms,
 Scaphandre, PowerAPI, Cloud Carbon Footprint et le reste du domaine, et dit
-honnêtement là où chacun d'eux est le meilleur choix.
+honnêtement là où chacun d'eux est le meilleur choix — plus les outils qu'une
+équipe RSE a déjà, qui répondent à une tout autre question.
 
 ## Le nom
 

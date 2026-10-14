@@ -45,6 +45,23 @@ One unit of work as this audit found it, on the machine it ran on.
 | Embodied carbon | not known | `TODO` | `assumptions.hardware_embodied_carbon`, `assumptions.hardware_lifetime`, `scenarios[0].runtime` | No product carbon footprint is on file for this hardware, so the carbon of building it is open. Nobody has read one for this part; that is not the same as it having been free to build. Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was read. |
 | Water | not known | `TODO` | `assumptions.machine_energy`, `assumptions.water_usage_effectiveness` | Needs the machine's energy and a published water usage effectiveness. |
 
+## Where this goes in a GHG inventory
+
+| Cost | Per unit | Status | GHG Protocol |
+|---|---|---|---|
+| `carbon` | not known | `TODO` | [Scope 2](https://ghgprotocol.org/scope-2-guidance) |
+| `embodied_carbon` | not known | `TODO` | [Scope 3, category 2 — capital goods](https://ghgprotocol.org/corporate-value-chain-scope-3-standard) |
+
+The scope turns on who operates the machine, which is why the same code lands on a different line of a different company's inventory depending on where it runs.
+
+- **`carbon`** — The organisation operates the machine, so it bought the electricity. The figure here is location-based: a grid-average emission factor for the country, carrying no adjustment for any contractual instrument.
+
+- **`embodied_carbon`** — The organisation operates the machine, so it bought the hardware. Capital goods rather than purchased goods and services, because the asset's useful life is longer than a year — which is the distinction the standard draws between the two categories, and also the reason this figure is amortised rather than counted once.
+
+**Only half of what scope 2 requires is here.** The market-based figure is a different number and is not here. It is built from your supplier's own emission factor, from the contractual instruments you hold — guarantees of origin, RECs, a PPA — or, failing both, from your market's residual mix. None of the three can be derived from a grid average, so this package reports neither a market-based figure nor a zero. Where contractual instruments exist in your market, the GHG Protocol requires both numbers, each labelled with the method that produced it.
+
+How well founded these are: 2 `TODO`. A sustainability disclosure is asked to state how much of an inventory rests on estimates rather than readings; every number in this report already says so.
+
 ## What the numbers rest on
 
 | Assumption | Value | Status | Provenance | Notes |

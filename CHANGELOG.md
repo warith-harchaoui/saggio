@@ -7,6 +7,69 @@ release of that line.
 
 ## Unreleased
 
+### A number now says which line of a GHG inventory it goes on
+
+- The gap this closes is the one between the two people who have to agree: an
+  engineering team produces a carbon figure, and a sustainability team cannot
+  file it, because *whose emission is it* is a question the figure never
+  answered. Filed as scope 2 when the machine was rented, it double-counts
+  against the provider's own disclosure; left out, it is simply missing.
+- The GHG Protocol settles it with one fact — **who buys the electricity and
+  owns the machine** — and that fact was already in every model as
+  `deployment.provider`. The providers catalogue now records it as
+  `operated_by`, so the rule is data rather than code: own the machine and the
+  electricity is your **scope 2** and the hardware your **scope 3 category 2**;
+  rent it and both are **scope 3 category 1**, because you bought a service.
+- `saggio scopes model.yaml` prints the placement, the reason, and the standard
+  that settles it. `--json` for a pipeline. Every rendered report — Markdown,
+  HTML, Word, PDF — carries the same in a section of its own, in both languages.
+- A provider nobody classified gets **no scope at all** rather than the nearest
+  guess. The two answers differ by which legal entity reports the emission, and
+  a wrong one looks exactly as tidy as a right one.
+- Energy is placed as what it is: the activity datum a scope figure is computed
+  *from*, not an emission. Water has no scope, because it is not a greenhouse
+  gas. Both say so in a sentence, because "not applicable" in a report reads as
+  an omission.
+
+### The scope 2 figure says which of the two methods it is
+
+- A grid average **is** the location-based method, by definition. The GHG
+  Protocol requires scope 2 to be reported both ways wherever contractual
+  instruments exist, and the amended European standard spells out the same pair.
+  This package carried one of them and said nothing about which.
+- It now says so, and names the missing half: a market-based figure comes from a
+  supplier-specific factor, from the instruments you hold, or from your market's
+  residual mix, and none of the three is derivable from a grid average. So it
+  reports neither a market-based number nor a zero — a shopping list rather than
+  a dead end.
+
+### `INVENTORY.md` / `INVENTAIRE.md`
+
+- The page for the person who files rather than the one who measures: the scope
+  mapping and why, what the status taxonomy and the provenance contract give an
+  assurance provider, and six things this tool does not cover — no IT estate, no
+  market-based scope 2, no end of life, no netting against removals, a cloud
+  figure that is a model rather than an invoice, and a small catalogue.
+- The rules it is written against, checked on 2026-10-14 rather than recalled:
+  the three GHG Protocol documents, [Directive (EU)
+  2026/470](https://eur-lex.europa.eu/eli/dir/2026/470/oj/eng) and what the
+  Omnibus did to the CSRD population, the renumbering of the GHG disclosure from
+  E1-6 to E1-8 in the amended ESRS, and the French regulatory *bilan GES* under
+  article L. 229-25, which is a separate obligation with its own filing.
+- **A citation in that page was invented and caught before it shipped.** The
+  Legifrance article identifier for L. 229-25 was written from memory rather
+  than read, and pointed at a different article. Found by trying to follow it.
+  The rule this package applies to its catalogue applies to its prose.
+
+### `LANDSCAPE.md` covers the other side of the room
+
+- The tools a sustainability team already has, which the comparison table
+  deliberately does not score: the carbon accounting platforms that are the
+  system of record for a whole inventory and cannot read your code, Boavizta —
+  whose API already computes four of this catalogue's processor footprints and
+  whose GPU half is refused by name — the Green Software Foundation's Impact
+  Framework, and Climatiq.
+
 ### Thirty-eight carbon rows cited a link that showed a reader an error
 
 - Every grid row cited `api.ember-energy.org/v1/carbon-intensity/yearly`. Asked

@@ -17,6 +17,7 @@ hand except [`api.md`](api.md), which is derived from the docstrings.
 | [`../MEASURING.md`](../MEASURING.md) | Which counters will this machine let me read, and what do they cover? |
 | [`../ANALYSIS.md`](../ANALYSIS.md) | Can reading the code, or running it, tell me its complexity and its cost? |
 | [`../STANDARDS.md`](../STANDARDS.md) | Which standard is this, and which part of it does it not yet satisfy? |
+| [`../INVENTORY.md`](../INVENTORY.md) | Which line of a corporate GHG inventory do these numbers go on, and what do they not cover? |
 
 ## Reference
 
