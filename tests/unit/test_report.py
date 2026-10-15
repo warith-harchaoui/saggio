@@ -487,6 +487,32 @@ def test_the_dashboard_speaks_with_its_own_i18n_keys() -> None:
     assert 'data-i18n="section.honesty"' not in page
 
 
+def _model_reporting_scope_two_both_ways() -> dict[str, Any]:
+    """A model on a machine its owner operates, reporting scope 2 both ways.
+
+    The provider is what turns the inventory section on at all, and both figures
+    carrying a number is what turns its lead sentence from the shopping list
+    into the one about the whole pair.
+    """
+    return {
+        "schema_version": "2.1",
+        "deployment": {"provider": "on-prem", "country": "FR"},
+        "scenarios": [
+            {
+                "name": "one call",
+                "costs": {
+                    "carbon": {"value": 1.4, "unit": "gCO2e", "status": "estimated"},
+                    "carbon_market_based": {
+                        "value": 14.0,
+                        "unit": "gCO2e",
+                        "status": "estimated",
+                    },
+                },
+            }
+        ],
+    }
+
+
 def test_every_data_i18n_key_in_both_pages_exists_in_every_language() -> None:
     # An orphan key fails silently: the node just stays English.
     import re
@@ -495,7 +521,15 @@ def test_every_data_i18n_key_in_both_pages_exists_in_every_language() -> None:
 
     model = template_mapping("annotated")
     model["measurement"] = {"command": ["x"]}
-    pages = render_html(model) + render_dashboard([model])
+    # Plus the pages only a whole scope 2 pair produces. Those branches swap one
+    # key for another, so rendering the ordinary model alone would leave their
+    # replacements unvisited here and orphanable in silence.
+    pages = (
+        render_html(model)
+        + render_dashboard([model])
+        + render_html(_scenario_with_both_scope_two_figures())
+        + render_html(_model_reporting_scope_two_both_ways())
+    )
     used = set(re.findall(r'data-i18n="([^"]+)"', pages))
     for language, table in translations().items():
         missing = used - set(table)
