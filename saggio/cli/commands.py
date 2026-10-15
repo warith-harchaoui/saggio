@@ -70,9 +70,11 @@ from ..catalog.registry import (
 )
 from ..diff import compare
 from ..estimate.ghg import (
+    GHG_EMISSIONS,
     GHG_PROTOCOL_CORPORATE,
     GHG_PROTOCOL_SCOPE2,
     GHG_PROTOCOL_SCOPE3,
+    market_based_figure_exists,
     placements,
 )
 from ..estimate.machine import detect_machine
@@ -310,7 +312,9 @@ def scopes(args: argparse.Namespace) -> int:
         return USAGE
 
     costs = chosen.get("costs") if isinstance(chosen.get("costs"), dict) else {}
-    placed = placements(list(costs), provider)
+    placed = placements(
+        list(costs), provider, market_based_reported=market_based_figure_exists(costs)
+    )
     unit = model.get("unit_of_work") if isinstance(model.get("unit_of_work"), dict) else {}
 
     rows = []
@@ -367,10 +371,14 @@ def scopes(args: argparse.Namespace) -> int:
             if row["value"] is None
             else f"{format_number(row['value'])} {row['unit'] or ''}".strip()
         )
-        print(f"  {row['dimension']:<17} {shown:<18} {row['label']}")
+        print(f"  {row['dimension']:<19} {shown:<18} {row['label']}")
     print()
     for row in rows:
-        if row["scope"] is None and row["dimension"] in ("carbon", "embodied_carbon"):
+        # Why an emission got no scope, which is the answer a reader came for
+        # when a line says "No scope". Read from the one list of what counts as
+        # an emission: a copy kept here would have swallowed the market-based
+        # explanation, which exists for exactly this case.
+        if row["scope"] is None and row["dimension"] in GHG_EMISSIONS:
             print(f"{row['dimension']}: {row['why']}\n")
     placed_rows = [row for row in rows if row["scope"] is not None]
     for row in placed_rows:

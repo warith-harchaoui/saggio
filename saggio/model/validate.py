@@ -59,7 +59,7 @@ from typing import Any, Final
 
 from .cost_model import CostModel, walk_bare_numbers
 from .derivation import candidates, disagrees, parse_unit
-from .dimensions import CANONICAL_DIMENSIONS
+from .dimensions import CANONICAL_DIMENSIONS, CARBON_MARKET_BASED
 from .quantity import (
     QUANTITY_KEYS,
     SOURCE_KINDS,
@@ -69,6 +69,7 @@ from .quantity import (
 )
 from .results import Report
 from .schema import (
+    MARKET_FACTOR_KEY,
     REQUIRED_BLOCKS,
     SCHEMA_VERSION,
     is_bare_number_exempt,
@@ -915,6 +916,11 @@ def _check_assumption_provenance(model: CostModel, report: Report) -> None:
             # was published.
             continue
         if value.get("status") == ESTIMATED and not value.get("source_url"):
+            if key == MARKET_FACTOR_KEY:
+                # Held to a stricter rule next door, where the missing document
+                # is an error. Saying it twice at two severities would make the
+                # reader wonder which one the tool means.
+                continue
             report.warning(
                 f"assumptions.{key}",
                 "is estimated with no source_url; add the page the number came from "
@@ -924,6 +930,76 @@ def _check_assumption_provenance(model: CostModel, report: Report) -> None:
             report.warning(
                 f"assumptions.{key}",
                 "is measured but says nothing about how; note the instrument in notes",
+            )
+
+
+def _check_scope_two_pair(model: CostModel, report: Report) -> None:
+    """Hold a market-based figure to the two rules that make it a disclosure.
+
+    The market-based method is the one place in this package where a number
+    comes from a contract rather than from a catalogue, and that changes what
+    can be checked about it. Two things follow, and both are stricter here than
+    the generic rules above:
+
+    **It needs the document.** A grid average has a source everyone shares and a
+    refresh command that re-reads it. A market-based factor has neither: nobody
+    but the organisation holds the contract, and nothing in this package can go
+    and look. A figure with no URL is unverifiable by construction, so this is
+    an error where a missing source elsewhere is a warning.
+
+    **It is never published alone.** The Scope 2 Guidance requires the pair, and
+    the market-based half is usually the flattering one. A model carrying it
+    without a location-based figure beside it is told so — as a warning, because
+    a model being filled in is not a model being wrong.
+
+    Parameters
+    ----------
+    model : CostModel
+        The model under validation.
+    report : Report
+        Accumulator for the verdict.
+
+    Examples
+    --------
+    >>> report = Report()
+    >>> _check_scope_two_pair(CostModel.from_mapping({"assumptions": {
+    ...     "market_carbon_intensity": {"value": 0.0, "status": "estimated"}}}), report)
+    >>> "nobody else can check" in report.to_text()
+    True
+    """
+    assumptions = model.data.get("assumptions")
+    if isinstance(assumptions, dict):
+        factor = assumptions.get(MARKET_FACTOR_KEY)
+        if looks_like_quantity(factor) and factor.get("value") is not None:
+            if not factor.get("source_url"):
+                report.error(
+                    f"assumptions.{MARKET_FACTOR_KEY}",
+                    "states a market-based emission factor with no source_url. This is "
+                    "the one number in the model nobody else can check and nothing here "
+                    "can refresh, so it needs the supplier document, certificate or "
+                    "residual-mix publication that states it",
+                )
+            if not factor.get("retrieved_date"):
+                report.warning(
+                    f"assumptions.{MARKET_FACTOR_KEY}",
+                    "has no retrieved_date; a contract factor is restated every year, "
+                    "so say which reading this is",
+                )
+
+    for index, scenario in model.indexed_scenarios():
+        costs = scenario.get("costs")
+        if not isinstance(costs, dict):
+            continue
+        market = costs.get(CARBON_MARKET_BASED.key)
+        if not (looks_like_quantity(market) and market.get("value") is not None):
+            continue
+        located = costs.get("carbon")
+        if not (looks_like_quantity(located) and located.get("value") is not None):
+            report.warning(
+                f"{model.scenario_path(index)}.costs.{CARBON_MARKET_BASED.key}",
+                "is the market-based half of scope 2 with no location-based figure "
+                "beside it. The guidance requires both, and this is the half a "
+                "contract can improve, so alone it reads better than the disclosure is",
             )
 
 
@@ -966,6 +1042,7 @@ def validate(model: CostModel | dict[str, Any]) -> Report:
     _check_derivation_cycles(wrapped, report)
     _check_dimensions(wrapped, report)
     _check_assumption_provenance(wrapped, report)
+    _check_scope_two_pair(wrapped, report)
     return report
 
 

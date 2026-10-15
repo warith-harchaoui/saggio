@@ -11,6 +11,7 @@ from saggio.estimate.energy import (
     energy_from_runtime,
     facility_energy,
     it_energy_from_runtime,
+    market_carbon_from_energy,
     money_from_energy,
     node_power,
     total_money,
@@ -45,6 +46,39 @@ def test_the_convenience_chains_both_steps() -> None:
 
 def test_carbon_is_energy_times_intensity() -> None:
     assert carbon_from_energy(q(2.0), q(56)).value == pytest.approx(112.0)
+
+
+def test_the_market_based_figure_is_the_same_product_over_a_different_factor() -> None:
+    assert market_carbon_from_energy(q(2.0), q(56)).value == pytest.approx(112.0)
+
+
+def test_a_zero_market_factor_is_a_zero_and_an_unknown_one_is_not() -> None:
+    """The one place a zero is the honest answer, and the one place it never is.
+
+    A supplier factor of zero is a statement about a contract, and if somebody
+    holds the document it is a real number this has to carry. A *missing*
+    factor is not that number, and filling it with a zero would be exactly the
+    claim — 'our electricity is carbon free' — that the quality criteria exist
+    to stop anyone making for free.
+    """
+    stated = market_carbon_from_energy(q(2.0), q(0.0, ESTIMATED))
+    assert stated.value == 0.0 and stated.status == ESTIMATED
+
+    missing = market_carbon_from_energy(q(2.0), q(None, "TODO"))
+    assert missing.value is None and missing.status == "TODO"
+    assert "grid average is the other method" in missing.notes
+
+
+def test_the_two_scope_2_methods_do_not_borrow_each_other_s_provenance() -> None:
+    # A market-based figure sourced to the Green Algorithms paper would be
+    # citing the wrong thing entirely: the arithmetic is shared, the method and
+    # the authority for it are not.
+    located = carbon_from_energy(q(2.0), q(56))
+    market = market_carbon_from_energy(q(2.0), q(56))
+    assert located.value == market.value
+    assert located.source_url != market.source_url
+    assert "grid carbon intensity" in located.notes
+    assert "Market-based" in market.notes
 
 
 def test_money_is_energy_times_price_and_keeps_the_currency() -> None:
@@ -234,5 +268,14 @@ def test_a_negative_runtime_is_a_sign_error_not_a_cost() -> None:
 
 def test_a_negative_intensity_does_not_produce_negative_carbon() -> None:
     result = carbon_from_energy(q(2.0), q(-56.0))
+    assert result.status == "TODO"
+    assert result.value is None
+
+
+def test_a_negative_market_factor_is_refused_too() -> None:
+    # The place a negative factor would be most tempting to allow: somebody
+    # netting removals against their contract. Gross is what the standards ask
+    # for, and a negative emission factor is not how you would say it anyway.
+    result = market_carbon_from_energy(q(2.0), q(-56.0))
     assert result.status == "TODO"
     assert result.value is None

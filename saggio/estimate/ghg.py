@@ -24,16 +24,23 @@ by the same rule as ``aws``. A provider that does not state it gets **no scope**
 rather than a guessed one: the two answers differ by which company reports the
 emission, and that is not something to infer from a name.
 
-What this module will not do
-----------------------------
-**It does not produce a market-based scope 2 figure.** The grid intensities this
-package carries are grid averages, which is the *location-based* method by
-definition. The GHG Protocol requires dual reporting wherever contractual
-instruments exist, and the market-based number is a different one, built from a
-supplier-specific factor, the instruments the organisation holds, or its
-market's residual mix. None of the three is derivable from anything here, so
-the placement says so in words and reports no figure, which is the only honest
-answer and is also the one a reviewer can act on.
+The other half of scope 2
+-------------------------
+The grid intensities this package carries are grid averages, which is the
+*location-based* method by definition. The GHG Protocol requires scope 2 to be
+reported both ways wherever contractual instruments exist, and the market-based
+number is a different one: a supplier-specific factor, the instruments the
+organisation holds, or its market's residual mix.
+
+**None of the three is derivable from a grid average, so this package will never
+compute one from what it knows.** What it does instead is carry the second
+figure as a dimension of its own, ``carbon_market_based``, computed from a
+factor the organisation states — the one fact only it has. State the factor and
+both halves are reported, each labelled with the method that produced it; state
+nothing and the placement prints the shopping list rather than a plausible
+number. A market-based figure is a claim about contracts, so the validator asks
+for the document it rests on in a way it does not ask of a grid average: nobody
+else can check this one, and nothing in this package can refresh it.
 
 **It does not place water.** Water is not a greenhouse gas and has no scope. It
 is reported, under the European standards, somewhere else entirely.
@@ -42,7 +49,9 @@ Usage example
 -------------
 >>> from saggio.estimate.ghg import placement
 >>> placement("carbon", "on-prem").label
-'Scope 2'
+'Scope 2 (location-based)'
+>>> placement("carbon_market_based", "on-prem").label
+'Scope 2 (market-based)'
 >>> placement("carbon", "aws").label
 'Scope 3, category 1 — purchased goods and services'
 >>> placement("embodied_carbon", "on-prem").label
@@ -88,16 +97,46 @@ LOCATION_BASED: Final[str] = (
     "adjustment for any contractual instrument"
 )
 
+#: What the market-based figure is, in the same shape as the line above, for the
+#: half of the pair that comes from a contract rather than from a grid.
+MARKET_BASED: Final[str] = (
+    "market-based: the emission factor of the electricity this organisation "
+    "contracted for, rather than the average of the grid it drew from"
+)
+
+#: Where a market-based factor may honestly come from, in the order the Scope 2
+#: Guidance puts them. Printed when the figure is missing, so the sentence is a
+#: shopping list rather than a refusal, and kept in one place because the report,
+#: the command and the model's own notes all say it.
+MARKET_BASED_SOURCES: Final[str] = (
+    "It is built from your supplier's own emission factor, from the contractual "
+    "instruments you hold — guarantees of origin, RECs, a PPA — or, failing both, "
+    "from your market's residual mix, which exists precisely so that unclaimed "
+    "electricity is not counted as clean by default."
+)
+
 #: Why the other half of the required pair is absent, and what it would take.
 #: A sustainability team reads this as a shopping list rather than as a refusal.
 MARKET_BASED_MISSING: Final[str] = (
-    "The market-based figure is a different number and is not here. It is built "
-    "from your supplier's own emission factor, from the contractual instruments "
-    "you hold — guarantees of origin, RECs, a PPA — or, failing both, from your "
-    "market's residual mix. None of the three can be derived from a grid average, "
-    "so this package reports neither a market-based figure nor a zero. Where "
-    "contractual instruments exist in your market, the GHG Protocol requires both "
-    "numbers, each labelled with the method that produced it."
+    "The market-based figure is a different number and is not here. "
+    + MARKET_BASED_SOURCES
+    + " None of the three can be derived from a grid average, so this package "
+    "reports neither a market-based figure nor a zero. Record the factor as "
+    "`assumptions.market_carbon_intensity` and the figure is computed and placed "
+    "beside this one. Where contractual instruments exist in your market, the GHG "
+    "Protocol requires both numbers, each labelled with the method that produced it."
+)
+
+#: The same slot, once the companion figure is actually in the model. It says
+#: what the pair is for, because the commonest misuse of a market-based number
+#: is to publish it alone — which is the one thing the guidance forbids.
+MARKET_BASED_PRESENT: Final[str] = (
+    "The market-based figure required beside this one is in the model, as "
+    "`carbon_market_based`. Both are disclosed: the market-based number does not "
+    "replace this one, and a contract does not change which electrons the grid "
+    "delivered. Check that what you recorded meets the Scope 2 Guidance's quality "
+    "criteria for a contractual instrument — this package cannot, and does not "
+    "pretend to."
 )
 
 
@@ -154,8 +193,15 @@ class Placement:
 #: The dimensions that are greenhouse-gas emissions at all. Money and time are
 #: costs and not emissions; water is an emission of nothing and belongs to a
 #: different standard. Listing them here rather than guessing from a unit keeps a
-#: registered dimension in grams of something from being filed as carbon.
-_EMISSIONS: Final[tuple[str, ...]] = ("carbon", "embodied_carbon")
+#: registered dimension in grams of something from being filed as carbon. Public
+#: because the two reports pick their inventory rows from it, and a report that
+#: kept its own copy would be a second list to forget to extend.
+GHG_EMISSIONS: Final[tuple[str, ...]] = ("carbon", "carbon_market_based", "embodied_carbon")
+
+#: The dimension that carries the market-based half of scope 2. Named once
+#: because three things read it: the placement below, the sentence a
+#: location-based placement prints about its companion, and the fold.
+MARKET_BASED_DIMENSION: Final[str] = "carbon_market_based"
 
 
 #: Why a dimension that is not an emission has no scope. One sentence each,
@@ -176,8 +222,12 @@ _NOT_AN_EMISSION: Final[dict[str, str]] = {
 }
 
 
-def _operated_by(provider: str | None, *, overlay: Any = None) -> str | None:
+def operated_by(provider: str | None, *, overlay: Any = None) -> str | None:
     """Return who runs the machines for a provider, or None when nobody said.
+
+    Public because the rule has a second reader: an audit decides whether to
+    write a market-based row at all from the same fact, and two copies of a
+    catalogue lookup would be two chances to disagree about a provider.
 
     Parameters
     ----------
@@ -193,11 +243,11 @@ def _operated_by(provider: str | None, *, overlay: Any = None) -> str | None:
 
     Examples
     --------
-    >>> _operated_by("gcp")
+    >>> operated_by("gcp")
     'vendor'
-    >>> _operated_by("not-a-provider") is None
+    >>> operated_by("not-a-provider") is None
     True
-    >>> _operated_by(None) is None
+    >>> operated_by(None) is None
     True
     """
     if not provider:
@@ -212,7 +262,13 @@ def _operated_by(provider: str | None, *, overlay: Any = None) -> str | None:
     return said if said in (OPERATED_BY_SELF, OPERATED_BY_VENDOR) else None
 
 
-def placement(dimension: str, provider: str | None, *, overlay: Any = None) -> Placement:
+def placement(
+    dimension: str,
+    provider: str | None,
+    *,
+    overlay: Any = None,
+    market_based_reported: bool = False,
+) -> Placement:
     """Return where one dimension's figure goes in a GHG inventory.
 
     Parameters
@@ -223,6 +279,12 @@ def placement(dimension: str, provider: str | None, *, overlay: Any = None) -> P
         The deployment's provider, as the model states it.
     overlay : optional
         A user catalogue overlay.
+    market_based_reported : bool, optional
+        Whether the model also carries ``carbon_market_based``. It changes what a
+        location-based scope 2 placement says about its companion: a shopping
+        list when the pair is half there, a warning against publishing one
+        without the other when it is whole. :func:`placements` works it out from
+        the dimension list, so a caller placing a whole model never passes it.
 
     Returns
     -------
@@ -239,10 +301,16 @@ def placement(dimension: str, provider: str | None, *, overlay: Any = None) -> P
     1
     >>> "residual mix" in placement("carbon", "on-prem").dual_reporting
     True
+    >>> placement("carbon", "on-prem", market_based_reported=True).dual_reporting[:3]
+    'The'
+    >>> placement("carbon_market_based", "on-prem").label
+    'Scope 2 (market-based)'
+    >>> placement("carbon_market_based", "aws").scope is None
+    True
     """
     if dimension in _NOT_AN_EMISSION:
         return Placement(dimension, None, None, "No scope", _NOT_AN_EMISSION[dimension], "")
-    if dimension not in _EMISSIONS:
+    if dimension not in GHG_EMISSIONS:
         return Placement(
             dimension,
             None,
@@ -257,7 +325,7 @@ def placement(dimension: str, provider: str | None, *, overlay: Any = None) -> P
             "",
         )
 
-    runs_on = _operated_by(provider, overlay=overlay)
+    runs_on = operated_by(provider, overlay=overlay)
     if runs_on is None:
         return Placement(
             dimension,
@@ -273,6 +341,27 @@ def placement(dimension: str, provider: str | None, *, overlay: Any = None) -> P
                 if provider
                 else "The model states no provider, and the scope turns on who "
                 "operates the machine. Name one in `deployment.provider`."
+            ),
+            "",
+        )
+
+    if runs_on == OPERATED_BY_VENDOR and dimension == MARKET_BASED_DIMENSION:
+        # The pair exists inside scope 2 and nowhere else. Filing a market-based
+        # figure here would be the mirror of filing cloud electricity as scope 2:
+        # a number that looks like a disclosure and belongs to another company.
+        return Placement(
+            dimension,
+            None,
+            None,
+            "No scope",
+            (
+                "The machine is operated by a vendor, so there is no scope 2 of "
+                "yours here to report either way. The electricity is the vendor's "
+                "scope 2, and the location-based / market-based pair is its "
+                "disclosure to make. What reaches you is one purchased service, in "
+                "scope 3 category 1, where the standard draws no such pair — so a "
+                "market-based figure on rented hardware is not a more precise "
+                "answer, it is an answer to somebody else's question."
             ),
             "",
         )
@@ -318,17 +407,38 @@ def placement(dimension: str, provider: str | None, *, overlay: Any = None) -> P
             GHG_PROTOCOL_SCOPE3,
         )
 
+    if dimension == MARKET_BASED_DIMENSION:
+        return Placement(
+            dimension,
+            "2",
+            None,
+            "Scope 2 (market-based)",
+            (
+                "The organisation operates the machine, so it bought the electricity, "
+                "and it bought it under a contract. The figure here is "
+                f"{MARKET_BASED}. It rests on a factor you stated, which is the one "
+                "fact about this number nobody else holds — this package neither "
+                "derived it nor can refresh it."
+            ),
+            GHG_PROTOCOL_SCOPE2,
+            (
+                "This is one half of the pair. The location-based figure beside it, "
+                "`carbon`, is the other, and both are disclosed: a contract changes "
+                "what you are accountable for, not what the grid emitted."
+            ),
+        )
+
     return Placement(
         dimension,
         "2",
         None,
-        "Scope 2",
+        "Scope 2 (location-based)",
         (
             "The organisation operates the machine, so it bought the electricity. "
             f"The figure here is {LOCATION_BASED}."
         ),
         GHG_PROTOCOL_SCOPE2,
-        MARKET_BASED_MISSING,
+        MARKET_BASED_PRESENT if market_based_reported else MARKET_BASED_MISSING,
     )
 
 
@@ -337,6 +447,7 @@ def placements(
     provider: str | None,
     *,
     overlay: Any = None,
+    market_based_reported: bool = False,
 ) -> dict[str, Placement]:
     """Place every dimension of a model at once, in the order given.
 
@@ -348,6 +459,11 @@ def placements(
         The deployment's provider.
     overlay : optional
         A user catalogue overlay.
+    market_based_reported : bool, optional
+        Whether the model carries an actual market-based figure, which
+        :func:`market_based_figure_exists` answers from the costs. Defaults to
+        false, so a caller that does not know prints the shopping list rather
+        than claiming a disclosure is whole.
 
     Returns
     -------
@@ -358,6 +474,46 @@ def placements(
     --------
     >>> found = placements(["carbon", "embodied_carbon", "water"], "on-prem")
     >>> [found[key].label for key in found]
-    ['Scope 2', 'Scope 3, category 2 — capital goods', 'No scope']
+    ['Scope 2 (location-based)', 'Scope 3, category 2 — capital goods', 'No scope']
+    >>> whole = placements(["carbon"], "on-prem", market_based_reported=True)
+    >>> "`carbon_market_based`" in whole["carbon"].dual_reporting
+    True
     """
-    return {key: placement(key, provider, overlay=overlay) for key in dimensions}
+    return {
+        key: placement(key, provider, overlay=overlay, market_based_reported=market_based_reported)
+        for key in dimensions
+    }
+
+
+def market_based_figure_exists(costs: Any) -> bool:
+    """Return whether a model carries a market-based number, not just the row.
+
+    The distinction the sentence above rests on, and it is not pedantry: an
+    empty ``carbon_market_based`` is the shopping list, and a report that read
+    the key alone would tell a sustainability team the pair was complete while
+    the second number was a ``TODO``. That is the exact failure this package
+    exists to prevent, committed by the function that explains it.
+
+    Parameters
+    ----------
+    costs : any
+        A scenario's ``costs`` mapping, as it comes out of the document.
+
+    Returns
+    -------
+    bool
+        True only when the market-based row is there and holds a value.
+
+    Examples
+    --------
+    >>> market_based_figure_exists({"carbon_market_based": {"value": 12.0}})
+    True
+    >>> market_based_figure_exists({"carbon_market_based": {"status": "TODO"}})
+    False
+    >>> market_based_figure_exists({"carbon": {"value": 12.0}})
+    False
+    """
+    if not isinstance(costs, dict):
+        return False
+    row = costs.get(MARKET_BASED_DIMENSION)
+    return isinstance(row, dict) and row.get("value") is not None

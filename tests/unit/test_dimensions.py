@@ -12,7 +12,23 @@ from saggio.model.dimensions import (
 )
 
 
-def test_the_canonical_five_are_registered_in_report_order() -> None:
+def test_the_canonical_dimensions_are_registered_in_report_order() -> None:
+    """The list, spelled out, because the report order is part of the contract.
+
+    Comparing the registry to the constant it was built from would assert
+    nothing. The two carbon figures sit next to each other on purpose: they are
+    the pair scope 2 is reported in, and a report that separates them invites
+    one of the two to be read as the answer.
+    """
+    assert DimensionRegistry().keys() == (
+        "money",
+        "time",
+        "energy",
+        "carbon",
+        "carbon_market_based",
+        "embodied_carbon",
+        "water",
+    )
     assert DimensionRegistry().keys() == tuple(d.key for d in CANONICAL_DIMENSIONS)
 
 
@@ -68,8 +84,9 @@ def test_a_malformed_declaration_never_breaks_the_registry(declared: object) -> 
 
 def test_a_registry_is_iterable_sized_and_searchable() -> None:
     registry = DimensionRegistry()
-    assert len(registry) == 6
+    assert len(registry) == len(CANONICAL_DIMENSIONS)
     assert "carbon" in registry
+    assert "carbon_market_based" in registry
     assert next(iter(registry)).key == "money"
     with pytest.raises(KeyError):
         registry.get("nope")

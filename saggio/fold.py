@@ -44,6 +44,7 @@ from .estimate.energy import (
     carbon_from_energy,
     facility_energy,
     it_energy_from_runtime,
+    market_carbon_from_energy,
     money_from_energy,
     water_from_energy,
 )
@@ -58,6 +59,7 @@ _POWER_PATH = "assumptions.power_draw"
 _PUE_PATH = "assumptions.pue"
 _PRICE_PATH = "assumptions.electricity_price"
 _GRID_PATH = "assumptions.grid_carbon_intensity"
+_MARKET_FACTOR_PATH = "assumptions.market_carbon_intensity"
 _WUE_PATH = "assumptions.water_usage_effectiveness"
 _IT_ENERGY_PATH = "assumptions.machine_energy"
 _PSF_PATH = "assumptions.pragmatic_scaling_factor"
@@ -234,17 +236,22 @@ def fold_measurement(
         "carbon": carbon_from_energy(
             energy, _assumption(updated, "grid_carbon_intensity")
         ).with_derivation(f"{scenario_path}.costs.energy", _GRID_PATH),
+        "carbon_market_based": market_carbon_from_energy(
+            energy, _assumption(updated, "market_carbon_intensity")
+        ).with_derivation(f"{scenario_path}.costs.energy", _MARKET_FACTOR_PATH),
         "water": water_from_energy(
             machine_energy, _assumption(updated, "water_usage_effectiveness")
         ).with_derivation(_IT_ENERGY_PATH, _WUE_PATH),
     }
     # A dimension the model never carried is not introduced here — with one
-    # exception. Money and carbon derive from the energy cost by path, so a
-    # model that watches either without watching energy still needs the energy
-    # row written, or its derivations would name nothing and the fold would
-    # invalidate a model it just improved.
+    # exception. Money and both carbon figures derive from the energy cost by
+    # path, so a model that watches any of them without watching energy still
+    # needs the energy row written, or its derivations would name nothing and
+    # the fold would invalidate a model it just improved. A market-based row is
+    # never created by a fold: whether it belongs at all is a fact about who
+    # operates the machine, settled when the model was built.
     wanted = {key for key in recomputed if key in costs or key == "time"}
-    if wanted & {"money", "carbon"}:
+    if wanted & {"money", "carbon", "carbon_market_based"}:
         wanted.add("energy")
     for key, quantity in recomputed.items():
         if key not in wanted:

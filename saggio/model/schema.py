@@ -64,6 +64,12 @@ OPTIONAL_BLOCKS: Final[tuple[str, ...]] = (
 #: warning, not an error: a model may be richer than the tool reading it.
 KNOWN_BLOCKS: Final[tuple[str, ...]] = REQUIRED_BLOCKS + OPTIONAL_BLOCKS
 
+#: The assumption that carries the market-based emission factor, named here
+#: because three packages spell it: the audit that writes it, the fold that
+#: recomputes from it, and the validator that holds it to its document. A fourth
+#: spelling would be a fourth chance to disagree about one key.
+MARKET_FACTOR_KEY: Final[str] = "market_carbon_intensity"
+
 #: Dotted-path prefixes under which a bare number is structural rather than a
 #: cost, and therefore exempt from the "every number is a quantity" rule. Kept
 #: short and explicit: each entry is a place where a plain integer genuinely

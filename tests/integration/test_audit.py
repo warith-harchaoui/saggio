@@ -517,3 +517,42 @@ def test_a_scaling_series_is_given_the_audit_baseline(
     )
 
     assert seen == [0.0]
+
+
+def test_a_projection_keeps_whichever_scope_2_methods_the_scenario_carries(
+    training_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The pair must not become a half two tables further down the page.
+
+    The scenario above an ``on_other_hardware`` block reports scope 2 both ways
+    on a machine the organisation operates. A projection that carried only the
+    location-based figure would publish, under the same heading, exactly the
+    half-disclosure the Scope 2 Guidance forbids — and it would look like an
+    answer rather than an omission, because every other dimension is there.
+
+    What the projection must *not* do is keep the contracted factor quietly:
+    a supply contract is signed for a site, and moving the work to another
+    accelerator usually means moving it. So the sentence says so.
+    """
+    from saggio.model.quantity import Quantity
+
+    monkeypatch.setattr(
+        "saggio.auditor.build._runtime_assumption",
+        lambda *a, **k: Quantity(value=3600.0, unit="s", status="measured"),
+    )
+    result = audit(
+        training_repository,
+        options=static_options(
+            country="FR", source_accelerator="RTX-4090", target_accelerator="H100"
+        ),
+    )
+    scenario = result.model.get("scenarios")[0]["costs"]
+    projected = result.model.get("projections.on_other_hardware")["costs"]
+    assert "carbon_market_based" in scenario
+    assert set(scenario) & {"carbon", "carbon_market_based"} <= set(projected)
+    assert projected["carbon_market_based"]["derived_from"][1] == (
+        "assumptions.market_carbon_intensity"
+    )
+    held = result.model.get("projections.on_other_hardware")["held_constant"]
+    assert "contracted emission factor" in held
+    assert validate(result.model).ok

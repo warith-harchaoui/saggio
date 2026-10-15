@@ -311,6 +311,42 @@ def test_the_restatement_names_its_source() -> None:
     assert "doi.org/10.1002/advs.202100707" in render_markdown(_scenario_with_carbon(1.4))
 
 
+def _scenario_with_both_scope_two_figures() -> dict[str, Any]:
+    """A model reporting scope 2 both ways, the two figures far apart."""
+    model = _scenario_with_carbon(1.4)
+    model["scenarios"][0]["costs"]["carbon_market_based"] = {
+        "value": 14.0,
+        "unit": "gCO2e",
+        "status": "estimated",
+    }
+    return model
+
+
+def test_the_restatement_says_which_scope_2_figure_it_restated() -> None:
+    """Two carbon figures on a page, one set of kilometres, no label.
+
+    The equivalences have always restated ``carbon``, which is correct and was
+    unambiguous while it was the only carbon in the table. Beside a market-based
+    figure it is not: the two can differ by a factor of ten, so a reader seeing
+    one number of kilometres has no way to know which one it came from — and the
+    restatement is the line in the report a non-specialist actually reads.
+    """
+    both = render_markdown(_scenario_with_both_scope_two_figures())
+    assert "estimated restatements of the location-based figure" in both
+
+    # And nothing changes on the ordinary model, where the qualifier would be
+    # a sentence answering a question nobody could have asked.
+    alone = render_markdown(_scenario_with_carbon(1.4))
+    assert "estimated restatements, " in alone
+    assert "location-based figure" not in alone
+
+
+def test_the_html_restatement_labels_the_half_it_restated_translatably() -> None:
+    page = render_html(_scenario_with_both_scope_two_figures())
+    assert 'data-i18n="equivalence.note.located"' in page
+    assert 'data-i18n="equivalence.note"' in render_html(_scenario_with_carbon(1.4))
+
+
 def test_the_html_report_restates_carbon_with_translatable_labels() -> None:
     page = render_html(_scenario_with_carbon(1.4))
     assert 'data-i18n="equivalence.unit.million"' in page
@@ -325,6 +361,7 @@ def test_every_language_translates_the_equivalence_labels() -> None:
             "equivalence.trees",
             "equivalence.car",
             "equivalence.note",
+            "equivalence.note.located",
             "equivalence.unit.one",
             "equivalence.unit.million",
         ):

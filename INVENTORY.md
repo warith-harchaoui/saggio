@@ -55,7 +55,7 @@ rather than charged once in the year it was bought.
 default, not the nearest guess. The two answers differ by *which legal entity
 reports the emission*, and a wrong one looks exactly as tidy as a right one.
 
-## Scope 2: you are being given half of a required pair
+## Scope 2: both halves, and which one is yours to state
 
 The carbon intensities here are national grid averages, read from
 [Ember](https://ember-energy.org/data/yearly-electricity-data/). A grid average
@@ -68,19 +68,65 @@ wherever contractual instruments exist in your market. Under the European
 standards the same pair is explicit: gross scope 2 is disclosed
 *location-based and market-based*.
 
-This tool will not produce the market-based figure, because it cannot be derived
-from a grid average. It is built from one of three things, in descending order
-of preference:
+**This tool will never derive the market-based figure from a grid average**,
+because it does not follow from one. That number is built from one of three
+things, in descending order of preference:
 
 1. your supplier's own emission factor for the contract you are on;
 2. the contractual instruments you hold — guarantees of origin, RECs, a PPA;
-3. failing both, your market's **residual mix**, which exists precisely so that
-   unclaimed electricity is not counted as clean by default.
+3. failing both, your market's **residual mix** — in Europe the one the
+   [Association of Issuing Bodies publishes](https://www.aib-net.org/facts/european-residual-mix),
+   which exists precisely so that unclaimed electricity is not counted as clean
+   by default.
 
-So the reports say that the figure they carry is location-based, and that the
-other one is missing and why. That is a shopping list rather than a refusal: if
-you hold a supplier factor, register it as a dimension of your own and this tool
-will validate, render, and drift-gate it exactly as it does carbon.
+What the tool does instead is carry the second figure as a dimension of its own,
+`carbon_market_based`, computed from the one fact only you hold. An audit of a
+machine you operate ships `assumptions.market_carbon_intensity` **open**, with
+that shopping list in its notes. State the factor — with the document it comes
+from and the date you read it — and the figure is computed from the same energy
+as the first, placed beside it, labelled with the method that produced it, and
+drift-gated the same way. Leave it open and the reports print the shopping list
+rather than a plausible number.
+
+This is the row `saggio audit` writes on a machine you operate, unfilled:
+
+```yaml
+assumptions:
+  market_carbon_intensity:
+    value: null
+    status: TODO
+    unit: gCO2e/kWh
+    source_url: ''
+    notes: 'The emission factor of the electricity you contracted for, which no
+      catalogue can hold: it is a property of your contract, not of your country.
+      [...] Leaving it open is a complete answer; a zero because the electricity
+      is ''green'' is not one.'
+```
+
+Replace the `null` with the factor your document states, the empty `source_url`
+with that document, and the `TODO` with `estimated` or `measured`. Nothing else
+has to change: the figure, its derivation and its placement follow.
+
+A number that comes from a contract rather than from a catalogue is checkable in
+a different way from everything else here, and three rules follow:
+
+- **It needs its document, as an error.** A missing `source_url` elsewhere is a
+  warning. Here it fails validation: nobody but you holds that contract, and
+  nothing in this tool can go and read it — so without the supplier statement,
+  certificate or residual-mix publication behind it, the figure is unverifiable
+  by construction.
+- **It is never published alone.** A market-based figure with no location-based
+  one beside it is warned about. It is the half a contract can improve, and on
+  its own it reads better than the disclosure actually is.
+- **It does not exist on rented hardware.** The pair lives inside scope 2 and
+  nowhere else. On a vendor's machine the electricity is the vendor's scope 2
+  and the pair is the vendor's to disclose; what reaches you is one purchased
+  service in category 1, where the standard draws no such pair. The audit writes
+  no row there, so nobody is left holding a `TODO` that can never become true.
+
+Neither figure replaces the other, and the reports say so on the page: a
+contract changes what you are accountable for, not which electrons the grid
+delivered.
 
 ## What an assurance provider gets
 
@@ -114,7 +160,11 @@ The useful half of any conformance claim is the part that fails.
 - **It is not your IT footprint.** It covers compute for one unit of work. No
   employee devices, no network transit, no storage at rest, no office, no travel.
   A software cost model is one input to an inventory, not an inventory.
-- **No market-based scope 2**, as above.
+- **The market-based factor is yours, not ours.** The tool computes the figure,
+  places it, and holds it to a stricter provenance rule than anything else in
+  the model — but it will not invent the factor. No catalogue here carries a
+  residual mix or a supplier factor, and the freshness gate cannot re-read your
+  contract when it is restated next year.
 - **No end of life, and no biogenic or removal accounting.** The published
   hardware footprints are cradle-to-gate and exclude the use phase and disposal;
   this tool reports what they cover and not a gram more. Nothing is netted
@@ -187,6 +237,7 @@ catalogue row `operated_by: self` or `operated_by: vendor`.
 - [Article L. 229-25, code de l'environnement](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000039369665) · [bilans-ges.ademe.fr](https://bilans-ges.ademe.fr/) — the French regulatory GHG report and where it is filed.
 - [ADEME Base Empreinte](https://base-empreinte.ademe.fr/) — the French emission-factor database, for the figures this tool does not carry.
 - [Ember's yearly electricity data](https://ember-energy.org/data/yearly-electricity-data/) — the grid intensities here, location-based by construction.
+- [The AIB's European Residual Mix](https://www.aib-net.org/facts/european-residual-mix) — the market-based factor of last resort, for electricity no instrument claims. This tool carries none of it: the figure is yours to state.
 
 ---
 

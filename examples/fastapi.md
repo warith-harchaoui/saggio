@@ -41,7 +41,7 @@ One unit of work as this audit found it, on the machine it ran on.
 | Money | not known | `TODO` | `scenarios[0].costs.energy`, `assumptions.electricity_price` | Needs the energy drawn and a price per kilowatt-hour. |
 | Time | not known | `TODO` | `scenarios[0].runtime` | No run was measured. Measure the real command with `saggio measure`, or audit again with --run. |
 | Energy | not known | `TODO` | `assumptions.machine_energy`, `assumptions.pue` | Needs the machine's own energy and the site's power usage effectiveness. |
-| Carbon | not known | `TODO` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Needs the energy drawn and the grid carbon intensity where it runs. |
+| Carbon (location-based) | not known | `TODO` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Needs the energy drawn and the grid carbon intensity where it runs. |
 | Embodied carbon | not known | `TODO` | `assumptions.hardware_embodied_carbon`, `assumptions.hardware_lifetime`, `scenarios[0].runtime` | No product carbon footprint is on file for this hardware, so the carbon of building it is open. Nobody has read one for this part; that is not the same as it having been free to build. Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was read. |
 | Water | not known | `TODO` | `assumptions.machine_energy`, `assumptions.water_usage_effectiveness` | Needs the machine's energy and a published water usage effectiveness. |
 
@@ -49,7 +49,7 @@ One unit of work as this audit found it, on the machine it ran on.
 
 | Cost | Per unit | Status | GHG Protocol |
 |---|---|---|---|
-| `carbon` | not known | `TODO` | [Scope 2](https://ghgprotocol.org/scope-2-guidance) |
+| `carbon` | not known | `TODO` | [Scope 2 (location-based)](https://ghgprotocol.org/scope-2-guidance) |
 | `embodied_carbon` | not known | `TODO` | [Scope 3, category 2 — capital goods](https://ghgprotocol.org/corporate-value-chain-scope-3-standard) |
 
 The scope turns on who operates the machine, which is why the same code lands on a different line of a different company's inventory depending on where it runs.
@@ -58,7 +58,7 @@ The scope turns on who operates the machine, which is why the same code lands on
 
 - **`embodied_carbon`** — The organisation operates the machine, so it bought the hardware. Capital goods rather than purchased goods and services, because the asset's useful life is longer than a year — which is the distinction the standard draws between the two categories, and also the reason this figure is amortised rather than counted once.
 
-**Only half of what scope 2 requires is here.** The market-based figure is a different number and is not here. It is built from your supplier's own emission factor, from the contractual instruments you hold — guarantees of origin, RECs, a PPA — or, failing both, from your market's residual mix. None of the three can be derived from a grid average, so this package reports neither a market-based figure nor a zero. Where contractual instruments exist in your market, the GHG Protocol requires both numbers, each labelled with the method that produced it.
+**Only half of what scope 2 requires is here.** The market-based figure is a different number and is not here. It is built from your supplier's own emission factor, from the contractual instruments you hold — guarantees of origin, RECs, a PPA — or, failing both, from your market's residual mix, which exists precisely so that unclaimed electricity is not counted as clean by default. None of the three can be derived from a grid average, so this package reports neither a market-based figure nor a zero. Record the factor as `assumptions.market_carbon_intensity` and the figure is computed and placed beside this one. Where contractual instruments exist in your market, the GHG Protocol requires both numbers, each labelled with the method that produced it.
 
 How well founded these are: 2 `TODO`. A sustainability disclosure is asked to state how much of an inventory rests on estimates rather than readings; every number in this report already says so.
 

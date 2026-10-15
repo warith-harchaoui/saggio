@@ -34,7 +34,12 @@ from typing import Any, Final
 from urllib.parse import quote
 
 from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE, equivalences
-from ..estimate.ghg import placements
+from ..estimate.ghg import (
+    GHG_EMISSIONS,
+    MARKET_BASED_DIMENSION,
+    market_based_figure_exists,
+    placements,
+)
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
 from ..model.quantity import Quantity, looks_like_quantity
@@ -226,6 +231,54 @@ def felt_size(costs: object) -> tuple[str, dict[str, Quantity]] | None:
     return "one", equivalences(carbon)
 
 
+def both_scope_two_methods(costs: object) -> bool:
+    """Return whether a costs block carries both halves of scope 2, with figures.
+
+    The equivalences restate ``carbon``, which is the location-based number.
+    Alone in the table that is unambiguous. Beside a market-based figure, which
+    can differ from it by a factor of ten, it is not: nothing on the page says
+    which of the two the kilometres were computed from. So the restatement names
+    its half — but only where there are two, because a qualifier on the common
+    case is noise.
+
+    Unwraps a projection's ``result`` nesting on the way, like
+    :func:`felt_size`: the projected table runs the same sentence under it.
+
+    Parameters
+    ----------
+    costs : object
+        A scenario's or projection's ``costs`` mapping.
+
+    Returns
+    -------
+    bool
+        True only when both methods are present *and* carry a number.
+
+    Examples
+    --------
+    >>> both_scope_two_methods({"carbon": {"value": 1.0},
+    ...                         "carbon_market_based": {"value": 2.0}})
+    True
+    >>> both_scope_two_methods({"carbon": {"value": 1.0},
+    ...                         "carbon_market_based": {"status": "TODO"}})
+    False
+    >>> both_scope_two_methods({"carbon": {"value": 1.0}})
+    False
+    """
+    if not isinstance(costs, dict):
+        return False
+    unwrapped: dict[str, Any] = {}
+    for key in ("carbon", MARKET_BASED_DIMENSION):
+        raw = costs.get(key)
+        if isinstance(raw, dict) and looks_like_quantity(raw.get("result")):
+            raw = raw["result"]
+        unwrapped[key] = raw
+    located = unwrapped["carbon"]
+    if not (looks_like_quantity(located) and located.get("value") is not None):
+        return False
+    return market_based_figure_exists(unwrapped)
+
+
 def _felt_size_lines(costs: object, *, per: str = "unit") -> list[str]:
     """Render the one-line restatement of a costs block's carbon figure.
 
@@ -257,9 +310,13 @@ def _felt_size_lines(costs: object, *, per: str = "unit") -> list[str]:
     if not phrase:
         return []
     lead = f"A million {per}s emit about" if scale == "million" else f"One {per} emits about"
+    note = (
+        "estimated restatements of the location-based figure"
+        if both_scope_two_methods(costs)
+        else "estimated restatements"
+    )
     return [
-        f"*{lead} {phrase} — estimated restatements, "
-        f"[Green Algorithms]({GREEN_ALGORITHMS_SOURCE}) coefficients.*",
+        f"*{lead} {phrase} — {note}, [Green Algorithms]({GREEN_ALGORITHMS_SOURCE}) coefficients.*",
         "",
     ]
 
@@ -667,8 +724,10 @@ def _inventory_section(model: CostModel) -> list[str]:
         return []
     deployment = model.data.get("deployment")
     provider = deployment.get("provider") if isinstance(deployment, dict) else None
-    placed = placements(list(costs), provider)
-    emissions = [key for key in costs if key in ("carbon", "embodied_carbon")]
+    placed = placements(
+        list(costs), provider, market_based_reported=market_based_figure_exists(costs)
+    )
+    emissions = [key for key in costs if key in GHG_EMISSIONS]
     if not emissions:
         return []
 
@@ -701,12 +760,18 @@ def _inventory_section(model: CostModel) -> list[str]:
     for key in emissions:
         where = placed[key]
         lines += [f"- **`{key}`** — {_escape(where.why)}", ""]
-    scope_two = next((placed[key] for key in emissions if placed[key].scope == "2"), None)
-    if scope_two is not None:
-        lines += [
-            "**Only half of what scope 2 requires is here.** " + _escape(scope_two.dual_reporting),
-            "",
-        ]
+    # The sentence about the pair hangs off the location-based figure, which is
+    # the one that exists whenever a scope 2 does. Hanging it off the
+    # market-based row would print nothing on exactly the models that need the
+    # shopping list most — the ones that do not carry that row yet.
+    located = placed.get("carbon")
+    if located is not None and located.scope == "2":
+        lead = (
+            "**Scope 2 is reported both ways, as the standard requires.** "
+            if market_based_figure_exists(costs)
+            else "**Only half of what scope 2 requires is here.** "
+        )
+        lines += [lead + _escape(located.dual_reporting), ""]
     # The disclosure a filer is asked for, answered by counting words the model
     # already carries rather than by asking anybody to estimate their own
     # confidence after the fact.

@@ -84,13 +84,63 @@ release of that line.
   reports neither a market-based number nor a zero — a shopping list rather than
   a dead end.
 
+### The other half of scope 2 is now a figure, not an apology
+
+- The section above named the missing half and stopped there. A shopping list is
+  better than a dead end, but a sustainability team reading it still has to
+  leave the tool, compute the second number somewhere else, and reconcile two
+  documents. Scope 2 is required **both ways**; half of it was a feature gap
+  wearing a good explanation.
+- `carbon_market_based` is a canonical dimension now, computed from
+  `assumptions.market_carbon_intensity` — **the one fact only the organisation
+  holds.** State the factor and the figure appears beside the location-based
+  one, from the same energy, labelled with the method that produced it and
+  drift-gated the same way. State nothing and the shopping list prints as
+  before. Nothing is ever derived from a grid average, which is the other method
+  by definition.
+- **It is held to a stricter provenance rule than anything else in the model.**
+  A missing `source_url` elsewhere is a warning; here it is an **error**. Every
+  other number has a source a reader shares and a refresh command that re-reads
+  it. This one has neither: nobody but you holds the contract, and nothing here
+  can go and look — so without its document it is unverifiable by construction.
+  A missing `retrieved_date` is a warning, because a contract factor is restated
+  every year.
+- **A market-based figure alone is warned about.** It is the half a contract can
+  improve, and published without its companion it reads better than the
+  disclosure is. The location-based placement, correspondingly, stops saying the
+  pair is broken once it is whole — and the sentence that replaces it says the
+  one thing a whole pair invites getting wrong: the market-based number does not
+  replace the other, because a contract does not change which electrons the grid
+  delivered.
+- **On rented hardware no row is written at all.** The pair lives inside
+  scope 2; on a vendor's machine the electricity is the vendor's scope 2 and the
+  pair is the vendor's to disclose. What reaches you is one purchased service in
+  category 1, where the standard draws no such pair. An audit there leaves
+  nobody holding a `TODO` that can never become true — and a model moved to a
+  vendor after the fact is told why its row lost its scope, in words.
+- **The projection onto other hardware keeps whichever methods the scenario
+  carries**, for the same reason water is projected: a dimension that vanishes
+  between two tables of the same report looks like an answer rather than an
+  omission. The sentence saying what was held constant now names the contracted
+  factor as the assumption least likely to survive the move — a supply contract
+  is signed for a site.
+- **The restatement in kilometres says which figure it restated**, but only
+  where there are two. It has always restated the location-based number, which
+  was unambiguous while it was the only carbon on the page; beside a figure that
+  can differ from it tenfold it was not, and that line is the one a
+  non-specialist actually reads.
+- Found while wiring it up: the `scopes` command decided which unplaced
+  emissions to explain from its **own two-item copy** of the emissions list, so
+  the most specific refusal this package writes printed nowhere.
+
 ### `INVENTORY.md` / `INVENTAIRE.md`
 
 - The page for the person who files rather than the one who measures: the scope
   mapping and why, what the status taxonomy and the provenance contract give an
-  assurance provider, and six things this tool does not cover — no IT estate, no
-  market-based scope 2, no end of life, no netting against removals, a cloud
-  figure that is a model rather than an invoice, and a small catalogue.
+  assurance provider, and six things this tool does not cover — no IT estate, a
+  market-based factor it computes from but will never invent, no end of life, no
+  netting against removals, a cloud figure that is a model rather than an
+  invoice, and a small catalogue.
 - The rules it is written against, checked on 2026-10-14 rather than recalled:
   the three GHG Protocol documents, [Directive (EU)
   2026/470](https://eur-lex.europa.eu/eli/dir/2026/470/oj/eng) and what the

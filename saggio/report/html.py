@@ -43,7 +43,7 @@ import yaml
 
 from ..catalog.registry import Catalog
 from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE
-from ..estimate.ghg import placements
+from ..estimate.ghg import GHG_EMISSIONS, market_based_figure_exists, placements
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
 from ..model.quantity import Quantity, looks_like_quantity
@@ -57,7 +57,14 @@ from .figures import (
     power_by_domain,
     scenario_energy,
 )
-from .markdown import NOT_KNOWN, ROUTE_LABEL, felt_size, format_number, format_quantity
+from .markdown import (
+    NOT_KNOWN,
+    ROUTE_LABEL,
+    both_scope_two_methods,
+    felt_size,
+    format_number,
+    format_quantity,
+)
 
 #: Where the report's own assets live inside the package.
 _ASSET_PACKAGE: Final[str] = "saggio.data.report"
@@ -450,11 +457,18 @@ def _felt_size_paragraph(costs: object, *, per: str = "unit") -> str:
                 f'<span data-i18n="equivalence.flight.{route}">of a {label} flight</span>'
             )
     lead = _FELT_SIZE_LEADS[(per, scale)]
+    # Which of the two scope 2 figures these kilometres came from, said only
+    # where both are on the page. See :func:`~saggio.report.markdown.both_scope_two_methods`.
+    note = (
+        ("equivalence.note.located", "estimated restatements of the location-based figure")
+        if both_scope_two_methods(costs)
+        else ("equivalence.note", "estimated restatements")
+    )
     return (
         f'<p class="muted equivalences"><span data-i18n="equivalence.{per}.{scale}">{lead}</span> '
         + " · ".join(parts)
-        + f' — <a href="{GREEN_ALGORITHMS_SOURCE}" data-i18n="equivalence.note">'
-        "estimated restatements, Green Algorithms coefficients</a>.</p>"
+        + f' — <a href="{GREEN_ALGORITHMS_SOURCE}" data-i18n="{note[0]}">'
+        f"{note[1]}, Green Algorithms coefficients</a>.</p>"
     )
 
 
@@ -715,12 +729,14 @@ def _inventory_section(model: CostModel) -> str:
     costs = scenarios[0].get("costs")
     if not isinstance(costs, dict):
         return ""
-    emissions = [key for key in costs if key in ("carbon", "embodied_carbon")]
+    emissions = [key for key in costs if key in GHG_EMISSIONS]
     if not emissions:
         return ""
     deployment = model.data.get("deployment")
     provider = deployment.get("provider") if isinstance(deployment, dict) else None
-    placed = placements(emissions, provider)
+    placed = placements(
+        emissions, provider, market_based_reported=market_based_figure_exists(costs)
+    )
 
     rows: list[str] = []
     for key in emissions:
@@ -741,13 +757,25 @@ def _inventory_section(model: CostModel) -> str:
             + f'<td class="muted">{_escape(where.why)}</td></tr>'
         )
 
-    scope_two = next((placed[key] for key in emissions if placed[key].scope == "2"), None)
-    caveat = (
-        '<p class="muted"><strong data-i18n="inventory.dual">Only half of what '
-        "scope 2 requires is here.</strong> " + _escape(scope_two.dual_reporting) + "</p>"
-        if scope_two is not None
-        else ""
-    )
+    # The location-based figure is the one that carries the sentence about the
+    # pair, whole or half, because it is the one that is always there when a
+    # scope 2 exists at all. Reading the market-based row's note instead would
+    # print nothing on the models that most need the shopping list.
+    located = placed.get("carbon")
+    scope_two = located if located is not None and located.scope == "2" else None
+    caveat = ""
+    if scope_two is not None:
+        whole = market_based_figure_exists(costs)
+        lead = (
+            ("inventory.pair", "Scope 2 is reported both ways, as the standard requires.")
+            if whole
+            else ("inventory.dual", "Only half of what scope 2 requires is here.")
+        )
+        caveat = (
+            f'<p class="muted"><strong data-i18n="{lead[0]}">{lead[1]}</strong> '
+            + _escape(scope_two.dual_reporting)
+            + "</p>"
+        )
     return (
         _heading(2, "Where this goes in a GHG inventory", "section.inventory")
         + _table(

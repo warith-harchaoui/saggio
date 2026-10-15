@@ -2,15 +2,16 @@
 
 The rule under test is one sentence of the GHG Protocol: the scope turns on who
 buys the electricity and owns the machine. Everything here is that sentence,
-applied to facts the model already states, plus the two places this package has
-to say "no" — a provider nobody classified, and a market-based figure that
-cannot be derived from a grid average.
+applied to facts the model already states, plus the places this package has to
+say "no" — a provider nobody classified, and a market-based figure nobody
+stated, which is never derived from a grid average and never guessed at zero.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 
 import pytest
 
@@ -20,6 +21,7 @@ from saggio.estimate.ghg import (
     GHG_PROTOCOL_SCOPE3,
     OPERATED_BY_SELF,
     OPERATED_BY_VENDOR,
+    market_based_figure_exists,
     placement,
     placements,
 )
@@ -158,6 +160,109 @@ def test_placing_many_keeps_the_order_it_was_given() -> None:
     assert list(found) == ["water", "carbon", "money"]
 
 
+# --- The other half of scope 2 ------------------------------------------------
+
+
+def test_a_market_based_figure_on_your_own_machine_is_the_other_half_of_scope_2() -> None:
+    """Same scope, different method, and the label says which.
+
+    A scope 2 line that does not name its method is the failure the dual
+    reporting requirement exists to prevent: two numbers that differ by a factor
+    of ten, both correct, and nothing on the page to say why.
+    """
+    where = placement("carbon_market_based", "on-prem")
+    assert (where.scope, where.category) == ("2", None)
+    assert where.label == "Scope 2 (market-based)"
+    assert placement("carbon", "on-prem").label == "Scope 2 (location-based)"
+    assert where.source_url == GHG_PROTOCOL_SCOPE2
+
+
+def test_a_market_based_figure_on_rented_hardware_answers_the_vendor_s_question() -> None:
+    """The mirror of filing cloud electricity as your scope 2.
+
+    The pair lives inside scope 2 and nowhere else. On a vendor's machine there
+    is no scope 2 of yours to split in two, so a market-based number there is
+    not a more precise answer — it is an answer about the vendor's electricity,
+    and the standard draws no such pair in category 1.
+    """
+    where = placement("carbon_market_based", "gcp")
+    assert where.is_open
+    assert "no scope 2 of yours" in where.why
+    assert "category 1" in where.why
+
+
+def test_the_half_pair_sentence_becomes_a_whole_pair_sentence_only_on_a_real_figure() -> None:
+    """A declared row is not a disclosure; a number is.
+
+    Reading the key alone would tell a sustainability team the pair was complete
+    while the second figure was still a ``TODO``, which is the precise failure
+    this package exists to prevent.
+    """
+    half = placement("carbon", "on-prem")
+    whole = placement("carbon", "on-prem", market_based_reported=True)
+    assert "is not here" in half.dual_reporting
+    assert "`carbon_market_based`" in whole.dual_reporting
+    assert "does not replace this one" in whole.dual_reporting
+
+    assert market_based_figure_exists({"carbon_market_based": {"value": 0.0}})
+    assert not market_based_figure_exists({"carbon_market_based": {"status": "TODO"}})
+    assert not market_based_figure_exists({"carbon": {"value": 1.0}})
+    assert not market_based_figure_exists(None)
+
+
+def test_a_model_that_only_declared_the_row_still_gets_the_shopping_list() -> None:
+    # The whole point of the default: a caller that does not say, does not claim.
+    placed = placements(["carbon", "carbon_market_based"], "on-prem")
+    assert "is not here" in placed["carbon"].dual_reporting
+    assert "assumptions.market_carbon_intensity" in placed["carbon"].dual_reporting
+
+
+def test_the_market_based_half_names_the_location_based_one_as_its_companion() -> None:
+    where = placement("carbon_market_based", "on-prem")
+    assert "`carbon`" in where.dual_reporting
+    assert "not what the grid emitted" in where.dual_reporting
+
+
+def test_the_command_places_both_halves_and_says_the_pair_is_whole(tmp_path: Path, capsys) -> None:
+    """End to end, on a model that states a factor: two scope 2 lines, labelled.
+
+    Built from the walkthrough model rather than from a fixture, so the
+    arithmetic under the second figure is the same arithmetic the validator
+    reconciles for the first.
+    """
+    import yaml
+
+    from saggio.estimate.energy import market_carbon_from_energy
+    from saggio.model.quantity import Quantity
+    from saggio.model.validate import validate
+
+    model = yaml.safe_load(Path("examples/walkthrough/5-run.yaml").read_text(encoding="utf-8"))
+    model["assumptions"]["market_carbon_intensity"] = {
+        "value": 18.0,
+        "status": "estimated",
+        "unit": "gCO2e/kWh",
+        "source_url": "https://www.aib-net.org/facts/european-residual-mix",
+        "retrieved_date": "2026-10-15",
+    }
+    costs = model["scenarios"][0]["costs"]
+    figure = market_carbon_from_energy(
+        Quantity.from_mapping(costs["energy"]),
+        Quantity.from_mapping(model["assumptions"]["market_carbon_intensity"]),
+    ).with_derivation("scenarios[0].costs.energy", "assumptions.market_carbon_intensity")
+    costs["carbon_market_based"] = figure.to_mapping()
+
+    written = tmp_path / "pair.yaml"
+    written.write_text(yaml.safe_dump(model, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    assert validate(model).ok, validate(model).to_text()
+
+    assert scopes(_args(model=str(written), json=True)) == 0
+    payload = json.loads(capsys.readouterr().out)
+    placed = {row["dimension"]: row for row in payload["placements"]}
+    assert placed["carbon"]["scope"] == placed["carbon_market_based"]["scope"] == "2"
+    assert placed["carbon"]["label"] != placed["carbon_market_based"]["label"]
+    assert "`carbon_market_based`" in placed["carbon"]["dual_reporting"]
+
+
 # --- The command --------------------------------------------------------------
 
 
@@ -203,3 +308,31 @@ def test_a_scenario_that_is_not_there_is_a_usage_error_not_the_wrong_scenario(ca
 
 def test_a_model_that_is_not_there_is_a_usage_error() -> None:
     assert scopes(_args(model="/nonexistent.yaml")) == 2
+
+
+def test_the_command_prints_why_an_emission_got_no_scope(tmp_path: Path, capsys) -> None:
+    """The sentence a reader came for when a line says "No scope".
+
+    A model built on-prem and later pointed at a vendor keeps its market-based
+    row, and that row is where the placement's most specific refusal lives: the
+    pair exists inside scope 2 and nowhere else. The command used to decide
+    which refusals to print from its own two-item copy of the emissions list, so
+    that explanation printed nowhere and the reader was left with "No scope" and
+    no reason — on the one row where the reason is the whole point.
+    """
+    import yaml
+
+    model = yaml.safe_load(Path("examples/walkthrough/5-run.yaml").read_text(encoding="utf-8"))
+    model["deployment"]["provider"] = "aws"
+    model["scenarios"][0]["costs"]["carbon_market_based"] = {
+        "value": None,
+        "status": "TODO",
+        "unit": "gCO2e",
+    }
+    moved = tmp_path / "moved-to-aws.yaml"
+    moved.write_text(yaml.safe_dump(model, sort_keys=False, allow_unicode=True), encoding="utf-8")
+
+    assert scopes(_args(model=str(moved))) == 0
+    out = capsys.readouterr().out
+    assert "carbon_market_based: The machine is operated by a vendor" in out
+    assert "somebody else's question" in out

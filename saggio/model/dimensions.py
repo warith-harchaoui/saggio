@@ -159,9 +159,24 @@ ENERGY: Final[Dimension] = Dimension(
 )
 CARBON: Final[Dimension] = Dimension(
     key="carbon",
-    label="Carbon",
+    label="Carbon (location-based)",
     unit="gCO2e",
-    description="Grid emissions for that energy, at the deployment region's intensity.",
+    description=(
+        "Grid emissions for that energy, at the deployment region's intensity. A grid "
+        "average is the location-based method by definition, so this is one half of "
+        "the pair scope 2 is reported in; `carbon_market_based` is the other."
+    ),
+)
+CARBON_MARKET_BASED: Final[Dimension] = Dimension(
+    key="carbon_market_based",
+    label="Carbon (market-based)",
+    unit="gCO2e",
+    description=(
+        "The same electricity under the other method scope 2 requires: your supplier's "
+        "own emission factor, the contractual instruments you hold, or your market's "
+        "residual mix. Reported beside the location-based figure and never instead of "
+        "it, because no contract changes which electrons the grid delivered."
+    ),
 )
 EMBODIED_CARBON: Final[Dimension] = Dimension(
     key="embodied_carbon",
@@ -186,6 +201,7 @@ CANONICAL_DIMENSIONS: Final[tuple[Dimension, ...]] = (
     TIME,
     ENERGY,
     CARBON,
+    CARBON_MARKET_BASED,
     EMBODIED_CARBON,
     WATER,
 )
@@ -214,7 +230,7 @@ class DimensionRegistry:
     >>> "carbon" in registry
     True
     >>> len(registry)
-    6
+    7
     """
 
     def __init__(self, dimensions: Iterable[Dimension] = CANONICAL_DIMENSIONS) -> None:
@@ -333,13 +349,13 @@ class DimensionRegistry:
 
 
 def registry_for(declared: Any) -> DimensionRegistry:
-    """Build the registry a model works with, canonical five plus its own.
+    """Build the registry a model works with, the canonical ones plus its own.
 
     Parameters
     ----------
     declared : Any
         The model's ``dimensions`` node: a list of dimension mappings, or
-        anything else (including ``None``) meaning "just the canonical five".
+        anything else (including ``None``) meaning "just the canonical ones".
 
     Returns
     -------
@@ -352,8 +368,8 @@ def registry_for(declared: Any) -> DimensionRegistry:
     --------
     >>> registry_for([{"key": "egress", "unit": "GB"}]).keys()[-1]
     'egress'
-    >>> len(registry_for(None))
-    6
+    >>> len(registry_for(None)) == len(CANONICAL_DIMENSIONS)
+    True
     """
     registry = DimensionRegistry()
     if not isinstance(declared, list):

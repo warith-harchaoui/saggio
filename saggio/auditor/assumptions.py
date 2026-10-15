@@ -1,4 +1,4 @@
-"""The assumptions an audit takes from the catalogues.
+"""The assumptions an audit takes from the catalogues, and the one it cannot.
 
 Module summary
 --------------
@@ -7,6 +7,11 @@ draws, what building it emitted, how long it stays in service, and how long the
 work runs. Each arrives as a :class:`~saggio.model.quantity.Quantity` carrying
 the status it has earned -- usually ``estimated``, and ``TODO`` when the
 catalogue has nothing to say, which is not the same as zero.
+
+A fifth is open by construction rather than by accident: the market-based
+emission factor of the electricity the organisation contracted for. No
+catalogue can hold it, because it is a property of a contract rather than of a
+country, so it ships as a ``TODO`` whose notes are the shopping list.
 
 Author
 ------
@@ -26,6 +31,7 @@ from ..estimate.context import DeploymentContext
 from ..estimate.energy import (
     node_power,
 )
+from ..estimate.ghg import MARKET_BASED_SOURCES
 from ..estimate.machine import MachineProfile
 from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, MEASURED, TODO
@@ -134,6 +140,44 @@ def _lifetime_assumption() -> Quantity:
             "and six years; choosing within that range moves the embodied carbon by "
             "a factor of two, which is why this is asked rather than assumed."
         ),
+    )
+
+
+def _market_factor_assumption() -> Quantity:
+    """Return the market-based emission factor, which only a contract states.
+
+    The other half of what scope 2 requires, shipped open for the same reason as
+    the lifespan above and a stronger one: a grid average is the location-based
+    method by definition, so there is nothing here to derive this from, and a
+    package that guessed it would be inventing somebody's electricity contract.
+
+    Returns
+    -------
+    Quantity
+        A ``TODO`` in grams of CO2 equivalent per kilowatt-hour, whose notes name
+        the three places the figure may honestly come from, in the order the
+        Scope 2 Guidance puts them.
+
+    Examples
+    --------
+    >>> _market_factor_assumption().status
+    'TODO'
+    >>> "residual mix" in _market_factor_assumption().notes
+    True
+    """
+    return Quantity(
+        unit="gCO2e/kWh",
+        status=TODO,
+        notes=(
+            "The emission factor of the electricity you contracted for, which no "
+            "catalogue can hold: it is a property of your contract, not of your "
+            f"country. {MARKET_BASED_SOURCES} Record it with the supplier document "
+            "or certificate that states it and the date you read it — this is the "
+            "one figure in the model nobody else can check and nothing here can "
+            "refresh. Leaving it open is a complete answer; a zero because the "
+            "electricity is 'green' is not one."
+        ),
+        source_url="",
     )
 
 

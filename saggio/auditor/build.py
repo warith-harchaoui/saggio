@@ -30,9 +30,11 @@ from ..estimate.energy import (
     carbon_from_energy,
     facility_energy,
     it_energy_from_runtime,
+    market_carbon_from_energy,
     money_from_energy,
     water_from_energy,
 )
+from ..estimate.ghg import OPERATED_BY_SELF, operated_by
 from ..estimate.machine import detect_machine
 from ..model.cost_model import CostModel
 from ..model.quantity import Quantity
@@ -42,6 +44,7 @@ from ..model.validate import validate
 from .assumptions import (
     _embodied_assumption,
     _lifetime_assumption,
+    _market_factor_assumption,
     _power_assumption,
     _runtime_assumption,
 )
@@ -55,6 +58,7 @@ from .paths import (
     GRID_PATH,
     IT_ENERGY_PATH,
     LIFETIME_PATH,
+    MARKET_FACTOR_PATH,
     POWER_PATH,
     PRICE_PATH,
     PUE_PATH,
@@ -155,6 +159,13 @@ def audit(
     wue = context.water_effectiveness()
     embodied = _embodied_assumption(machine, settings)
     lifetime = _lifetime_assumption()
+    # The market-based half of scope 2 exists only where the organisation buys
+    # the electricity. On a vendor's machine it is not a more precise answer, it
+    # is an answer to the vendor's question, so no row is written and nobody is
+    # left with a `TODO` that will never be true. The fact is the same one the
+    # scope turns on, read from the same catalogue row.
+    self_operated = operated_by(context.provider, overlay=settings.overlay) == OPERATED_BY_SELF
+    market_factor = _market_factor_assumption() if self_operated else None
 
     machine_energy = it_energy_from_runtime(runtime, power).with_derivation(
         RUNTIME_PATH, POWER_PATH
@@ -175,6 +186,22 @@ def audit(
         ).with_derivation(EMBODIED_PATH, LIFETIME_PATH, RUNTIME_PATH),
         "water": water_from_energy(machine_energy, wue).with_derivation(IT_ENERGY_PATH, WUE_PATH),
     }
+    if market_factor is not None:
+        # Beside the location-based figure it is the companion of, because a
+        # report that puts them six rows apart invites exactly the reading the
+        # Scope 2 Guidance forbids: one of the two taken for the answer.
+        ordered = list(costs.items())
+        at = [key for key, _ in ordered].index("carbon") + 1
+        ordered.insert(
+            at,
+            (
+                "carbon_market_based",
+                market_carbon_from_energy(energy, market_factor).with_derivation(
+                    ENERGY_PATH, MARKET_FACTOR_PATH
+                ),
+            ),
+        )
+        costs = dict(ordered)
 
     projections, projection_notes = _projections(
         costs,
@@ -188,6 +215,10 @@ def audit(
             "electricity_price": price,
             "grid_carbon_intensity": grid,
             "water_usage_effectiveness": wue,
+            # Only where there is one. A projection onto other hardware keeps
+            # whichever scope 2 methods the scenario carries, so the pair does
+            # not quietly become a half two tables further down the page.
+            **({"market_carbon_intensity": market_factor} if market_factor is not None else {}),
         },
         scaling=scaling,
     )
@@ -205,6 +236,24 @@ def audit(
             "provider and the country with the ones it actually runs on before "
             "any number below means anything about this project."
         )
+    assumptions: dict[str, Any] = {
+        "power_draw": power.to_mapping(),
+        "pue": pue.to_mapping(),
+        "electricity_price": price.to_mapping(),
+        "grid_carbon_intensity": grid.to_mapping(),
+        "water_usage_effectiveness": wue.to_mapping(),
+        "hardware_embodied_carbon": embodied.to_mapping(),
+        "hardware_lifetime": lifetime.to_mapping(),
+        "machine_energy": machine_energy.to_mapping(),
+    }
+    if market_factor is not None:
+        # Beside the grid average it is the counterpart of, because the two are
+        # read together or not at all.
+        ordered = list(assumptions.items())
+        at = [key for key, _ in ordered].index("grid_carbon_intensity") + 1
+        ordered.insert(at, ("market_carbon_intensity", market_factor.to_mapping()))
+        assumptions = dict(ordered)
+
     data: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "date_updated": date.today().isoformat(),
@@ -214,16 +263,7 @@ def audit(
         },
         "unit_of_work": _unit_of_work(reading),
         "deployment": deployment,
-        "assumptions": {
-            "power_draw": power.to_mapping(),
-            "pue": pue.to_mapping(),
-            "electricity_price": price.to_mapping(),
-            "grid_carbon_intensity": grid.to_mapping(),
-            "water_usage_effectiveness": wue.to_mapping(),
-            "hardware_embodied_carbon": embodied.to_mapping(),
-            "hardware_lifetime": lifetime.to_mapping(),
-            "machine_energy": machine_energy.to_mapping(),
-        },
+        "assumptions": assumptions,
         "scenarios": [
             {
                 "name": SCENARIO_NAME,

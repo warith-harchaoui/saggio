@@ -25,6 +25,7 @@ from ..estimate.energy import (
     carbon_from_energy,
     facility_energy,
     it_energy_from_runtime,
+    market_carbon_from_energy,
     money_from_energy,
     water_from_energy,
 )
@@ -41,6 +42,7 @@ from ..model.taxonomy import ESTIMATED
 from .options import AuditOptions
 from .paths import (
     GRID_PATH,
+    MARKET_FACTOR_PATH,
     PRICE_PATH,
     PROJECTED_ENERGY_PATH,
     PROJECTED_IT_ENERGY_PATH,
@@ -268,6 +270,22 @@ def _cost_on_other_hardware(
             "carbon": carbon_from_energy(energy, site["grid_carbon_intensity"])
             .with_derivation(PROJECTED_ENERGY_PATH, GRID_PATH)
             .to_mapping(),
+            # The other half of scope 2, where the deployment has one. Same
+            # reason as the water below: a dimension the model watches
+            # everywhere else must not vanish between two tables, and here the
+            # one that vanished would be the half the standard requires beside
+            # the one above.
+            **(
+                {
+                    "carbon_market_based": market_carbon_from_energy(
+                        energy, site["market_carbon_intensity"]
+                    )
+                    .with_derivation(PROJECTED_ENERGY_PATH, MARKET_FACTOR_PATH)
+                    .to_mapping()
+                }
+                if "market_carbon_intensity" in site
+                else {}
+            ),
             # Water tracks the machine's own energy, exactly as in the scenario
             # above; leaving it out of the projection would silently drop a
             # dimension the model watches everywhere else.
@@ -279,9 +297,11 @@ def _cost_on_other_hardware(
         },
         "held_constant": (
             "The country, the tariff, the grid carbon intensity and the datacenter "
-            "overhead are the ones stated for this deployment. Running the work on "
-            "another accelerator usually means running it somewhere else, and where "
-            "it runs is what sets the price and the carbon. Restate them before "
-            "quoting these figures for a different site."
+            "overhead are the ones stated for this deployment -- and, where there is "
+            "one, the contracted emission factor too, which is the assumption here "
+            "least likely to survive the move: a supply contract is signed for a "
+            "site. Running the work on another accelerator usually means running it "
+            "somewhere else, and where it runs is what sets the price and the "
+            "carbon. Restate them before quoting these figures for a different site."
         ),
     }

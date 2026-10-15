@@ -45,6 +45,7 @@ from typing import Final
 from ..catalog.registry import Catalog
 from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, TODO, weakest
+from .ghg import GHG_PROTOCOL_SCOPE2
 
 #: Power drawn per gigabyte of installed memory, in watts. From the Green
 #: Algorithms paper, which derives it from manufacturer figures for DDR4.
@@ -419,6 +420,61 @@ def carbon_from_energy(energy: Quantity, intensity: Quantity) -> Quantity:
         status=_combine(energy, intensity) or ESTIMATED,
         source_url=GREEN_ALGORITHMS_SOURCE,
         notes="Facility energy x grid carbon intensity, operating emissions only.",
+    )
+
+
+def market_carbon_from_energy(energy: Quantity, factor: Quantity) -> Quantity:
+    """Return the market-based emissions for an amount of facility energy.
+
+    The same multiplication as :func:`carbon_from_energy` over a different
+    factor, and that difference is the whole of it: a grid average describes the
+    electricity a country generated, a market-based factor describes the
+    electricity one organisation contracted for. Keeping them in two functions
+    keeps them in two sentences — the note under each figure says which method
+    produced it, which is exactly what a scope 2 disclosure has to say.
+
+    Parameters
+    ----------
+    energy : Quantity
+        Facility kilowatt-hours.
+    factor : Quantity
+        Grams of CO2 equivalent per kilowatt-hour under the market-based method:
+        a supplier's own factor, the contractual instruments held, or a residual
+        mix. Never a grid average, which is the other method by definition.
+
+    Returns
+    -------
+    Quantity
+        Grams of CO2 equivalent, or a ``TODO`` that says a factor is what is
+        missing rather than a country.
+
+    Examples
+    --------
+    >>> market_carbon_from_energy(Quantity(value=2.0, status="measured"),
+    ...                           Quantity(value=0.0, status="estimated")).value
+    0.0
+    >>> market_carbon_from_energy(Quantity(value=2.0, status="measured"),
+    ...                           Quantity(status="TODO")).status
+    'TODO'
+    """
+    if not (energy.is_known() and factor.is_known()):
+        return _unresolved(
+            "gCO2e",
+            "Needs the energy drawn and the emission factor of the electricity you "
+            "contracted for. A grid average is the other method and will not do here.",
+        )
+    if _negative(energy, factor):
+        return _unresolved("gCO2e", "A negative energy or factor is a sign error, not a cost.")
+    return Quantity(
+        value=float(energy.value) * float(factor.value),
+        unit="gCO2e",
+        status=_combine(energy, factor) or ESTIMATED,
+        source_url=GHG_PROTOCOL_SCOPE2,
+        notes=(
+            "Facility energy x your contracted emission factor, operating emissions "
+            "only. Market-based: reported beside the location-based figure, not "
+            "instead of it."
+        ),
     )
 
 

@@ -23,7 +23,7 @@ which `help()` will show you.
 | `Quantity` | One number with its unit, honesty status, provenance, and derivation. |
 | `Dimension` | One measurable axis of the cost of running a unit of work. |
 | `DimensionRegistry` | An ordered collection of the dimensions one cost model reports. |
-| `CANONICAL_DIMENSIONS` | `money`, `time`, `energy`, `carbon`, `embodied_carbon`, `water` |
+| `CANONICAL_DIMENSIONS` | `money`, `time`, `energy`, `carbon`, `carbon_market_based`, `embodied_carbon`, `water` |
 | `SCHEMA_VERSION` | `'2.1'` |
 | `MEASURED` | `'measured'` |
 | `ESTIMATED` | `'estimated'` |
@@ -62,8 +62,8 @@ which `help()` will show you.
 | `car_km(carbon: 'Quantity', region: 'str' = 'EU') -> 'Quantity'` | Restate a carbon figure as kilometres driven in an average passenger car. |
 | `flight_fraction(carbon: 'Quantity', route: 'str' = 'paris-london') -> 'Quantity'` | Restate a carbon figure as a fraction of a reference flight. |
 | `equivalences(carbon: 'Quantity') -> 'dict[str, Quantity]'` | Return the full set of restatements for one carbon figure. |
-| `placement(dimension: 'str', provider: 'str \| None', *, overlay: 'Any' = None) -> 'Placement'` | Return where one dimension's figure goes in a GHG inventory. |
-| `placements(dimensions: 'list[str] \| tuple[str, ...]', provider: 'str \| None', *, overlay: 'Any' = None) -> 'dict[str, Placement]'` | Place every dimension of a model at once, in the order given. |
+| `placement(dimension: 'str', provider: 'str \| None', *, overlay: 'Any' = None, market_based_reported: 'bool' = False) -> 'Placement'` | Return where one dimension's figure goes in a GHG inventory. |
+| `placements(dimensions: 'list[str] \| tuple[str, ...]', provider: 'str \| None', *, overlay: 'Any' = None, market_based_reported: 'bool' = False) -> 'dict[str, Placement]'` | Place every dimension of a model at once, in the order given. |
 | `Observation` | One run, of a known size, that took a known time. |
 | `Projection` | The result of a projection: a number, its method, and its limits. |
 | `ScalingFit` | A measured power law, or a refusal to report one. |
