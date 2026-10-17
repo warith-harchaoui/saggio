@@ -66,7 +66,7 @@ if not any(sys.platform.startswith(name) for name in SUPPORTED_PLATFORMS):
 __version__: Final[str] = "1.5.0"
 
 __author__: Final[str] = "Warith Harchaoui, Ph.D."
-__email__: Final[str] = "warith.harchaoui@sev7n.io"
+__email__: Final[str] = "warithmetics@deraison.ai"
 
 from .analyze import (
     RepositoryReading,
