@@ -86,6 +86,10 @@ jobs:
           cd /tmp
           /tmp/fresh/bin/saggio --version
           /tmp/fresh/bin/python -m saggio --version
+          # This fails the release when a catalogue row has gone stale, which is
+          # deliberate: the figures ship inside the wheel, and a release is the
+          # moment they are handed to people who will quote them. Re-read the
+          # source with `saggio catalog refresh`; do not re-date it.
           /tmp/fresh/bin/saggio catalog freshness
           /tmp/fresh/bin/python -c "import saggio.api.mcp as m; print('surfaces import:', m.app.title)"
 
