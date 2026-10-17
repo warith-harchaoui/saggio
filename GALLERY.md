@@ -32,9 +32,9 @@ saggio render examples/nanoGPT.yaml -f md -o examples/nanoGPT.md
 | [`fastapi`](examples/fastapi.yaml) · [report](examples/fastapi.md) | `fastapi/fastapi` | command-line tool | Its test suite is told apart from its code |
 | [`airflow`](examples/airflow.yaml) · [report](examples/airflow.md) | `apache/airflow` | service | Nine languages, eight paid services, thirty-six models |
 | [`saggio`](examples/saggio.yaml) · [report](examples/saggio.md) | this repository | command-line tool | Everything it appears to call, it calls only in tests |
-
 | [`detectron2`](examples/detectron2.yaml) · [report](examples/detectron2.md) | `facebookresearch/detectron2` | inference | The first example read as inference, and nothing invented to fill it |
 | [`xberg`](examples/xberg.yaml) · [report](examples/xberg.md) | `xberg-io/xberg` | service | Fourteen languages, only 3.6% of it Python |
+
 ### nanoGPT — the size of a run is not one number
 
 Read as a **training** workload importing PyTorch, transformers and NumPy. A full
@@ -286,6 +286,103 @@ Where each tool is genuinely better, where this one is weakest, and the
 twelve-row rating table the positioning map is drawn from, are all in
 [`LANDSCAPE.md`](LANDSCAPE.md) — including the cases where the honest advice is
 to use something else.
+
+## What a gallery is, in this field, and what this one borrows
+
+Before claiming anything for the eight files above, it is worth saying what the
+neighbouring projects publish as *their* evidence, because that is what a reader
+arrives expecting. The reading is in
+[`LANDSCAPE.md`](LANDSCAPE.md#where-the-field-publishes-its-measurements), read
+on 2026-10-18; this is what it changed here.
+
+**A leaderboard.** [ML.ENERGY](https://ml.energy/leaderboard/) measures
+inference energy for 46 models across 7 tasks, 1,858 configurations on H100 and
+B200 boards. Its rows compare because it holds the question constant: the
+hardware, the task, and each model's minimum-energy configuration. **This gallery
+cannot be one, and the reason is not modesty.** Its eight rows are eight
+repositories with eight different units of work — one inference, one request, one
+training run — and no arithmetic puts those on an axis. The only thing that does
+compare across them is how much of each model was *established* rather than
+assumed, which is why that is the figure at the top and the costs are not.
+
+**A measurement database.** Green Coding's
+[Energy-ID](https://www.green-coding.io/products/energy-id/) publishes a
+scorecard per task, on fixed machines, each stating the machine and carrying its
+own caveat: *"absolute numbers shown here are not to be taken as ground truth."*
+**Borrowed, and it was missing here:** every model below was produced on one
+machine — an Apple M2 Max, 12 cores, macOS, in France — and seven of the eight
+say so inside the file, in `deployment.machine_provenance`, because the machine
+that *read* a repository is not the machine the code runs on. A figure that does
+not say which machine it describes is a figure somebody will file against the
+wrong one.
+
+**A case-study catalogue.** The Green Software Foundation publishes
+[eleven SCI case studies](https://sci-guide.greensoftware.foundation/CaseStudies/)
+— CAST, UBS, NTT DATA, Microsoft, AFAS and others — each a filed figure for a
+real application. The index carries the organisation, a sentence and a link; the
+figure, the functional unit and the boundary live inside the linked document.
+**Inverted here on purpose:** the artefact *is* the index. Every row above links
+the model file itself, and the unit of work is its first field rather than a
+detail three clicks away.
+
+**A pull-request comment.** [Infracost](https://www.infracost.io/) puts its
+answer where the decision is taken, as a comment on the pull request that
+changes the cost. **Borrowed below**, because a gallery of files nobody has to
+read at a particular moment is a gallery of files nobody reads.
+
+### What a pull request sees
+
+This is `examples/walkthrough/4-diff.txt`, committed, and it is the output of
+the gate between the first stage of the walkthrough and the third — the same
+command a continuous-integration job runs:
+
+```bash
+saggio diff examples/walkthrough/1-as-read.yaml examples/walkthrough/3-measured.yaml --threshold 10
+```
+
+```
+assumptions.power_draw: 83.76 -> 31.1047 (-62.9%), estimated -> measured
+assumptions.machine_energy: no number -> 1.141e-08, TODO -> measured
+scenarios[0].runtime: no number -> 0.00132057, TODO -> measured
+scenarios[0].costs.energy: no number -> 1.71149e-08, TODO -> estimated
+scenarios[0].costs.carbon: no number -> 9.58437e-07, TODO -> estimated
+11 change(s), 0 past the 10% gate.
+```
+
+Read the right-hand side of the first line. The nameplate said 83.76 W and the
+counter said 31.1, so the machine was drawing **two and a half times less** than
+the datasheet claimed — and the status moved from `estimated` to `measured`,
+which is the half of the change a percentage cannot show. The gate passes here
+because nothing got worse; it fails on a cost that moved past the threshold, on
+a status that weakened even when the number did not, and on a quantity that
+disappeared.
+
+### The same model, answered over HTTP
+
+The gallery is eight files. Since 1.5.0 they are also eight answers a service
+can give, which is what a reader who will never install a Python package gets:
+
+```bash
+pip install "saggio[api]"
+uvicorn saggio.api.app:app --port 8000
+
+curl -s -X POST http://127.0.0.1:8000/scopes \
+    -H 'content-type: application/json' \
+    --data @- <<< "{\"yaml_text\": $(python -c 'import json,sys; print(json.dumps(open("examples/xberg.yaml").read()))')}"
+```
+
+What comes back for `xberg` is the placement, not a figure, because that model
+has none yet:
+
+```
+carbon            TODO   Scope 2 (location-based)
+embodied_carbon   TODO   Scope 3, category 2 — capital goods
+water             TODO   No scope
+```
+
+Which is the gallery's point restated on a new surface: the tool had nothing
+measured for this repository, so it placed what it had and said `TODO` for the
+rest, in the same words the file uses.
 
 ## What these files caught, and what is still wrong
 

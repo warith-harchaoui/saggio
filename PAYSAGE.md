@@ -184,6 +184,46 @@ d'ordinaire une facture cloud divisée par quelque chose. **Servez-vous-en pour
 déclarer. Servez-vous de celui-ci pour produire la ligne logicielle qui leur
 manque** — [`INVENTAIRE.md`](INVENTAIRE.md) dit de quelle ligne il s'agit.
 
+### Où ce domaine publie ses mesures
+
+Pas des outils entre lesquels choisir, et pas notés plus haut : ce sont les
+endroits où ce domaine met ses *preuves*, et ils valent d'être connus parce
+qu'ils fixent ce qu'un lecteur attend d'une page de chiffres. Lu le 2026-10-18.
+
+**[Green Metrics Tool](https://github.com/green-coding-solutions/green-metrics-tool)
+et [Energy-ID](https://www.green-coding.io/products/energy-id/)**, par Green
+Coding Solutions. L'outil mesure l'énergie et le carbone d'une exécution
+logicielle par configuration-as-code, et publie ce qu'il a mesuré : des
+[pages de statistiques](https://metrics.green-coding.io/) par exécution, des
+vues chronologiques qui suivent un projet de commit en commit, des vues de
+comparaison, une API publique et des badges d'intégration continue. Energy-ID
+est la base de données à côté : elle évalue des logiciels libres, des outils en
+ligne de commande et des primitives de langage sur des machines fixes, et publie
+une fiche par tâche, chacune énonçant la machine et portant la réserve dans ses
+propres mots : *« absolute numbers shown here are not to be taken as ground
+truth »*. C'est la base de preuves publique la plus complète du domaine, et ce
+qui ressemble le plus à une galerie chez ces outils.
+
+**[Le classement ML.ENERGY](https://ml.energy/leaderboard/)**, par l'initiative
+ML.ENERGY du Michigan ([arXiv:2505.06371](https://arxiv.org/abs/2505.06371)).
+L'énergie d'inférence de modèles génératifs, mesurée plutôt que modélisée : la
+version 3.0 rapporte 46 modèles sur 7 tâches, 1 858 configurations sur des GPU
+NVIDIA H100 et B200. Ce qui rend ses lignes comparables est ce qu'elle tient
+constant : elle compare la *configuration à énergie minimale* de chaque modèle,
+pour s'en tenir aux différences de modèle et de tâche « without being confounded
+by hardware utilization differences ». Un résultat à en retenir : les tâches de
+raisonnement coûtent environ **vingt-cinq fois** l'énergie par réponse d'une
+conversation textuelle ordinaire, un terme bien plus grand que tout ce qu'un
+outil qui lit du code peut voir.
+
+**[Les études de cas SCI de la Green Software Foundation](https://sci-guide.greensoftware.foundation/CaseStudies/)**.
+Onze publiées, par CAST, UBS, NTT DATA, Microsoft, AFAS et d'autres, chacune un
+chiffre SCI déclaré pour une vraie application. L'index porte l'organisation, une
+phrase et un lien ; le chiffre, l'unité fonctionnelle et la frontière sont dans
+le document lié. C'est le catalogue de référence de *ce à quoi ressemble un
+chiffre déclaré*, qui est une autre question que celle de l'outil qui l'a
+produit.
+
 ### [Boavizta](https://boavizta.org/en/tools)
 
 Une association qui publie données et outils ouverts sur l'impact

@@ -32,9 +32,9 @@ saggio render examples/nanoGPT.yaml -f md -o examples/nanoGPT.md
 | [`fastapi`](examples/fastapi.yaml) · [rapport](examples/fastapi.md) | `fastapi/fastapi` | outil en ligne de commande | Sa suite de tests est distinguée de son code |
 | [`airflow`](examples/airflow.yaml) · [rapport](examples/airflow.md) | `apache/airflow` | service | Neuf langages, huit services payants, trente-six modèles |
 | [`saggio`](examples/saggio.yaml) · [rapport](examples/saggio.md) | ce dépôt-ci | outil en ligne de commande | Tout ce qu'il semble appeler, il ne l'appelle que dans ses tests |
-
 | [`detectron2`](examples/detectron2.yaml) · [rapport](examples/detectron2.md) | `facebookresearch/detectron2` | inférence | Le premier exemple lu comme inférence, et rien d'inventé pour le remplir |
 | [`xberg`](examples/xberg.yaml) · [rapport](examples/xberg.md) | `xberg-io/xberg` | service | Quatorze langages, dont 3,6 % seulement de Python |
+
 ### nanoGPT — la taille d'une exécution n'est pas un seul nombre
 
 Lu comme une charge d'**entraînement** important PyTorch, transformers et NumPy.
@@ -301,6 +301,104 @@ Là où chaque outil est réellement meilleur, là où celui-ci est le plus faib
 le tableau de notation à douze lignes dont la carte de positionnement est tirée,
 sont dans [`PAYSAGE.md`](PAYSAGE.md) — y compris les cas où le conseil honnête est
 d'utiliser autre chose.
+
+## Ce qu'est une galerie, dans ce domaine, et ce que celle-ci emprunte
+
+Avant de revendiquer quoi que ce soit pour les huit fichiers ci-dessus, il vaut
+la peine de dire ce que les projets voisins publient comme *leurs* preuves,
+parce que c'est ce qu'un lecteur arrive en attendant. La lecture est dans
+[`PAYSAGE.md`](PAYSAGE.md#où-ce-domaine-publie-ses-mesures), faite le
+2026-10-18 ; voici ce qu'elle a changé ici.
+
+**Un classement.** [ML.ENERGY](https://ml.energy/leaderboard/) mesure l'énergie
+d'inférence de 46 modèles sur 7 tâches, 1 858 configurations sur des cartes H100
+et B200. Ses lignes se comparent parce qu'il tient la question constante : le
+matériel, la tâche, et la configuration à énergie minimale de chaque modèle.
+**Cette galerie ne peut pas en être un, et ce n'est pas par modestie.** Ses huit
+lignes sont huit dépôts avec huit unités de travail différentes — une inférence,
+une requête, un entraînement — et aucune arithmétique ne met cela sur un axe. La
+seule chose qui se compare d'une ligne à l'autre est la part de chaque modèle
+qui est *établie* plutôt que supposée, et c'est pourquoi c'est elle qui est en
+figure en tête, et pas les coûts.
+
+**Une base de mesures.** L'[Energy-ID](https://www.green-coding.io/products/energy-id/)
+de Green Coding publie une fiche par tâche, sur des machines fixes, chacune
+énonçant la machine et portant sa propre réserve : *« absolute numbers shown
+here are not to be taken as ground truth »*. **Emprunté, et cela manquait ici :**
+chaque modèle ci-dessous a été produit sur une seule machine — un Apple M2 Max,
+12 cœurs, macOS, en France — et sept des huit le disent dans le fichier, sous
+`deployment.machine_provenance`, parce que la machine qui a *lu* un dépôt n'est
+pas la machine où le code tourne. Un chiffre qui ne dit pas quelle machine il
+décrit est un chiffre que quelqu'un déclarera contre la mauvaise.
+
+**Un catalogue d'études de cas.** La Green Software Foundation publie
+[onze études de cas SCI](https://sci-guide.greensoftware.foundation/CaseStudies/)
+— CAST, UBS, NTT DATA, Microsoft, AFAS et d'autres — chacune un chiffre déclaré
+pour une vraie application. L'index porte l'organisation, une phrase et un lien ;
+le chiffre, l'unité fonctionnelle et la frontière vivent dans le document lié.
+**Inversé ici exprès :** l'artefact *est* l'index. Chaque ligne ci-dessus pointe
+le fichier de modèle lui-même, et l'unité de travail en est le premier champ
+plutôt qu'un détail à trois clics.
+
+**Un commentaire de pull request.** [Infracost](https://www.infracost.io/) met
+sa réponse là où la décision se prend : en commentaire de la pull request qui
+change le coût. **Emprunté ci-dessous**, parce qu'une galerie de fichiers que
+personne n'a à lire à un moment précis est une galerie que personne ne lit.
+
+### Ce que voit une pull request
+
+Voici `examples/walkthrough/4-diff.txt`, commité, qui est la sortie de la
+barrière entre la première étape du parcours guidé et la troisième — la même
+commande que lance un job d'intégration continue :
+
+```bash
+saggio diff examples/walkthrough/1-as-read.yaml examples/walkthrough/3-measured.yaml --threshold 10
+```
+
+```
+assumptions.power_draw: 83.76 -> 31.1047 (-62.9%), estimated -> measured
+assumptions.machine_energy: no number -> 1.141e-08, TODO -> measured
+scenarios[0].runtime: no number -> 0.00132057, TODO -> measured
+scenarios[0].costs.energy: no number -> 1.71149e-08, TODO -> estimated
+scenarios[0].costs.carbon: no number -> 9.58437e-07, TODO -> estimated
+11 change(s), 0 past the 10% gate.
+```
+
+Lisez la droite de la première ligne. La plaque signalétique disait 83,76 W et
+le compteur a dit 31,1 : la machine tirait **deux fois et demie moins** que ce
+que la fiche technique annonçait — et le statut est passé d'`estimated` à
+`measured`, qui est la moitié du changement qu'un pourcentage ne peut pas
+montrer. La barrière passe ici parce que rien n'a empiré ; elle échoue sur un
+coût qui a dépassé le seuil, sur un statut qui s'est affaibli même quand le
+nombre n'a pas bougé, et sur une grandeur qui a disparu.
+
+### Le même modèle, répondu en HTTP
+
+La galerie, c'est huit fichiers. Depuis la 1.5.0, ce sont aussi huit réponses
+qu'un service peut donner, ce qui est ce qu'obtient un lecteur qui n'installera
+jamais un paquet Python :
+
+```bash
+pip install "saggio[api]"
+uvicorn saggio.api.app:app --port 8000
+
+curl -s -X POST http://127.0.0.1:8000/scopes \
+    -H 'content-type: application/json' \
+    --data @- <<< "{\"yaml_text\": $(python -c 'import json,sys; print(json.dumps(open("examples/xberg.yaml").read()))')}"
+```
+
+Ce qui revient pour `xberg` est le placement, pas une figure, parce que ce
+modèle n'en a pas encore :
+
+```
+carbon            TODO   Scope 2 (location-based)
+embodied_carbon   TODO   Scope 3, category 2 — capital goods
+water             TODO   No scope
+```
+
+Ce qui est le propos de la galerie redit sur une nouvelle surface : l'outil
+n'avait rien de mesuré pour ce dépôt, il a donc placé ce qu'il avait et dit
+`TODO` pour le reste, dans les mots mêmes du fichier.
 
 ## Ce que ces fichiers ont attrapé, et ce qui ne va toujours pas
 

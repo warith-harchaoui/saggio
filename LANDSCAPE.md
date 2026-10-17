@@ -175,6 +175,43 @@ usually a cloud bill divided by something. **Use them to file. Use this to
 produce the software line they are missing** —
 [`INVENTORY.md`](INVENTORY.md) says which line that is.
 
+### Where the field publishes its measurements
+
+Not tools to choose between, and not scored above: these are the places this
+field puts its *evidence*, and they are worth knowing because they set what a
+reader expects a page of numbers to carry. Read 2026-10-18.
+
+**[Green Metrics Tool](https://github.com/green-coding-solutions/green-metrics-tool)
+and [Energy-ID](https://www.green-coding.io/products/energy-id/)**, by Green
+Coding Solutions. The tool measures energy and carbon for a software run
+through configuration-as-code, and publishes what it measured: per-run
+[statistics pages](https://metrics.green-coding.io/), timeline views that track
+a project across commits, comparison views, a public API, and CI badges.
+Energy-ID is the database beside it, benchmarking open-source software, CLI
+tooling and language primitives on fixed machines and publishing a scorecard per
+task, each stating the machine and carrying the caveat in its own words:
+*"absolute numbers shown here are not to be taken as ground truth."* It is the
+most complete public evidence base in this field, and the closest thing to a
+gallery any of these tools has.
+
+**[The ML.ENERGY Leaderboard](https://ml.energy/leaderboard/)**, by the
+ML.ENERGY Initiative at Michigan ([arXiv:2505.06371](https://arxiv.org/abs/2505.06371)).
+Inference energy for generative models, measured rather than modelled: version
+3.0 reports 46 models across 7 tasks, 1,858 configurations on NVIDIA H100 and
+B200. What makes its rows comparable is what it holds constant — it compares
+each model's *minimum-energy configuration*, which it says is to focus on model
+and task differences "without being confounded by hardware utilization
+differences". A result worth carrying away from it: reasoning tasks cost about
+**twenty-five times** the energy per response of ordinary text conversation,
+which is a far larger term than anything a code-reading tool can see.
+
+**[The Green Software Foundation's SCI case studies](https://sci-guide.greensoftware.foundation/CaseStudies/)**.
+Eleven published, from CAST, UBS, NTT DATA, Microsoft, AFAS and others, each a
+filed SCI figure for a real application. The index carries the organisation, a
+sentence and a link; the figure, the functional unit and the boundary are inside
+the linked document. It is the reference catalogue for *what a filed number
+looks like*, which is a different question from which tool produced it.
+
 ### [Boavizta](https://boavizta.org/en/tools)
 
 An association publishing open data and open tools for the environmental impact
