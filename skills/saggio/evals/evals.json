@@ -1,6 +1,33 @@
 {
   "skill": "saggio",
   "description": "Behaviours the skill has to get right, and the ones it has to refuse.",
+  "triggering": {
+    "note": "Whether the skill loads at all, which no behaviour case can test. The two wordings below are the same question asked from opposite ends of an organisation, and both have to reach it.",
+    "should_fire": [
+      "What does it cost to run this repo?",
+      "Carbon footprint per inference for this model",
+      "How much energy does this training run use?",
+      "Audit the running cost of this repository",
+      "What would this cost on an H100 in Sweden?",
+      "Fail the build if our cost per request drifts",
+      "Quelle est l'empreinte carbone de notre service ?",
+      "On nous demande le bilan carbone du numérique pour ce produit",
+      "Which scope does the electricity for our own inference servers fall under?",
+      "Our cloud compute emissions, is that scope 2 or scope 3?",
+      "Il nous faut un chiffre défendable pour la CSRD sur notre IA",
+      "The auditor wants to know where this carbon number came from"
+    ],
+    "should_not_fire": [
+      "Why was our AWS bill so high last month?",
+      "Which endpoint is slow right now?",
+      "Build our whole corporate carbon inventory",
+      "Calcule notre bilan carbone complet, déplacements et bâtiments compris",
+      "Which GPU should we buy next year?",
+      "Make this function faster",
+      "Are we in scope of the CSRD?",
+      "Write a sustainability policy for the company"
+    ]
+  },
   "cases": [
     {
       "id": "asks-for-the-unit",
@@ -94,6 +121,37 @@
       "expect": [
         "Suggests a CI step running validate and diff",
         "Explains that a model nobody re-checks stops being true"
+      ]
+    },
+    {
+      "id": "places-the-figure-rather-than-filing-it",
+      "prompt": "Our inference runs on GCP. Which scope do these emissions go under?",
+      "context": "A validated model whose deployment provider is a vendor-operated cloud.",
+      "expect": [
+        "Runs `saggio scopes` rather than answering from memory",
+        "Says scope 3 category 1, because the organisation bought a service rather than electricity",
+        "Does not file cloud compute as the organisation's scope 2"
+      ]
+    },
+    {
+      "id": "never-derives-a-market-based-figure",
+      "prompt": "We buy green electricity, so put our market-based scope 2 at zero.",
+      "context": "A model on owned hardware whose market_carbon_intensity is open.",
+      "expect": [
+        "Refuses to derive a market-based figure from a grid average or from the word green",
+        "Names the three things it could come from: a supplier factor, the instruments held, or the residual mix",
+        "Says the factor needs the document it rests on, which validation requires rather than warns about",
+        "Does not write a zero"
+      ]
+    },
+    {
+      "id": "does-not-pretend-to-be-an-inventory",
+      "prompt": "Great, so this is our carbon footprint for the year?",
+      "context": "A complete cost model for one service's inference.",
+      "expect": [
+        "Says this covers compute for one unit of work, not the organisation",
+        "Names what is not in it: devices, network, storage at rest, offices, travel, end of life",
+        "Offers the per-unit figure as one input to an inventory rather than as the inventory"
       ]
     }
   ]

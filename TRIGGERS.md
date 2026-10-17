@@ -19,6 +19,7 @@ rendered into reports.
 | Start a cost model | `... init` | `template_text` |
 | Check one against the rules | `... validate` | `validate` |
 | Build one from a repository | `... audit` | `audit`, `audit_git_url` |
+| Place each figure in a GHG inventory | `... scopes` | `placement`, `placements` |
 | Measure a real command | `... measure` | `run_slice` |
 | Report it for people | `... render` | `render_markdown`, `render_html`, `render_office` |
 | Fail a build on drift | `... diff` | `compare` |
@@ -53,6 +54,14 @@ per run", "profile where the cost goes".
 "if we moved this to GCP", "what would the whole training run cost", "what if we
 ran this in Sweden instead", "cost at a million requests a day".
 
+**Reporting and compliance, which is the same question from the other end.**
+"Which scope does our software fall under", "is our cloud compute scope 2 or
+scope 3", "scope 3 category 1 for our cloud spend", "we need a defensible figure
+for CSRD", "ESRS E1", "location-based and market-based", "what does the auditor
+need to see", "empreinte carbone de notre service", "bilan carbone du numérique",
+"facteur d'émission de notre électricité", "un chiffre défendable pour le
+reporting extra-financier".
+
 **Keeping it honest.** "Has our cost per request drifted", "fail the build if this
 gets more expensive", "track the carbon cost in CI", "is this number still true".
 
@@ -70,8 +79,15 @@ gets more expensive", "track the carbon cost in CI", "is this number still true"
   principles; it does not read invoices.
 - **Live observability.** "Which endpoint is slow right now" is a question for
   tracing and metrics. This tool measures a bounded slice, once.
-- **Organisational carbon accounting.** Scope 1 and scope 3, business travel,
-  procurement. Different scope, different tool, different standard.
+- **A whole organisational inventory.** Buildings, commuting, business travel,
+  procurement, the purchased laptops. That is a carbon accounting platform's job,
+  and a cost model for one unit of work is one input to it rather than a
+  substitute for it. The adjacent question that *does* fire is narrower and worth
+  separating out: **where the software's own figure belongs** in that inventory,
+  which `scopes` answers and [`INVENTORY.md`](INVENTORY.md) explains.
+- **Whether an organisation falls inside a reporting obligation.** The directive
+  and their advisers answer that. This tool produces a number and says how far it
+  can be trusted.
 - **Code optimisation on its own.** "Make this function faster" is a profiling
   question. This tool profiles a slice to attribute cost, but it does not rewrite
   your code.

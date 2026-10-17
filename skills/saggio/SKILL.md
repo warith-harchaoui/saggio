@@ -1,15 +1,18 @@
 ---
 name: saggio
 description: >-
-  Builds and maintains a repository-native cost-of-running model for a codebase,
-  and turns it into reports: money, time, energy, carbon, water, and any dimension
-  the project registers, per unit of work, with every number carrying an honesty
-  status (measured / estimated / placeholder / TODO) and naming the numbers it was
-  derived from. Use when the user asks what it costs to run their code, wants a
-  carbon or energy figure per request or per run, asks to audit the running cost
-  of a repository, wants a cost-of-running report, or wants that cost watched in
-  CI. Do not use for cloud-billing breakdowns, live-service observability,
-  organisational carbon accounting, or hardware purchasing decisions.
+  Builds a repository-native cost-of-running model: money, time, energy, carbon,
+  water, and any dimension the project registers, per unit of work, every number
+  carrying an honesty status (measured / estimated / placeholder / TODO) and naming
+  what it was derived from. Renders it, and places each figure on the line of a
+  greenhouse-gas inventory it belongs to. Use when the user asks what it costs to
+  run their code, says "cost per request", "carbon per inference", "energy of this
+  training run", "audit the running cost of this repo", "which scope does our
+  software fall under", "empreinte carbone de notre service", "bilan carbone du
+  numérique", "scope 2 market-based", "un chiffre pour la CSRD ou ESRS E1", or
+  wants that cost watched in CI. Do not use for cloud-billing breakdowns,
+  live-service observability, a whole organisational carbon inventory, or hardware
+  purchasing decisions.
 license: BSD-3-Clause
 compatibility: >-
   Requires Python 3.10 or newer and the saggio package
@@ -34,10 +37,30 @@ Fire when the user wants the cost of *running* code: per request, per inference,
 per job, per invocation, per training run. Money, energy, carbon, water, or a
 dimension of their own.
 
-Do not fire for a cloud-billing breakdown, for live-service observability, for
-organisational carbon accounting, or for "which GPU should we buy". Those are
+**Fire on the engineer's wording.** "What does it cost to run this?", "cost per
+inference", "how much energy does this script use", "carbon footprint of our API",
+"audit this repo for running cost", "what would this cost on an H100", "fail the
+build if this gets more expensive".
+
+**Fire on the sustainability wording too, which is the same question asked from the
+other end.** "Empreinte carbone de notre service", "bilan carbone du numérique",
+"which scope does our software fall under", "we need a figure for CSRD", "ESRS E1",
+"scope 2 location-based and market-based", "scope 3 category 1 for our cloud
+spend", "the auditor wants the source of this number". The model this skill builds
+is the evidence behind those lines, and `saggio scopes` is what places it.
+
+**Do not fire** for a cloud-billing breakdown, for live-service observability, for
+a whole organisational inventory, or for "which GPU should we buy". Those are
 different questions with better tools, listed in
 [`references/landscape.md`](references/landscape.md).
+
+The boundary with an inventory is worth stating once, because it is where this
+skill is most likely to be reached for wrongly. **It does not build a bilan
+carbone.** It builds the figure for one unit of work, says how far that figure can
+be trusted, and names the inventory line it belongs on. Everything else in the
+inventory, the buildings, the commuting, the purchased hardware, the business
+travel, comes from somewhere else. See
+[`references/inventory.md`](references/inventory.md).
 
 ## The rule you must not break
 
@@ -149,7 +172,30 @@ Validation failing is information, not an obstacle. The most common error is a
 derived value claiming more than its inputs allow, which means either the status
 is wrong or the derivation is.
 
-### 7. Offer to watch it
+### 7. Place each figure in the inventory
+
+If anyone downstream has to report these numbers, the next question is not what
+they are but **whose emission they are**, and under which scope the organisation
+declares them:
+
+```bash
+saggio scopes cost_of_running.yaml
+```
+
+The answer turns on one fact the model already states, who operates the machine.
+Code on hardware the organisation owns means it bought the kilowatt-hour, so the
+electricity is its scope 2 and the hardware its scope 3 category 2. Code on
+somebody's cloud means it bought a service, and the same two emissions reach it as
+scope 3 category 1. A provider whose operator nobody has recorded gets no scope at
+all rather than a guessed one.
+
+Two things to carry into your reply rather than smooth over. **A market-based
+scope 2 figure is never computed here**: it rests on contracts, and no grid average
+implies one, so what prints is the list of what the organisation would have to
+state. And **water has no scope**, because it is not a greenhouse gas; it is
+reported elsewhere.
+
+### 8. Offer to watch it
 
 ```bash
 saggio diff cost_of_running.yaml /tmp/now.yaml --threshold 10
@@ -203,5 +249,8 @@ of how much difference it would make. Something like:
   arithmetic, and the distinction between machine and facility energy.
 - [`references/code-analysis.md`](references/code-analysis.md) — which analyses
   may produce a number, under which status, and which may not, ever.
+- [`references/inventory.md`](references/inventory.md) — which line of a corporate
+  greenhouse-gas inventory each figure belongs on, and what never to claim in
+  front of the people who file it.
 - [`references/landscape.md`](references/landscape.md) — when another tool is the
   right answer.
