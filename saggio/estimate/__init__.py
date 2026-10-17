@@ -81,6 +81,7 @@ from .ghg import (
     OPERATED_BY_SELF,
     OPERATED_BY_VENDOR,
     Placement,
+    placed_model,
     placement,
     placements,
 )
@@ -135,6 +136,7 @@ __all__ = [
     "it_energy_from_runtime",
     "local_timezone_name",
     "money_from_energy",
+    "placed_model",
     "placement",
     "placements",
     "node_power",

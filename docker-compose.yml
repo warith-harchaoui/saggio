@@ -1,0 +1,43 @@
+# One service, deliberately. The package holds no state, writes nothing it is
+# asked to keep, and reads catalogues that ship inside its own wheel, so there is
+# no database to run beside it and no volume to mount.
+#
+# The hardening below is not ceremony. A service that never writes, never
+# escalates, and never runs anybody's code should be deployed as one, and saying
+# so here is cheaper than finding out later that it could have.
+
+services:
+  saggio:
+    build: .
+    image: saggio-api
+    ports:
+      # Bound to the loopback address, so that `docker compose up` on a laptop
+      # does not quietly publish the service to the network the laptop is on.
+      # Change it to 8000:8000 when the deployment is the point.
+      - "127.0.0.1:8000:8000"
+    environment:
+      # Set to 1 to let /audit clone a git URL the client chose. Off by default:
+      # it is the one route that reaches the network on somebody else's say-so.
+      SAGGIO_API_ALLOW_CLONE: "0"
+    read_only: true
+    tmpfs:
+      # Where a clone would land, if cloning were on. Capped, so a repository
+      # nobody vetted cannot fill the host's disk.
+      - /tmp:size=512m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import urllib.request, sys
+          sys.exit(0 if urllib.request.urlopen("http://127.0.0.1:8000/health", timeout=4).status == 200 else 1)
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

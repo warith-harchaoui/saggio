@@ -30,6 +30,8 @@ DOCUMENTS = [
     "TRIGGERS.md",
     "GALLERY.md",
     "GALERIE.md",
+    "USING.md",
+    "UTILISER.md",
 ]
 
 #: Both spellings of the console script.
@@ -265,6 +267,7 @@ BILINGUAL_PAIRS: list[tuple[str, str]] = [
     ("ANALYSIS.md", "ANALYSE.md"),
     ("STANDARDS.md", "NORMES.md"),
     ("INVENTORY.md", "INVENTAIRE.md"),
+    ("USING.md", "UTILISER.md"),
     ("docs/README.md", "docs/LISEZMOI.md"),
 ]
 

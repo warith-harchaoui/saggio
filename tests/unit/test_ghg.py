@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -22,6 +23,7 @@ from saggio.estimate.ghg import (
     OPERATED_BY_SELF,
     OPERATED_BY_VENDOR,
     market_based_figure_exists,
+    placed_model,
     placement,
     placements,
 )
@@ -336,3 +338,73 @@ def test_the_command_prints_why_an_emission_got_no_scope(tmp_path: Path, capsys)
     out = capsys.readouterr().out
     assert "carbon_market_based: The machine is operated by a vendor" in out
     assert "somebody else's question" in out
+
+
+# --- The whole-model answer, which three surfaces share ------------------------
+
+
+def _one_model() -> dict:
+    return {
+        "unit_of_work": {"name": "one request"},
+        "deployment": {"provider": "on-prem"},
+        "scenarios": [
+            {
+                "name": "cold",
+                "costs": {
+                    "carbon": {"value": 1.4, "unit": "gCO2e", "status": "estimated"},
+                    "energy": {"value": 0.03, "unit": "Wh", "status": "measured"},
+                    "water": {"value": None, "unit": "L", "status": "TODO"},
+                },
+            },
+            {"name": "warm", "costs": {"carbon": {"value": 0.2, "status": "estimated"}}},
+        ],
+    }
+
+
+def test_a_placed_model_keeps_the_dimension_order_the_model_wrote() -> None:
+    # A reader compares the placement to their own file. Re-ordering the rows
+    # alphabetically would make them hunt for the line they came to check.
+    placed = placed_model(_one_model())
+    assert [row["dimension"] for row in placed["placements"]] == ["carbon", "energy", "water"]
+
+
+def test_a_placed_model_counts_only_what_it_actually_placed() -> None:
+    # The count is the estimation disclosure a filer owes. Energy and water have
+    # no scope, so counting their statuses would overstate how much of an
+    # inventory this model answers for.
+    assert placed_model(_one_model())["by_status"] == {"estimated": 1}
+
+
+def test_a_named_scenario_is_the_one_placed() -> None:
+    placed = placed_model(_one_model(), scenario="warm")
+    assert placed["scenario"] == "warm"
+    assert [row["value"] for row in placed["placements"]] == [0.2]
+
+
+def test_the_first_scenario_is_placed_when_none_is_named() -> None:
+    assert placed_model(_one_model())["scenario"] == "cold"
+
+
+def test_a_scenario_nobody_has_is_refused_and_the_message_names_the_ones_there() -> None:
+    # Placing the wrong scenario under the name the caller asked for would be
+    # undetectable downstream, so this raises rather than falling back.
+    with pytest.raises(
+        ValueError, match=re.escape("No scenario named 'hot'. The model has: cold, warm")
+    ):
+        placed_model(_one_model(), scenario="hot")
+
+
+def test_a_model_object_and_its_mapping_are_placed_identically() -> None:
+    # The surfaces hand this function whatever they hold: the command line a
+    # loaded CostModel, the HTTP API a parsed document. A difference between the
+    # two would be the package disagreeing with itself about an inventory line.
+    from saggio.model import CostModel
+
+    data = _one_model()
+    assert placed_model(CostModel.from_mapping(data)) == placed_model(data)
+
+
+def test_the_standards_cited_are_the_ones_that_settle_the_placements() -> None:
+    standards = placed_model(_one_model())["standards"]
+    assert standards["scope_2_guidance"] == GHG_PROTOCOL_SCOPE2
+    assert standards["scope_3_standard"] == GHG_PROTOCOL_SCOPE3

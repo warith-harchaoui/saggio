@@ -62,6 +62,7 @@ which `help()` will show you.
 | `car_km(carbon: 'Quantity', region: 'str' = 'EU') -> 'Quantity'` | Restate a carbon figure as kilometres driven in an average passenger car. |
 | `flight_fraction(carbon: 'Quantity', route: 'str' = 'paris-london') -> 'Quantity'` | Restate a carbon figure as a fraction of a reference flight. |
 | `equivalences(carbon: 'Quantity') -> 'dict[str, Quantity]'` | Return the full set of restatements for one carbon figure. |
+| `placed_model(model: 'CostModel \| dict[str, Any]', *, scenario: 'str \| None' = None, overlay: 'Any' = None) -> 'dict[str, Any]'` | Return one scenario's costs, each with the inventory line it belongs on. |
 | `placement(dimension: 'str', provider: 'str \| None', *, overlay: 'Any' = None, market_based_reported: 'bool' = False) -> 'Placement'` | Return where one dimension's figure goes in a GHG inventory. |
 | `placements(dimensions: 'list[str] \| tuple[str, ...]', provider: 'str \| None', *, overlay: 'Any' = None, market_based_reported: 'bool' = False) -> 'dict[str, Placement]'` | Place every dimension of a model at once, in the order given. |
 | `Observation` | One run, of a known size, that took a known time. |

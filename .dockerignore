@@ -1,0 +1,18 @@
+# The image needs the package, its metadata, and the README the wheel quotes.
+# Everything else is either development, or output, or somebody's private notes.
+.git
+.github
+.private
+.pytest_cache
+.ruff_cache
+.deepeval
+**/__pycache__
+*.egg-info
+tests
+docs
+examples
+assets
+reporting
+skills
+*.md
+!README.md

@@ -35,7 +35,6 @@ import json
 import os
 import sys
 import time
-from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -71,11 +70,7 @@ from ..catalog.registry import (
 from ..diff import compare
 from ..estimate.ghg import (
     GHG_EMISSIONS,
-    GHG_PROTOCOL_CORPORATE,
-    GHG_PROTOCOL_SCOPE2,
-    GHG_PROTOCOL_SCOPE3,
-    market_based_figure_exists,
-    placements,
+    placed_model,
 )
 from ..estimate.machine import detect_machine
 from ..fold import fold_measurement
@@ -230,39 +225,6 @@ def check(args: argparse.Namespace) -> int:
     return OK if report.ok else INVALID
 
 
-def _scenario_named(scenarios: list[Any], wanted: str | None) -> dict[str, Any] | None:
-    """Return the scenario asked for, or the first one when none was.
-
-    Parameters
-    ----------
-    scenarios : list
-        The model's scenarios block.
-    wanted : str or None
-        A scenario name, or None for the first.
-
-    Returns
-    -------
-    dict or None
-        None when a name was given and nothing carries it, which is a usage
-        error rather than a reason to quietly report the wrong scenario.
-
-    Examples
-    --------
-    >>> _scenario_named([{"name": "cold"}, {"name": "warm"}], "warm")["name"]
-    'warm'
-    >>> _scenario_named([{"name": "cold"}], None)["name"]
-    'cold'
-    >>> _scenario_named([{"name": "cold"}], "warm") is None
-    True
-    """
-    usable = [row for row in scenarios if isinstance(row, dict)]
-    if not usable:
-        return {}
-    if wanted is None:
-        return usable[0]
-    return next((row for row in usable if str(row.get("name")) == wanted), None)
-
-
 def scopes(args: argparse.Namespace) -> int:
     """Say which line of a greenhouse-gas inventory each of a model's costs goes on.
 
@@ -300,68 +262,21 @@ def scopes(args: argparse.Namespace) -> int:
         osh.error(str(exc))
         return USAGE
 
-    deployment = model.get("deployment") if isinstance(model.get("deployment"), dict) else {}
-    provider = deployment.get("provider")
-    scenarios = model.get("scenarios") if isinstance(model.get("scenarios"), list) else []
-    chosen = _scenario_named(scenarios, args.scenario)
-    if chosen is None:
-        osh.error(
-            f"No scenario named {args.scenario!r}. The model has: "
-            + ", ".join(str(row.get("name", "?")) for row in scenarios if isinstance(row, dict))
-        )
+    try:
+        placed = placed_model(model, scenario=args.scenario)
+    except ValueError as exc:
+        osh.error(str(exc))
         return USAGE
 
-    costs = chosen.get("costs") if isinstance(chosen.get("costs"), dict) else {}
-    placed = placements(
-        list(costs), provider, market_based_reported=market_based_figure_exists(costs)
-    )
-    unit = model.get("unit_of_work") if isinstance(model.get("unit_of_work"), dict) else {}
-
-    rows = []
-    for key, cost in costs.items():
-        where = placed[key]
-        quantity = cost if isinstance(cost, dict) else {}
-        rows.append(
-            {
-                "dimension": key,
-                "value": quantity.get("value"),
-                "unit": quantity.get("unit"),
-                "status": quantity.get("status"),
-                "scope": where.scope,
-                "category": where.category,
-                "label": where.label,
-                "why": where.why,
-                "source_url": where.source_url,
-                "dual_reporting": where.dual_reporting,
-            }
-        )
-
-    # The share of the inventory that rests on an estimate rather than a reading.
-    # Not decoration: the European standards require a filer to disclose it, and
-    # a model that already labels every number can answer without being asked.
-    counted = Counter(
-        str(row["status"]) for row in rows if row["scope"] is not None and row["status"]
-    )
+    rows = placed["placements"]
+    counted = placed["by_status"]
+    provider = placed["provider"]
 
     if args.json:
-        _emit(
-            {
-                "unit_of_work": unit.get("name"),
-                "provider": provider,
-                "scenario": chosen.get("name"),
-                "placements": rows,
-                "by_status": dict(sorted(counted.items())),
-                "standards": {
-                    "corporate": GHG_PROTOCOL_CORPORATE,
-                    "scope_2_guidance": GHG_PROTOCOL_SCOPE2,
-                    "scope_3_standard": GHG_PROTOCOL_SCOPE3,
-                },
-            },
-            as_json=True,
-        )
+        _emit(placed, as_json=True)
         return OK
 
-    named = unit.get("name") or "one unit of work"
+    named = placed["unit_of_work"] or "one unit of work"
     print(f"Per {named}, on {provider or 'an unstated provider'}:\n")
     for row in rows:
         # The report's own rounding, so the same figure reads the same in both

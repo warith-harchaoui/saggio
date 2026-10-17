@@ -66,10 +66,12 @@ Warith Harchaoui
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from typing import Any, Final
 
 from ..catalog.registry import Catalog
+from ..model.cost_model import CostModel
 
 #: The standard that defines the three scopes and the two kinds of indirect
 #: emission. Cited by every placement that names a scope at all.
@@ -517,3 +519,130 @@ def market_based_figure_exists(costs: Any) -> bool:
         return False
     row = costs.get(MARKET_BASED_DIMENSION)
     return isinstance(row, dict) and row.get("value") is not None
+
+
+def placed_model(
+    model: CostModel | dict[str, Any],
+    *,
+    scenario: str | None = None,
+    overlay: Any = None,
+) -> dict[str, Any]:
+    """Return one scenario's costs, each with the inventory line it belongs on.
+
+    The whole-model answer, assembled once. Three surfaces ask for it in the same
+    shape — the command line, the HTTP API, and the agent tool built on that API —
+    and the first version of this lived inside the command, where the other two
+    could only have reached it by copying. A placement that differed between two
+    of them by a field would be the package disagreeing with itself about which
+    line a figure goes on, which is the one thing it exists to settle.
+
+    It computes no figure. Every number here is already in the model; what is
+    added is the scope, the sentence justifying it, and the count of how well
+    founded the placed figures are, which a filer is asked to disclose.
+
+    Parameters
+    ----------
+    model : CostModel or dict
+        The model to place.
+    scenario : str or None, optional
+        Which scenario's costs to place. The first one when omitted.
+    overlay : optional
+        A user catalogue overlay, as the rest of the package passes one.
+
+    Returns
+    -------
+    dict
+        ``unit_of_work``, ``provider``, ``scenario``, a ``placements`` list in
+        the model's own dimension order, ``by_status`` counting the placed
+        figures, and the ``standards`` that settle them.
+
+    Raises
+    ------
+    ValueError
+        When a scenario was named and the model has no scenario by that name.
+        Reporting the wrong scenario's costs under the right name is worse than
+        refusing, because nothing downstream could detect it.
+
+    Examples
+    --------
+    >>> placed = placed_model({
+    ...     "unit_of_work": {"name": "one inference"},
+    ...     "deployment": {"provider": "on-prem"},
+    ...     "scenarios": [{"name": "cold", "costs": {
+    ...         "carbon": {"value": 1.4, "unit": "gCO2e", "status": "estimated"},
+    ...         "water": {"value": None, "unit": "L", "status": "TODO"},
+    ...     }}],
+    ... })
+    >>> [row["label"] for row in placed["placements"]]
+    ['Scope 2 (location-based)', 'No scope']
+    >>> placed["by_status"]
+    {'estimated': 1}
+    >>> try:
+    ...     placed_model({"scenarios": [{"name": "cold"}]}, scenario="warm")
+    ... except ValueError as exc:
+    ...     print(exc)
+    No scenario named 'warm'. The model has: cold
+    """
+    wrapped = model if isinstance(model, CostModel) else CostModel.from_mapping(model)
+
+    deployment = wrapped.get("deployment") if isinstance(wrapped.get("deployment"), dict) else {}
+    provider = deployment.get("provider")
+    rows_in = wrapped.get("scenarios") if isinstance(wrapped.get("scenarios"), list) else []
+    usable = [row for row in rows_in if isinstance(row, dict)]
+
+    if scenario is None:
+        chosen = usable[0] if usable else {}
+    else:
+        found = next((row for row in usable if str(row.get("name")) == scenario), None)
+        if found is None:
+            named = ", ".join(str(row.get("name", "?")) for row in usable)
+            raise ValueError(f"No scenario named {scenario!r}. The model has: {named}")
+        chosen = found
+
+    costs = chosen.get("costs") if isinstance(chosen.get("costs"), dict) else {}
+    placed = placements(
+        list(costs),
+        provider,
+        overlay=overlay,
+        market_based_reported=market_based_figure_exists(costs),
+    )
+
+    rows: list[dict[str, Any]] = []
+    for key, cost in costs.items():
+        where = placed[key]
+        quantity = cost if isinstance(cost, dict) else {}
+        rows.append(
+            {
+                "dimension": key,
+                "value": quantity.get("value"),
+                "unit": quantity.get("unit"),
+                "status": quantity.get("status"),
+                "scope": where.scope,
+                "category": where.category,
+                "label": where.label,
+                "why": where.why,
+                "source_url": where.source_url,
+                "dual_reporting": where.dual_reporting,
+            }
+        )
+
+    # The share of the inventory that rests on an estimate rather than a reading.
+    # Not decoration: the European standards require a filer to disclose it, and
+    # a model that already labels every number can answer without being asked.
+    counted = Counter(
+        str(row["status"]) for row in rows if row["scope"] is not None and row["status"]
+    )
+
+    unit = wrapped.get("unit_of_work") if isinstance(wrapped.get("unit_of_work"), dict) else {}
+    return {
+        "unit_of_work": unit.get("name"),
+        "provider": provider,
+        "scenario": chosen.get("name"),
+        "placements": rows,
+        "by_status": dict(sorted(counted.items())),
+        "standards": {
+            "corporate": GHG_PROTOCOL_CORPORATE,
+            "scope_2_guidance": GHG_PROTOCOL_SCOPE2,
+            "scope_3_standard": GHG_PROTOCOL_SCOPE3,
+        },
+    }

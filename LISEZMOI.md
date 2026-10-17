@@ -352,6 +352,30 @@ de style et un script, et non des chaînes citées dans du Python ;
 échouer le build si les deux viennent à diverger. Copiez ce trio pour produire
 des rapports d'une autre forme.
 
+## Cinq façons de l'atteindre
+
+Un seul moteur, cinq surfaces, parce que la personne qui produit un chiffre est
+rarement celle qui doit le déclarer, et que la plupart des lecteurs
+n'installeront jamais un paquet Python.
+
+| Surface | Pour | Comment |
+|---|---|---|
+| Bibliothèque | Un script, un notebook, un autre paquet | `import saggio` |
+| Ligne de commande | Un terminal, et l'intégration continue | `saggio audit .` |
+| API HTTP | Un navigateur, un service interne, une chaîne de reporting | `pip install "saggio[api]"`, puis `uvicorn saggio.api.app:app` |
+| Protocole d'agent | Poser la question avec ses mots, dans sa langue | `uvicorn saggio.api.mcp:app`, outils sur `/mcp` |
+| Skill | Claude, et tout agent qui lit les Agent Skills | [`skills/saggio/`](https://github.com/warith-harchaoui/saggio/blob/master/skills/saggio/SKILL.md) |
+
+Chacune est un adaptateur au-dessus des mêmes fonctions publiques, et c'est une
+règle que des tests imposent plutôt qu'une habitude : une surface capable de ce
+que la bibliothèque ne sait pas faire serait une capacité interdite à tous les
+autres appelants. La surface HTTP n'exécute le code de personne, parce qu'à
+travers un réseau il n'y a personne à qui demander un consentement, et elle ne
+clone un dépôt que là où l'exploitant l'a permis.
+
+[`UTILISER.md`](https://github.com/warith-harchaoui/saggio/blob/master/UTILISER.md) dit tout : à quoi sert chaque surface, ce
+qu'aucune n'a le droit de faire, et comment en ajouter une sixième.
+
 ## Contribuer
 
 [`CONTRIBUER.md`](CONTRIBUER.md) donne les détails. En bref : ajoutez une

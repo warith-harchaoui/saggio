@@ -1,0 +1,172 @@
+# Five ways to reach one engine
+
+[🇫🇷 UTILISER.md](UTILISER.md) · 🇬🇧 English
+
+A cost model is produced by an engineer and read by somebody else: a
+sustainability team that has to file it, a finance reviewer who has to budget
+against it, an auditor who has to believe it. Most of those readers will never
+install a Python package, and some of them will ask the question in French to an
+agent rather than to a terminal.
+
+So the engine is reachable five ways, and this page is what each one is for.
+
+## The rule the five follow
+
+**The library is the engine. Everything else is an adapter.** A surface parses a
+request, calls one public function, and formats what comes back. That is the
+whole of its job.
+
+Two consequences, and both are checked by tests rather than left to discipline:
+
+- **A surface may do nothing the library cannot.** Anything it could do on its
+  own would be a capability every library caller is locked out of, reachable only
+  by whoever happened to pick the right door.
+- **Two surfaces may not answer the same question differently.** The placement of
+  a figure in a greenhouse-gas inventory was assembled inside the command line
+  once, where the other surfaces could only have reached it by copying. It now
+  lives in `placed_model`, and a test asserts that the HTTP route returns exactly
+  what the library returns, field for field. A package that disagreed with itself
+  about which line a number goes on would have no business settling the question
+  at all.
+
+## 1. The library
+
+For a script, a notebook, a test, or another package.
+
+```python
+import saggio
+
+result = saggio.audit(".", options=saggio.AuditOptions(run=False, country="FR"))
+print(saggio.overall_status(result.model))
+print(saggio.placed_model(result.model)["placements"])
+```
+
+Everything the other four surfaces do is in `saggio.__all__`, and a test fails
+the build if a name in it stops existing. The reference is
+[`docs/api.md`](docs/api.md), generated from the docstrings.
+
+## 2. The command line
+
+For a person at a terminal, and for continuous integration, which is the same
+caller with no hands.
+
+```bash
+pip install saggio
+saggio audit . --country FR --run -o cost_of_running.yaml
+saggio scopes cost_of_running.yaml
+saggio render cost_of_running.yaml -f html -o cost_of_running.html
+saggio diff cost_of_running.yaml /tmp/now.yaml --threshold 10
+```
+
+This is the only surface that will run your code, and only with consent recorded
+once by a person who was asked. That is not an accident of where the feature
+landed: measuring executes a slice of a repository with the permissions of
+whoever started the process, and a terminal is the one place there is somebody to
+ask.
+
+## 3. The HTTP API
+
+For a browser, an internal service, a reporting pipeline, or a reader who should
+not have to install anything.
+
+```bash
+pip install "saggio[api]"
+uvicorn saggio.api.app:app --host 127.0.0.1 --port 8000
+```
+
+The interactive documentation is then at `/docs`, and the routes are:
+
+| Route | What it answers |
+|---|---|
+| `GET /health` | Which version is running, and what this deployment will refuse. |
+| `POST /validate` | Does this model obey the rules, including the weakest-link rule? |
+| `POST /scopes` | Which line of a greenhouse-gas inventory does each figure go on? |
+| `POST /render` | The report, as Markdown or as a self-contained HTML page. |
+| `POST /diff` | What moved between two models, and did it pass the gate? |
+| `GET /catalog` and `GET /catalog/{name}` | The facts the package carries, each row with the source it was read from. |
+| `GET /freshness` | Which figures nobody has re-read inside their own window. |
+| `POST /audit` | Read a repository and return the model it implies. |
+
+A model is posted either as `cost_model`, a parsed document, or as `yaml_text`,
+the contents of a `cost_of_running.yaml` file. Both give the same answer, which
+is also a test.
+
+**Two refusals are built into this surface rather than configured on it.**
+
+It never runs a repository's code. There is no route for measuring at all, so
+there is nothing to misconfigure and nothing to confine.
+
+It clones nothing unless the operator allowed it. `POST /audit` fetches an
+address a client chose, which is a real capability with real consequences, so it
+is off unless `SAGGIO_API_ALLOW_CLONE` says otherwise. Off, the route answers
+with what it would take instead of with a stack trace.
+
+In a container, both surfaces at once, with the clone switch off, a read-only
+filesystem and no capabilities:
+
+```bash
+docker compose up --build
+```
+
+## 4. The agent protocol
+
+For a colleague who asks the question in their own words, in their own language,
+to an agent rather than to a terminal. This is the surface a sustainability team
+actually uses.
+
+```bash
+uvicorn saggio.api.mcp:app --host 127.0.0.1 --port 8000
+# an agent connects to http://127.0.0.1:8000/mcp
+```
+
+The tools are generated from the application's own OpenAPI document. A tool's
+name is the route's identifier, its description is the route's docstring, and its
+arguments are the request model's fields. Nothing is written twice, so nothing
+can drift: a hand-written wrapper would be a second description of the same
+endpoint, free to disagree with the first, and the disagreement would surface as
+an agent confidently telling somebody the wrong scope.
+
+The refusals come with it. There is no tool for measuring, because there is no
+route for it.
+
+## 5. The skill
+
+For Claude, or any agent that reads
+[Agent Skills](https://code.claude.com/docs/en/skills). It lives in
+[`skills/saggio/`](skills/saggio/SKILL.md) and it is not a wrapper around the
+other four: it is the method, written down. Which question to ask before
+auditing, which numbers an agent may never write from memory, how to report a
+figure with its status, and when to say that another tool is the right answer.
+
+Its triggers are the part most worth getting right, because a skill that does not
+load is a skill that does not exist. [`TRIGGERS.md`](TRIGGERS.md) lists the
+phrasings that should reach it, in both the engineer's vocabulary and the
+sustainability team's, and the ones that should not. The evals beside the skill
+pin both halves.
+
+## What a surface may not do
+
+- **Invent a capability.** If it is worth having, it is worth having in the
+  library, where every caller can reach it.
+- **Keep its own copy of a payload.** The shape a surface returns is the shape
+  the library produced.
+- **Lower a refusal.** A number the library will not state is not a number an
+  HTTP route may state, and a consent the command line asks for is not a consent
+  a server may assume.
+
+## What a surface may decide for itself
+
+- **Presentation.** A table for a terminal, JSON for a program, a page for a
+  browser, a sentence for an agent.
+- **Which capabilities it offers at all.** The HTTP surface offers no measuring,
+  because over a network there is nobody to ask for consent.
+- **What a deployment allows.** Cloning is the operator's decision, taken in the
+  environment rather than in the code.
+
+## Adding a sixth
+
+Write the function in the library first, with its docstring example. Then the
+adapter, which should be short enough to read in one screen. Then the contract
+test that says the new surface answers what the library answers. If the adapter
+is growing logic, the logic is in the wrong place, and the fix is to move it down
+rather than to test it twice.

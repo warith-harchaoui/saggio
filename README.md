@@ -341,6 +341,29 @@ script there rather than strings quoted inside Python, and `reporting/sync.py`
 copies them into the package that ships them, with a test that fails the build if
 the two ever drift apart. Copy that trio to render reports of your own shape.
 
+## Five ways to reach it
+
+One engine, five surfaces, because the person who produces a figure is rarely
+the person who has to file it, and most of the readers will never install a
+Python package.
+
+| Surface | For | How |
+|---|---|---|
+| Library | A script, a notebook, another package | `import saggio` |
+| Command line | A terminal, and continuous integration | `saggio audit .` |
+| HTTP API | A browser, an internal service, a reporting pipeline | `pip install "saggio[api]"`, then `uvicorn saggio.api.app:app` |
+| Agent protocol | Asking in your own words, in your own language | `uvicorn saggio.api.mcp:app`, tools at `/mcp` |
+| Skill | Claude, and any agent that reads Agent Skills | [`skills/saggio/`](https://github.com/warith-harchaoui/saggio/blob/master/skills/saggio/SKILL.md) |
+
+Every one of them is an adapter over the same public functions, which is a rule
+tests enforce rather than a habit: a surface that could do something the library
+cannot would be a capability every other caller is locked out of. The HTTP
+surface runs nobody's code, because over a network there is nobody to ask for
+consent, and it clones a repository only where the operator allowed it.
+
+[`USING.md`](https://github.com/warith-harchaoui/saggio/blob/master/USING.md) is the whole of it: what each surface is for, what
+none of them may do, and how to add a sixth.
+
 ## Contributing
 
 [`CONTRIBUTING.md`](https://github.com/warith-harchaoui/saggio/blob/master/CONTRIBUTING.md) has the details. The short version: add a
