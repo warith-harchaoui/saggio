@@ -7,6 +7,54 @@ release of that line.
 
 ## Unreleased
 
+### Three more ways in, over the same engine
+
+- The library and the command line reach everybody who installs a Python
+  package, which is not the person who has to file the figure. There is now an
+  **HTTP surface**, `pip install "saggio[api]"` and
+  `uvicorn saggio.api.app:app`, with routes for validating, placing, rendering,
+  comparing, reading the catalogues and auditing a repository.
+- An **agent surface** sits on the same application: `uvicorn saggio.api.mcp:app`
+  serves Model Context Protocol tools at `/mcp`. They are generated from the
+  application's own OpenAPI document, so a tool's name is the route's identifier
+  and its description is the route's docstring. Nothing is written twice, which
+  is why nothing can drift into an agent telling somebody the wrong scope.
+- **Two refusals are in the shape of the HTTP surface rather than in its
+  settings.** There is no route for measuring at all: it executes a repository's
+  code with the server's permissions, and over a network there is nobody to ask
+  for consent. And `/audit` clones nothing unless the operator sets
+  `SAGGIO_API_ALLOW_CLONE`; off, it answers with what it would take.
+- `placed_model` is new in the library. The whole-model placement was assembled
+  inside the `scopes` command, where the other surfaces could only have reached
+  it by copying, and a copy that drifted would be this package disagreeing with
+  itself about which line of an inventory a figure goes on. A test now asserts
+  that the route returns exactly what the library returns, field for field.
+- A `Dockerfile` and a `docker-compose.yml` ship both surfaces with the clone
+  switch off, a read-only filesystem, no capabilities and a non-root user.
+- [`USING.md`](USING.md) and [`UTILISER.md`](UTILISER.md) say what each of the
+  five surfaces is for, what none of them may do, and how to add a sixth.
+
+### The skill stayed silent for half the people it was written for
+
+- Its description fired for an engineer who says "cost per request" and not for
+  the sustainability team asking the same question in its own words: which
+  scope, which method, what the auditor needs to see. Both vocabularies are now
+  in the description, in both languages, inside the published 1024-character
+  ceiling.
+- The workflow never mentioned `scopes`, the one verb that answers the second
+  reader. It is now a step of its own, with the market-based refusal and the
+  fact that water has no scope.
+- A reference of its own, `references/inventory.md`, for what an agent may and
+  may not say to the people who file the figure.
+- The evals gained a **triggering** section. Every case in them tested a skill
+  that had already loaded; whether it loads at all is the first thing that can
+  fail and nothing was watching it.
+- [`TRIGGERS.md`](TRIGGERS.md) refused *organisational carbon accounting*
+  wholesale, which swallowed the adjacent question it does answer. A whole
+  inventory is still somebody else's job; where the software's own figure
+  belongs in one is not the same question and no longer shares its refusal.
+
+
 ### macOS is back in the gate, and it found something on its first run
 
 - Nearly all of this package's power-counter code is macOS-only, and no CI job
