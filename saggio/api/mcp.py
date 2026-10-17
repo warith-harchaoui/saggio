@@ -47,6 +47,7 @@ from typing import Final
 from fastapi import FastAPI
 from fastapi_mcp import FastApiMCP
 
+from .. import __version__
 from .app import create_app
 
 #: Where the protocol endpoint lives. The convention clients expect, named here
@@ -75,8 +76,21 @@ def attach_mcp(application: FastAPI, *, mount_path: str = MOUNT_PATH) -> FastApi
     >>> server = attach_mcp(create_app(allow_clone=False))
     >>> sorted(tool.name for tool in server.tools)[:2]
     ['audit_repository', 'catalogue_freshness']
+    >>> server.server.version == __version__
+    True
     """
     server = FastApiMCP(application)
+
+    # fastapi-mcp builds the protocol server as `Server(name, description)`, and
+    # the second parameter of that constructor is the *version*. So a client
+    # listing its servers shows this package's whole description where a version
+    # belongs, which is both unreadable and unanswerable: an agent that reports
+    # which version answered it would report a paragraph. Put the version back,
+    # and leave the description where it is already carried, in the application.
+    low_level = getattr(server, "server", None)
+    if low_level is not None:
+        low_level.version = __version__
+
     server.mount_http(application, mount_path=mount_path)
     return server
 

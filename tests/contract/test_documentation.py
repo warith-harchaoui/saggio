@@ -572,6 +572,56 @@ def test_everything_a_page_cites_is_in_the_sources_it_lists(page: str) -> None:
     )
 
 
+def test_every_verb_is_shown_in_both_cookbooks() -> None:
+    """A verb nobody documents is a verb nobody finds.
+
+    `scopes` shipped, answered the question this package added it for, and
+    appeared in neither cookbook for two releases. The pages promise every
+    command a reader is expected to type, and nothing was comparing that promise
+    against the parser that defines them.
+    """
+    parser = build_parser()
+    verbs: set[str] = set()
+    # argparse offers no public reader for its subparsers, and the alternative
+    # is a second hand-maintained list of verbs, which is the thing this test
+    # exists to stop existing.
+    for action in parser._subparsers._group_actions:
+        verbs |= set(getattr(action, "choices", {}) or {})
+    assert verbs, "the parser stopped exposing its verbs, so this check is blind"
+
+    for cookbook in ("EXAMPLES.md", "EXEMPLES.md"):
+        shown = {command.split()[0] for _, command in commands_in(cookbook) if command.split()}
+        missing = sorted(verbs - shown)
+        assert not missing, f"{cookbook} never shows: {', '.join(missing)}"
+
+
+def test_no_document_quotes_a_version_the_package_is_not() -> None:
+    """A version printed in prose is a claim, and claims here are checked.
+
+    `python -m saggio --version` is shown in the module's own docstring with the
+    answer beside it. That answer was right when it was written and goes stale
+    on the next release, silently, in the one place a reader checks to find out
+    which version they have.
+    """
+    quoted = re.compile(rf"{re.escape(PROGRAM)}\s+([0-9]+\.[0-9]+\.[0-9]+)")
+    history = {"CHANGELOG.md", "JOURNAL.md"}
+    offenders: list[str] = []
+    # The package itself, not a wheel build left in the tree: `build/lib/` holds
+    # a copy of every module from whenever somebody last built, and failing on
+    # a stale artefact teaches people to delete the test rather than the copy.
+    for path in [
+        *ROOT.glob("*.md"),
+        *(ROOT / "docs").glob("*.md"),
+        *(ROOT / "saggio").rglob("*.py"),
+    ]:
+        if path.name in history:
+            continue
+        for found in quoted.findall(path.read_text(encoding="utf-8")):
+            if found != __version__:
+                offenders.append(f"{path.relative_to(ROOT)} says {found}")
+    assert not offenders, f"the installed version is {__version__}; " + "; ".join(offenders)
+
+
 def test_the_version_the_package_reports_is_the_version_it_ships_as() -> None:
     """`__version__` and the packaging metadata have to be the same number.
 

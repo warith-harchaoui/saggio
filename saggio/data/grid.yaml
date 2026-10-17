@@ -35,531 +35,531 @@ countries:
     name: "Australia"
     carbon_gco2e_per_kwh: 518.0
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.259
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Australia/Sydney", "Australia/Melbourne", "Australia/Brisbane", "Australia/Perth", "Australia/Adelaide"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "AT"
     name: "Austria"
     carbon_gco2e_per_kwh: 116.6
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.356
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Vienna"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "BE"
     name: "Belgium"
     carbon_gco2e_per_kwh: 151.3
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.409
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Brussels"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "BR"
     name: "Brazil"
     carbon_gco2e_per_kwh: 109.2
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.166
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["America/Sao_Paulo", "America/Bahia", "America/Manaus"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "CA"
     name: "Canada"
     carbon_gco2e_per_kwh: 191.6
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.123
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["America/Toronto", "America/Vancouver", "America/Montreal", "America/Edmonton", "America/Winnipeg", "America/Halifax"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "CH"
     name: "Switzerland"
     carbon_gco2e_per_kwh: 39.1
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.367
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Zurich"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "CL"
     name: "Chile"
     carbon_gco2e_per_kwh: 290.6
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.231
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["America/Santiago"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "CN"
     name: "China"
     carbon_gco2e_per_kwh: 528.3
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.076
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Asia/Shanghai", "Asia/Chongqing", "Asia/Urumqi"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "CZ"
     name: "Czechia"
     carbon_gco2e_per_kwh: 401.4
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.35
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Prague"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "DE"
     name: "Germany"
     carbon_gco2e_per_kwh: 334.1
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.409
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Berlin"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "DK"
     name: "Denmark"
     carbon_gco2e_per_kwh: 99.9
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.352
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Copenhagen"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "EG"
     name: "Egypt"
     carbon_gco2e_per_kwh: 557.2
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.023
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Africa/Cairo"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "ES"
     name: "Spain"
     carbon_gco2e_per_kwh: 153.5
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.259
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Madrid", "Atlantic/Canary"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "FI"
     name: "Finland"
     carbon_gco2e_per_kwh: 57.2
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.177
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Helsinki"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "FR"
     name: "France"
     carbon_gco2e_per_kwh: 41.2
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.276
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Paris"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "GB"
     name: "United Kingdom"
     carbon_gco2e_per_kwh: 218.2
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.405
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/London"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "IE"
     name: "Ireland"
     carbon_gco2e_per_kwh: 263.3
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.453
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Dublin"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "IL"
     name: "Israel"
     carbon_gco2e_per_kwh: 492.9
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.188
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Asia/Jerusalem"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "IN"
     name: "India"
     carbon_gco2e_per_kwh: 670.9
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.076
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Asia/Kolkata", "Asia/Calcutta"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "IT"
     name: "Italy"
     carbon_gco2e_per_kwh: 284.4
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.415
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Rome"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "JP"
     name: "Japan"
     carbon_gco2e_per_kwh: 473.7
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.227
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Asia/Tokyo"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "KR"
     name: "South Korea"
     carbon_gco2e_per_kwh: 417.7
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.126
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Asia/Seoul"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "MX"
     name: "Mexico"
     carbon_gco2e_per_kwh: 481.4
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.11
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["America/Mexico_City", "America/Tijuana", "America/Monterrey"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "NL"
     name: "Netherlands"
     carbon_gco2e_per_kwh: 253.7
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.287
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Amsterdam"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "NO"
     name: "Norway"
     carbon_gco2e_per_kwh: 28.1
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.169
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Oslo"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "PL"
     name: "Poland"
     carbon_gco2e_per_kwh: 590.8
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.236
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Warsaw"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "PT"
     name: "Portugal"
     carbon_gco2e_per_kwh: 127.8
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.24
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Lisbon"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "RO"
     name: "Romania"
     carbon_gco2e_per_kwh: 259.2
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.233
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Bucharest"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "SA"
     name: "Saudi Arabia"
     carbon_gco2e_per_kwh: 679.8
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.052
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Asia/Riyadh"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "SE"
     name: "Sweden"
     carbon_gco2e_per_kwh: 35.4
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.247
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Stockholm"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "SG"
     name: "Singapore"
     carbon_gco2e_per_kwh: 497.0
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.236
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Asia/Singapore"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "SK"
     name: "Slovakia"
     carbon_gco2e_per_kwh: 95.3
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.216
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Bratislava"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "TR"
     name: "Turkey"
     carbon_gco2e_per_kwh: 475.8
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.067
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Istanbul"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "UA"
     name: "Ukraine"
     carbon_gco2e_per_kwh: 250.5
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2022
     price_usd_per_kwh: 0.085
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Kyiv", "Europe/Kiev"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "AE"
     name: "United Arab Emirates"
     carbon_gco2e_per_kwh: 469.7
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.08
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Asia/Dubai"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "US"
     name: "United States"
     carbon_gco2e_per_kwh: 384.4
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.19
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Phoenix", "America/Anchorage", "Pacific/Honolulu"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "ZA"
     name: "South Africa"
     carbon_gco2e_per_kwh: 699.1
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.215
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Africa/Johannesburg"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"
   - key: "RU"
     name: "Russia"
     carbon_gco2e_per_kwh: 446.9
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    carbon_retrieved_date: "2026-10-14"
+    carbon_retrieved_date: "2026-10-17"
     carbon_data_year: 2025
     price_usd_per_kwh: 0.07
     price_source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    price_retrieved_date: "2026-10-02"
+    price_retrieved_date: "2026-10-17"
     price_collected: "Q3 2026"
     timezones: ["Europe/Moscow", "Asia/Novosibirsk", "Asia/Yekaterinburg"]
     timezones_source_url: "https://data.iana.org/time-zones/tzdb/zone1970.tab"
-    timezones_retrieved_date: "2026-10-02"
+    timezones_retrieved_date: "2026-10-17"
     timezones_tzdb_version: "2026e"

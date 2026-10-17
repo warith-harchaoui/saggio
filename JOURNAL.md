@@ -8,7 +8,77 @@ l'intérieur d'une ligne majeure il ne fait que grandir, si bien qu'un modèle
 écrit aujourd'hui continue de valider contre toutes les versions suivantes de
 cette ligne.
 
-## Non publié
+## 1.5.0 — 2026-10-17
+
+Trois façons de plus d'atteindre le même moteur, et la première version où *à
+qui est cette émission* trouve sa réponse sur chaque surface plutôt que sur une
+seule. Rien ici ne casse : chaque nom public se résout comme avant, le schéma
+est inchangé, et les deux nouvelles surfaces arrivent en extra que
+l'installation par défaut ne porte pas.
+
+### Deux défauts que la construction de la version a trouvés, et que la suite ne pouvait pas trouver
+
+- Installer la roue dans un environnement vide est le seul test qui résout les
+  dépendances comme le fait un utilisateur, et c'est celui que ce paquet n'avait
+  jamais lancé pour la nouvelle surface. Il a échoué du premier coup, à l'import,
+  avant d'avoir servi la moindre requête.
+- **`fastapi-mcp` demande `mcp>=1.12` sans borne supérieure**, et appelle
+  `Server(name, description)` avec deux arguments positionnels. `mcp` 2.0 a rendu
+  tout ce qui suit le nom accessible par mot-clé seulement : une résolution
+  fraîche installe donc une bibliothèque de protocole que l'adaptateur ne peut
+  pas importer. C'est une `TypeError` à l'import et non un conflit de
+  dépendances, si bien que rien dans le résolveur ne proteste et que rien, dans
+  un environnement de développement qui détient déjà une copie plus ancienne, ne
+  s'en aperçoit. Les deux extras portent maintenant `mcp>=1.12,<2`, borné ici
+  parce que le paquet qui devrait le borner ne le fait pas et que celui-ci est ce
+  qu'un utilisateur installe.
+- **Le serveur de protocole annonçait un paragraphe comme version.** Le second
+  paramètre de ce même constructeur est la version : un client qui listait ses
+  serveurs montrait donc toute la description de l'application là où va une
+  version, et un agent à qui l'on demande quelle version lui a répondu aurait
+  cité de la prose. La version est remise après construction, et un test l'y
+  maintient.
+
+### Le catalogue a été relu pour cette version, pas redaté
+
+- Les quatre colonnes rafraîchissables ont interrogé leurs sources le jour de la
+  version : le jeu de données annuel publié d'Ember pour les trente-huit figures
+  carbone, GlobalPetrolPrices pour les tarifs, la base de l'IANA pour les
+  soixante-quatre fuseaux horaires, Boavizta pour les quatre empreintes de
+  processeur. **Rien n'a bougé au-delà de la précision propre du catalogue**, et
+  les dates disent maintenant que quelqu'un a regardé.
+- Cela compte à cause de ce à quoi ressemble l'alternative. Les lignes étaient à
+  seize jours de la fin de leur fenêtre, et une fenêtre qui se referme peu après
+  une version est une invitation à pousser une date plutôt qu'à lire une source,
+  ce qui est le seul résultat que tout le mécanisme de fraîcheur existe pour
+  empêcher.
+
+### Deux manques dans les livres de recettes, et les contrôles qui les surveillent
+
+- `scopes` est sorti il y a deux versions, répond à la question autour de
+  laquelle celle-ci est bâtie, et n'apparaissait dans **aucun des deux livres de
+  recettes**. `machine` n'y avait jamais été non plus. Les deux y sont
+  désormais, dans les deux langues, avec ce que chacun imprime et pourquoi.
+- Le contrôle qui l'aurait attrapé : **chaque verbe que connaît l'analyseur
+  d'arguments doit être montré dans les deux livres de recettes**. Les pages
+  promettent chaque commande qu'un lecteur est censé taper, et rien ne
+  confrontait cette promesse à l'analyseur qui les définit.
+- Un second contrôle, né de la même forme de défaut : **une version imprimée
+  dans la prose doit être celle qui est installée**. `python -m saggio
+  --version` est documenté avec sa réponse à côté, et cette réponse se périme à
+  la version suivante, à l'endroit même où un lecteur va voir quelle version il
+  a.
+
+### Les notes de version existent dans l'autre langue
+
+- Ce fichier est publié en flux Atom sur le site : un lecteur français qui
+  s'abonnait aux notes de version recevait donc de l'anglais.
+  [`CHANGELOG.md`](CHANGELOG.md) a maintenant ce jumeau, ses huit versions
+  comprises, et le site construit **`fr/feed.atom`** à partir de lui, avec son
+  titre propre et ses identités d'entrées propres.
+- Les deux moitiés portent les mêmes titres de version exprès : un seul
+  constructeur lit l'une ou l'autre, et une version qui existerait dans une
+  langue et pas dans l'autre serait une version annoncée à moitié.
 
 ### Trois portes de plus, vers le même moteur
 

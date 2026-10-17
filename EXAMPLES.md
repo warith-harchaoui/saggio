@@ -15,6 +15,7 @@ arithmetic that drifts turns the build red.
 - [Projecting onto other hardware](#projecting-onto-other-hardware)
 - [Adding a dimension of your own](#adding-a-dimension-of-your-own)
 - [Reports](#reports)
+- [Which line of an inventory each cost goes on](#which-line-of-an-inventory-each-cost-goes-on)
 - [Keeping it honest in CI](#keeping-it-honest-in-ci)
 - [The catalogues](#the-catalogues)
 - [The library](#the-library)
@@ -200,12 +201,20 @@ same model it produces offline, with the prices left open.
 
 ### What this machine will let you read
 
-Before a measurement is worth anything, it is worth knowing what this machine is
-willing to say, and to whom.
+Before a measurement is worth anything, it is worth knowing what this machine is,
+and what it is willing to say, and to whom.
 
 ```bash
+# What this machine is: processor, cores, memory, accelerator, platform.
+saggio machine
+
+# And what its energy counters will tell you.
 saggio power
 ```
+
+`machine` is what the audit reads when it writes a power assumption, printed on
+its own so that a figure you did not expect can be traced to the part it came
+from. `--json` for a pipeline.
 
 ```
 [reads] Linux powercap (RAPL)
@@ -710,6 +719,41 @@ bar per project on the same hundred-percent scale. The costs table follows, per
 each project's own unit of work, and the page says plainly that those rows do not
 compare with each other — one project's unit is a request, another's is a whole
 training run.
+
+## Which line of an inventory each cost goes on
+
+The question the people who file the figure ask, which is not the one the people
+who produce it answer.
+
+```bash
+# Where each cost belongs, why, and the standard that settles it.
+saggio scopes cost_of_running.yaml
+
+# The same as data, for a reporting pipeline.
+saggio scopes cost_of_running.yaml --json
+
+# A model with more than one scenario.
+saggio scopes cost_of_running.yaml --scenario cold
+```
+
+It computes nothing. Every number is already in the model; what is added is the
+scope, the sentence justifying it, and a count of how well founded the placed
+figures are — which is the estimation disclosure a filer owes, already written.
+
+The scope turns on one fact the model states, `deployment.provider`: own the
+machine and the electricity is your scope 2 and the hardware your scope 3
+category 2; rent it and both reach you as scope 3 category 1, because you bought
+a service. A provider the catalogue does not classify gets **no scope at all**
+rather than the nearest guess.
+
+Two answers are refusals, and both matter more than the placements. A
+**market-based** scope 2 figure is never derived here, because no grid average
+implies one; state `assumptions.market_carbon_intensity` with the document it
+comes from and the figure is computed and placed beside the location-based one.
+And **water has no scope**, because it is not a greenhouse gas.
+
+[`INVENTORY.md`](INVENTORY.md) is the long form, for the person who has to file
+it rather than the one who measured it.
 
 ## Keeping it honest in CI
 

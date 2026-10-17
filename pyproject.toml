@@ -16,7 +16,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "saggio"
-version = "1.4.2"
+version = "1.5.0"
 description = "What it costs to run your code, per unit of work, with every number saying how far it can be trusted: money, time, energy, carbon, water, and any dimension you register."
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
@@ -73,6 +73,14 @@ api = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "fastapi-mcp>=0.4",
+    # fastapi-mcp 0.4 asks for `mcp>=1.12` with no upper bound, and calls
+    # `Server(name, description)` with two positional arguments. mcp 2.0 made
+    # everything after the name keyword-only, so a fresh resolve installs a
+    # version of the protocol library that fastapi-mcp cannot import: the
+    # failure is a TypeError at import time, not a dependency conflict, so
+    # nothing in the resolver objects. Bounded here because the package that
+    # should bound it does not, and this one is what a user installs.
+    "mcp>=1.12,<2",
 ]
 dev = [
     "pytest>=8.0",
@@ -91,6 +99,10 @@ dev = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "fastapi-mcp>=0.4",
+    # The same bound as the `api` extra, for the same reason: without it a fresh
+    # continuous-integration environment installs an mcp that fastapi-mcp cannot
+    # import, and the suite fails at collection on a machine nobody can see.
+    "mcp>=1.12,<2",
     "httpx>=0.27",
 ]
 

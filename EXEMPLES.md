@@ -15,6 +15,7 @@ exécutés. Une option renommée ou une arithmétique qui dérive fait rougir le
 - [Projeter sur un autre matériel](#projeter-sur-un-autre-matériel)
 - [Ajouter une dimension à vous](#ajouter-une-dimension-à-vous)
 - [Les rapports](#les-rapports)
+- [Sur quelle ligne d'un bilan va chaque coût](#sur-quelle-ligne-dun-bilan-va-chaque-coût)
 - [Tenir la ligne en intégration continue](#tenir-la-ligne-en-intégration-continue)
 - [Les catalogues](#les-catalogues)
 - [La bibliothèque](#la-bibliothèque)
@@ -204,12 +205,20 @@ que hors ligne, tarifs laissés ouverts.
 
 ### Ce que cette machine accepte de vous dire
 
-Avant qu'une mesure vaille quoi que ce soit, il faut savoir ce que la machine
-accepte de dire, et à qui.
+Avant qu'une mesure vaille quoi que ce soit, il faut savoir ce qu'est la
+machine, ce qu'elle accepte de dire, et à qui.
 
 ```bash
+# Ce qu'est cette machine : processeur, cœurs, mémoire, accélérateur, plateforme.
+saggio machine
+
+# Et ce que ses compteurs d'énergie vous diront.
 saggio power
 ```
+
+`machine` est ce que l'audit lit quand il écrit une hypothèse de puissance,
+imprimé à part pour qu'une figure inattendue puisse être remontée jusqu'à la
+pièce d'où elle vient. `--json` pour une chaîne de traitement.
 
 ```
 [reads] Linux powercap (RAPL)
@@ -730,6 +739,44 @@ empilée par projet, toutes sur la même échelle de cent pour cent. Le tableau 
 coûts suit, par unité de travail propre à chaque projet, et la page dit
 clairement que ces lignes ne se comparent pas entre elles — l'unité de l'un est
 une requête, celle de l'autre un entraînement complet.
+
+## Sur quelle ligne d'un bilan va chaque coût
+
+La question que posent les personnes qui déclarent le chiffre, qui n'est pas
+celle à laquelle répondent les personnes qui le produisent.
+
+```bash
+# Où va chaque coût, pourquoi, et la norme qui tranche.
+saggio scopes cost_of_running.yaml
+
+# La même chose en données, pour une chaîne de reporting.
+saggio scopes cost_of_running.yaml --json
+
+# Un modèle qui porte plus d'un scénario.
+saggio scopes cost_of_running.yaml --scenario cold
+```
+
+La commande ne calcule rien. Chaque nombre est déjà dans le modèle ; ce qui
+s'ajoute est le scope, la phrase qui le justifie, et un décompte de la solidité
+des figures placées — qui est la part d'estimation qu'un déclarant doit publier,
+déjà écrite.
+
+Le scope tient à un seul fait que le modèle énonce, `deployment.provider` :
+possédez la machine et l'électricité est votre scope 2 et le matériel votre
+scope 3 catégorie 2 ; louez-la et les deux vous parviennent en scope 3
+catégorie 1, puisque vous avez acheté un service. Un fournisseur que le
+catalogue ne classe pas n'obtient **aucun scope** plutôt que la supposition la
+plus proche.
+
+Deux réponses sont des refus, et ils comptent davantage que les placements. Une
+figure de scope 2 **market-based** n'est jamais dérivée ici, parce qu'aucune
+moyenne de réseau ne l'implique ; énoncez
+`assumptions.market_carbon_intensity` avec le document d'où elle vient et la
+figure est calculée et placée à côté de la location-based. Et **l'eau n'a pas de
+scope**, parce que ce n'est pas un gaz à effet de serre.
+
+[`INVENTAIRE.md`](INVENTAIRE.md) est la forme longue, pour la personne qui doit
+déclarer plutôt que pour celle qui a mesuré.
 
 ## Tenir la ligne en intégration continue
 

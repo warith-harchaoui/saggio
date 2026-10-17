@@ -199,6 +199,17 @@ def test_the_protocol_endpoint_is_mounted_beside_the_routes() -> None:
     assert "/scopes" in paths
 
 
+def test_the_protocol_server_reports_a_version_and_not_a_paragraph() -> None:
+    # fastapi-mcp builds the protocol server as `Server(name, description)`, and
+    # that constructor's second parameter is the version. Left alone, a client
+    # listing its servers shows this package's whole description where a version
+    # belongs, and an agent asked which version answered it reports a paragraph.
+    from saggio.api.mcp import attach_mcp
+
+    server = attach_mcp(create_app(allow_clone=False))
+    assert server.server.version == __version__
+
+
 def test_a_tool_tells_an_agent_what_the_route_tells_a_reader() -> None:
     # The descriptions are generated from the route docstrings, which is the
     # reason there is no second copy of them to drift. This is the test that

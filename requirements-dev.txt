@@ -10,4 +10,6 @@ pillow>=10.0
 fastapi>=0.115
 uvicorn[standard]>=0.30
 fastapi-mcp>=0.4
+# fastapi-mcp does not bound mcp, and mcp 2.0 broke the call it makes.
+mcp>=1.12,<2
 httpx>=0.27

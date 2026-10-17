@@ -7,7 +7,69 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
-## Unreleased
+## 1.5.0 — 2026-10-17
+
+Three more ways to reach the same engine, and the first release in which *whose
+emission is this* is answered on every surface rather than on one. Nothing here
+breaks: every public name resolves as it did, the schema is unchanged, and the
+two new surfaces arrive as an extra the default install does not carry.
+
+### Two defects the release build found, which the suite could not
+
+- Installing the wheel into an empty environment is the only test that resolves
+  dependencies the way a user does, and it is the one this package had never
+  run for the new surface. It failed on the first attempt, at import, before
+  serving a single request.
+- **`fastapi-mcp` asks for `mcp>=1.12` with no upper bound**, and calls
+  `Server(name, description)` with two positional arguments. `mcp` 2.0 made
+  everything after the name keyword-only, so a fresh resolve installs a protocol
+  library the adapter cannot import: a `TypeError` at import time rather than a
+  dependency conflict, which means nothing in the resolver objects and nothing
+  in a development environment that already holds an older copy ever notices.
+  Both extras now carry `mcp>=1.12,<2`, bounded here because the package that
+  should bound it does not and this one is what a user installs.
+- **The protocol server was reporting a paragraph as its version.** That same
+  constructor's second parameter is the version, so a client listing its servers
+  showed the application's whole description where a version belongs, and an
+  agent asked which version answered it would have quoted prose. The version is
+  put back after construction, and a test holds it there.
+
+### The catalogue was re-read for this release, not re-dated
+
+- All four refreshable columns asked their sources on release day: Ember's
+  published yearly dataset for the thirty-eight carbon figures,
+  GlobalPetrolPrices for the tariffs, the IANA database for the sixty-four
+  timezones, Boavizta for the four processor footprints. **Nothing moved by more
+  than the catalogue's own precision**, and the dates now say that somebody
+  looked.
+- It matters because of what the alternative looks like. The rows were sixteen
+  days from the end of their window, and a window that closes shortly after a
+  release is an invitation to bump a date rather than read a source, which is
+  the one outcome the whole freshness mechanism exists to prevent.
+
+### Two gaps in the cookbooks, and the checks that now watch for them
+
+- `scopes` shipped two releases ago, answers the question this release is built
+  around, and appeared in **neither cookbook**. `machine` had never been in them
+  either. Both are in now, in both languages, with what each prints and why.
+- The check that would have caught it: **every verb the parser knows must be
+  shown in both cookbooks**. The pages promise every command a reader is
+  expected to type, and nothing compared that promise against the parser that
+  defines them.
+- A second check, from the same shape of defect: **a version printed in prose
+  must be the installed one**. `python -m saggio --version` is documented with
+  its answer beside it, and that answer goes stale on the next release, in the
+  one place a reader looks to find out which version they have.
+
+### The release notes exist in the other language
+
+- This file is published as an Atom feed on the site, so a French reader
+  subscribing to release notes was handed English. [`JOURNAL.md`](JOURNAL.md) is
+  the twin, all eight releases of it, and the site builds **`fr/feed.atom`** from
+  it with its own title and its own entry identities.
+- The two halves carry the same version headings on purpose: one builder reads
+  either, and a release that existed in one language and not the other would be
+  a release only half announced.
 
 ### Three more ways in, over the same engine
 
