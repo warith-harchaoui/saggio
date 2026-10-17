@@ -30,7 +30,7 @@ main sauf [`api.md`](api.md), qui est dérivé des docstrings.
 | [`../skills/saggio/references/green-algorithms.md`](../skills/saggio/references/green-algorithms.md) | D'où vient l'arithmétique ? (en anglais) |
 | [`../skills/saggio/references/code-analysis.md`](../skills/saggio/references/code-analysis.md) | Quelles analyses ont le droit de produire un nombre ? (en anglais) |
 | [`../skills/saggio/references/inventory.md`](../skills/saggio/references/inventory.md) | Que peut dire un agent aux personnes qui doivent déclarer le chiffre ? (en anglais) |
-| [`../CHANGELOG.md`](../CHANGELOG.md) | Qu'est-ce qui a changé, et est-ce que ça me concerne ? (en anglais) |
+| [`../JOURNAL.md`](../JOURNAL.md) | Qu'est-ce qui a changé, et est-ce que ça me concerne ? |
 
 Le schéma et la taxonomie vivent sous `skills/` parce qu'un agent les lit aussi,
 et qu'une seule copie partagée par deux lecteurs ne peut pas diverger d'elle-même.

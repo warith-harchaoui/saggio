@@ -1,5 +1,7 @@
 # Changelog
 
+[🇫🇷 JOURNAL.md](JOURNAL.md) · 🇬🇧 English
+
 This project follows [semantic versioning](https://semver.org/). The cost-model
 schema is versioned separately, in its own `schema_version` field: within a major
 line it only grows, so a model written today keeps validating against every later
@@ -1189,9 +1191,9 @@ was honest per row before it was honest per column.
   counts them apart. Apple Silicon has always counted the processor cores, the
   graphics cores, the neural engine and the memory separately, and this package
   was adding them up and throwing the split away.
-- `power_by_domain()` draws that split in the HTML report — the only figure in a
-  saggio report that is measured rather than modelled, each bar read off its own
-  counter. The donut of estimated shares this replaces would have been easier to
+- `power_by_domain()` draws that split in the HTML report, the only figure in
+  one of these reports that is measured rather than modelled, each bar read off
+  its own counter. The donut of estimated shares this replaces would have been easier to
   draw and would have been a picture of an assumption.
 
 ## 1.2.0 — 2026-10-01

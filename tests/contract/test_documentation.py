@@ -187,9 +187,10 @@ def test_the_embodied_counts_the_documents_quote_are_the_catalogue_s_own() -> No
     except where they were read: a statement the repository makes about itself
     on a surface nobody re-reads.
 
-    `CHANGELOG.md` is deliberately not scanned. Its old entries say "seven
-    footprints" and should go on saying it: they describe a release where that
-    was true, and a history rewritten to agree with today is not a history.
+    `CHANGELOG.md` and its French half `JOURNAL.md` are deliberately not
+    scanned. Their old entries say "seven footprints" and should go on saying
+    it: they describe a release where that was true, and a history rewritten to
+    agree with today is not a history.
     """
     import yaml
 
@@ -206,7 +207,7 @@ def test_the_embodied_counts_the_documents_quote_are_the_catalogue_s_own() -> No
     pages = sorted(
         path
         for path in ROOT.glob("*.md")
-        if path.name != "CHANGELOG.md"
+        if path.name not in {"CHANGELOG.md", "JOURNAL.md"}
         and _FOOTPRINT_CLAIM.search(" ".join(path.read_text("utf-8").split()))
     )
     assert len(pages) >= 6, (
@@ -268,6 +269,7 @@ BILINGUAL_PAIRS: list[tuple[str, str]] = [
     ("ANALYSIS.md", "ANALYSE.md"),
     ("STANDARDS.md", "NORMES.md"),
     ("INVENTORY.md", "INVENTAIRE.md"),
+    ("CHANGELOG.md", "JOURNAL.md"),
     ("TRIGGERS.md", "DECLENCHEURS.md"),
     ("USING.md", "UTILISER.md"),
     ("docs/README.md", "docs/LISEZMOI.md"),
@@ -276,7 +278,6 @@ BILINGUAL_PAIRS: list[tuple[str, str]] = [
 #: Pages written once on purpose, each with the reason, so that adding a new page
 #: is a decision about both languages rather than an oversight in one.
 MONOLINGUAL_ON_PURPOSE: dict[str, str] = {
-    "CHANGELOG.md": "a log of releases, read by the person who wrote the release",
     "CODING.md": "the house rules for source code, which is written in English",
     "docs/api.md": "generated from the docstrings, which are written in English",
 }
