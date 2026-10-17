@@ -1,5 +1,7 @@
 # Triggers
 
+[🇫🇷 DECLENCHEURS.md](DECLENCHEURS.md) · 🇬🇧 English
+
 What `saggio` is for, and the phrasings, commands, files, and
 questions that should reach for it. Written for a person deciding whether this is
 the right tool, and for an agent deciding whether to invoke the

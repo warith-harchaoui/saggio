@@ -53,6 +53,10 @@ release of that line.
   wholesale, which swallowed the adjacent question it does answer. A whole
   inventory is still somebody else's job; where the software's own figure
   belongs in one is not the same question and no longer shares its refusal.
+- That page also had no French half, which for the audience it was just widened
+  to reach was the wrong half to be missing. [`DECLENCHEURS.md`](DECLENCHEURS.md)
+  is it, carrying both vocabularies on purpose: a French team reading it still
+  sees the English phrasings its own engineers will type.
 
 
 ### macOS is back in the gate, and it found something on its first run

@@ -143,7 +143,7 @@ bonne réponse.
 
 Ses déclencheurs sont la partie qu'il vaut le plus la peine de soigner, car un
 skill qui ne se charge pas est un skill qui n'existe pas.
-[`TRIGGERS.md`](TRIGGERS.md) liste les formulations qui doivent l'atteindre, dans
+[`DECLENCHEURS.md`](DECLENCHEURS.md) liste les formulations qui doivent l'atteindre, dans
 le vocabulaire des équipes techniques comme dans celui des équipes RSE, et celles
 qui ne le doivent pas. Les évaluations à côté du skill fixent les deux moitiés.
 

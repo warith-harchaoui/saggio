@@ -12,7 +12,7 @@ main sauf [`api.md`](api.md), qui est dérivé des docstrings.
 | [`../LISEZMOI.md`](../LISEZMOI.md) | Qu'est-ce que c'est, et pourquoi est-ce bâti ainsi ? |
 | [`../EXEMPLES.md`](../EXEMPLES.md) | Comment je fais ce pour quoi je suis venu ? |
 | [`../GALERIE.md`](../GALERIE.md) | Que dit-il vraiment sur de vrais dépôts ? |
-| [`../TRIGGERS.md`](../TRIGGERS.md) | Est-ce le bon outil pour ce que je demande ? (en anglais) |
+| [`../DECLENCHEURS.md`](../DECLENCHEURS.md) | Est-ce le bon outil pour ce que je demande ? |
 | [`../UTILISER.md`](../UTILISER.md) | Comment l'atteindre depuis un script, un terminal, un navigateur, un agent ou Claude ? |
 | [`../PAYSAGE.md`](../PAYSAGE.md) | Que vaut-il face à CodeCarbon, Scaphandre et les autres ? |
 | [`../MESURER.md`](../MESURER.md) | Quels compteurs cette machine me laissera-t-elle lire, et que couvrent-ils ? |

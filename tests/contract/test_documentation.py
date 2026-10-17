@@ -28,6 +28,7 @@ DOCUMENTS = [
     "MEASURING.md",
     "MESURER.md",
     "TRIGGERS.md",
+    "DECLENCHEURS.md",
     "GALLERY.md",
     "GALERIE.md",
     "USING.md",
@@ -267,6 +268,7 @@ BILINGUAL_PAIRS: list[tuple[str, str]] = [
     ("ANALYSIS.md", "ANALYSE.md"),
     ("STANDARDS.md", "NORMES.md"),
     ("INVENTORY.md", "INVENTAIRE.md"),
+    ("TRIGGERS.md", "DECLENCHEURS.md"),
     ("USING.md", "UTILISER.md"),
     ("docs/README.md", "docs/LISEZMOI.md"),
 ]
@@ -276,7 +278,6 @@ BILINGUAL_PAIRS: list[tuple[str, str]] = [
 MONOLINGUAL_ON_PURPOSE: dict[str, str] = {
     "CHANGELOG.md": "a log of releases, read by the person who wrote the release",
     "CODING.md": "the house rules for source code, which is written in English",
-    "TRIGGERS.md": "addressed to agents, whose working language here is English",
     "docs/api.md": "generated from the docstrings, which are written in English",
 }
 
