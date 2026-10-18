@@ -33,6 +33,7 @@ from collections import Counter
 from typing import Any, Final
 from urllib.parse import quote
 
+from ..analyze.power import measurement_rows
 from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE, equivalences
 from ..estimate.ghg import (
     GHG_EMISSIONS,
@@ -1048,11 +1049,7 @@ def _measurement_section(model: CostModel) -> list[str]:
     command = measurement.get("command")
     if isinstance(command, list):
         lines += ["```", " ".join(str(part) for part in command), "```", ""]
-    rows = [
-        [_escape(key.replace("_", " ")), _escape(value)]
-        for key, value in measurement.items()
-        if key not in {"command", "hot_path", "warnings"} and not isinstance(value, (dict, list))
-    ]
+    rows = [[_escape(label), _escape(value)] for label, value in measurement_rows(measurement)]
     if rows:
         lines += [_table(["", ""], rows), ""]
 

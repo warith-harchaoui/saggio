@@ -16,8 +16,9 @@ from pathlib import Path
 import pytest
 import yaml
 
-from saggio.analyze.power import idle_exclusion, states_idle_is_excluded
+from saggio.analyze.power import idle_exclusion, measurement_rows, states_idle_is_excluded
 from saggio.model import CostModel, validate
+from saggio.report import render_markdown
 
 ROOT = Path(__file__).resolve().parents[2]
 EXAMPLES = ROOT / "examples"
@@ -322,3 +323,27 @@ def test_a_measured_power_figure_names_both_of_its_boundaries(model: str) -> Non
         f"{model} states a measured wattage without saying how much of the "
         f"metered hardware was this run"
     )
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_the_report_shows_every_field_of_the_measurement_block(model: str) -> None:
+    # Both reports used to render this block by printing every scalar and
+    # skipping anything nested. Three fields are nested, and all three mattered:
+    # the share that justifies the attributed figure printed above it, which
+    # counters answered, and the per-subsystem split — the only measured split
+    # in the report. The Markdown report, which the gallery commits beside every
+    # model, showed none of them.
+    data = yaml.safe_load((ROOT / model).read_text(encoding="utf-8"))
+    measurement = data.get("measurement")
+    if not isinstance(measurement, dict) or not measurement:
+        return
+    rendered = render_markdown(CostModel.from_mapping(data))
+    rows = measurement_rows(measurement)
+    # Every field the block carries becomes a labelled row, and every labelled
+    # row reaches the page. A field added to to_mapping() that no surface shows
+    # fails here rather than sitting unread in every committed model.
+    unlabelled = [key for key in measurement if key not in {"command", "hot_path", "warnings"}]
+    assert len(rows) == len(unlabelled), f"{model}: {len(unlabelled) - len(rows)} field(s) dropped"
+    for label, value in rows:
+        assert label in rendered, f"{model}: the report never shows {label!r}"
+        assert str(value).split(" (")[0][:40] in rendered, f"{model}: {label!r} has no value"

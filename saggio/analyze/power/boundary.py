@@ -313,3 +313,122 @@ def states_idle_is_excluded(line: str) -> bool:
     if not is_idle_claim(line):
         return False
     return INCLUDED_MARKER not in line.strip().lower()
+
+
+#: How each field of a measurement block is labelled and what unit it carries.
+#: A block is written once and read on four surfaces; a bare ``2.65`` under the
+#: heading "attributed watts" is a number a reader has to guess the meaning of,
+#: and the guess they make is that it is the figure the costs used.
+_FIELD_LABELS: Final[dict[str, tuple[str, str]]] = {
+    "exit_code": ("exit code", ""),
+    "measured_on": ("measured on", ""),
+    "power_scope": ("what the counters cover", ""),
+    "cpu_seconds": ("processor-seconds used by the run", " s"),
+    "idle_watts": ("machine at rest before the slice", " W"),
+    "power_note": ("subtracting that floor", ""),
+    "attributed_watts": ("attributable to the run", " W"),
+    "attributed_scope": ("what the attributable figure covers", ""),
+    "truncated": ("cut short by the timeout", ""),
+}
+
+#: Rendered separately by both reports: the command as a code block, the profile
+#: as its own table, the warnings as a list.
+_RENDERED_ELSEWHERE: Final[frozenset[str]] = frozenset({"command", "hot_path", "warnings"})
+
+_DOMAIN_LABELS: Final[dict[str, str]] = {
+    "cpu": "processor cores",
+    "gpu": "graphics cores",
+    "ane": "neural engine",
+    "memory": "memory",
+}
+
+
+def measurement_rows(
+    measurement: Mapping[str, Any] | None, *, skip: tuple[str, ...] = ()
+) -> list[tuple[str, str]]:
+    """Return a measurement block as labelled rows, in the order it was written.
+
+    Both reports used to render this block with one comprehension that printed
+    every scalar and skipped anything nested. Three fields are nested, and all
+    three are the ones a reader needs: ``cpu_share`` — the share that is the
+    entire justification for the attributed figure printed above it —
+    ``power_sources``, and ``power_by_domain``, the only split in a report that
+    is measured rather than modelled. The Markdown report, which is what the
+    gallery commits beside every model, showed none of them.
+
+    Parameters
+    ----------
+    measurement : Mapping or None
+        The block, as :meth:`saggio.analyze.run.SliceResult.to_mapping` writes it.
+    skip : tuple of str, optional
+        Keys a caller renders some other way. The HTML report draws
+        ``power_by_domain`` as a figure and passes it here.
+
+    Returns
+    -------
+    list of tuple
+        ``(label, value)`` pairs, both already strings.
+
+    Examples
+    --------
+    >>> measurement_rows({"attributed_watts": 2.65})
+    [('attributable to the run', '2.65 W')]
+    >>> measurement_rows({"cpu_share": {"share": 0.147}})
+    [("the run's share of the machine's processor work", '14.7%')]
+    >>> measurement_rows({"power_sources": ["system-on-chip", "memory"]})
+    [('counters that answered', 'system-on-chip, memory')]
+    """
+    if not isinstance(measurement, Mapping):
+        return []
+    rows: list[tuple[str, str]] = []
+    for key, value in measurement.items():
+        if key in _RENDERED_ELSEWHERE or key in skip:
+            continue
+        if key == "cpu_share":
+            row = _share_row(value)
+        elif key == "power_by_domain":
+            row = _domain_row(value)
+        elif key == "power_sources":
+            row = _sources_row(value)
+        elif isinstance(value, (dict, list)):
+            # A block this module does not know how to label is still shown,
+            # because the alternative is what this function exists to undo.
+            row = (str(key).replace("_", " "), str(value))
+        else:
+            label, unit = _FIELD_LABELS.get(key, (str(key).replace("_", " "), ""))
+            row = (label, f"{value}{unit}")
+        if row is not None:
+            rows.append(row)
+    return rows
+
+
+def _share_row(value: Any) -> tuple[str, str] | None:
+    """Return the processor-work share as one labelled row, or ``None``."""
+    if not isinstance(value, Mapping):
+        return None
+    share = _number(value.get("share"))
+    if share is None:
+        return None
+    run = _number(value.get("run_cpu_seconds"))
+    machine = _number(value.get("machine_cpu_seconds"))
+    detail = f" ({run:g} s of the machine's {machine:g} s)" if run and machine else ""
+    return ("the run's share of the machine's processor work", f"{share:.1%}{detail}")
+
+
+def _domain_row(value: Any) -> tuple[str, str] | None:
+    """Return the per-subsystem split as one labelled row, or ``None``."""
+    if not isinstance(value, Mapping) or not value:
+        return None
+    parts = [
+        f"{_DOMAIN_LABELS.get(str(key), str(key))} {number:g} W"
+        for key, raw in value.items()
+        if (number := _number(raw)) is not None
+    ]
+    return ("where the power went, by counter", ", ".join(parts)) if parts else None
+
+
+def _sources_row(value: Any) -> tuple[str, str] | None:
+    """Return which counters answered as one labelled row, or ``None``."""
+    if not isinstance(value, (list, tuple)) or not value:
+        return None
+    return ("counters that answered", ", ".join(str(item) for item in value))

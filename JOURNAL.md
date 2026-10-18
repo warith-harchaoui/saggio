@@ -59,6 +59,16 @@ cette ligne.
 - [`LANDSCAPE.md`](LANDSCAPE.md) / [`PAYSAGE.md`](PAYSAGE.md) : le manque « rien
   n'est attribué à un processus » dit maintenant ce qui *est* enregistré, et que
   les coûts utilisent toujours la valeur entière.
+- **Les deux rapports rendaient le bloc de mesure en imprimant chaque scalaire
+  et en sautant tout ce qui était imbriqué.** Trois champs sont imbriqués, et
+  tous trois étaient ceux dont un lecteur a besoin : la part qui justifie à elle
+  seule la valeur attribuable imprimée juste au-dessus, les compteurs qui ont
+  répondu, et la répartition par sous-système — la seule répartition mesurée du
+  rapport. Le rapport Markdown, commité à côté de chaque modèle de la galerie,
+  n'en montrait aucun, et les scalaires qu'il montrait arrivaient sans unité
+  (`attributed watts | 2.65`). Les deux rapports prennent désormais des lignes
+  étiquetées d'une seule fonction, et un test de contrat échoue quand un champ
+  du bloc n'atteint pas la page.
 
 ### La ligne énergie d'un dossier au titre du règlement IA
 

@@ -41,6 +41,7 @@ from typing import Any, Final
 
 import yaml
 
+from ..analyze.power import measurement_rows
 from ..catalog.registry import Catalog
 from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE
 from ..estimate.ghg import GHG_EMISSIONS, market_based_figure_exists, placements
@@ -949,10 +950,10 @@ def _measurement_section(model: CostModel) -> str:
         blocks.append(
             "<pre><code>" + _escape(" ".join(str(part) for part in command)) + "</code></pre>"
         )
+    # power_by_domain is drawn below as a figure, so it is not also a row here.
     rows = [
-        f"<tr><td>{_escape(str(key).replace('_', ' '))}</td><td>{_escape(value)}</td></tr>"
-        for key, value in measurement.items()
-        if key not in {"command", "hot_path", "warnings"} and not isinstance(value, (dict, list))
+        f"<tr><td>{_escape(label)}</td><td>{_escape(value)}</td></tr>"
+        for label, value in measurement_rows(measurement, skip=("power_by_domain",))
     ]
     if rows:
         blocks.append(_table(["", ""], rows, widths=[30, 70]))

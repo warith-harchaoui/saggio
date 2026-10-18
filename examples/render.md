@@ -143,12 +143,15 @@ for _ in range(50):
 |---|---|
 | exit code | 0 |
 | measured on | 2026-10-18 |
-| power scope | The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses. |
-| cpu seconds | 1.3482 |
-| idle watts | 9.89 |
-| power note | Machine at rest before the slice: 9.9 W. Subtracting it gives 11.4 W as the slice's own draw, which holds only if the rest of the machine did the same thing during the run as it did just before it. |
-| attributed watts | 2.65 |
-| attributed scope | the processor cores alone, which is the only part a share of processor work can price |
+| what the counters cover | The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses. |
+| counters that answered | system-on-chip, memory |
+| processor-seconds used by the run | 1.3482 s |
+| machine at rest before the slice | 9.89 W |
+| subtracting that floor | Machine at rest before the slice: 9.9 W. Subtracting it gives 11.4 W as the slice's own draw, which holds only if the rest of the machine did the same thing during the run as it did just before it. |
+| where the power went, by counter | processor cores 18.04 W, graphics cores 0.636 W, neural engine 0 W, memory 2.617 W |
+| the run's share of the machine's processor work | 14.7% (1.348 s of the machine's 9.18 s) |
+| attributable to the run | 2.65 W |
+| what the attributable figure covers | the processor cores alone, which is the only part a share of processor work can price |
 
 Read these before trusting the numbers above:
 

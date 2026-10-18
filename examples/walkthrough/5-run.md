@@ -87,10 +87,14 @@ How well founded these are: 1 `TODO`, 1 `estimated`. A sustainability disclosure
 |---|---|
 | exit code | 0 |
 | measured on | 2026-10-01 |
-| power scope | The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses. |
-| cpu seconds | 0.4714 |
-| attributed watts | 2.88 |
-| attributed scope | the processor cores alone, which is the only part a share of processor work can price |
+| what the counters cover | The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses. |
+| counters that answered | system-on-chip, memory |
+| processor-seconds used by the run | 0.4714 s |
+| where the power went, by counter | processor cores 28.525 W, graphics cores 0.123 W, neural engine 0 W, memory 3.234 W |
+| the run's share of the machine's processor work | 10.1% (0.471 s of the machine's 4.67 s) |
+| attributable to the run | 2.88 W |
+| what the attributable figure covers | the processor cores alone, which is the only part a share of processor work can price |
+| scaling | {'method': 'Least squares of log(seconds) on log(size) over 3 runs: seconds = 0.007966 × size^0.687.', 'reading': 'The work grew more slowly than the size, by a power of 0.69. Over these sizes the run is dominated by costs that do not grow with the job — start-up, imports, loading a model — so the slices are mostly measuring overhead and a projection from them would overstate the whole run.', 'exponent': {'value': 0.6868470626474811, 'status': 'measured', 'unit': 'exponent', 'notes': 'Fitted over 3 runs of sizes 25 to 400, R² = 0.999.'}, 'r_squared': 0.999494, 'observations': [{'size': 25.0, 'seconds': 0.07358683299389668}, {'size': 100.0, 'seconds': 0.18373870798677672}, {'size': 400.0, 'seconds': 0.4941358750074869}], 'limits': ['The exponent was measured between sizes 25 and 400. Outside that range it is an extrapolation like any other.', 'A cost that changes shape partway through a real run — a learning-rate schedule that changes batch size, a dataset that stops fitting in memory — is not visible in slices that all ran before it.']} |
 
 ## Projections
 

@@ -51,6 +51,15 @@ release of that line.
 - [`LANDSCAPE.md`](LANDSCAPE.md) / [`PAYSAGE.md`](PAYSAGE.md): the "nothing is
   attributed to a process" gap now says what *is* recorded, and that the costs
   still use the whole figure.
+- **Both reports rendered the measurement block by printing every scalar and
+  skipping anything nested.** Three fields are nested, and all three were the
+  ones a reader needs: the share that is the entire justification for the
+  attributed figure printed above it, which counters answered, and the
+  per-subsystem split — the only measured split in the report. The Markdown
+  report, committed beside every model in the gallery, showed none of them, and
+  the scalars it did show arrived without units (`attributed watts | 2.65`).
+  Both reports now take labelled rows from one function, and a contract test
+  fails when a field of the block never reaches the page.
 
 ### The energy line of an EU AI Act filing
 

@@ -88,6 +88,7 @@ from .boundary import (
     INCLUDED_MARKER,
     idle_exclusion,
     is_idle_claim,
+    measurement_rows,
     states_idle_is_excluded,
     workload_scope,
 )
@@ -139,6 +140,7 @@ __all__ = [
     "read_package_energy_microjoules",
     "idle_exclusion",
     "is_idle_claim",
+    "measurement_rows",
     "states_idle_is_excluded",
     "unavailable_reason",
     "workload_scope",
