@@ -9,6 +9,38 @@ release of that line.
 
 ## Unreleased
 
+### The drift gate now reads the noise the models measured
+
+- `saggio diff` gated a release at ten per cent against numbers whose own
+  measurement block said they move by a hundred. **It had the evidence in both
+  files it was comparing and read neither.** Two five-run measurements of
+  unchanged code, one after the other on one laptop, used to fail six changes;
+  they now fail **none**, with eight reported as inside the ranges the two
+  models themselves recorded.
+- It still fails when the evidence says something moved. The same new model
+  against an older one measured *once* fails, because that single value sits
+  outside the range the five runs spanned.
+- A derived figure's band is the product of the bands it derives from, found by
+  walking `derived_from` backwards — exact while each step is proportional to
+  its inputs, which is how every cost in a model is built. A figure that
+  reaches no measured range gets no band and is gated exactly as before, so
+  nothing changes for a model that repeated nothing.
+- **The bands only ever excuse the threshold.** A weakened status, a weakened
+  provenance, a changed unit or currency, or a deleted quantity still fails
+  whatever the noise says.
+- Excused *visibly*: the line names both ranges, and the summary counts them —
+  a release waved through by a hundred-per-cent band should show the reader the
+  band. The JSON surface carries `within_noise`, `noise_before`, `noise_after`
+  and `excused_by_noise`.
+- **A projection's band is linked in code, not in the model.** Giving a
+  projection a `derived_from` was tried first and the validator refused it
+  with the right reason — *states 18000000.0 but does not follow from
+  scenarios[0].costs.time* — because a projection divides by a fraction nobody
+  named. `derived_from` claims a value **follows arithmetically** from its
+  inputs; a band needs only **proportionality**, which is the weaker claim a
+  division by a constant actually supports. The stronger claim would have been
+  false in eleven committed models.
+
 ### One run bounds nothing, and the two figures do not behave the same way
 
 - `saggio measure --repeat N` runs the command N times and reports the spread.

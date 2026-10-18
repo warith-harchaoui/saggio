@@ -10,6 +10,40 @@ cette ligne.
 
 ## Non publié
 
+### La porte de dérive lit désormais le bruit que les modèles ont mesuré
+
+- `saggio diff` arbitrait une publication à dix pour cent contre des nombres
+  dont le bloc de mesure disait qu'ils bougent de cent. **Il avait la preuve
+  dans les deux fichiers qu'il comparait et n'en lisait aucune.** Deux mesures
+  à cinq exécutions d'un code inchangé, l'une après l'autre sur un portable,
+  faisaient échouer six changements ; elles n'en font plus échouer **aucun**,
+  avec huit rapportés comme tenant dans les étendues que les deux modèles ont
+  eux-mêmes enregistrées.
+- Elle échoue toujours quand la preuve dit que quelque chose a bougé : le même
+  modèle neuf contre un plus ancien mesuré *une seule fois* échoue, parce que
+  cette valeur unique tombe hors de l'étendue couverte par les cinq exécutions.
+- L'intervalle d'une valeur dérivée est le produit de ceux dont elle dérive,
+  trouvé en remontant `derived_from` — exact tant que chaque étape est
+  proportionnelle à ses entrées, ce qui est la façon dont tout coût d'un modèle
+  est construit. Une valeur qui n'atteint aucune étendue mesurée n'a pas
+  d'intervalle et reste arbitrée comme avant.
+- **Les intervalles n'excusent jamais que le seuil.** Un statut affaibli, une
+  provenance affaiblie, une unité ou une devise changée, une quantité supprimée
+  échouent quel que soit le bruit.
+- Excusé **visiblement** : la ligne nomme les deux étendues et le résumé les
+  compte — une publication laissée passer par un intervalle de cent pour cent
+  doit montrer l'intervalle au lecteur. La surface JSON porte `within_noise`,
+  `noise_before`, `noise_after` et `excused_by_noise`.
+- **L'intervalle d'une projection est relié dans le code, pas dans le modèle.**
+  Donner un `derived_from` à une projection a été essayé d'abord et le
+  validateur l'a refusé avec la bonne raison — *states 18000000.0 but does not
+  follow from scenarios[0].costs.time* — parce qu'une projection divise par une
+  fraction que personne n'a nommée. `derived_from` affirme qu'une valeur
+  **suit arithmétiquement** de ses entrées ; un intervalle n'a besoin que de la
+  **proportionnalité**, la seule chose qu'une division par une constante
+  soutienne réellement. L'affirmation la plus forte aurait été fausse dans onze
+  modèles commités.
+
 ### Une seule exécution ne borne rien, et les deux figures ne se comportent pas pareil
 
 - `saggio measure --repeat N` exécute la commande N fois et rapporte l'écart.

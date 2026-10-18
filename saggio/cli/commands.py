@@ -742,11 +742,19 @@ def difference(args: argparse.Namespace) -> int:
         if not comparison.changes:
             print("Nothing changed.")
         for change in comparison.changes:
-            print(change.describe())
+            print(change.describe(threshold_percent=args.threshold))
         breaches = comparison.breaches()
+        excused = comparison.excused()
+        tail = (
+            f" {len(excused)} inside the noise the models measured."
+            # Said out loud rather than silently subtracted: a release excused
+            # by a hundred-per-cent band should show the reader the band.
+            if excused
+            else ""
+        )
         print(
             f"{len(comparison.changes)} change(s), {len(breaches)} past the "
-            f"{args.threshold:g}% gate."
+            f"{args.threshold:g}% gate.{tail}"
         )
     return OK if comparison.passes() else INVALID
 

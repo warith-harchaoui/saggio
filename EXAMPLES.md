@@ -855,6 +855,31 @@ model now knows less than it did even when the number is identical. And a quanti
 that disappeared, because the usual way a cost stops being reported is that
 somebody deleted the field.
 
+**And a fourth thing it no longer fails on.** When both models carry a
+`--repeat` spread, a movement that fits inside the ranges they each measured is
+not evidence that anything changed, and the gate says so instead of failing:
+
+```
+scenarios[0].costs.carbon: 8.27e-06 -> 1.85e-05 (+123.6%), inside the noise both
+  models measured: 7.342e-06 to 1.973e-05, then 1.759e-05 to 1.915e-05, worse
+11 change(s), 0 past the 10% gate. 8 inside the noise the models measured.
+```
+
+That is two five-run measurements of **unchanged code**, one after the other on
+one laptop. Before the gate could read the spread it failed six of them. It
+still fails when the evidence says something moved: the same new model against
+an older one measured *once* fails, because that single value sits outside the
+range the five runs spanned.
+
+The band of a derived figure is the product of the bands it was derived from,
+found by walking `derived_from` backwards — exact while each step is
+proportional to its inputs, which is how every cost in a model is built. A
+figure that reaches no measured range gets no band and is gated as it always
+was, so nothing changes for a model that repeated nothing. And the bands only
+ever excuse the threshold: a weakened status, a weakened provenance, or a
+deleted quantity still fails whatever the noise.
+
+
 ## The catalogues
 
 ```bash

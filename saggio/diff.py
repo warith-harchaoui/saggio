@@ -39,6 +39,7 @@ from dataclasses import dataclass, field
 from typing import Any, Final
 
 from .model.cost_model import CostModel
+from .model.noise import Band, band_for
 from .model.quantity import Quantity, source_strength
 from .model.results import Report
 from .model.taxonomy import status_strength
@@ -57,6 +58,37 @@ _COSTS_SEGMENT: Final[str] = ".costs."
 #: ``TODO`` gaining a measurement is the most ordinary good change there is, and
 #: it has a side with nothing in it, so both sides are rendered through this.
 _NO_NUMBER: Final[str] = "no number"
+
+
+def _point(quantity: Quantity | None) -> Band | None:
+    """Return a quantity's value as a zero-width band, or ``None``.
+
+    A side that repeated nothing still has a position. Treating it as its own
+    value twice over lets one overlap test answer both the two-sided question
+    and the one-sided one, instead of two rules that could disagree.
+
+    Parameters
+    ----------
+    quantity : Quantity or None
+        One side of a change.
+
+    Returns
+    -------
+    Band or None
+        The point, or ``None`` when there is no number to place.
+
+    Examples
+    --------
+    >>> _point(Quantity(value=3.0, status="measured")).low
+    3.0
+    >>> _point(None) is None
+    True
+    """
+    if quantity is None or not isinstance(quantity.value, (int, float)):
+        return None
+    if isinstance(quantity.value, bool):
+        return None
+    return Band(float(quantity.value), float(quantity.value))
 
 
 def _rendered(value: float | int | None) -> str:
@@ -101,6 +133,13 @@ class Change:
         zero means nothing.
     worse : bool
         Whether the change is in the direction the dimension calls a regression.
+    noise_before : Band or None, optional
+        The range repeated measurement left around this figure in the earlier
+        model, when it repeated anything.
+    noise_after : Band or None, optional
+        The same for the later model. Two overlapping ranges mean a second draw
+        from each measurement could have produced both numbers, so the movement
+        between them is not evidence that anything changed.
 
     Examples
     --------
@@ -113,6 +152,76 @@ class Change:
     after: Quantity | None
     percent_change: float | None
     worse: bool
+    noise_before: Band | None = None
+    noise_after: Band | None = None
+
+    def within_noise(self) -> bool:
+        """Return whether the movement fits inside the ranges both sides measured.
+
+        A side that repeated nothing is its own value twice over, so this one
+        test covers the case where only one of the two was repeated: the
+        question becomes whether the other's number falls inside the range the
+        repeated one actually saw.
+
+        Returns
+        -------
+        bool
+            ``True`` when at least one side recorded a range and the two
+            overlap. ``False`` when neither did, which leaves the fixed
+            threshold in charge exactly as before.
+
+        Examples
+        --------
+        >>> wide = Band(1.0, 5.0, ("the power",))
+        >>> Change("p", None, None, 300.0, True, wide, Band(4.0, 4.0)).within_noise()
+        True
+        >>> Change("p", None, None, 300.0, True, wide, Band(9.0, 9.0)).within_noise()
+        False
+        >>> Change("p", None, None, 300.0, True).within_noise()
+        False
+        """
+        if self.noise_before is None and self.noise_after is None:
+            return False
+        before = self.noise_before or _point(self.before)
+        after = self.noise_after or _point(self.after)
+        if before is None or after is None:
+            return False
+        return before.overlaps(after)
+
+    def noise_phrase(self) -> str:
+        """Return what to say about the ranges, or an empty string.
+
+        Returns
+        -------
+        str
+            A clause naming both measured ranges, so a movement excused by
+            noise is excused *visibly* and a reader can see how wide the
+            excuse was.
+
+        Examples
+        --------
+        >>> Change("p", None, None, None, False,
+        ...        Band(1.0, 5.0, ("the power",)), Band(2.0, 6.0, ("the power",))
+        ...        ).noise_phrase()
+        'inside the noise both models measured: 1 to 5, then 2 to 6'
+        """
+        before, after = self.noise_before, self.noise_after
+        if before is None and after is None:
+            return ""
+        if before is not None and after is not None:
+            return (
+                f"inside the noise both models measured: "
+                f"{before.low:.4g} to {before.high:.4g}, then "
+                f"{after.low:.4g} to {after.high:.4g}"
+            )
+        measured = before if before is not None else after
+        side = "the earlier" if before is not None else "the later"
+        if measured is None:
+            return ""
+        return (
+            f"inside the noise {side} model measured: "
+            f"{measured.low:.4g} to {measured.high:.4g}"
+        )
 
     def units_mismatch(self) -> bool:
         """Return whether the two sides are not even in the same unit or money.
@@ -217,8 +326,16 @@ class Change:
             return False
         return source_strength(self.after.source_kind) < source_strength(self.before.source_kind)
 
-    def describe(self) -> str:
+    def describe(self, *, threshold_percent: float | None = None) -> str:
         """Return one line saying what changed.
+
+        Parameters
+        ----------
+        threshold_percent : float or None, optional
+            The gate this change is being held to. Given it, the measured
+            noise is mentioned only where it decides the verdict: a figure
+            that moved two per cent was never going to breach, and saying it
+            fits inside a band is clutter on a line nobody was worried about.
 
         Returns
         -------
@@ -258,6 +375,12 @@ class Change:
             parts.append(f"{before.status} -> {after.status}")
         if self.provenance_weakened() and before is not None and after is not None:
             parts.append(f"{before.source_kind or 'no source kind'} -> {after.source_kind}")
+        decisive = threshold_percent is None or (
+            self.percent_change is not None
+            and abs(self.percent_change) > threshold_percent
+        )
+        if self.worse and decisive and self.within_noise():
+            parts.append(self.noise_phrase())
         detail = ", ".join(parts) or "changed"
         return f"{self.path}: {detail}" + (", worse" if self.worse else "")
 
@@ -313,6 +436,12 @@ class Comparison:
                 change.worse
                 and change.percent_change is not None
                 and abs(change.percent_change) > self.threshold_percent
+                # A movement between two numbers that each measurement could
+                # have produced is not evidence that anything changed. The
+                # gate had this evidence in both files it was comparing and
+                # read neither, so it fired on every re-measurement and could
+                # not tell a regression from a noisy neighbour.
+                and not change.within_noise()
             ):
                 failing.append(change)
             elif (
@@ -324,6 +453,33 @@ class Comparison:
             elif change.provenance_weakened():
                 failing.append(change)
         return failing
+
+    def excused(self) -> list[Change]:
+        """Return the changes the measured noise accounts for.
+
+        These are movements past the threshold that the two models' own
+        repeated measurements could have produced. They are reported, not
+        hidden: a release excused by a hundred-per-cent band should show the
+        reader the band.
+
+        Returns
+        -------
+        list of Change
+            The excused changes, in document order.
+
+        Examples
+        --------
+        >>> Comparison().excused()
+        []
+        """
+        return [
+            change
+            for change in self.changes
+            if change.worse
+            and change.percent_change is not None
+            and abs(change.percent_change) > self.threshold_percent
+            and change.within_noise()
+        ]
 
     def passes(self) -> bool:
         """Return whether the comparison clears the gate.
@@ -356,10 +512,11 @@ class Comparison:
         report = Report()
         breaching = {id(change) for change in self.breaches()}
         for change in self.changes:
+            spoken = change.describe(threshold_percent=self.threshold_percent)
             if id(change) in breaching:
-                report.error(change.path, change.describe().split(": ", 1)[-1])
+                report.error(change.path, spoken.split(": ", 1)[-1])
             else:
-                report.warning(change.path, change.describe().split(": ", 1)[-1])
+                report.warning(change.path, spoken.split(": ", 1)[-1])
         return report
 
     def to_mapping(self) -> dict[str, Any]:
@@ -378,6 +535,7 @@ class Comparison:
         return {
             "passes": self.passes(),
             "threshold_percent": self.threshold_percent,
+            "excused_by_noise": len(self.excused()),
             "changes": [
                 {
                     "path": change.path,
@@ -385,7 +543,14 @@ class Comparison:
                     "after": change.after.to_mapping() if change.after else None,
                     "percent_change": change.percent_change,
                     "worse": change.worse,
-                    "description": change.describe(),
+                    "within_noise": change.within_noise(),
+                    "noise_before": (
+                        change.noise_before.to_mapping() if change.noise_before else None
+                    ),
+                    "noise_after": (
+                        change.noise_after.to_mapping() if change.noise_after else None
+                    ),
+                    "description": change.describe(threshold_percent=self.threshold_percent),
                 }
                 for change in self.changes
             ],
@@ -523,7 +688,15 @@ def compare(
         )
         worse = mismatched or _is_worse(path, later, percent) or (old is not None and new is None)
         changes.append(
-            Change(path=path, before=old, after=new, percent_change=percent, worse=worse)
+            Change(
+                path=path,
+                before=old,
+                after=new,
+                percent_change=percent,
+                worse=worse,
+                noise_before=band_for(earlier, path),
+                noise_after=band_for(later, path),
+            )
         )
 
     return Comparison(changes=changes, threshold_percent=threshold_percent)

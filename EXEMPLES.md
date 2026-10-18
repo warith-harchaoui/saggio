@@ -880,6 +880,34 @@ le modèle en sait désormais moins qu'avant même quand le chiffre est identiqu
 une quantité qui a disparu, parce que la façon habituelle dont un coût cesse
 d'être rapporté, c'est que quelqu'un a supprimé le champ.
 
+**Et une quatrième chose sur laquelle il n'échoue plus.** Quand les deux modèles
+portent un écart `--repeat`, un mouvement qui tient dans les étendues qu'ils ont
+chacun mesurées n'est pas la preuve que quelque chose a changé, et la porte le
+dit au lieu d'échouer :
+
+```
+scenarios[0].costs.carbon: 8.27e-06 -> 1.85e-05 (+123.6%), inside the noise both
+  models measured: 7.342e-06 to 1.973e-05, then 1.759e-05 to 1.915e-05, worse
+11 change(s), 0 past the 10% gate. 8 inside the noise the models measured.
+```
+
+Ce sont deux mesures à cinq exécutions d'un **code inchangé**, l'une après
+l'autre sur un portable. Avant que la porte sache lire l'écart, elle en faisait
+échouer six. Elle échoue toujours quand la preuve dit que quelque chose a
+bougé : le même modèle neuf contre un plus ancien mesuré **une seule fois**
+échoue, parce que cette valeur unique tombe hors de l'étendue que les cinq
+exécutions ont couverte.
+
+L'intervalle d'une valeur dérivée est le produit des intervalles dont elle
+dérive, trouvé en remontant `derived_from` — exact tant que chaque étape est
+proportionnelle à ses entrées, ce qui est la façon dont tout coût d'un modèle
+est construit. Une valeur qui n'atteint aucune étendue mesurée n'a pas
+d'intervalle et reste arbitrée comme avant : rien ne change pour un modèle qui
+n'a rien répété. Et les intervalles n'excusent jamais que le seuil : un statut
+affaibli, une provenance affaiblie ou une quantité supprimée échouent quel que
+soit le bruit.
+
+
 ## Les catalogues
 
 ```bash
