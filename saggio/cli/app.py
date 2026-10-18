@@ -50,6 +50,7 @@ _HANDLERS: Final[dict[str, Callable[[argparse.Namespace], int]]] = {
     "init": commands.initialise,
     "validate": commands.check,
     "scopes": commands.scopes,
+    "next": commands.next_question,
     "render": commands.render,
     "dashboard": commands.dashboard,
     "audit": commands.audit_command,
@@ -110,6 +111,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_init(verbs)
     _add_validate(verbs)
     _add_scopes(verbs)
+    _add_next(verbs)
     _add_render(verbs)
     _add_dashboard(verbs)
     _add_audit(verbs)
@@ -204,6 +206,23 @@ def _add_scopes(verbs: argparse._SubParsersAction) -> None:
         help="Which scenario's costs to place. The first one when omitted.",
     )
     parser.add_argument("--json", action="store_true", help="Print the placements as JSON.")
+
+
+def _add_next(verbs: argparse._SubParsersAction) -> None:
+    """Register `next`, which ranks the open fields by what answering closes."""
+    described = (
+        "The fields are not independent: a measured runtime closes six figures "
+        "through the derivation chain and a water usage effectiveness closes "
+        "one. This reads `derived_from` backwards and says which to answer "
+        "first, in the words the model already wrote for each field."
+    )
+    parser = verbs.add_parser(
+        "next",
+        help="Say which open question would close the most numbers.",
+        epilog=described,
+    )
+    parser.add_argument("model", help="The cost model to read.")
+    parser.add_argument("--json", action="store_true", help="Print the questions as JSON.")
 
 
 def _add_render(verbs: argparse._SubParsersAction) -> None:

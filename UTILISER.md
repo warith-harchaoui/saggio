@@ -81,6 +81,7 @@ La documentation interactive est alors en `/docs`, et les routes sont :
 |---|---|
 | `GET /health` | Quelle version tourne, et ce que ce déploiement refuse. |
 | `POST /validate` | Ce modèle respecte-t-il les règles, dont celle du maillon faible ? |
+| `POST /next` | Quel champ ouvert fermerait le plus de nombres, et lesquels ? |
 | `POST /scopes` | Sur quelle ligne d'un inventaire de gaz à effet de serre va chaque chiffre ? |
 | `POST /render` | Le rapport, en Markdown ou en page HTML autonome. |
 | `POST /diff` | Ce qui a bougé entre deux modèles, et si la barrière tient. |

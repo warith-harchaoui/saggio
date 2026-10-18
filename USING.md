@@ -80,6 +80,7 @@ The interactive documentation is then at `/docs`, and the routes are:
 |---|---|
 | `GET /health` | Which version is running, and what this deployment will refuse. |
 | `POST /validate` | Does this model obey the rules, including the weakest-link rule? |
+| `POST /next` | Which open field would close the most numbers, and what would it close? |
 | `POST /scopes` | Which line of a greenhouse-gas inventory does each figure go on? |
 | `POST /render` | The report, as Markdown or as a self-contained HTML page. |
 | `POST /diff` | What moved between two models, and did it pass the gate? |

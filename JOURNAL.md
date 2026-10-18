@@ -8,6 +8,30 @@ l'intérieur d'une ligne majeure il ne fait que grandir, si bien qu'un modèle
 écrit aujourd'hui continue de valider contre toutes les versions suivantes de
 cette ligne.
 
+## Non publié
+
+### Le verbe pour la personne qui tient quinze champs ouverts
+
+- Un audit revient avec tous les coûts ouverts, chaque champ portant une phrase
+  sur ce qui le résoudrait, et rien ne disant par lequel commencer. Les champs
+  ne sont pas indépendants : sur l'un des modèles de la galerie, **une question
+  ferme cinq nombres** et quarante-six ne ferment qu'elles-mêmes. Qui travaille
+  de haut en bas passe l'après-midi sur celles qui ne débloquent rien.
+- `saggio next cost_of_running.yaml` les classe, et le classement est de
+  l'arithmétique et non une opinion : une grandeur nomme ses entrées dans
+  `derived_from`, donc lire ces arêtes à l'envers dit exactement quelles autres
+  grandeurs deviendraient calculables, cascade comprise.
+- **Aucune question n'est inventée et rien de dérivé n'est demandé.** Chaque
+  ligne est un champ que le modèle tient déjà ouvert, cité dans la phrase que
+  le modèle a déjà écrite pour lui, et un champ que ce paquet calcule lui-même
+  n'est jamais soumis à un humain : ce serait lui demander de faire
+  l'arithmétique, sans provenance.
+- Un champ qui ne ferme rien d'autre reste listé. « Ne ferme que lui-même » est
+  la description honnête d'un chiffre d'eau ou d'un facteur d'émission
+  contractuel, pas une raison de le cacher.
+- `saggio.next_questions` et `saggio.questions_payload` dans la bibliothèque,
+  `POST /next` sur la surface HTTP, et donc un outil qu'un agent peut appeler.
+
 ## 1.5.0 — 2026-10-17
 
 Trois façons de plus d'atteindre le même moteur, et la première version où *à

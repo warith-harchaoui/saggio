@@ -15,6 +15,7 @@ arithmetic that drifts turns the build red.
 - [Projecting onto other hardware](#projecting-onto-other-hardware)
 - [Adding a dimension of your own](#adding-a-dimension-of-your-own)
 - [Reports](#reports)
+- [Which question to answer first](#which-question-to-answer-first)
 - [Which line of an inventory each cost goes on](#which-line-of-an-inventory-each-cost-goes-on)
 - [Keeping it honest in CI](#keeping-it-honest-in-ci)
 - [The catalogues](#the-catalogues)
@@ -719,6 +720,42 @@ bar per project on the same hundred-percent scale. The costs table follows, per
 each project's own unit of work, and the page says plainly that those rows do not
 compare with each other — one project's unit is a request, another's is a whole
 training run.
+
+## Which question to answer first
+
+An audit comes back with fifteen open fields and each one says what would
+resolve it. None of them says which to answer first, and they are not
+independent.
+
+```bash
+saggio next cost_of_running.yaml
+saggio next cost_of_running.yaml --json
+```
+
+```
+54 number(s) open. 1 question(s) would close 5 of them.
+
+  +5  scenarios[0].runtime  [TODO]
+      No run was measured. Measure the real command with `saggio measure`, or
+      audit again with --run.
+      closes: assumptions.machine_energy, scenarios[0].costs.carbon,
+      scenarios[0].costs.energy, scenarios[0].costs.money,
+      scenarios[0].costs.time
+
+46 more are waiting on you and close only themselves:
+  assumptions.hardware_embodied_carbon
+  ...
+```
+
+The ordering is arithmetic rather than opinion. A quantity names its inputs in
+`derived_from`; reading those edges backwards says which other quantities would
+become computable, and the cascade is counted exactly. **It invents no
+questions**: every line is a field the model already holds open, quoted in the
+sentence the model already wrote for it.
+
+A field that closes nothing is still listed, because *close only themselves* is
+the honest description of the water figure or the contracted emission factor.
+Both are worth having; neither unlocks anything else.
 
 ## Which line of an inventory each cost goes on
 

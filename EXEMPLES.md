@@ -15,6 +15,7 @@ exécutés. Une option renommée ou une arithmétique qui dérive fait rougir le
 - [Projeter sur un autre matériel](#projeter-sur-un-autre-matériel)
 - [Ajouter une dimension à vous](#ajouter-une-dimension-à-vous)
 - [Les rapports](#les-rapports)
+- [À quelle question répondre en premier](#à-quelle-question-répondre-en-premier)
 - [Sur quelle ligne d'un bilan va chaque coût](#sur-quelle-ligne-dun-bilan-va-chaque-coût)
 - [Tenir la ligne en intégration continue](#tenir-la-ligne-en-intégration-continue)
 - [Les catalogues](#les-catalogues)
@@ -739,6 +740,42 @@ empilée par projet, toutes sur la même échelle de cent pour cent. Le tableau 
 coûts suit, par unité de travail propre à chaque projet, et la page dit
 clairement que ces lignes ne se comparent pas entre elles — l'unité de l'un est
 une requête, celle de l'autre un entraînement complet.
+
+## À quelle question répondre en premier
+
+Un audit revient avec quinze champs ouverts, chacun disant ce qui le
+résoudrait. Aucun ne dit par lequel commencer, et ils ne sont pas
+indépendants.
+
+```bash
+saggio next cost_of_running.yaml
+saggio next cost_of_running.yaml --json
+```
+
+```
+54 number(s) open. 1 question(s) would close 5 of them.
+
+  +5  scenarios[0].runtime  [TODO]
+      No run was measured. Measure the real command with `saggio measure`, or
+      audit again with --run.
+      closes: assumptions.machine_energy, scenarios[0].costs.carbon,
+      scenarios[0].costs.energy, scenarios[0].costs.money,
+      scenarios[0].costs.time
+
+46 more are waiting on you and close only themselves:
+  assumptions.hardware_embodied_carbon
+  ...
+```
+
+Le classement est de l'arithmétique, pas une opinion. Une grandeur nomme ses
+entrées dans `derived_from` ; lire ces arêtes à l'envers dit quelles autres
+grandeurs deviendraient calculables, et la cascade se compte exactement.
+**Aucune question n'est inventée** : chaque ligne est un champ que le modèle
+tient déjà ouvert, cité dans la phrase que le modèle a déjà écrite pour lui.
+
+Un champ qui ne ferme rien reste listé, parce que « ne ferme que lui-même » est
+la description honnête du chiffre d'eau ou du facteur d'émission contractuel.
+Les deux valent la peine ; aucun des deux ne débloque autre chose.
 
 ## Sur quelle ligne d'un bilan va chaque coût
 

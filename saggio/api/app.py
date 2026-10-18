@@ -319,6 +319,46 @@ def create_app(*, allow_clone: bool | None = None) -> FastAPI:
         return report.to_mapping() | {"overall_status": overall_status(document)}
 
     @application.post(
+        "/next",
+        operation_id="next_question",
+        summary="Say which open field would close the most numbers",
+    )
+    def next_route(request: ModelIn) -> dict[str, Any]:
+        """Rank a model's open fields by what answering each one would close.
+
+        A model comes back from an audit with fifteen open fields, each already
+        carrying a sentence about what would resolve it, and nothing saying
+        which to answer first. They are not independent: a measured runtime
+        closes several figures through the derivation chain, and a water usage
+        effectiveness closes one.
+
+        Nothing is computed or written here, and no question is invented: it
+        reports the fields the model already holds open, in the words the model
+        already wrote for them, ordered by the size of the cascade each would
+        start.
+
+        Parameters
+        ----------
+        request : ModelIn
+            The model.
+
+        Returns
+        -------
+        dict
+            ``open_total`` and the ``questions``, each with what it closes.
+
+        Examples
+        --------
+        >>> out = next_route(ModelIn(cost_model={"assumptions": {
+        ...     "power_draw": {"value": None, "status": "TODO", "unit": "W"}}}))
+        >>> out["open_total"]
+        1
+        """
+        from ..model.questions import questions_payload
+
+        return questions_payload(request.document())
+
+    @application.post(
         "/scopes",
         operation_id="place_in_inventory",
         summary="Say which line of a greenhouse-gas inventory each figure belongs on",

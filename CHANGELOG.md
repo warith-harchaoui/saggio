@@ -7,6 +7,29 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
+## Unreleased
+
+### The verb for the person holding fifteen open fields
+
+- An audit comes back with every cost open, each field carrying a sentence
+  about what would resolve it, and nothing saying which to answer first. The
+  fields are not independent: on one of the gallery's own models, **one
+  question closes five numbers** and forty-six close only themselves. A reader
+  working top to bottom spends the afternoon on the ones that unlock nothing.
+- `saggio next cost_of_running.yaml` ranks them, and the ordering is arithmetic
+  rather than opinion: a quantity names its inputs in `derived_from`, so
+  reading those edges backwards says exactly which other quantities would
+  become computable, cascade included.
+- **It invents no questions and asks for nothing derived.** Every line is a
+  field the model already holds open, quoted in the sentence the model already
+  wrote for it, and a field this package computes itself is never put to a
+  human — that would be asking them to do the arithmetic, unprovenanced.
+- A field that closes nothing else is still listed. *Closes only itself* is the
+  honest description of a water figure or a contracted emission factor, not a
+  reason to hide either.
+- `saggio.next_questions` and `saggio.questions_payload` in the library,
+  `POST /next` on the HTTP surface, and therefore a tool an agent can call.
+
 ## 1.5.0 — 2026-10-17
 
 Three more ways to reach the same engine, and the first release in which *whose

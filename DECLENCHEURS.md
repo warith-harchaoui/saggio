@@ -19,6 +19,7 @@ YAML qui vit à côté du code et rendus en rapports.
 |---|---|---|
 | Démarrer un modèle de coût | `... init` | `template_text` |
 | En vérifier un contre les règles | `... validate` | `validate` |
+| Savoir à quelle question ouverte répondre d'abord | `... next` | `next_questions`, `questions_payload` |
 | En construire un depuis un dépôt | `... audit` | `audit`, `audit_git_url` |
 | Placer chaque chiffre dans un bilan GES | `... scopes` | `placement`, `placements` |
 | Mesurer une vraie commande | `... measure` | `run_slice` |

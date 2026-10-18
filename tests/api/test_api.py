@@ -62,6 +62,32 @@ def test_the_placement_route_returns_exactly_what_the_library_returns(
     assert client.post("/scopes", json={"cost_model": A_MODEL}).json() == placed_model(A_MODEL)
 
 
+def test_the_questions_route_ranks_by_what_answering_would_close(client: TestClient) -> None:
+    # The route reports; it never computes or writes. A reader holding an open
+    # model over HTTP needs the same ordering a reader at a terminal gets.
+    open_model = {
+        "assumptions": {"power_draw": {"value": 50.0, "unit": "W", "status": "estimated"}},
+        "scenarios": [
+            {
+                "name": "one",
+                "runtime": {"value": None, "unit": "s", "status": "TODO"},
+                "costs": {
+                    "energy": {
+                        "value": None,
+                        "unit": "kWh",
+                        "status": "TODO",
+                        "derived_from": ["scenarios[0].runtime", "assumptions.power_draw"],
+                    }
+                },
+            }
+        ],
+    }
+    body = client.post("/next", json={"cost_model": open_model}).json()
+    assert body["open_total"] == 2
+    assert body["questions"][0]["path"] == "scenarios[0].runtime"
+    assert body["questions"][0]["closes"] == ["scenarios[0].costs.energy"]
+
+
 def test_a_vendor_machine_is_placed_in_category_one(client: TestClient) -> None:
     rented = {**A_MODEL, "deployment": {"provider": "aws"}}
     placed = client.post("/scopes", json={"cost_model": rented}).json()["placements"][0]

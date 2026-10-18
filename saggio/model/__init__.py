@@ -55,6 +55,7 @@ from .quantity import (
     looks_like_quantity,
     source_strength,
 )
+from .questions import Question, next_questions, questions_payload
 from .results import Issue, Report, Severity
 from .schema import (
     KNOWN_BLOCKS,
@@ -93,6 +94,9 @@ __all__ = [
     "weakest",
     "overclaims",
     # Quantity.
+    "Question",
+    "next_questions",
+    "questions_payload",
     "Quantity",
     "QUANTITY_KEYS",
     "SOURCE_KINDS",

@@ -34,6 +34,7 @@ import argparse
 import json
 import os
 import sys
+import textwrap
 import time
 from pathlib import Path
 from typing import Any
@@ -75,6 +76,7 @@ from ..estimate.ghg import (
 from ..estimate.machine import detect_machine
 from ..fold import fold_measurement
 from ..model.cost_model import CostModel
+from ..model.questions import questions_payload
 from ..model.validate import overall_status, validate
 from ..report.dashboard import render_dashboard
 from ..report.html import render_html
@@ -311,6 +313,77 @@ def scopes(args: argparse.Namespace) -> int:
             "A filer is asked to disclose the share of an inventory that rests on "
             "estimates rather than readings. This is that share, already."
         )
+    return OK
+
+
+def next_question(args: argparse.Namespace) -> int:
+    """Say which open field would close the most numbers, and what it would close.
+
+    The verb this package was missing for the person holding a fresh audit. A
+    model comes back with fifteen open fields, each carrying a sentence about
+    what would resolve it, and nothing saying which to answer first. They are
+    not independent: a measured runtime closes six figures through the
+    derivation chain, and a water usage effectiveness closes one. Working top
+    to bottom spends the afternoon on the field that unlocks nothing.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        With ``model`` and ``json``.
+
+    Returns
+    -------
+    int
+        :data:`~saggio.cli.exit_codes.OK` whatever it finds. An open model is
+        the ordinary state of an honest one, so this reports and never gates.
+
+    Examples
+    --------
+    >>> next_question(argparse.Namespace(model="/nonexistent.yaml", json=False))
+    2
+    """
+    try:
+        model = _load(args.model)
+    except (AssertionError, ValueError) as exc:
+        osh.error(str(exc))
+        return USAGE
+
+    payload = questions_payload(model)
+    if args.json:
+        _emit(payload, as_json=True)
+        return OK
+
+    questions = payload["questions"]
+    if not payload["open_total"]:
+        print("Nothing is open. Every number in this model is established.")
+        return OK
+
+    unlocking = [q for q in questions if q["unlocks"]]
+    closed_by_them = sum(q["unlocks"] for q in unlocking)
+    print(
+        f"{payload['open_total']} number(s) open. "
+        f"{len(unlocking)} question(s) would close {closed_by_them} of them."
+        if unlocking
+        else f"{payload['open_total']} number(s) open, and none of them closes another."
+    )
+    print()
+
+    for question in unlocking:
+        print(f"  +{question['unlocks']}  {question['path']}  [{question['status']}]")
+        if question["note"]:
+            # The sentence the model already wrote about what would resolve it.
+            # Repeating it here rather than inventing a prompt is the whole
+            # reason this command can be trusted to ask the right thing.
+            for line in textwrap.wrap(question["note"], width=76):
+                print(f"      {line}")
+        print(f"      closes: {', '.join(question['closes'])}")
+        print()
+
+    alone = [q for q in questions if not q["unlocks"]]
+    if alone:
+        print(f"{len(alone)} more are waiting on you and close only themselves:")
+        for question in alone:
+            print(f"  {question['path']}")
     return OK
 
 

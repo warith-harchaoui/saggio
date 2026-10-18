@@ -20,7 +20,10 @@ which `help()` will show you.
 | Name | What it is for |
 |---|---|
 | `CostModel` | A parsed cost model, with the context needed to read and write it. |
+| `Question` | One open field, with what answering it would close. |
 | `Quantity` | One number with its unit, honesty status, provenance, and derivation. |
+| `next_questions(model: 'CostModel \| dict[str, Any]') -> 'list[Question]'` | Return the model's open questions, the ones closing the most first. |
+| `questions_payload(model: 'CostModel \| dict[str, Any]') -> 'dict[str, Any]'` | Return the questions as data, in the shape every surface reports. |
 | `Dimension` | One measurable axis of the cost of running a unit of work. |
 | `DimensionRegistry` | An ordered collection of the dimensions one cost model reports. |
 | `CANONICAL_DIMENSIONS` | `money`, `time`, `energy`, `carbon`, `carbon_market_based`, `embodied_carbon`, `water` |

@@ -20,6 +20,7 @@ rendered into reports.
 |---|---|---|
 | Start a cost model | `... init` | `template_text` |
 | Check one against the rules | `... validate` | `validate` |
+| Know which open question to answer first | `... next` | `next_questions`, `questions_payload` |
 | Build one from a repository | `... audit` | `audit`, `audit_git_url` |
 | Place each figure in a GHG inventory | `... scopes` | `placement`, `placements` |
 | Measure a real command | `... measure` | `run_slice` |

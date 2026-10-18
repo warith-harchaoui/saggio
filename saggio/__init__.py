@@ -117,8 +117,11 @@ from .model import (
     DimensionRegistry,
     Issue,
     Quantity,
+    Question,
     Report,
+    next_questions,
     overall_status,
+    questions_payload,
     validate,
     weakest,
 )
@@ -131,7 +134,10 @@ __all__ = [
     "__email__",
     # The model and its rules.
     "CostModel",
+    "Question",
     "Quantity",
+    "next_questions",
+    "questions_payload",
     "Dimension",
     "DimensionRegistry",
     "CANONICAL_DIMENSIONS",
