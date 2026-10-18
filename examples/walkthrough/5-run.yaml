@@ -207,7 +207,7 @@ projections:
         method: 'Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size)
           over 3 runs: seconds = 0.007966 × size^0.687.'
         result:
-          value: 0.0001811055964209678
+          value: 0.00020849158130111872
           status: estimated
           unit: USD
           currency: USD
@@ -231,7 +231,7 @@ projections:
         method: 'Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size)
           over 3 runs: seconds = 0.007966 × size^0.687.'
         result:
-          value: 0.04225797249822581
+          value: 0.031122656339152507
           status: estimated
           unit: gCO2e
           notes: Projected from a slice covering 0.1% of the run, with a measured scaling exponent of

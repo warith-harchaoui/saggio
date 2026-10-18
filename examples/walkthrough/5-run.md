@@ -108,10 +108,10 @@ What the whole run would cost, projected from the slice that was measured and fr
 |---|---|---|---|
 | time | 56.81 s | `estimated` | Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size) over 3 runs: seconds = 0.007966 × size^0.687. |
 | energy | 0.0007546 kWh | `estimated` | Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size) over 3 runs: seconds = 0.007966 × size^0.687. |
-| money | 0.0001811 USD | `estimated` | Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size) over 3 runs: seconds = 0.007966 × size^0.687. |
-| carbon | 0.04226 gCO2e | `estimated` | Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size) over 3 runs: seconds = 0.007966 × size^0.687. |
+| money | 0.0002085 USD | `estimated` | Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size) over 3 runs: seconds = 0.007966 × size^0.687. |
+| carbon | 0.03112 gCO2e | `estimated` | Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size) over 3 runs: seconds = 0.007966 × size^0.687. |
 
-*A million runs emit about 46.1 tree-months · 241.5 km by car (EU average) · 85% of a Paris–London flight — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
+*A million runs emit about 33.95 tree-months · 177.8 km by car (EU average) · 62% of a Paris–London flight — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
 
 ## Not counted
 

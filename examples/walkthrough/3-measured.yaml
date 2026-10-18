@@ -195,7 +195,7 @@ projections:
       money:
         method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 0.0016430347235999998
+          value: 0.0018894899321399996
           status: estimated
           unit: USD
           currency: USD
@@ -212,7 +212,7 @@ projections:
       carbon:
         method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 0.38337476883999994
+          value: 0.28205429421799993
           status: estimated
           unit: gCO2e
           notes: Projected from a slice covering 0.00025% of the run.

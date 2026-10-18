@@ -89,10 +89,10 @@ What a whole run would cost, from the per-unit costs in scenarios[0]. A whole ru
 |---|---|---|---|
 | time | 528.2 s | `estimated` | Whole run = measured slice / 2.5e-06. |
 | energy | 0.006846 kWh | `estimated` | Whole run = measured slice / 2.5e-06. |
-| money | 0.001643 USD | `estimated` | Whole run = measured slice / 2.5e-06. |
-| carbon | 0.3834 gCO2e | `estimated` | Whole run = measured slice / 2.5e-06. |
+| money | 0.001889 USD | `estimated` | Whole run = measured slice / 2.5e-06. |
+| carbon | 0.2821 gCO2e | `estimated` | Whole run = measured slice / 2.5e-06. |
 
-*A million runs emit about 418.2 tree-months · 2191 km by car (EU average) · 7.667 Paris–London flights — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
+*A million runs emit about 307.7 tree-months · 1612 km by car (EU average) · 5.641 Paris–London flights — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
 
 ## Not counted
 

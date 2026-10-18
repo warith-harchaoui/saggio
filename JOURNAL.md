@@ -10,6 +10,36 @@ cette ligne.
 
 ## Non publié
 
+### Une arithmétique écrite en prose doit être une arithmétique qui tombe juste
+
+- Trois endroits détaillent un calcul et posent la réponse à côté, et rien ne
+  vérifiait que les mots donnent la réponse : une note de plaque signalétique
+  (*« 12 cores x 4.0 W + 96 GB x 0.3725 W/GB »*), la méthode d'une projection
+  (*« Whole run = measured slice / 2.5e-06. »*) et un tableau de comparaison sur
+  une page. Le nouveau contrat analyse chacun et exige que ça tombe juste.
+- **Il a trouvé quatre valeurs fausses dans la démonstration pas à pas
+  commitée.** `3-measured.yaml` et `5-run.yaml` projetaient toutes deux une
+  exécution complète dont l'**argent** était faux d'un facteur 1,15 et le
+  **carbone** d'un facteur 0,736, alors que leur temps et leur énergie étaient
+  justes. Les facteurs nomment la cause : un tarif d'électricité rafraîchi de
+  0,240 à 0,276 USD/kWh, et une intensité réseau rafraîchie à 41,2 gCO2e/kWh.
+  Les coûts unitaires ont été recalculés contre le nouveau catalogue et les
+  projections sont restées en arrière — dans l'exemple pédagogique du dépôt
+  lui-même, sur plusieurs versions.
+- Elles sont recalculées depuis la **méthode que chaque modèle énonce**,
+  appliquée à son **propre coût de tranche actuel**. Rien d'inventé : la phrase
+  était déjà là et la valeur à côté avait cessé d'en découler.
+- Le contrôle des projections est aussi ce qui lit la seule grandeur dont dépend
+  tout coût projeté. Un modèle porte `analysis.total_work.stated_as` comme la
+  chaîne `'400000'` et la fraction nulle part : tant que le diviseur n'est pas
+  un champ, ce test est la seule chose qui le lit comme un nombre.
+- La première version s'arrêtait à la première dimension fautive et rapportait
+  `money` sur deux modèles dont le `carbon` était faux aussi. Elle collecte
+  désormais : une sonde qui cache la moitié de ce qu'elle a trouvé est une
+  demi-sonde.
+- Sabotages, les quatre déclenchent : une valeur projetée déplacée, la réponse
+  d'un tableau déplacée, une soustraction stockée déplacée, une phrase déplacée.
+
 ### Une phrase qu'un modèle porte doit être celle que ses propres chiffres produisent
 
 - Les pages sont vérifiées contre les modèles, les modèles contre le schéma — et

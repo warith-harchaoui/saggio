@@ -163,6 +163,12 @@ ignore = [
     "S101",
 ]
 
+# This file's whole job is to read the typography a page is written in: the
+# multiplication sign, the true minus sign, and the French no-break spaces are
+# the characters it exists to recognise, so a rule against them has it backwards.
+# S105 fires on `token == "("`, which is a parser cursor and not a password.
+"tests/contract/test_arithmetic_in_prose.py" = ["RUF001", "RUF002", "S105"]
+
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 

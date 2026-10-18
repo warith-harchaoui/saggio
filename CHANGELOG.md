@@ -9,6 +9,34 @@ release of that line.
 
 ## Unreleased
 
+### An arithmetic written in prose must be an arithmetic that works
+
+- Three places spell out a calculation and put the answer beside it, and nothing
+  checked that the words give the answer: a nameplate note (*"12 cores x 4.0 W +
+  96 GB x 0.3725 W/GB"*), a projection's method (*"Whole run = measured slice /
+  2.5e-06."*), and a comparison table on a page. The new contract parses each
+  and requires it to come out.
+- **It found four wrong figures in the committed walkthrough.** Both
+  `3-measured.yaml` and `5-run.yaml` projected a whole run whose **money** was
+  out by 1.15x and whose **carbon** was out by 0.736x, while their time and
+  energy were right. The factors name the cause: an electricity tariff
+  refreshed from 0.240 to 0.276 USD/kWh, and a grid intensity refreshed to
+  41.2 gCO2e/kWh. The per-unit costs were recomputed against the new catalogue
+  and the projections were left behind — in the repository's own teaching
+  example, through several releases.
+- They are recomputed from each model's **own stated method** applied to its
+  **own current slice cost**. Nothing was invented: the sentence was already
+  there and the figure beside it had stopped following from it.
+- The projection check is also what reads the one quantity every projected cost
+  turns on. A model holds `analysis.total_work.stated_as` as the string
+  `'400000'` and the fraction nowhere, so until the divisor becomes a field,
+  this test is the only thing that reads it as a number.
+- The first version of the check stopped at the first bad dimension and
+  reported `money` on two models whose `carbon` was wrong too. It collects now:
+  a sonde that hides half of what it found is half a sonde.
+- Sabotages, all four firing: a projected value moved, a table's answer moved,
+  a stored subtraction moved, a sentence moved.
+
 ### A sentence a model carries must be the sentence its own numbers produce
 
 - The pages are checked against the models, the models against the schema — and
