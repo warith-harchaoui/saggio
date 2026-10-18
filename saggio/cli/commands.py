@@ -660,6 +660,7 @@ def _fold_into(args: argparse.Namespace, result: Any) -> int:
         seconds=result.wall_seconds,
         units=args.units,
         power=result.power,
+        measurement=result.to_mapping(),
         scenario=args.scenario,
         command=" ".join(result.command),
     )

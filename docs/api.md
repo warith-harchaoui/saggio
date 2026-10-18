@@ -100,7 +100,7 @@ which `help()` will show you.
 | `repository_name(url: 'str') -> 'str'` | Return the repository's own name, as its clone URL spells it. |
 | `Fold` | What folding a measurement into a model did, or why it did nothing. |
 | `compare(before: 'CostModel \| dict[str, Any]', after: 'CostModel \| dict[str, Any]', *, threshold_percent: 'float' = 10.0) -> 'Comparison'` | Compare two cost models quantity by quantity. |
-| `fold_measurement(model: 'CostModel', *, seconds: 'float', units: 'float' = 1.0, power: 'PowerReading \| None' = None, scenario: 'str \| None' = None, command: 'str \| None' = None) -> 'Fold'` | Write a measured runtime into a model and recompute what follows from it. |
+| `fold_measurement(model: 'CostModel', *, seconds: 'float', units: 'float' = 1.0, power: 'PowerReading \| None' = None, scenario: 'str \| None' = None, command: 'str \| None' = None, measurement: 'dict[str, Any] \| None' = None) -> 'Fold'` | Write a measured runtime into a model and recompute what follows from it. |
 | `Comparison` | Everything that differs between two cost models. |
 | `Change` | One quantity that is not the same in both models. |
 

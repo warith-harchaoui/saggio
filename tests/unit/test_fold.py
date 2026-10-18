@@ -286,3 +286,41 @@ def test_no_scaling_factor_means_no_repeated_runs_block() -> None:
     folded = fold_measurement(_model_with_a_run_size(), seconds=3600.0)
     assert folded.refused is None
     assert "repeated_runs" not in folded.model.data.get("projections", {})
+
+
+def test_folding_keeps_what_the_run_established_about_itself() -> None:
+    """A folded model must carry the same boundary an audited one does.
+
+    Before this, `measure --into` wrote the number and dropped everything that
+    said what the number covered: which counters answered, the floor the machine
+    was already drawing, the share of the machine's processor work the run was,
+    and what that share attributes. A model produced one way and a model
+    produced the other then described the same machine differently, which for a
+    package whose argument is that a figure carries its boundary is the worse
+    half to lose.
+    """
+    established = {
+        "command": ["python", "-c", "pass"],
+        "exit_code": 0,
+        "power_scope": "the whole machine",
+        "power_sources": ["system-on-chip"],
+        "idle_watts": 8.7,
+        "cpu_share": {"share": 0.1, "run_cpu_seconds": 0.4, "machine_cpu_seconds": 4.0},
+        "attributed_watts": 2.88,
+    }
+
+    folded = fold_measurement(model_with(), seconds=1.0, measurement=established)
+    assert folded.refused is None
+    written = folded.model.data["measurement"]
+    assert written["cpu_share"]["share"] == 0.1
+    assert written["attributed_watts"] == 2.88
+    assert written["idle_watts"] == 8.7
+    assert written["power_sources"] == ["system-on-chip"]
+
+
+def test_folding_without_a_measurement_block_leaves_the_model_alone() -> None:
+    # The parameter is optional, and a caller that has nothing to say about the
+    # boundary must not be made to invent one.
+    folded = fold_measurement(model_with(), seconds=1.0)
+    assert folded.refused is None
+    assert "measurement" not in folded.model.data

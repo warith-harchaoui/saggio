@@ -122,6 +122,7 @@ def fold_measurement(
     power: PowerReading | None = None,
     scenario: str | None = None,
     command: str | None = None,
+    measurement: dict[str, Any] | None = None,
 ) -> Fold:
     """Write a measured runtime into a model and recompute what follows from it.
 
@@ -144,6 +145,19 @@ def fold_measurement(
     command : str or None, optional
         The command that was run, recorded in the runtime's notes so a reader can
         see what was timed.
+    measurement : dict or None, optional
+        What the run established about itself, as
+        :meth:`~saggio.analyze.run.SliceResult.to_mapping` returns it: which
+        counters answered and what they cover, the floor the machine was
+        drawing before the slice, the share of the machine's processor work the
+        run was, and what that share attributes.
+
+        It is written whole rather than summarised, and it is the same mapping
+        an audit writes, because a model folded by hand and a model audited with
+        `--run` that said different things about the same machine would be two
+        tools. Without it a folded model keeps the number and loses its
+        boundary, which for a package whose argument is that a figure carries
+        its boundary is the worse half to drop.
 
     Returns
     -------
@@ -182,6 +196,12 @@ def fold_measurement(
         return Fold(model, refused=f"The model does not validate before folding: {listed}")
 
     updated: dict[str, Any] = _deep_copy(data)
+    if measurement:
+        # Written whole, and written before anything derived, so that a reader
+        # opening the file meets the boundary before meeting the figures it
+        # priced. A second fold replaces it rather than merging: two runs are
+        # two measurements, and half of each would describe neither.
+        updated["measurement"] = _deep_copy(measurement)
     target = updated["scenarios"][index]
     scenario_path = f"scenarios[{index}]"
     changes: list[str] = []
