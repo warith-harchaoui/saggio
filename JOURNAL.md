@@ -10,6 +10,26 @@ cette ligne.
 
 ## Non publié
 
+### La ligne énergie d'un dossier au titre du règlement IA
+
+- L'annexe XI impose au fournisseur d'un modèle d'IA à usage général de
+  documenter sa **consommation énergétique connue ou estimée**, et là où elle
+  n'est pas connue elle autorise une estimation **à partir du calcul utilisé** —
+  c'est-à-dire la méthode de ce paquet, inscrite dans la loi. Applicable depuis
+  le **2 août 2026** (jusqu'à 3 % du chiffre d'affaires mondial ou 15 M€) ; les
+  modèles mis sur le marché avant le 2 août 2025 ont jusqu'au **2 août 2027**.
+- [`ANNEX-XI.md`](ANNEX-XI.md) / [`ANNEXE-XI.md`](ANNEXE-XI.md) met l'exigence
+  en regard de ce qu'un modèle de coût porte déjà, ligne à ligne, et dit tout
+  aussi explicitement ce qu'il ne fait pas : ce n'est pas un dossier, il couvre
+  une unité de travail sur une machine, et il documente l'énergie et non le
+  reste de l'annexe.
+- La méthodologie s'écrit encore. La Commission a consulté entre avril et juin
+  2026 sur la mesure de l'énergie de l'IA, l'AI Office doit publier une
+  synthèse, et des actes délégués pourront fixer les méthodes « en vue de
+  permettre une documentation comparable et vérifiable ». Ces deux mots sont le
+  cahier des charges de ce paquet, et la page dit ce qu'il fait déjà pour
+  chacun.
+
 ### Une page sur les frontières, parce que deux industriels viennent de le prouver
 
 - Google a publié **0,03 gCO2e** pour un prompt Gemini médian et Mistral

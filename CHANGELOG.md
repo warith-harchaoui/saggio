@@ -9,6 +9,25 @@ release of that line.
 
 ## Unreleased
 
+### The energy line of an EU AI Act filing
+
+- Annex XI makes a provider of a general-purpose AI model document its **known
+  or estimated energy consumption**, and where it is not known it permits an
+  estimate **from the compute used** — which is this package's method, written
+  into law. Enforceable since **2 August 2026** (up to 3% of worldwide turnover
+  or €15 million); models placed before 2 August 2025 have until **2 August
+  2027**.
+- [`ANNEX-XI.md`](ANNEX-XI.md) / [`ANNEXE-XI.md`](ANNEXE-XI.md) maps the
+  requirement onto what a cost model already carries, line by line, and is
+  equally explicit about what it does not do: it is not a filing, it covers one
+  unit of work on one machine, and it documents energy rather than the rest of
+  the annex.
+- The methodology is still being written. The Commission consulted between
+  April and June 2026 on measuring AI energy, the AI Office is to publish a
+  summary, and delegated acts may set methods "with a view to allowing for
+  comparable and verifiable documentation". Those two words are this package's
+  design brief, so the page says what it already does about each.
+
 ### A page about boundaries, because two companies just proved the point
 
 - Google published **0.03 gCO2e** for a median Gemini prompt and Mistral

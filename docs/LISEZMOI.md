@@ -18,6 +18,7 @@ main sauf [`api.md`](api.md), qui est dérivé des docstrings.
 | [`../MESURER.md`](../MESURER.md) | Quels compteurs cette machine me laissera-t-elle lire, et que couvrent-ils ? |
 | [`../ANALYSE.md`](../ANALYSE.md) | Lire le code, ou l'exécuter, peut-il dire sa complexité et son coût ? |
 | [`../NORMES.md`](../NORMES.md) | Quelle norme est-ce, et quelle part n'est pas encore satisfaite ? |
+| [`../ANNEXE-XI.md`](../ANNEXE-XI.md) | Je dois documenter la consommation énergétique de mon modèle pour le règlement IA. Qu'est-ce que cela me donne, et qu'est-ce que cela ne donne pas ? |
 | [`../FRONTIERES.md`](../FRONTIERES.md) | Pourquoi deux chiffres publiés pour une inférence diffèrent de trente-huit fois, et ce que devient le mien sous chaque frontière ? |
 | [`../INVENTAIRE.md`](../INVENTAIRE.md) | Sur quelle ligne d'un bilan GES ces chiffres se rangent-ils, et que ne couvrent-ils pas ? |
 
