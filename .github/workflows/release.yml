@@ -1,44 +1,34 @@
-# Publishing, with no credential anywhere in it.
+# What a release has to survive before it goes out, and nothing else.
 #
-# This workflow exists because of how the alternative goes wrong. A PyPI API
-# token has to live somewhere: in a developer's shell history, in a secrets
-# file, in a repository secret. Every one of those is a long-lived credential
-# that publishes under the maintainer's name, and the only way to know it has
-# leaked is to find out afterwards.
+# This job does not publish. It did, for an afternoon, through PyPI's trusted
+# publishing — no token anywhere, an identity minted per run. The mechanism is
+# sound and the configuration is a form on another website, which is a strange
+# thing to stand between a tested wheel and an index. So the machine does the
+# part a machine is better at, and the one command that publishes stays where
+# the person is:
 #
-# Trusted publishing removes the token entirely. GitHub mints a short-lived
-# OpenID Connect identity for *this workflow in this repository*, PyPI verifies
-# it against the publisher configured on the project, and the upload is
-# authorised for that run and nothing else. Nothing to store and nothing to
-# rotate.
+#     python -m build && python -m twine upload dist/*
 #
-# It is configured once, on PyPI, under the project's Publishing settings:
+# What the machine is better at is the part that has actually caught things. A
+# working tree that passes every test can still produce a wheel that does not
+# import, because a working tree resolves its dependencies once, long ago, and a
+# user resolves them today. That is exactly how 1.5.0 was nearly released with
+# an unbounded `mcp`: everything green here, `TypeError` on the first install
+# anywhere else. So this builds the artefacts, installs the wheel into an
+# environment that has never seen this repository, and runs it there.
 #
-#   Owner            warith-harchaoui
-#   Repository       saggio
-#   Workflow         release.yml
-#   Environment      pypi
-#
-# Then a tag publishes the release, and nobody types a secret.
-#
-# The gate runs here rather than being trusted from elsewhere. The `checks`
-# workflow watches branches; a tag can point at a commit no branch run covered,
-# which is exactly how a release goes out green-looking and broken. So this
-# builds the artefacts, runs the whole suite against the *installed wheel*
-# rather than the working tree, and only then publishes. That order is the one
-# thing this file is for: the 1.5.0 release was caught by an install into an
-# empty environment, after a working tree that passed everything.
+# The artefacts are kept on the run. Download `dist` and upload *that* — the
+# bytes this job tested — rather than rebuilding on a laptop and hoping the two
+# agree.
 
-name: release
+name: release check
 
 on:
   push:
     tags:
-      # Releases are tagged without a `v`, which is what the four before this
+      # Releases are tagged without a `v`, which is what the five before this
       # one did. A tag shaped any other way is not a release and is ignored.
       - "[0-9]+.[0-9]+.[0-9]+"
-  # So a release can be re-run after a failure without moving a tag, which is
-  # the manoeuvre that made 1.4.0 describe work it did not contain.
   workflow_dispatch:
 
 permissions:
@@ -86,14 +76,14 @@ jobs:
           cd /tmp
           /tmp/fresh/bin/saggio --version
           /tmp/fresh/bin/python -m saggio --version
-          # This fails the release when a catalogue row has gone stale, which is
+          # This fails the check when a catalogue row has gone stale, which is
           # deliberate: the figures ship inside the wheel, and a release is the
           # moment they are handed to people who will quote them. Re-read the
           # source with `saggio catalog refresh`; do not re-date it.
           /tmp/fresh/bin/saggio catalog freshness
           /tmp/fresh/bin/python -c "import saggio.api.mcp as m; print('surfaces import:', m.app.title)"
 
-      - name: Say what is about to be published
+      - name: Say what these artefacts are, and how to publish them
         run: |
           python - <<'PY'
           import email, glob, zipfile
@@ -105,30 +95,11 @@ jobs:
           print("author:", meta["Author-email"])
           print("extras:", meta.get_all("Provides-Extra"))
           PY
+          echo
+          echo "Download the dist artefact from this run, then:"
+          echo "    python -m twine upload dist/*"
 
       - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
-
-  publish:
-    name: publish to PyPI
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    # The environment is half of the trust relationship: PyPI is told to accept
-    # this repository's workflow *in this environment*, so a run from anywhere
-    # else is refused by the index rather than by a reviewer.
-    environment:
-      name: pypi
-      url: https://pypi.org/project/saggio/
-    permissions:
-      # The whole credential story, in one line: a token minted for this run.
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-
-      - uses: pypa/gh-action-pypi-publish@release/v1
