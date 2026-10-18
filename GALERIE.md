@@ -185,6 +185,43 @@ encore à côté des vrais `openai/gpt-4o` et `anthropic/claude-sonnet-4-2025051
 que ce moteur appelle réellement. Lire à l'intérieur d'un fichier pour y trouver
 un module de test en ligne est un travail autre, et plus grand, que lire son nom.
 
+## Deux modèles terminés
+
+Tout ce qui précède est un audit sans rien exécuter : huit dépôts lus, et huit
+modèles dont chaque coût est un `TODO`. C'est la sortie honnête d'une lecture de
+code qu'on n'a pas exécuté, et c'est aussi une moitié de démonstration. Ces deux
+modèles sont l'autre moitié — le même outil sur du travail réellement mesuré,
+sur une machine, avec le pays énoncé.
+
+| Modèle | Unité de travail | Temps | Carbone | Ce qui reste ouvert |
+|---|---|---|---|---|
+| [`render`](examples/render.yaml) · [rapport](examples/render.md) | un rapport HTML produit | 0,0271 s, mesuré | 5,74e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
+| [`request`](examples/request.yaml) · [rapport](examples/request.md) | une requête `/scopes` traitée de bout en bout | 0,00385 s, mesuré | 1,19e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
+
+Les deux ont été mesurés sur un Apple M2 Max, douze cœurs, en France, en
+exécutant le travail de nombreuses fois dans un seul interpréteur — cinquante
+rendus, deux cents requêtes — pour que le démarrage de Python, qui n'est pas le
+travail, ne lui soit pas facturé. La puissance est une lecture de compteur et
+non une fiche technique : **12,3 W** pendant les rendus et **18,0 W** pendant
+les requêtes, contre une machine qui tirait 6,5 W et 8,7 W au repos un instant
+plus tôt. La plaque signalétique que ce paquet aurait supposée sinon annonce
+83,76 W.
+
+**Ce que « terminé » veut dire ici, et ce que ça ne veut pas dire.** Quatre
+nombres sur sept sont établis et trois restent ouverts, et c'est l'état final,
+pas un état inachevé. L'eau reste ouverte parce qu'aucune efficacité d'usage de
+l'eau n'est publiée pour un portable. La moitié market-based du scope 2 reste
+ouverte parce qu'elle repose sur un contrat d'électricité, qui est un fait sur
+une organisation et non sur ce code. Le carbone incorporé reste ouvert parce que
+la durée de vie du matériel est un fait sur un parc. **Aucun des trois ne se
+referme en mesurant davantage** : chacun attend que quelqu'un énonce quelque
+chose, et chacun le dit dans ses propres notes.
+
+La différence avec les huit ci-dessus est celle qui mérite le regard : un temps
+d'exécution mesuré transforme trois `TODO` en chiffres par la chaîne de
+dérivation, et la figure de puissance passe d'une supposition de fiche technique
+à une lecture de compteur six fois plus petite.
+
 ## La démonstration pas à pas : une charge, quatre étapes
 
 [`examples/walkthrough/`](examples/walkthrough/) emmène un dépôt minuscule de rien

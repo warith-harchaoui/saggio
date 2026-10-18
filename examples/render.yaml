@@ -1,0 +1,360 @@
+schema_version: '2.1'
+date_updated: '2026-10-18'
+project:
+  name: saggio — rendering a report
+  audited_from: ~/saggio
+unit_of_work:
+  name: one HTML report rendered from a committed cost model
+  description: One call to render_html on examples/saggio.yaml, the report a reviewer opens in a pull
+    request. Measured fifty times inside one interpreter so that Python's start-up, which is not the work,
+    is not charged to it.
+  status: measured
+  out_of_scope:
+  - Writing the file to disk.
+  - Python's interpreter start-up, which the measurement deliberately excludes.
+deployment:
+  provider: on-prem
+  country: FR
+  country_provenance: Stated by the caller.
+  operating_system: darwin
+  logical_cores: 12
+  physical_cores: 12
+  cpu: Apple M2 Max
+assumptions:
+  power_draw:
+    value: 12.330845647098844
+    status: measured
+    unit: W
+    notes: 'Read from the machine while the command ran. The figure covers the chip''s processor cores,
+      graphics cores, and neural engine, from the system-on-chip''s own energy counters and the chip''s
+      memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters.
+      Memory is measured rather than estimated here: the machine publishes its own memory energy counter,
+      so the figure is what the memory drew rather than what its installed capacity suggests it would
+      draw. These are the chip''s own energy counters, which are a model inside the silicon rather than
+      a meter on the power rail, and Apple says they are not a basis for comparing one machine against
+      another. Left out of them: the display, storage, networking, the fans, and the power supply''s own
+      losses.'
+  pue:
+    value: 1.5
+    status: estimated
+    unit: ratio
+    source_url: https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024
+    retrieved_date: '2026-09-12'
+    notes: Power usage effectiveness published by On-premises.
+  electricity_price:
+    value: 0.276
+    status: estimated
+    unit: USD/kWh
+    currency: USD
+    source_url: https://www.globalpetrolprices.com/electricity_prices/
+    retrieved_date: '2026-10-17'
+    notes: Indicative tariff for France. Collected Q3 2026.
+  grid_carbon_intensity:
+    value: 41.2
+    status: estimated
+    unit: gCO2e/kWh
+    source_url: https://ember-energy.org/data/yearly-electricity-data/
+    retrieved_date: '2026-10-17'
+    notes: Annual average for France, data year 2025.
+  market_carbon_intensity:
+    value: null
+    status: TODO
+    unit: gCO2e/kWh
+    source_url: ''
+    notes: 'The emission factor of the electricity you contracted for, which no catalogue can hold: it
+      is a property of your contract, not of your country. It is built from your supplier''s own emission
+      factor, from the contractual instruments you hold — guarantees of origin, RECs, a PPA — or, failing
+      both, from your market''s residual mix, which exists precisely so that unclaimed electricity is
+      not counted as clean by default. Record it with the supplier document or certificate that states
+      it and the date you read it — this is the one figure in the model nobody else can check and nothing
+      here can refresh. Leaving it open is a complete answer; a zero because the electricity is ''green''
+      is not one.'
+  water_usage_effectiveness:
+    value: null
+    status: TODO
+    unit: L/kWh
+    notes: On-premises publishes no water usage effectiveness. Leave this open rather than inventing a
+      figure.
+  hardware_embodied_carbon:
+    value: null
+    status: TODO
+    unit: kgCO2e
+    notes: No product carbon footprint is on file for apple-m2-max. Add `embodied_kgco2e` to its catalogue
+      row with the footprint's own URL and the date it was read; `saggio catalog add cpu` does the rest.
+  hardware_lifetime:
+    value: null
+    status: TODO
+    unit: years
+    notes: How long this hardware stays in service, which only you know. The published footprints are
+      cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster
+      between three and six years; choosing within that range moves the embodied carbon by a factor of
+      two, which is why this is asked rather than assumed.
+  machine_energy:
+    value: 9.287144523333333e-08
+    status: measured
+    unit: kWh
+    source_url: https://doi.org/10.1002/advs.202100707
+    derived_from:
+    - scenarios[0].runtime
+    - assumptions.power_draw
+    notes: runtime in hours x average power in watts / 1000.
+external_services:
+- key: openai
+  name: OpenAI API
+  detected_at: tests/conftest.py:113
+  evidence: (root / "serve.py").write_text("import openai\nclient = openai.OpenAI()\n", encoding="utf-8")
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  pricing_source_url: https://openai.com/api/pricing/
+  price_per_unit:
+    value: null
+    status: TODO
+    unit: currency
+    source_url: https://openai.com/api/pricing/
+    notes: Read the current price from the page above and record what one unit of work spends. It is left
+      open because a price copied today is wrong by next quarter.
+models_called:
+- model: examples/walkthrough/5-run.yaml
+  detected_at: tests/unit/test_ghg.py:272
+  evidence: 'base = {"model": "examples/walkthrough/5-run.yaml", "scenario": None, "json": False}'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: /nonexistent.yaml
+  detected_at: tests/unit/test_ghg.py:312
+  evidence: assert scopes(_args(model="/nonexistent.yaml")) == 2
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: gpt-4o
+  detected_at: tests/unit/test_static.py:307
+  evidence: '''reply = client.chat.completions.create(model="gpt-4o")\n'', encoding="utf-8"'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: claude-3-5-sonnet
+  detected_at: tests/unit/test_static.py:317
+  evidence: (tmp_path / "a.py").write_text('model_name = "claude-3-5-sonnet"\n', encoding="utf-8")
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: mistral-large-latest
+  detected_at: tests/unit/test_static.py:318
+  evidence: '(tmp_path / "b.py").write_text(''{"model": "mistral-large-latest"}\n'', encoding="utf-8")'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: AMD EPYC 7742
+  detected_at: tests/unit/test_machine_detection.py:35
+  evidence: '"cpu": {"physical_cores": 8, "logical_cores": 16, "model": "AMD EPYC 7742"},'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+- model: Imaginary Foo 9000
+  detected_at: tests/unit/test_machine_detection.py:92
+  evidence: 'monkeypatch, cpu={"physical_cores": 64, "logical_cores": 128, "model": "Imaginary Foo 9000"}'
+  caveat: Found only in the code that tests this repository, so it may not be part of the workload. Confirm
+    before pricing it.
+  units_per_unit_of_work:
+    value: null
+    status: TODO
+    notes: How much of each rate one unit of work spends. Reading the code cannot establish this; measure
+      a real call, or state it.
+scenarios:
+- name: as-audited
+  description: One unit of work as this audit found it, on the machine it ran on.
+  runtime:
+    value: 0.027113890839973464
+    status: measured
+    unit: s
+    notes: "Timed with `saggio measure`: python3 -c \nimport yaml\nfrom saggio import render_html\nmodel\
+      \ = yaml.safe_load(open(\"examples/saggio.yaml\", encoding=\"utf-8\"))\nfor _ in range(50):\n  \
+      \  render_html(model)\n. The command performed 50 units of work, so the figure is the wall-clock\
+      \ time divided by 50."
+  costs:
+    time:
+      value: 0.027113890839973464
+      status: measured
+      unit: s
+      derived_from:
+      - scenarios[0].runtime
+      notes: "Timed with `saggio measure`: python3 -c \nimport yaml\nfrom saggio import render_html\n\
+        model = yaml.safe_load(open(\"examples/saggio.yaml\", encoding=\"utf-8\"))\nfor _ in range(50):\n\
+        \    render_html(model)\n. The command performed 50 units of work, so the figure is the wall-clock\
+        \ time divided by 50."
+    energy:
+      value: 1.3930716784999999e-07
+      status: estimated
+      unit: kWh
+      source_url: https://doi.org/10.1002/advs.202100707
+      derived_from:
+      - assumptions.machine_energy
+      - assumptions.pue
+      notes: 'Machine energy x power usage effectiveness: what the building draws.'
+    money:
+      value: 3.84487783266e-08
+      status: estimated
+      unit: USD
+      currency: USD
+      derived_from:
+      - scenarios[0].costs.energy
+      - assumptions.electricity_price
+      notes: Facility energy x price per kilowatt-hour; hardware and staff are not included.
+    carbon:
+      value: 5.73945531542e-06
+      status: estimated
+      unit: gCO2e
+      source_url: https://doi.org/10.1002/advs.202100707
+      derived_from:
+      - scenarios[0].costs.energy
+      - assumptions.grid_carbon_intensity
+      notes: Facility energy x grid carbon intensity, operating emissions only.
+    carbon_market_based:
+      value: null
+      status: TODO
+      unit: gCO2e
+      derived_from:
+      - scenarios[0].costs.energy
+      - assumptions.market_carbon_intensity
+      notes: Needs the energy drawn and the emission factor of the electricity you contracted for. A grid
+        average is the other method and will not do here.
+    embodied_carbon:
+      value: null
+      status: TODO
+      unit: gCO2e
+      derived_from:
+      - assumptions.hardware_embodied_carbon
+      - assumptions.hardware_lifetime
+      - scenarios[0].runtime
+      notes: No product carbon footprint is on file for this hardware, so the carbon of building it is
+        open. Nobody has read one for this part; that is not the same as it having been free to build.
+        Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was
+        read.
+    water:
+      value: null
+      status: TODO
+      unit: L
+      derived_from:
+      - assumptions.machine_energy
+      - assumptions.water_usage_effectiveness
+      notes: Needs the machine's energy and a published water usage effectiveness.
+projections:
+  whole_run:
+    description: What a whole run would cost, from the per-unit costs in scenarios[0]. A whole run performs
+      400000 num_samples, as examples/walkthrough/counter/config.py::num_samples states. This assumes
+      one unit of work is one num_sample; if the model's unit of work means something else, restate this.
+    costs:
+      time:
+        method: Whole run = measured slice / 2.5e-06.
+        result:
+          value: 10845.556335989384
+          status: estimated
+          unit: s
+          notes: Projected from a slice covering 0.00025% of the run.
+        assumptions:
+        - The remaining work costs the same per unit as the slice that was run.
+        - Warm-up, checkpointing, and data loading are spread evenly across the run.
+        limits:
+        - A run whose later stages differ in shape, such as a learning-rate schedule that changes batch
+          size, will not scale linearly.
+        - One-off costs paid entirely inside the slice are counted as though they recurred throughout.
+        - Nothing here checked that the work is uniform. Measuring a few slices of different sizes would
+          turn that assumption into an exponent; see saggio.estimate.scaling.
+      energy:
+        method: Whole run = measured slice / 2.5e-06.
+        result:
+          value: 0.05572286713999999
+          status: estimated
+          unit: kWh
+          notes: Projected from a slice covering 0.00025% of the run.
+        assumptions:
+        - The remaining work costs the same per unit as the slice that was run.
+        - Warm-up, checkpointing, and data loading are spread evenly across the run.
+        limits:
+        - A run whose later stages differ in shape, such as a learning-rate schedule that changes batch
+          size, will not scale linearly.
+        - One-off costs paid entirely inside the slice are counted as though they recurred throughout.
+        - Nothing here checked that the work is uniform. Measuring a few slices of different sizes would
+          turn that assumption into an exponent; see saggio.estimate.scaling.
+      money:
+        method: Whole run = measured slice / 2.5e-06.
+        result:
+          value: 0.015379511330639998
+          status: estimated
+          unit: USD
+          currency: USD
+          notes: Projected from a slice covering 0.00025% of the run.
+        assumptions:
+        - The remaining work costs the same per unit as the slice that was run.
+        - Warm-up, checkpointing, and data loading are spread evenly across the run.
+        limits:
+        - A run whose later stages differ in shape, such as a learning-rate schedule that changes batch
+          size, will not scale linearly.
+        - One-off costs paid entirely inside the slice are counted as though they recurred throughout.
+        - Nothing here checked that the work is uniform. Measuring a few slices of different sizes would
+          turn that assumption into an exponent; see saggio.estimate.scaling.
+      carbon:
+        method: Whole run = measured slice / 2.5e-06.
+        result:
+          value: 2.295782126168
+          status: estimated
+          unit: gCO2e
+          notes: Projected from a slice covering 0.00025% of the run.
+        assumptions:
+        - The remaining work costs the same per unit as the slice that was run.
+        - Warm-up, checkpointing, and data loading are spread evenly across the run.
+        limits:
+        - A run whose later stages differ in shape, such as a learning-rate schedule that changes batch
+          size, will not scale linearly.
+        - One-off costs paid entirely inside the slice are counted as though they recurred throughout.
+        - Nothing here checked that the work is uniform. Measuring a few slices of different sizes would
+          turn that assumption into an exponent; see saggio.estimate.scaling.
+analysis:
+  evidence_source: static
+  archetype: command-line-tool
+  languages:
+  - Python
+  - JavaScript
+  language_file_counts:
+    Python: 126
+    JavaScript: 2
+  frameworks:
+  - ffmpeg
+  total_work:
+    unit: num_samples
+    stated_as: '400000'
+    source: examples/walkthrough/counter/config.py::num_samples
+  has_tests: true
+  llm_note: No local model was reachable; the read is static only.
+exclusions:
+- Making the hardware. Only the electricity to run it is counted.
+- The people. Salaries, offices, and travel are out of scope.
+- Idle capacity. This is the cost of one unit of work, not of being ready.
+provenance_rules:
+- Every sourced value carries source_url and retrieved_date.
+- A derived value names its inputs and never outranks the weakest of them.
+- The country is stated by a human, never inferred from a developer's locale.

@@ -174,6 +174,41 @@ File-level detection cannot see that, so fixtures like `trusted/model` and
 inside a file for an inline test module is a different and larger job than
 reading its name.
 
+## Two models that are finished
+
+Everything above is an audit with nothing run: eight repositories read, and
+eight models whose every cost is a `TODO`. That is the honest output of reading
+code you have not executed, and it is also half a demonstration. These two are
+the other half — the same tool on work that was actually measured, on one
+machine, with the country stated.
+
+| Model | Unit of work | Time | Carbon | What stayed open |
+|---|---|---|---|---|
+| [`render`](examples/render.yaml) · [report](examples/render.md) | one HTML report rendered | 0.0271 s, measured | 5.74e-06 gCO2e, estimated | water, market-based scope 2, embodied |
+| [`request`](examples/request.yaml) · [report](examples/request.md) | one `/scopes` request handled end to end | 0.00385 s, measured | 1.19e-06 gCO2e, estimated | water, market-based scope 2, embodied |
+
+Both were measured on an Apple M2 Max, twelve cores, in France, by running the
+work many times inside one interpreter — fifty renders, two hundred requests —
+so that Python's start-up, which is not the work, is not charged to it. The
+power is a counter reading rather than a datasheet: **12.3 W** during the
+renders and **18.0 W** during the requests, against a machine drawing 6.5 W and
+8.7 W at rest a moment before. The nameplate this package would otherwise have
+assumed is 83.76 W.
+
+**What "finished" means here, and what it does not.** Four of seven numbers are
+established and three are still open, and that is the end state rather than an
+unfinished one. Water stays open because no water usage effectiveness is
+published for a laptop. The market-based half of scope 2 stays open because it
+rests on an electricity contract, which is a fact about an organisation and not
+about this code. Embodied carbon stays open because the hardware's lifetime is a
+fact about a fleet. **None of the three can be closed by measuring harder** —
+each needs somebody to state something, and each says so in its own notes.
+
+The difference from the eight above is the one worth looking at: a measured
+runtime turns three `TODO`s into figures through the derivation chain, and the
+power figure moves from a datasheet guess to a counter reading that is six times
+smaller.
+
 ## The walkthrough: one workload, four stages
 
 [`examples/walkthrough/`](examples/walkthrough/) takes one tiny repository from
