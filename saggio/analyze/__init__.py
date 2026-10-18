@@ -51,6 +51,7 @@ from .repeat import (
     Spread,
     run_slices,
     spread_note,
+    spread_warnings,
 )
 from .run import (
     CONSENT_PROMPT,
@@ -123,6 +124,7 @@ __all__ = [
     "run_slice",
     "run_slices",
     "spread_note",
+    "spread_warnings",
     "has_consent",
     "record_consent",
     "require_consent",

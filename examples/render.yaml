@@ -383,6 +383,7 @@ measurement:
   - memory
   cpu_seconds: 1.3256
   idle_watts: 13.83
+  marginal_watts: 3.61
   power_note: 'Machine at rest before the slice: 13.8 W. Subtracting it gives 3.6 W as the slice''s own
     draw, which holds only if the rest of the machine did the same thing during the run as it did just
     before it.'

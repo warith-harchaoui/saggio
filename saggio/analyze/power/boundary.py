@@ -325,6 +325,7 @@ _FIELD_LABELS: Final[dict[str, tuple[str, str]]] = {
     "power_scope": ("what the counters cover", ""),
     "cpu_seconds": ("processor-seconds used by the run", " s"),
     "idle_watts": ("machine at rest before the slice", " W"),
+    "marginal_watts": ("added by the slice over that floor", " W"),
     "power_note": ("subtracting that floor", ""),
     "attributed_watts": ("attributable to the run", " W"),
     "attributed_scope": ("what the attributable figure covers", ""),

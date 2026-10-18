@@ -90,6 +90,10 @@ BARE_NUMBER_EXEMPT_PREFIXES: Final[tuple[str, ...]] = (
     # floor the run was measured above, not a cost anybody is charged for, and a
     # reader needs it to see how much of the total was the machine itself.
     "measurement.idle_watts",
+    # What the slice added over that floor. The subtraction was already stated
+    # in `power_note` and stored nowhere, so the one number the sentence turns
+    # on was prose only — in a package whose rule is that a figure is a field.
+    "measurement.marginal_watts",
     "measurement.hot_path",
     # The slice's share of all the processor work the machine did while it ran,
     # and the draw attributed by it. The second answer to the question the

@@ -17,7 +17,8 @@ import pytest
 import yaml
 
 from saggio.analyze.power import idle_exclusion, measurement_rows, states_idle_is_excluded
-from saggio.analyze.repeat import spread_note
+from saggio.analyze.repeat import spread_note, spread_warnings
+from saggio.analyze.run import baseline_note
 from saggio.model import CostModel, validate
 from saggio.report import render_markdown
 
@@ -370,3 +371,41 @@ def test_a_measured_figure_says_how_far_a_second_run_would_move_it(model: str) -
         assert str(quantity.get("notes") or "").endswith(expected), (
             f"{model}: {path} is measured and does not say how far it would move"
         )
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_a_sentence_a_model_carries_is_the_one_its_own_numbers_produce(model: str) -> None:
+    # The gap this closes: the pages are checked against the models, and the
+    # models are checked against the schema, but a sentence *inside* a model
+    # was checked against nothing. That is where iteration #7's fault lived —
+    # a note calling a figure the median of five runs when it is not.
+    data = yaml.safe_load((ROOT / model).read_text(encoding="utf-8"))
+    measurement = data.get("measurement")
+    if not isinstance(measurement, dict):
+        return
+    idle = measurement.get("idle_watts")
+    marginal = measurement.get("marginal_watts")
+    if isinstance(idle, (int, float)) and isinstance(marginal, (int, float)):
+        assert measurement.get("power_note") == baseline_note(idle, marginal), (
+            f"{model}: power_note is not the sentence {idle} W and {marginal} W write"
+        )
+    carried = [str(line) for line in measurement.get("warnings") or []]
+    for expected in spread_warnings(measurement):
+        assert expected in carried, f"{model}: the spread moved and the warning did not"
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_a_subtraction_written_in_a_note_is_a_subtraction_that_works(model: str) -> None:
+    # The stored marginal must be the stored power minus the stored floor. The
+    # three used to be: a number, a number, and a sentence nobody checked.
+    data = yaml.safe_load((ROOT / model).read_text(encoding="utf-8"))
+    measurement = data.get("measurement") or {}
+    idle = measurement.get("marginal_watts"), measurement.get("idle_watts")
+    if not all(isinstance(value, (int, float)) for value in idle):
+        return
+    marginal, floor = idle
+    power = ((data.get("assumptions") or {}).get("power_draw") or {}).get("value")
+    assert isinstance(power, (int, float)), f"{model} states a floor and no power"
+    assert round(power - floor, 2) == round(marginal, 2), (
+        f"{model}: {power} - {floor} is not the {marginal} the model records"
+    )

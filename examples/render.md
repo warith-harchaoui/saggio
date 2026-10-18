@@ -147,6 +147,7 @@ for _ in range(50):
 | counters that answered | system-on-chip, memory |
 | processor-seconds used by the run | 1.3256 s |
 | machine at rest before the slice | 13.83 W |
+| added by the slice over that floor | 3.61 W |
 | subtracting that floor | Machine at rest before the slice: 13.8 W. Subtracting it gives 3.6 W as the slice's own draw, which holds only if the rest of the machine did the same thing during the run as it did just before it. |
 | where the power went, by counter | processor cores 15.178 W, graphics cores 0.118 W, neural engine 0 W, memory 2.146 W |
 | the run's share of the machine's processor work | 19.8% (1.326 s of the machine's 6.69 s) |

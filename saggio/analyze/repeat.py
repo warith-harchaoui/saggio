@@ -304,22 +304,14 @@ class SliceSeries:
         """
         if len(self.runs) < 2:
             return []
-        found: list[str] = []
-        for label, spread, unit in (
-            ("runtime", self.runtime_spread(), "s"),
-            ("measured power", self.power_spread(), "W"),
-        ):
-            if spread is None or not spread.wide():
-                continue
-            found.append(
-                f"The {label} moved from {spread.low:.4g} {unit} to "
-                f"{spread.high:.4g} {unit} across {len(self.runs)} runs of the "
-                f"same command — {spread.relative:.0%} of the median, which is "
-                f"wider than the gate `saggio diff` applies to a release. The "
-                f"model carries the median run; this is how much it would move "
-                f"if you took it again."
-            )
-        return found
+        spreads: dict[str, Any] = {"runtime_s": self.runtime_spread().to_mapping()}
+        power = self.power_spread()
+        if power is not None:
+            spreads["power_w"] = power.to_mapping()
+        # Through the same function a contract test calls on a committed file,
+        # so the warning a model carries and the warning its own numbers produce
+        # cannot drift apart without something failing.
+        return spread_warnings({"repeats": len(self.runs), "spread": spreads})
 
     def with_warning(self, warning: str) -> SliceSeries:
         """Return the series with one more sentence on its representative run.
@@ -379,6 +371,72 @@ class SliceSeries:
         mapping["spread"] = spreads
         mapping["warnings"] = [*mapping.get("warnings", []), *self.warnings()]
         return mapping
+
+
+#: What each repeated figure is called in the warning, and its unit.
+_SPREAD_LABELS: Final[dict[str, tuple[str, str]]] = {
+    "runtime_s": ("runtime", "s"),
+    "power_w": ("measured power", "W"),
+}
+
+
+def spread_warnings(measurement: Mapping[str, Any] | None) -> list[str]:
+    """Return what a repeated measurement obliges a reader to be told.
+
+    Written from the block rather than from the runs, so that the warning a
+    committed model carries can be regenerated from that model's own numbers
+    and compared with what it says. A sentence stored next to the figures it
+    describes, with nothing comparing the two, is the shape every prose fault
+    in this repository has had.
+
+    Parameters
+    ----------
+    measurement : Mapping or None
+        A measurement block carrying ``repeats`` and ``spread``.
+
+    Returns
+    -------
+    list of str
+        One sentence per figure that moved more than the drift gate allows,
+        naming the range rather than only the fact of it. In the order the
+        figures are listed in :data:`_SPREAD_LABELS`, which is the order they
+        are written, so two lists can be compared element by element.
+
+    Examples
+    --------
+    >>> spread_warnings(None)
+    []
+    >>> block = {"repeats": 2, "spread": {"power_w": {"low": 16.0, "median": 18.0,
+    ...          "high": 21.0, "relative": 0.2778}}}
+    >>> "16 W to 21 W" in spread_warnings(block)[0]
+    True
+    """
+    if not isinstance(measurement, Mapping):
+        return []
+    repeats = measurement.get("repeats")
+    spreads = measurement.get("spread")
+    if not isinstance(repeats, int) or repeats < 2 or not isinstance(spreads, Mapping):
+        return []
+    found: list[str] = []
+    for key, (label, unit) in _SPREAD_LABELS.items():
+        block = spreads.get(key)
+        if not isinstance(block, Mapping):
+            continue
+        low, high = block.get("low"), block.get("high")
+        relative = block.get("relative")
+        if not isinstance(low, (int, float)) or not isinstance(high, (int, float)):
+            continue
+        if not isinstance(relative, (int, float)) or relative <= WIDE_SPREAD:
+            continue
+        found.append(
+            f"The {label} moved from {low:.4g} {unit} to "
+            f"{high:.4g} {unit} across {repeats} runs of the "
+            f"same command — {relative:.0%} of the median, which is "
+            f"wider than the gate `saggio diff` applies to a release. The "
+            f"model carries the median run; this is how much it would move "
+            f"if you took it again."
+        )
+    return found
 
 
 def spread_note(measurement: Mapping[str, Any] | None, key: str) -> str:

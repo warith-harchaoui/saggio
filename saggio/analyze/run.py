@@ -563,9 +563,8 @@ class SliceResult:
             mapping["idle_watts"] = round(self.baseline.watts, 2)
             marginal = self.marginal_watts()
             if marginal is not None:
-                mapping["power_note"] = _BASELINE_NOTE.format(
-                    idle=self.baseline.watts, marginal=marginal
-                )
+                mapping["marginal_watts"] = round(marginal, 2)
+                mapping["power_note"] = baseline_note(self.baseline.watts, marginal)
         if self.power.by_domain:
             # Watts per subsystem, each read from its own counter. Diagnostic
             # context like the rest of this block, and the only split in a report
@@ -827,6 +826,35 @@ _DISAGREEMENT_NOTE: Final[str] = (
     "the second that the draw divides the way the work does; on a busy machine the "
     "second is usually the better of the two. Treat them as the ends of a bracket."
 )
+
+def baseline_note(idle: float, marginal: float) -> str:
+    """Return the sentence a baseline and a slice put beside each other.
+
+    It is a function rather than a format call at one site because a committed
+    model carries the sentence and a contract test has to be able to ask what
+    the sentence *would* say about that model's own numbers. A sentence stored
+    beside the figures it describes, with nothing comparing the two, is the
+    shape every prose fault in this repository has had.
+
+    Parameters
+    ----------
+    idle : float
+        What the machine drew before the slice started.
+    marginal : float
+        What the slice added, which is the subtraction this sentence is about.
+
+    Returns
+    -------
+    str
+        One sentence, with the assumption the subtraction rests on.
+
+    Examples
+    --------
+    >>> baseline_note(13.83, 3.61).startswith("Machine at rest before the slice: 13.8 W")
+    True
+    """
+    return _BASELINE_NOTE.format(idle=idle, marginal=marginal)
+
 
 #: Said whenever a baseline was taken, because subtracting it assumes something
 #: that nobody checked: that the rest of the machine kept doing what it was doing.

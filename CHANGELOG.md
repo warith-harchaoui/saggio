@@ -9,6 +9,30 @@ release of that line.
 
 ## Unreleased
 
+### A sentence a model carries must be the sentence its own numbers produce
+
+- The pages are checked against the models, the models against the schema — and
+  a sentence *inside* a model was checked against nothing. That is where
+  iteration #7's fault lived: a note calling a figure the median of five runs
+  when it is not.
+- `measurement.power_note` must now equal what `baseline_note()` writes from
+  that model's own `idle_watts` and `marginal_watts`, and every warning the
+  recorded spread obliges must be a warning the file carries. Both sentences
+  moved into functions that read a stored block, so the writer and the check
+  cannot drift apart. Three sabotages, three failures: changing the stored
+  subtraction, changing the sentence, and widening the spread without touching
+  the warning.
+- **`measurement.marginal_watts` is now stored.** The subtraction was stated in
+  prose — *"Subtracting it gives 3.6 W"* — and kept nowhere, so the number the
+  sentence turns on was not a field, in a package whose rule is that a figure
+  is a field. A second contract test checks the stored power minus the stored
+  floor **is** the stored marginal.
+- Still prose-only, and said rather than quietly left: the divisor every
+  projection turns on. `method` reads *"Whole run = measured slice / 2.5e-06"*
+  and the notes say *"a slice covering 0.00025% of the run"*, while
+  `analysis.total_work.stated_as` holds `'400000'` as a **string**. Three
+  statements of one quantity, none of them a number the schema can see.
+
 ### The repository refuses a bare number; it has never refused a sentence
 
 - Four Ralph iterations running, the fault that mattered was in prose, and only

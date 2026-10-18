@@ -10,6 +10,31 @@ cette ligne.
 
 ## Non publié
 
+### Une phrase qu'un modèle porte doit être celle que ses propres chiffres produisent
+
+- Les pages sont vérifiées contre les modèles, les modèles contre le schéma — et
+  une phrase *à l'intérieur* d'un modèle n'était vérifiée contre rien. C'est là
+  que vivait la faute de l'itération #7 : une note appelant « médiane de cinq
+  exécutions » une valeur qui n'en est pas une.
+- `measurement.power_note` doit désormais être exactement ce que `baseline_note()`
+  écrit à partir des `idle_watts` et `marginal_watts` du modèle lui-même, et
+  chaque avertissement que l'écart enregistré impose doit être un avertissement
+  que le fichier porte. Les deux phrases sont passées dans des fonctions qui
+  lisent un bloc stocké, pour que l'écrivain et la vérification ne puissent pas
+  diverger. Trois sabotages, trois échecs : changer la soustraction stockée,
+  changer la phrase, élargir l'écart sans toucher à l'avertissement.
+- **`measurement.marginal_watts` est désormais stocké.** La soustraction était
+  énoncée en prose — *« Subtracting it gives 3.6 W »* — et conservée nulle part :
+  le nombre sur lequel la phrase repose n'était pas un champ, dans un paquet dont
+  la règle est qu'une valeur est un champ. Un second test de contrat vérifie que
+  la puissance stockée moins le plancher stocké **est** la marge stockée.
+- Toujours en prose seule, et dit plutôt que laissé de côté : le diviseur sur
+  lequel repose toute projection. `method` dit *« Whole run = measured slice /
+  2.5e-06 »* et les notes disent *« a slice covering 0.00025% of the run »*,
+  tandis que `analysis.total_work.stated_as` porte `'400000'` comme **chaîne de
+  caractères**. Trois énoncés d'une seule grandeur, dont aucun n'est un nombre
+  que le schéma puisse voir.
+
 ### Le dépôt refuse un nombre nu ; il n'a jamais rien refusé à une phrase
 
 - Quatre itérations Ralph de suite, la faute qui comptait était dans de la
