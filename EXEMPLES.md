@@ -907,6 +907,18 @@ n'a rien répété. Et les intervalles n'excusent jamais que le seuil : un statu
 affaibli, une provenance affaiblie ou une quantité supprimée échouent quel que
 soit le bruit.
 
+**Ce que cela ne peut pas attraper, dit franchement.** Une régression est
+attrapée par la dimension qui a été mesurée serré. Une charge rendue deux fois
+plus lente fait échouer la porte sur `costs.time` et sur le temps projeté — mais
+ses lignes carbone, argent et énergie sont *excusées*, parce qu'un intervalle de
+puissance de 109 % avale un mouvement de 100 %. C'est la porte aveugle là
+précisément où la preuve est aveugle, ce qui est le comportement voulu et reste
+une limite à connaître : **une régression qui augmente la puissance sans toucher
+au temps** — du code qui se met à utiliser l'accélérateur, par exemple — passerait
+une porte bâtie sur une mesure de puissance bruitée. Mesurez sur une machine
+calme si vous voulez un intervalle de puissance assez serré pour arbitrer dessus.
+
+
 
 ## Les catalogues
 

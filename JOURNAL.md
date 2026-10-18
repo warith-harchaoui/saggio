@@ -34,6 +34,13 @@ cette ligne.
   compte — une publication laissée passer par un intervalle de cent pour cent
   doit montrer l'intervalle au lecteur. La surface JSON porte `within_noise`,
   `noise_before`, `noise_after` et `excused_by_noise`.
+- **Ce que cela ne peut pas attraper, dit dans les deux livres de recettes.**
+  Une régression est attrapée par la dimension mesurée serré. Une charge deux
+  fois plus lente échoue sur `costs.time` et sur le temps projeté, tandis que
+  ses lignes carbone, argent et énergie sont excusées — un intervalle de
+  puissance de 109 % avale un mouvement de 100 %. La porte est aveugle là où
+  la preuve l'est, ce qui est voulu et reste une limite : une régression qui
+  augmente la puissance sans toucher au temps passerait.
 - **L'intervalle d'une projection est relié dans le code, pas dans le modèle.**
   Donner un `derived_from` à une projection a été essayé d'abord et le
   validateur l'a refusé avec la bonne raison — *states 18000000.0 but does not

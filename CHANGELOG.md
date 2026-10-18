@@ -32,6 +32,13 @@ release of that line.
   a release waved through by a hundred-per-cent band should show the reader the
   band. The JSON surface carries `within_noise`, `noise_before`, `noise_after`
   and `excused_by_noise`.
+- **What this cannot catch, said in both cookbooks.** A regression is caught
+  through whichever dimension was measured tightly. A workload made twice as
+  slow fails on `costs.time` and on the projected time, while its carbon,
+  money and energy lines are excused — a 109% power band swallows a 100%
+  move. The gate is blind exactly where the evidence is, which is intended
+  and still a limitation: a regression that raises the power without
+  touching the runtime would pass.
 - **A projection's band is linked in code, not in the model.** Giving a
   projection a `derived_from` was tried first and the validator refused it
   with the right reason — *states 18000000.0 but does not follow from

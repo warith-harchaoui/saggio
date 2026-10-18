@@ -879,6 +879,17 @@ was, so nothing changes for a model that repeated nothing. And the bands only
 ever excuse the threshold: a weakened status, a weakened provenance, or a
 deleted quantity still fails whatever the noise.
 
+**What this cannot catch, said plainly.** A regression is caught through
+whichever dimension was measured tightly. A workload made twice as slow fails
+the gate on `costs.time` and on the projected time — but its carbon, money and
+energy lines are *excused*, because a 109% power band swallows a 100% move.
+That is the gate being blind exactly where the evidence is blind, which is the
+intended behaviour and still a limitation worth knowing: **a regression that
+raises the power without touching the runtime** — code that starts using the
+accelerator, say — would pass a gate built on a noisy power measurement.
+Measure on a quiet machine if you want the power band tight enough to gate on.
+
+
 
 ## The catalogues
 
