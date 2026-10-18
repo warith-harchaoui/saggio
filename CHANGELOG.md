@@ -9,6 +9,41 @@ release of that line.
 
 ## Unreleased
 
+### The repository refuses a bare number; it has never refused a sentence
+
+- Four Ralph iterations running, the fault that mattered was in prose, and only
+  the one about a *number* was caught by a machine: an invented Legifrance
+  identifier, a false claim that this package attributes power "the way Kepler
+  does", a note calling a figure the median of five runs when it is not, and a
+  `derived_from` that was not a derivation — the last caught by the validator,
+  the first three by a human reading.
+- Writing the sonde found that **four committed pages had been stale for two
+  iterations**. `GALLERY.md` said the render model drew **21.3 W** three lines
+  above a paragraph giving its floor as 13.8 W and the figure it carries as
+  17.4 W — a self-contradiction in one paragraph. The Kepler comparison in
+  `MEASURING.md` / `MESURER.md` still quoted a share, a total, a floor and a
+  processor domain from a measurement that had been replaced, and its headline
+  conclusion was wrong by a factor of 2.7.
+- **The convention now enforced**: inside a section that names a committed
+  model, a figure written in **bold** is a claim that the model carries it. A
+  figure that is not the model's own — a nameplate rating, a threshold, a
+  figure from a paper — is written without bold. The rule is declared in the
+  page, by how it is written, rather than in a list of known-bad strings that
+  would go stale in the direction that hides the fault.
+- A second and stricter rule for the numbers a reader meets first: a table row
+  linking one model must quote that model's value **at that unit and that
+  status**. Sabotaging a digit, and separately sabotaging `measured` to
+  `estimated`, each makes it fail.
+- The Kepler comparison is re-derived, and gained something the stale version
+  hid: **the factor is not a constant.** The current measurement gives 3.01 W
+  against 0.72 W, a factor of four; the earlier one — a third as idle — gave
+  2.65 W against 1.68 W, a factor of 1.58. The busier the machine, the more the
+  subtraction removes and the less the domain counter does, so the two methods
+  diverge furthest exactly when a reader most needs them to agree.
+- **What this still cannot catch**, said plainly: a sentence making a claim
+  about the world rather than about a number. "This is how Kepler splits a
+  node" would pass today.
+
 ### The drift gate now reads the noise the models measured
 
 - `saggio diff` gated a release at ten per cent against numbers whose own

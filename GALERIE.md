@@ -202,7 +202,7 @@ Les deux ont été mesurés sur un Apple M2 Max, douze cœurs, en France, en
 exécutant le travail de nombreuses fois dans un seul interpréteur — cinquante
 rendus, deux cents requêtes — pour que le démarrage de Python, qui n'est pas le
 travail, ne lui soit pas facturé. La puissance est une lecture de compteur et
-non une fiche technique : **21,3 W** pendant les rendus et **18,0 W** pendant
+non une fiche technique : **17,4 W** pendant les rendus et **18,0 W** pendant
 les requêtes. La plaque signalétique que ce paquet aurait supposée sinon annonce
 83,76 W.
 

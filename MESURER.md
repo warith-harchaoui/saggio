@@ -322,21 +322,28 @@ produite plutôt qu'une soustraction, et c'est pourquoi la valeur attribuée ne
 peut tarifer que de l'énergie processeur.
 
 Les deux ne sont pas interchangeables, et `examples/render.yaml` dit de combien.
-Son bloc de mesure porte une part de 14,7 %, un total de 21,3 W, un plancher de
-9,9 W et un domaine processeur de 18,04 W :
+Son bloc de mesure porte une part de **19,8 %**, un total de **17,44 W**, un
+plancher de **13,83 W** et un domaine processeur de **15,18 W** :
 
 | | | |
 |---|---|---|
-| Ce paquet | 0,147 × 18,04 W | **2,65 W** |
-| Formule de Kepler | 0,147 × (21,29 − 9,89) W | **1,68 W** |
+| Ce paquet | 0,198 × 15,18 W | **3,01 W** |
+| Formule de Kepler | 0,198 × (17,44 − 13,83) W | 0,72 W |
 
-**Un facteur 1,58 sur la même exécution, à partir des mêmes nombres.** L'écart
+**Un facteur quatre sur la même exécution, à partir des mêmes nombres.** L'écart
 est la part au repos de la consommation du processeur lui-même, qu'un compteur
 de domaine ne sait pas séparer et qu'une soustraction sait isoler. Aucune des
 deux valeurs n'est fausse ; elles répondent à des questions différentes, et un
 modèle qui citerait l'une en invoquant l'autre comme méthode revendiquerait une
 corroboration qu'il n'a pas. Laquelle des deux a sa place dans un modèle de
 coût n'est pas tranché ici.
+
+**Et le facteur n'est pas une constante.** La mesure précédente de ce même
+modèle — trois fois moins au repos — donnait 2,65 W contre 1,68 W, un facteur
+1,58. Plus la machine est occupée, plus la soustraction retire et moins le
+compteur de domaine retire : les deux méthodes divergent donc davantage
+précisément quand un lecteur a le plus besoin qu'elles s'accordent. Une seule
+exécution ne borne pas mieux cet écart que le reste.
 
 ## Où la puissance est réellement passée
 

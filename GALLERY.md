@@ -190,7 +190,7 @@ machine, with the country stated.
 Both were measured on an Apple M2 Max, twelve cores, in France, by running the
 work many times inside one interpreter — fifty renders, two hundred requests —
 so that Python's start-up, which is not the work, is not charged to it. The
-power is a counter reading rather than a datasheet: **21.3 W** during the
+power is a counter reading rather than a datasheet: **17.4 W** during the
 renders and **18.0 W** during the requests. The nameplate this package would
 otherwise have assumed is 83.76 W.
 

@@ -305,20 +305,27 @@ subtraction, and which is why the attributed value may only price processor
 energy.
 
 The two are not interchangeable, and `examples/render.yaml` says by how much.
-Its measurement block carries a 14.7% share, a 21.3 W total, a 9.9 W floor and
-an 18.04 W processor domain:
+Its measurement block carries a **19.8%** share, a **17.44 W** total, a
+**13.83 W** floor and a **15.18 W** processor domain:
 
 | | | |
 |---|---|---|
-| This package | 0.147 × 18.04 W | **2.65 W** |
-| Kepler's formula | 0.147 × (21.29 − 9.89) W | **1.68 W** |
+| This package | 0.198 × 15.18 W | **3.01 W** |
+| Kepler's formula | 0.198 × (17.44 − 13.83) W | 0.72 W |
 
-**A factor of 1.58 on the same run, from the same numbers.** The gap is the idle
+**A factor of four on the same run, from the same numbers.** The gap is the idle
 share of the processor's own draw, which a domain counter cannot separate and a
 subtraction can. Neither figure is wrong; they answer different questions, and a
 model that quoted one while citing the other as its method would be claiming a
 corroboration it has not got. Which of the two belongs in a cost model is not
 settled here.
+
+**And the factor is not a constant.** The earlier measurement of this same
+model — one third as idle — gave 2.65 W against 1.68 W, a factor of 1.58. The
+busier the machine, the more the subtraction removes and the less the domain
+counter does, so the two methods diverge further exactly when a reader most
+needs them to agree. One run bounds the gap no better than it bounds anything
+else.
 
 ## Where the power actually went
 

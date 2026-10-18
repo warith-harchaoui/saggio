@@ -10,6 +10,43 @@ cette ligne.
 
 ## Non publié
 
+### Le dépôt refuse un nombre nu ; il n'a jamais rien refusé à une phrase
+
+- Quatre itérations Ralph de suite, la faute qui comptait était dans de la
+  prose, et seule celle portant sur un *nombre* a été attrapée par une machine :
+  un identifiant Legifrance inventé, une affirmation fausse selon laquelle ce
+  paquet attribue la puissance « comme Kepler », une note appelant « médiane de
+  cinq exécutions » une valeur qui n'en est pas une, et un `derived_from` qui
+  n'était pas une dérivation — la dernière attrapée par le validateur, les trois
+  premières par une lecture humaine.
+- Écrire la sonde a révélé que **quatre pages commitées étaient périmées depuis
+  deux itérations**. `GALERIE.md` annonçait **21,3 W** pour le modèle `render`
+  trois lignes au-dessus d'un paragraphe donnant son plancher à 13,8 W et la
+  valeur portée à 17,4 W — une contradiction dans un seul paragraphe. La
+  comparaison avec Kepler dans `MEASURING.md` / `MESURER.md` citait encore une
+  part, un total, un plancher et un domaine processeur d'une mesure remplacée
+  depuis, et sa conclusion était fausse d'un facteur 2,7.
+- **La convention désormais tenue** : dans une section qui nomme un modèle
+  commité, une valeur écrite en **gras** est une affirmation que le modèle la
+  porte. Une valeur qui n'est pas celle du modèle — une plaque signalétique, un
+  seuil, un chiffre tiré d'un article — s'écrit sans gras. La règle est donc
+  déclarée dans la page, par la façon de l'écrire, et non dans une liste de
+  chaînes connues qui se périmerait dans le sens qui cache la faute.
+- Une seconde règle, plus stricte, pour les nombres qu'un lecteur rencontre en
+  premier : une ligne de tableau qui lie un modèle doit citer la valeur de ce
+  modèle **à cette unité et à ce statut**. Saboter un chiffre, et séparément
+  saboter `mesuré` en `estimé`, la fait échouer à chaque fois.
+- La comparaison avec Kepler est recalculée, et gagne ce que la version périmée
+  cachait : **le facteur n'est pas une constante.** La mesure actuelle donne
+  3,01 W contre 0,72 W, un facteur quatre ; la précédente — trois fois moins au
+  repos — donnait 2,65 W contre 1,68 W, un facteur 1,58. Plus la machine est
+  occupée, plus la soustraction retire et moins le compteur de domaine retire :
+  les deux méthodes divergent donc le plus quand un lecteur a le plus besoin
+  qu'elles s'accordent.
+- **Ce que cela ne sait toujours pas attraper**, dit franchement : une phrase
+  qui affirme quelque chose sur le monde plutôt que sur un nombre. « C'est ainsi
+  que Kepler répartit un nœud » passerait encore aujourd'hui.
+
 ### La porte de dérive lit désormais le bruit que les modèles ont mesuré
 
 - `saggio diff` arbitrait une publication à dix pour cent contre des nombres
