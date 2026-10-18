@@ -1,0 +1,525 @@
+"""Running a slice more than once, because one run bounds nothing.
+
+Module summary
+--------------
+A single measurement tells you what happened once. It does not tell you whether
+it would happen again, and the two figures a slice produces do not behave the
+same way at all.
+
+This package's own gallery proved it. ``examples/render.yaml`` was measured
+twice, on one machine, with not a line of the measured code changed between
+them. The runtime moved **2.3%**; everything derived from the power moved
+**76.6%**, far enough that ``saggio diff`` failed its own gate on its own
+flagship model. The runtime is a property of the work. The wattage is a
+property of the room — a counter meters the machine, so it reports whatever
+else the machine was doing, and that is not the same thing twice.
+
+Both figures carried the same word, ``measured``, in a four-state vocabulary
+whose entire proposition is saying how far a number can be trusted. A state
+that cannot tell 2% from 77% is not doing that job.
+
+So: run it ``N`` times and say the spread. No fifth status is invented here —
+inventing one before measuring the thing it would describe is how the problem
+started. What is added is a number beside the number: the range the figure
+moved across the repeats, written into the model and stated in the notes of
+every quantity the repeats bound.
+
+The value written into the model is one real run's — the one whose runtime is
+the median — and not a median assembled per field. A model's figures have to be
+mutually consistent: its energy is its runtime times its power, and medians
+taken from different runs would describe a run that never happened.
+
+Usage example
+-------------
+>>> import sys
+>>> series = run_slices([sys.executable, "-c", "pass"], repeats=2, profile=False,
+...                     baseline_seconds=0.0)
+>>> len(series.runs), series.to_mapping()["repeats"]
+(2, 2)
+
+Author
+------
+Warith Harchaoui
+"""
+
+from __future__ import annotations
+
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, replace
+from pathlib import Path
+from statistics import median
+from typing import Any, Final
+
+from .run import DEFAULT_BASELINE_SECONDS, DEFAULT_TIMEOUT_SECONDS, SliceResult, run_slice
+
+#: A spread wider than this is reported as a warning rather than left to a
+#: reader to notice. It is the threshold ``saggio diff`` gates on, deliberately:
+#: a figure that moves this much between two runs of unchanged code would fail
+#: that gate, and a reader is better told before they commit it than after.
+WIDE_SPREAD: Final[float] = 0.10
+
+#: Why a repeated measurement has no function-level profile.
+_PROFILE_SKIPPED: Final[str] = (
+    "No function-level profile was taken: the profiler changes what is being "
+    "timed, so a series with one profiled run among several plain ones would "
+    "report a spread the profiler put there. Run it once for the profile."
+)
+
+#: What a single run can say about its own repeatability, which is nothing.
+MEASURED_ONCE: Final[str] = (
+    "Measured once, so nothing here bounds how far a second run would move it. "
+    "Pass `--repeat N` to find out."
+)
+
+
+@dataclass(frozen=True, slots=True)
+class Spread:
+    """What one figure did across several runs of the same command.
+
+    Parameters
+    ----------
+    values : tuple of float
+        One value per run, in the order the runs happened.
+
+    Examples
+    --------
+    >>> Spread((1.0, 2.0, 3.0)).median
+    2.0
+    >>> round(Spread((1.0, 2.0, 3.0)).relative, 2)
+    1.0
+    """
+
+    values: tuple[float, ...]
+
+    @property
+    def low(self) -> float:
+        """Return the smallest value seen.
+
+        Returns
+        -------
+        float
+            The minimum.
+
+        Examples
+        --------
+        >>> Spread((3.0, 1.0)).low
+        1.0
+        """
+        return min(self.values)
+
+    @property
+    def high(self) -> float:
+        """Return the largest value seen.
+
+        Returns
+        -------
+        float
+            The maximum.
+
+        Examples
+        --------
+        >>> Spread((3.0, 1.0)).high
+        3.0
+        """
+        return max(self.values)
+
+    @property
+    def median(self) -> float:
+        """Return the middle value.
+
+        Returns
+        -------
+        float
+            The median, which is what the model carries.
+
+        Examples
+        --------
+        >>> Spread((1.0, 5.0, 2.0)).median
+        2.0
+        """
+        return float(median(self.values))
+
+    @property
+    def relative(self) -> float | None:
+        """Return the range as a fraction of the median, or ``None``.
+
+        Returns
+        -------
+        float or None
+            ``(high - low) / median``, and ``None`` where the median is zero,
+            because a proportion of nothing is not a proportion.
+
+        Examples
+        --------
+        >>> Spread((0.0, 0.0)).relative is None
+        True
+        """
+        middle = self.median
+        if middle == 0.0:
+            return None
+        return (self.high - self.low) / middle
+
+    def wide(self) -> bool:
+        """Return whether this spread would fail the drift gate.
+
+        Returns
+        -------
+        bool
+            ``True`` when the range exceeds :data:`WIDE_SPREAD` of the median.
+
+        Examples
+        --------
+        >>> Spread((1.0, 1.5)).wide()
+        True
+        >>> Spread((1.0, 1.01)).wide()
+        False
+        """
+        relative = self.relative
+        return relative is not None and relative > WIDE_SPREAD
+
+    def to_mapping(self) -> dict[str, Any]:
+        """Serialise the spread for the model's measurement block.
+
+        Returns
+        -------
+        dict
+            The three figures a reader needs and the per-run values they came
+            from, so the claim can be checked rather than taken.
+
+        Examples
+        --------
+        >>> sorted(Spread((1.0, 2.0)).to_mapping())
+        ['high', 'low', 'median', 'relative', 'runs']
+        """
+        relative = self.relative
+        return {
+            "low": round(self.low, 6),
+            "median": round(self.median, 6),
+            "high": round(self.high, 6),
+            "relative": round(relative, 4) if relative is not None else None,
+            "runs": [round(value, 6) for value in self.values],
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class SliceSeries:
+    """Several runs of one command, and what they agreed about.
+
+    Parameters
+    ----------
+    runs : tuple of SliceResult
+        The runs, in the order they happened. At least one.
+
+    Examples
+    --------
+    >>> from saggio.analyze.power import PowerReading
+    >>> one = SliceResult(("x",), 0, 1.0, PowerReading(10.0, 10.0, "soc"))
+    >>> two = SliceResult(("x",), 0, 2.0, PowerReading(20.0, 20.0, "soc"))
+    >>> SliceSeries((one, two)).representative().wall_seconds
+    1.0
+    """
+
+    runs: tuple[SliceResult, ...]
+
+    def representative(self) -> SliceResult:
+        """Return the run whose figures the model should carry.
+
+        Returns
+        -------
+        SliceResult
+            The run with the median runtime — the lower of the two middle runs
+            when there is an even number, so the choice is deterministic. One
+            real run rather than a median per field, because a model's energy is
+            its runtime times its power and mixing runs would state a pair that
+            never occurred together.
+
+        Examples
+        --------
+        >>> from saggio.analyze.power import PowerReading
+        >>> runs = tuple(SliceResult(("x",), 0, s, PowerReading(None, None, ""))
+        ...              for s in (3.0, 1.0, 2.0))
+        >>> SliceSeries(runs).representative().wall_seconds
+        2.0
+        """
+        ordered = sorted(self.runs, key=lambda run: run.wall_seconds)
+        return ordered[(len(ordered) - 1) // 2]
+
+    def runtime_spread(self) -> Spread:
+        """Return what the wall-clock time did across the runs.
+
+        Returns
+        -------
+        Spread
+            One value per run.
+
+        Examples
+        --------
+        >>> from saggio.analyze.power import PowerReading
+        >>> runs = (SliceResult(("x",), 0, 1.0, PowerReading(None, None, "")),)
+        >>> SliceSeries(runs).runtime_spread().values
+        (1.0,)
+        """
+        return Spread(tuple(run.wall_seconds for run in self.runs))
+
+    def power_spread(self) -> Spread | None:
+        """Return what the measured power did across the runs, or ``None``.
+
+        Returns
+        -------
+        Spread or None
+            ``None`` unless every run measured power. A spread over the runs
+            that answered would be a spread of a different population from the
+            runtime's, and reporting the two side by side as though they covered
+            the same runs is the kind of quiet mismatch this package exists to
+            refuse.
+
+        Examples
+        --------
+        >>> from saggio.analyze.power import PowerReading
+        >>> runs = (SliceResult(("x",), 0, 1.0, PowerReading(None, None, "")),)
+        >>> SliceSeries(runs).power_spread() is None
+        True
+        """
+        watts = [run.power.watts for run in self.runs]
+        if any(value is None for value in watts):
+            return None
+        return Spread(tuple(float(value) for value in watts if value is not None))
+
+    def warnings(self) -> list[str]:
+        """Return what a reader must know before trusting the figures.
+
+        Returns
+        -------
+        list of str
+            One sentence per figure that moved more than the drift gate allows,
+            naming the range rather than only the fact of it.
+
+        Examples
+        --------
+        >>> from saggio.analyze.power import PowerReading
+        >>> runs = tuple(SliceResult(("x",), 0, s, PowerReading(s, s, "soc"))
+        ...              for s in (1.0, 2.0))
+        >>> len(SliceSeries(runs).warnings())
+        2
+        """
+        if len(self.runs) < 2:
+            return []
+        found: list[str] = []
+        for label, spread, unit in (
+            ("runtime", self.runtime_spread(), "s"),
+            ("measured power", self.power_spread(), "W"),
+        ):
+            if spread is None or not spread.wide():
+                continue
+            found.append(
+                f"The {label} moved from {spread.low:.4g} {unit} to "
+                f"{spread.high:.4g} {unit} across {len(self.runs)} runs of the "
+                f"same command — {spread.relative:.0%} of the median, which is "
+                f"wider than the gate `saggio diff` applies to a release. The "
+                f"model carries the median run; this is how much it would move "
+                f"if you took it again."
+            )
+        return found
+
+    def with_warning(self, warning: str) -> SliceSeries:
+        """Return the series with one more sentence on its representative run.
+
+        Parameters
+        ----------
+        warning : str
+            What a reader must know. Attached to the run the model will carry,
+            because that is the run whose block gets written.
+
+        Returns
+        -------
+        SliceSeries
+            A new series; this one is not modified.
+
+        Examples
+        --------
+        >>> from saggio.analyze.power import PowerReading
+        >>> one = SliceResult(("x",), 0, 1.0, PowerReading(None, None, ""))
+        >>> SliceSeries((one,)).with_warning("read this").runs[0].warnings
+        ('read this',)
+        """
+        chosen = self.representative()
+        return SliceSeries(
+            tuple(
+                replace(run, warnings=(*run.warnings, warning)) if run is chosen else run
+                for run in self.runs
+            )
+        )
+
+    def to_mapping(self) -> dict[str, Any]:
+        """Serialise the series as a model's measurement block.
+
+        Returns
+        -------
+        dict
+            The representative run's own block, plus how many runs there were
+            and what each figure did across them. A single run produces exactly
+            what it produced before, so nothing changes for a caller that did
+            not ask for repeats.
+
+        Examples
+        --------
+        >>> from saggio.analyze.power import PowerReading
+        >>> one = SliceResult(("x",), 0, 1.0, PowerReading(None, None, ""))
+        >>> "repeats" in SliceSeries((one,)).to_mapping()
+        False
+        """
+        mapping = dict(self.representative().to_mapping())
+        if len(self.runs) < 2:
+            return mapping
+        spreads: dict[str, Any] = {"runtime_s": self.runtime_spread().to_mapping()}
+        power = self.power_spread()
+        if power is not None:
+            spreads["power_w"] = power.to_mapping()
+        mapping["repeats"] = len(self.runs)
+        mapping["spread"] = spreads
+        mapping["warnings"] = [*mapping.get("warnings", []), *self.warnings()]
+        return mapping
+
+
+def spread_note(measurement: Mapping[str, Any] | None, key: str) -> str:
+    """Return the sentence bounding how far a figure would move again.
+
+    Parameters
+    ----------
+    measurement : Mapping or None
+        A measurement block, which may carry ``repeats`` and ``spread``.
+    key : str
+        Which spread to describe: ``"runtime_s"`` or ``"power_w"``.
+
+    Returns
+    -------
+    str
+        One sentence, ready to follow a quantity's own notes. A measurement
+        that repeated nothing says so rather than saying nothing: silence
+        reads as stability, and this is the figure that is not stable.
+
+    Examples
+    --------
+    >>> spread_note(None, "runtime_s") == MEASURED_ONCE
+    True
+    >>> block = {"repeats": 3, "spread": {"runtime_s":
+    ...          {"low": 1.0, "median": 2.0, "high": 3.0, "relative": 1.0}}}
+    >>> spread_note(block, "runtime_s").startswith("The median of 3 runs")
+    True
+    >>> power = {"repeats": 3, "spread": {"power_w":
+    ...          {"low": 10.0, "median": 20.0, "high": 30.0, "relative": 1.0}}}
+    >>> "is a different run's" in spread_note(power, "power_w")
+    True
+    """
+    if not isinstance(measurement, Mapping):
+        return MEASURED_ONCE
+    repeats = measurement.get("repeats")
+    spreads = measurement.get("spread")
+    if not isinstance(repeats, int) or repeats < 2 or not isinstance(spreads, Mapping):
+        return MEASURED_ONCE
+    block = spreads.get(key)
+    if not isinstance(block, Mapping):
+        return MEASURED_ONCE
+    low, high, relative = block.get("low"), block.get("high"), block.get("relative")
+    if not isinstance(low, (int, float)) or not isinstance(high, (int, float)):
+        return MEASURED_ONCE
+    unit = " s" if key == "runtime_s" else " W"
+    middle = block.get("median")
+    width = f", a spread of {relative:.0%} of their median" if isinstance(relative, float) else ""
+    if key == "runtime_s":
+        # The model carries this figure exactly: the representative run is
+        # chosen by runtime, so the runtime it carries is the median one.
+        opening = f"The median of {repeats} runs of the same command"
+    else:
+        # It does not carry this one. The run the model carries was chosen by
+        # its runtime, so the power beside it is that run's power and not the
+        # middle of the five — saying "median" here would be false by however
+        # far the two happen to differ, which on the gallery's own model is
+        # 17.4 W against 19.4 W.
+        middling = f" ({middle:.4g}{unit})" if isinstance(middle, (int, float)) else ""
+        opening = (
+            f"Read during the run this model carries, which is the one whose "
+            f"runtime was the median of {repeats}; the middle power of the "
+            f"{repeats}{middling} is a different run's"
+        )
+    return (
+        f"{opening}. Across them this figure ranged {low:.4g}{unit} to "
+        f"{high:.4g}{unit}{width}. That range is what a second measurement "
+        f"would be free to land anywhere inside."
+    )
+
+
+def run_slices(
+    command: Sequence[str],
+    *,
+    repeats: int = 1,
+    working_directory: str | Path | None = None,
+    timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+    fraction_completed: float | None = None,
+    profile: bool = True,
+    baseline_seconds: float = DEFAULT_BASELINE_SECONDS,
+) -> SliceSeries:
+    """Run a command several times and return every run.
+
+    Parameters
+    ----------
+    command : sequence of str
+        What to run. Passed as a list, never through a shell.
+    repeats : int, optional
+        How many times. One is the old behaviour exactly.
+    working_directory : str or pathlib.Path or None, optional
+        Where to run it.
+    timeout_seconds : float, optional
+        How long to allow each run before stopping it.
+    fraction_completed : float or None, optional
+        The share of a whole run each covers.
+    profile : bool, optional
+        Whether to wrap a Python command in the profiler. **Ignored when
+        ``repeats`` is above one**, and the series says so. The profiler changes
+        what is being timed, so a series with one profiled run and four plain
+        ones would report a spread that the profiler put there. Take the profile
+        with a single run; take the spread with several.
+    baseline_seconds : float, optional
+        How long to watch the machine before each run. The baseline is taken
+        again for every repeat, because the thing it measures — what else the
+        machine is doing — is exactly the thing that changes between them.
+
+    Returns
+    -------
+    SliceSeries
+        Every run, in order. A run that exits non-zero stops the series there:
+        measuring a failure five times measures five failures.
+
+    Raises
+    ------
+    ValueError
+        If ``repeats`` is below one, which asks for a measurement of nothing.
+
+    Examples
+    --------
+    >>> import sys
+    >>> series = run_slices([sys.executable, "-c", "pass"], repeats=1,
+    ...                     profile=False, baseline_seconds=0.0)
+    >>> len(series.runs)
+    1
+    """
+    if repeats < 1:
+        raise ValueError(f"A command cannot be run {repeats} times.")
+    runs: list[SliceResult] = []
+    for _ in range(repeats):
+        result = run_slice(
+            command,
+            working_directory=working_directory,
+            timeout_seconds=timeout_seconds,
+            fraction_completed=fraction_completed,
+            # No run in a series carries the profiler; see the parameter's note.
+            profile=profile and repeats == 1,
+            baseline_seconds=baseline_seconds,
+        )
+        runs.append(result)
+        if result.exit_code != 0 or result.truncated:
+            break
+    series = SliceSeries(tuple(runs))
+    if profile and repeats > 1:
+        return series.with_warning(_PROFILE_SKIPPED)
+    return series

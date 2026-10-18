@@ -33,7 +33,8 @@ assumptions:
       losses. This is the whole machine''s draw, not this run''s alone: these counters meter hardware
       and not processes, so whatever else the machine was doing while the command ran is inside the figure.
       By the run''s 10% share of the machine''s processor work, 2.9 W of the 31.9 W is attributable to
-      it. Every cost derived from it therefore prices the machine, not the process.'
+      it. Every cost derived from it therefore prices the machine, not the process. Measured once, so
+      nothing here bounds how far a second run would move it. Pass `--repeat N` to find out.'
   pue:
     value: 1.5
     status: estimated
@@ -93,7 +94,8 @@ scenarios:
     value: 0.4941358750074869
     status: measured
     unit: s
-    notes: Wall-clock time of `python3.13 predict.py --num_samples 400`.
+    notes: Wall-clock time of `python3.13 predict.py --num_samples 400`. Measured once, so nothing here
+      bounds how far a second run would move it. Pass `--repeat N` to find out.
   costs:
     time:
       value: 0.4941358750074869
@@ -101,7 +103,8 @@ scenarios:
       unit: s
       derived_from:
       - scenarios[0].runtime
-      notes: Wall-clock time of `python3.13 predict.py --num_samples 400`.
+      notes: Wall-clock time of `python3.13 predict.py --num_samples 400`. Measured once, so nothing here
+        bounds how far a second run would move it. Pass `--repeat N` to find out.
     energy:
       value: 6.564164274999999e-06
       status: estimated

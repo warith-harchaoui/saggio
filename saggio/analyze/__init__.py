@@ -44,6 +44,14 @@ from .power import (
     read_package_energy_microjoules,
     unavailable_reason,
 )
+from .repeat import (
+    MEASURED_ONCE,
+    WIDE_SPREAD,
+    SliceSeries,
+    Spread,
+    run_slices,
+    spread_note,
+)
 from .run import (
     CONSENT_PROMPT,
     DEFAULT_TIMEOUT_SECONDS,
@@ -107,8 +115,14 @@ __all__ = [
     "paths_read",
     # Running.
     "SliceResult",
+    "SliceSeries",
+    "Spread",
+    "MEASURED_ONCE",
+    "WIDE_SPREAD",
     "ProfileEntry",
     "run_slice",
+    "run_slices",
+    "spread_note",
     "has_consent",
     "record_consent",
     "require_consent",

@@ -17,6 +17,7 @@ import pytest
 import yaml
 
 from saggio.analyze.power import idle_exclusion, measurement_rows, states_idle_is_excluded
+from saggio.analyze.repeat import spread_note
 from saggio.model import CostModel, validate
 from saggio.report import render_markdown
 
@@ -347,3 +348,25 @@ def test_the_report_shows_every_field_of_the_measurement_block(model: str) -> No
     for label, value in rows:
         assert label in rendered, f"{model}: the report never shows {label!r}"
         assert str(value).split(" (")[0][:40] in rendered, f"{model}: {label!r} has no value"
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_a_measured_figure_says_how_far_a_second_run_would_move_it(model: str) -> None:
+    # The finding: render.yaml was measured twice on one machine with no change
+    # to the measured code, and the runtime moved 2.3% while everything derived
+    # from the power moved 76.6%. Both carried the word `measured`. A figure
+    # that says nothing about its own repeatability reads as repeatable, and
+    # exactly one of these two is.
+    data = yaml.safe_load((ROOT / model).read_text(encoding="utf-8"))
+    measurement = data.get("measurement")
+    for path, quantity in (
+        ("scenarios[0].runtime", (data.get("scenarios") or [{}])[0].get("runtime")),
+        ("assumptions.power_draw", (data.get("assumptions") or {}).get("power_draw")),
+    ):
+        if not isinstance(quantity, dict) or quantity.get("status") != "measured":
+            continue
+        key = "runtime_s" if path.endswith("runtime") else "power_w"
+        expected = spread_note(measurement, key)
+        assert str(quantity.get("notes") or "").endswith(expected), (
+            f"{model}: {path} is measured and does not say how far it would move"
+        )

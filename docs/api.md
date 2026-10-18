@@ -86,7 +86,9 @@ which `help()` will show you.
 | `RepositoryReading` | Everything reading the repository, without running it, established. |
 | `read_repository(path: 'str \| Path', *, overlay: 'Path \| None' = None) -> 'RepositoryReading'` | Read a repository and return everything the static pass established. |
 | `SliceResult` | What happened when a slice of the repository was run. |
+| `SliceSeries` | Several runs of one command, and what they agreed about. |
 | `run_slice(command: 'Sequence[str]', *, working_directory: 'str \| Path \| None' = None, timeout_seconds: 'float' = 300.0, fraction_completed: 'float \| None' = None, profile: 'bool' = True, baseline_seconds: 'float' = 1.0) -> 'SliceResult'` | Run a command, time it, measure what it drew, and see where the time went. |
+| `run_slices(command: 'Sequence[str]', *, repeats: 'int' = 1, working_directory: 'str \| Path \| None' = None, timeout_seconds: 'float' = 300.0, fraction_completed: 'float \| None' = None, profile: 'bool' = True, baseline_seconds: 'float' = 1.0) -> 'SliceSeries'` | Run a command several times and return every run. |
 
 
 ## The whole job

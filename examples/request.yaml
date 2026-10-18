@@ -38,7 +38,8 @@ assumptions:
       losses. This is the whole machine''s draw, not this run''s alone: these counters meter hardware
       and not processes, so whatever else the machine was doing while the command ran is inside the figure.
       Nothing here established how much of it was, so treat the figure as an upper bound on what the run
-      cost and not as what it cost.'
+      cost and not as what it cost. Measured once, so nothing here bounds how far a second run would move
+      it. Pass `--repeat N` to find out.'
   pue:
     value: 1.5
     status: estimated
@@ -201,7 +202,9 @@ scenarios:
       , \"costs\": {\"carbon\": {\"value\": 1.4, \"unit\": \"gCO2e\", \"status\": \"estimated\"}}}]}}).encode()\n\
       for _ in range(200):\n    req = urllib.request.Request(\"http://127.0.0.1:8795/scopes\", data=body,\
       \ headers={\"content-type\": \"application/json\"})\n    urllib.request.urlopen(req, timeout=10).read()\n\
-      . The command performed 200 units of work, so the figure is the wall-clock time divided by 200."
+      . The command performed 200 units of work, so the figure is the wall-clock time divided by 200.\
+      \ Measured once, so nothing here bounds how far a second run would move it. Pass `--repeat N` to\
+      \ find out."
   costs:
     time:
       value: 0.0038534010450166534
@@ -214,7 +217,9 @@ scenarios:
         , \"costs\": {\"carbon\": {\"value\": 1.4, \"unit\": \"gCO2e\", \"status\": \"estimated\"}}}]}}).encode()\n\
         for _ in range(200):\n    req = urllib.request.Request(\"http://127.0.0.1:8795/scopes\", data=body,\
         \ headers={\"content-type\": \"application/json\"})\n    urllib.request.urlopen(req, timeout=10).read()\n\
-        . The command performed 200 units of work, so the figure is the wall-clock time divided by 200."
+        . The command performed 200 units of work, so the figure is the wall-clock time divided by 200.\
+        \ Measured once, so nothing here bounds how far a second run would move it. Pass `--repeat N`\
+        \ to find out."
     energy:
       value: 2.886363989791667e-08
       status: estimated

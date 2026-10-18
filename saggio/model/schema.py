@@ -104,6 +104,15 @@ BARE_NUMBER_EXEMPT_PREFIXES: Final[tuple[str, ...]] = (
     # rather than take the exponent on trust.
     "measurement.scaling.r_squared",
     "measurement.scaling.observations",
+    # How many times the command was run and how far each figure moved across
+    # those runs. Diagnostic in the same sense as the rest of this block: the
+    # figure the costs use is the scenario's quantity, and this is the range a
+    # second measurement would be free to land inside. It is the answer to "how
+    # far can I trust this", which is what a status is for — but a status is a
+    # property of a number's provenance and this is a property of its stability,
+    # and collapsing the two would lose both.
+    "measurement.repeats",
+    "measurement.spread",
 )
 
 

@@ -268,6 +268,45 @@ choix :
 Sur une machine occupée, la seconde est en général la meilleure des deux ; sur
 une machine calme, elles convergent.
 
+### Une seule exécution ne borne rien
+
+Tout ce qui précède sépare une tranche de la machine où elle a tourné. Rien n'y
+dit si la même tranche, relancée, donnerait la même réponse — et les deux
+figures qu'une tranche produit ne se comportent pas du tout pareil.
+
+`examples/render.yaml` a été mesuré cinq fois avec `--repeat 5`, même commande,
+même machine, à une minute d'intervalle :
+
+| | Étendue sur cinq exécutions | Écart |
+|---|---|---|
+| Temps | 1,326 s à 1,538 s | **15 %** |
+| Puissance mesurée | 16,13 W à 37,36 W | **109 %** |
+
+Le temps est une propriété du travail. La puissance est une propriété de la
+pièce : un compteur mesure la machine, donc l'une de ces cinq a attrapé autre
+chose qui se réveillait et n'avait aucun moyen de le distinguer du travail. Les
+deux figures portaient pourtant le même mot, `measured`, dans un système de
+quatre états dont toute la proposition est de dire jusqu'où un nombre est
+fiable.
+
+Aucun cinquième état n'a été inventé pour autant — en inventer un avant d'avoir
+mesuré ce qu'il décrirait est la façon dont le problème a commencé. Ce qui a été
+ajouté est un nombre à côté du nombre. `--repeat N` exécute la commande N fois ;
+le modèle porte **une exécution réelle**, celle dont le temps était médian, et
+enregistre l'étendue où les autres sont tombées. Une exécution plutôt qu'une
+médiane champ par champ, parce que l'énergie d'un modèle est son temps
+multiplié par sa puissance et que des médianes prises sur des exécutions
+différentes énonceraient un couple qui n'a jamais eu lieu — ce qui veut dire
+aussi que la puissance que porte un modèle n'est **pas** la puissance médiane de
+la série, et ses notes le disent.
+
+Une valeur mesurée une seule fois le dit, au même endroit : le silence passe
+pour de la stabilité, et la puissance est la figure qui n'est pas stable.
+
+Un écart supérieur à 10 % — le seuil sur lequel `saggio diff` arbitre une
+publication — est rapporté comme avertissement plutôt que laissé à la sagacité
+du lecteur.
+
 ### Ce que ce n'est pas : la formule de Kepler, et de combien elle diffère
 
 Kepler v0.10 a retiré son moteur eBPF et lit désormais `/proc` et `/sys` sans

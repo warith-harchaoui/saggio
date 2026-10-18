@@ -329,6 +329,7 @@ _FIELD_LABELS: Final[dict[str, tuple[str, str]]] = {
     "attributed_watts": ("attributable to the run", " W"),
     "attributed_scope": ("what the attributable figure covers", ""),
     "truncated": ("cut short by the timeout", ""),
+    "repeats": ("times the command was run", ""),
 }
 
 #: Rendered separately by both reports: the command as a code block, the profile
@@ -390,6 +391,8 @@ def measurement_rows(
             row = _domain_row(value)
         elif key == "power_sources":
             row = _sources_row(value)
+        elif key == "spread":
+            row = _spread_row(value)
         elif isinstance(value, (dict, list)):
             # A block this module does not know how to label is still shown,
             # because the alternative is what this function exists to undo.
@@ -425,6 +428,48 @@ def _domain_row(value: Any) -> tuple[str, str] | None:
         if (number := _number(raw)) is not None
     ]
     return ("where the power went, by counter", ", ".join(parts)) if parts else None
+
+
+def _spread_row(value: Any) -> tuple[str, str] | None:
+    """Return how far the repeated figures moved, as one labelled row.
+
+    The whole point of repeating a measurement is this row. A block that
+    recorded the spread and rendered it as ``spread | {'runtime_s': ...}`` —
+    which is what the generic fallback does to a nested value — would have
+    taken the trouble and kept the answer to itself.
+
+    Parameters
+    ----------
+    value : object
+        The ``spread`` block, keyed by figure.
+
+    Returns
+    -------
+    tuple or None
+        ``(label, value)``, or ``None`` when there is nothing to say.
+
+    Examples
+    --------
+    >>> _spread_row({"runtime_s": {"low": 1.0, "high": 2.0, "relative": 0.5}})
+    ('how far the figures moved across those runs', 'runtime 1 s to 2 s (50%)')
+    >>> _spread_row({"power_w": {"low": 16.132957, "high": 37.363475}})[1]
+    'power 16.13 W to 37.36 W'
+    """
+    if not isinstance(value, Mapping) or not value:
+        return None
+    labels = {"runtime_s": ("runtime", "s"), "power_w": ("power", "W")}
+    parts: list[str] = []
+    for key, block in value.items():
+        if not isinstance(block, Mapping):
+            continue
+        low, high = _number(block.get("low")), _number(block.get("high"))
+        if low is None or high is None:
+            continue
+        name, unit = labels.get(str(key), (str(key), ""))
+        relative = _number(block.get("relative"))
+        width = f" ({relative:.0%})" if relative is not None else ""
+        parts.append(f"{name} {low:.4g} {unit} to {high:.4g} {unit}{width}".replace("  ", " "))
+    return ("how far the figures moved across those runs", ", ".join(parts)) if parts else None
 
 
 def _sources_row(value: Any) -> tuple[str, str] | None:

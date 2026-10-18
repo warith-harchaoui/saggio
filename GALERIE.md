@@ -195,7 +195,7 @@ sur une machine, avec le pays énoncé.
 
 | Modèle | Unité de travail | Temps | Carbone | Ce qui reste ouvert |
 |---|---|---|---|---|
-| [`render`](examples/render.yaml) · [rapport](examples/render.md) | un rapport HTML produit | 0,0277 s, mesuré | 1,01e-05 gCO2e, estimé | eau, scope 2 market-based, incorporé |
+| [`render`](examples/render.yaml) · [rapport](examples/render.md) | un rapport HTML produit | 0,0276 s, mesuré | 8,27e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
 | [`request`](examples/request.yaml) · [rapport](examples/request.md) | une requête `/scopes` traitée de bout en bout | 0,00385 s, mesuré | 1,19e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
 
 Les deux ont été mesurés sur un Apple M2 Max, douze cœurs, en France, en
@@ -209,17 +209,33 @@ les requêtes. La plaque signalétique que ce paquet aurait supposée sinon anno
 **Et ces watts sont ceux de la machine, pas ceux de l'exécution.** Un compteur
 mesure du matériel, pas des processus : une valeur lue pendant qu'une tranche
 tourne contient tout ce que la machine faisait par ailleurs. Le modèle `render`
-enregistre désormais ce que c'était : la machine tirait déjà **9,9 W** avant le
-démarrage de la tranche, et selon la **part de 15 %** du travail processeur de
-la machine, **2,6 W** des 21,3 W lui sont attribuables. Deux façons de séparer
-l'exécution de sa machine donnent donc 11,4 W et 2,6 W, et les coûts du tableau
-n'utilisent ni l'une ni l'autre : ils utilisent les 21,3 W entiers, la seule
+enregistre ce que c'était : la machine tirait déjà **13,8 W** avant le démarrage
+de la tranche, et selon la **part de 19,8 %** du travail processeur de la
+machine, **3,0 W** des 17,4 W lui sont attribuables. Les coûts du tableau
+n'utilisent ni l'un ni l'autre : ils utilisent les 17,4 W entiers, la seule
 valeur qu'un compteur puisse réellement voir. Chacun de ces nombres est dans le
 modèle, dans la phrase attachée à la figure de puissance et dans la liste des
 exclusions à côté.
 
-Le modèle `request` est antérieur au bloc qui enregistre un plancher : le sien
-n'est pas dans le dépôt et n'est donc pas cité ici.
+**Et une seule exécution ne borne rien.** `render` a été mesuré avec
+`--repeat 5`, et les cinq exécutions divergent d'une façon que les deux figures
+ne partagent pas :
+
+| | Étendue sur cinq exécutions | Écart |
+|---|---|---|
+| Temps | 1,326 s à 1,538 s | **15 %** |
+| Puissance mesurée | 16,13 W à 37,36 W | **109 %** |
+
+Le temps est une propriété du travail. La puissance est une propriété de la
+pièce — l'une des cinq a attrapé autre chose qui se réveillait sur le portable,
+et un compteur ne sait pas distinguer cela du travail. Le modèle porte
+l'exécution dont le temps était médian et énonce l'étendue à côté ; une sixième
+mesure est libre de tomber n'importe où à l'intérieur. **Rien n'a été écarté
+pour que ce soit plus flatteur.**
+
+Le modèle `request` a été mesuré une seule fois, avant l'existence de
+`--repeat`, et le dit dans ses propres notes plutôt que de laisser le silence
+passer pour de la stabilité.
 
 **Ce que « terminé » veut dire ici, et ce que ça ne veut pas dire.** Quatre
 nombres sur sept sont établis et trois restent ouverts, et c'est l'état final,
@@ -234,8 +250,9 @@ chose, et chacun le dit dans ses propres notes.
 La différence avec les huit ci-dessus est celle qui mérite le regard : un temps
 d'exécution mesuré transforme trois `TODO` en chiffres par la chaîne de
 dérivation, et la figure de puissance passe d'une supposition de fiche technique
-à une lecture de compteur quatre fois plus petite — et qui, contrairement à la
-supposition, dit quelle part d'elle-même était cette exécution.
+à une lecture de compteur près de cinq fois plus petite — qui dit quelle part
+d'elle-même était cette exécution, et de combien elle bougerait si on la
+reprenait.
 
 ## La démonstration pas à pas : une charge, quatre étapes
 

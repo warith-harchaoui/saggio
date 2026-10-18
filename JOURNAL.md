@@ -10,6 +10,50 @@ cette ligne.
 
 ## Non publié
 
+### Une seule exécution ne borne rien, et les deux figures ne se comportent pas pareil
+
+- `saggio measure --repeat N` exécute la commande N fois et rapporte l'écart.
+  Sur le modèle vedette de ce paquet, cinq exécutions de la même commande sur
+  une machine à une minute d'intervalle : le **temps a bougé de 15 %**
+  (1,326 s à 1,538 s) et la **puissance mesurée de 109 %** (16,13 W à
+  37,36 W). Le temps est une propriété du travail ; la puissance est une
+  propriété de la pièce, parce qu'un compteur mesure la machine et que l'une
+  des cinq a attrapé autre chose qui se réveillait. Les deux portaient le même
+  mot, `measured`.
+- **Aucun cinquième état n'a été inventé.** En inventer un avant d'avoir mesuré
+  ce qu'il décrirait est la façon dont le problème a commencé. Ce qui est
+  ajouté est un nombre à côté du nombre : `measurement.repeats`,
+  `measurement.spread`, et une phrase dans les notes de chaque quantité que les
+  répétitions bornent.
+- Le modèle porte **une exécution réelle** — celle dont le temps était médian —
+  et non une médiane assemblée champ par champ : l'énergie d'un modèle est son
+  temps multiplié par sa puissance, et des médianes prises sur des exécutions
+  différentes énonceraient un couple qui n'a jamais eu lieu. Ce qui veut dire
+  aussi que la puissance que porte un modèle n'est **pas** la puissance médiane
+  de la série, et ses notes le disent au lieu de l'appeler une médiane qu'elle
+  n'est pas.
+- Une quantité mesurée une seule fois le dit désormais (*« Measured once, so
+  nothing here bounds how far a second run would move it »*). Le silence passe
+  pour de la stabilité, et la puissance est la figure qui ne l'est pas.
+- Un écart supérieur à 10 % — le seuil sur lequel `saggio diff` arbitre une
+  publication — fait l'objet d'un avertissement.
+- **Aucun profil par fonction n'est pris quand `--repeat` dépasse un.** Le
+  profileur change ce qui est chronométré : une série avec une exécution
+  profilée au milieu d'exécutions ordinaires rapporterait un écart que le
+  profileur y aurait mis. Trouvé en l'exécutant : la première version profilait
+  l'exécution numéro un et laissait les quatre autres tranquilles.
+- Le validateur a refusé les nouveaux champs à la première écriture —
+  `measurement.repeats: is a bare number; wrap it in a quantity so it carries
+  an honesty status` — ce qui est la règle qui fonctionne. Ils sont désormais
+  déclarés exemptés, avec la raison : un statut est une propriété de la
+  provenance d'un nombre et un écart une propriété de sa stabilité ; confondre
+  les deux les perdrait toutes les deux.
+- `examples/render.yaml` remesuré avec `--repeat 5` ; ses cinq exécutions sont
+  dans le fichier. Rien n'a été écarté pour que l'écart paraisse plus petit.
+- Un test de contrat neuf : un temps ou une puissance `measured` doit énoncer de
+  combien une seconde exécution le déplacerait. Il a tiré sur trois modèles le
+  jour où il a été écrit.
+
 ### Un modèle qui disait exclure la capacité au repos, tout en tarifant la machine entière
 
 - Tout modèle écrit par ce paquet portait la ligne *« Idle capacity. This is the

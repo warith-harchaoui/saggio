@@ -71,8 +71,10 @@ __email__: Final[str] = "warithmetics@deraison.ai"
 from .analyze import (
     RepositoryReading,
     SliceResult,
+    SliceSeries,
     read_repository,
     run_slice,
+    run_slices,
 )
 from .auditor import AuditOptions, AuditResult, audit, audit_git_url, repository_name
 from .catalog import Catalog, add_row, stale_report
@@ -185,7 +187,9 @@ __all__ = [
     "RepositoryReading",
     "read_repository",
     "SliceResult",
+    "SliceSeries",
     "run_slice",
+    "run_slices",
     # The whole job.
     "AuditOptions",
     "AuditResult",

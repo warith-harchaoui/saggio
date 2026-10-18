@@ -9,6 +9,44 @@ release of that line.
 
 ## Unreleased
 
+### One run bounds nothing, and the two figures do not behave the same way
+
+- `saggio measure --repeat N` runs the command N times and reports the spread.
+  On this package's own gallery model, five runs of the same command on one
+  machine a minute apart: the **runtime moved 15%** (1.326 s to 1.538 s) and
+  the **measured power moved 109%** (16.13 W to 37.36 W). The runtime is a
+  property of the work; the wattage is a property of the room, because a
+  counter meters the machine and one of the five caught something else waking
+  up. Both carried the same word, `measured`.
+- **No fifth status was invented.** Inventing one before measuring the thing it
+  would describe is how the problem started. What is added is a number beside
+  the number: `measurement.repeats`, `measurement.spread`, and a sentence in
+  the notes of every quantity the repeats bound.
+- The model carries **one real run** — the one whose runtime was the median —
+  and not a median assembled per field: a model's energy is its runtime times
+  its power, and medians from different runs would state a pair that never
+  occurred together. Which also means the power a model carries is *not* the
+  middle power of the series, and its notes say so rather than calling it a
+  median it is not.
+- A quantity measured once now says so (*"Measured once, so nothing here bounds
+  how far a second run would move it"*). Silence reads as stability, and the
+  power is the figure that is not stable.
+- A spread wider than 10% — the threshold `saggio diff` gates a release on — is
+  warned about rather than left to a reader to notice.
+- **No function-level profile is taken when `--repeat` is above one.** The
+  profiler changes what is being timed, so a series with one profiled run among
+  plain ones would report a spread the profiler put there. Found by running it:
+  the first draft profiled run one and left the other four alone.
+- The validator refused the new fields on first write — `measurement.repeats:
+  is a bare number; wrap it in a quantity so it carries an honesty status` —
+  which is the rule working. They are now declared exempt, with the reason: a
+  status is a property of a number's provenance and a spread is a property of
+  its stability, and collapsing the two would lose both.
+- `examples/render.yaml` re-measured with `--repeat 5`; its five runs are in
+  the file. Nothing was discarded to make the spread look smaller.
+- One new contract test: a `measured` runtime or power must state how far a
+  second run would move it. It fired on three models when written.
+
 ### A model that said idle capacity was excluded, while pricing the whole machine
 
 - Every model this package writes carried the line *"Idle capacity. This is the

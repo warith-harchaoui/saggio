@@ -33,7 +33,8 @@ assumptions:
       losses. This is the whole machine''s draw, not this run''s alone: these counters meter hardware
       and not processes, so whatever else the machine was doing while the command ran is inside the figure.
       Nothing here established how much of it was, so treat the figure as an upper bound on what the run
-      cost and not as what it cost.'
+      cost and not as what it cost. Measured once, so nothing here bounds how far a second run would move
+      it. Pass `--repeat N` to find out.'
   pue:
     value: 1.5
     status: estimated
@@ -94,7 +95,8 @@ scenarios:
     status: measured
     unit: s
     notes: 'Timed with `saggio measure`: python predict.py --num_samples 500. The command performed 500
-      units of work, so the figure is the wall-clock time divided by 500.'
+      units of work, so the figure is the wall-clock time divided by 500. Measured once, so nothing here
+      bounds how far a second run would move it. Pass `--repeat N` to find out.'
   costs:
     time:
       value: 0.0013205686660076026
@@ -103,7 +105,8 @@ scenarios:
       derived_from:
       - scenarios[0].runtime
       notes: 'Timed with `saggio measure`: python predict.py --num_samples 500. The command performed
-        500 units of work, so the figure is the wall-clock time divided by 500.'
+        500 units of work, so the figure is the wall-clock time divided by 500. Measured once, so nothing
+        here bounds how far a second run would move it. Pass `--repeat N` to find out.'
     energy:
       value: 1.71149450375e-08
       status: estimated

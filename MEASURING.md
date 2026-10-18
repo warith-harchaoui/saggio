@@ -255,6 +255,41 @@ of two methods that disagree is the pair, not a pick:
 On a busy machine the second is usually the better of the two, and on a quiet
 one they converge.
 
+### One run bounds nothing
+
+Everything above separates a slice from the machine it ran on. None of it says
+whether the same slice, run again, would give the same answer — and the two
+figures a slice produces do not behave the same way at all.
+
+`examples/render.yaml` was measured five times with `--repeat 5`, same command,
+same machine, one minute apart:
+
+| | Range over five runs | Spread |
+|---|---|---|
+| Runtime | 1.326 s to 1.538 s | **15%** |
+| Measured power | 16.13 W to 37.36 W | **109%** |
+
+The runtime is a property of the work. The wattage is a property of the room:
+a counter meters the machine, so one of those five caught something else waking
+up and had no way to tell that apart from the work. Both figures nonetheless
+carried the same word, `measured`, in a four-state vocabulary whose entire
+proposition is saying how far a number can be trusted.
+
+No fifth state was invented for this — inventing one before measuring the thing
+it would describe is how the problem started. What was added is a number beside
+the number. `--repeat N` runs the command N times; the model carries **one real
+run**, the one whose runtime was the median, and records the range the others
+fell in. One run rather than a median per field, because a model's energy is
+its runtime times its power and medians taken from different runs would state a
+pair that never occurred together — which also means the power figure a model
+carries is *not* the middle power of the series, and its notes say so.
+
+A figure measured once says *that*, in the same place: silence reads as
+stability, and the power is the figure that is not stable.
+
+A spread wider than 10% — the threshold `saggio diff` gates a release on — is
+reported as a warning rather than left to a reader to notice.
+
 ### What this is not: Kepler's formula, and how far it differs
 
 Kepler v0.10 removed its eBPF engine and now reads `/proc` and `/sys` without

@@ -184,7 +184,7 @@ machine, with the country stated.
 
 | Model | Unit of work | Time | Carbon | What stayed open |
 |---|---|---|---|---|
-| [`render`](examples/render.yaml) · [report](examples/render.md) | one HTML report rendered | 0.0277 s, measured | 1.01e-05 gCO2e, estimated | water, market-based scope 2, embodied |
+| [`render`](examples/render.yaml) · [report](examples/render.md) | one HTML report rendered | 0.0276 s, measured | 8.27e-06 gCO2e, estimated | water, market-based scope 2, embodied |
 | [`request`](examples/request.yaml) · [report](examples/request.md) | one `/scopes` request handled end to end | 0.00385 s, measured | 1.19e-06 gCO2e, estimated | water, market-based scope 2, embodied |
 
 Both were measured on an Apple M2 Max, twelve cores, in France, by running the
@@ -196,17 +196,30 @@ otherwise have assumed is 83.76 W.
 
 **And those watts are the machine's, not the run's.** A counter meters
 hardware, not processes, so a figure read while a slice runs includes whatever
-else the machine was doing. The `render` model now records what that was: the
-machine was already drawing **9.9 W** before the slice started, and by the
-run's **15% share** of the machine's processor work, **2.6 W** of the 21.3 W is
-attributable to it. Two ways of separating the run from its machine therefore
-give 11.4 W and 2.6 W, and the costs in the table use neither — they use the
-whole 21.3 W, which is the only figure a meter can actually see. Each of those
+else the machine was doing. The `render` model records what that was: the
+machine was already drawing **13.8 W** before the slice started, and by the
+run's **19.8% share** of the machine's processor work, **3.0 W** of the 17.4 W
+is attributable to it. The costs in the table use neither — they use the whole
+17.4 W, which is the only figure a meter can actually see. Each of those
 numbers is in the model, in the sentence attached to the power figure and in
 the exclusions list beside it.
 
-The `request` model predates the block that records a floor, so its own is not
-in the repository and is not quoted here.
+**And one run of it bounds nothing.** `render` was measured with
+`--repeat 5`, and the five runs disagree in a way the two figures do not share:
+
+| | Range over five runs | Spread |
+|---|---|---|
+| Runtime | 1.326 s to 1.538 s | **15%** |
+| Measured power | 16.13 W to 37.36 W | **109%** |
+
+The runtime is a property of the work. The wattage is a property of the room —
+one of the five caught something else waking up on the laptop, and a counter
+cannot tell that apart from the work. The model carries the run whose runtime
+was the median and states the range beside it; a sixth measurement is free to
+land anywhere inside. **Nothing was discarded to make this look better.**
+
+The `request` model was measured once, before `--repeat` existed, and says so
+in its own notes rather than leaving the silence to read as stability.
 
 **What "finished" means here, and what it does not.** Four of seven numbers are
 established and three are still open, and that is the end state rather than an
@@ -219,9 +232,9 @@ each needs somebody to state something, and each says so in its own notes.
 
 The difference from the eight above is the one worth looking at: a measured
 runtime turns three `TODO`s into figures through the derivation chain, and the
-power figure moves from a datasheet guess to a counter reading that is four
-times smaller — and, unlike the guess, one that says how much of itself was
-this run.
+power figure moves from a datasheet guess to a counter reading nearly five
+times smaller — one that says how much of itself was this run, and how much it
+would move if you took it again.
 
 ## The walkthrough: one workload, four stages
 

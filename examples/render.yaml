@@ -22,7 +22,7 @@ deployment:
   cpu: Apple M2 Max
 assumptions:
   power_draw:
-    value: 21.293898332193436
+    value: 17.442896688619115
     status: measured
     unit: W
     notes: 'Read from the machine while the command ran. The figure covers the chip''s processor cores,
@@ -35,10 +35,13 @@ assumptions:
       another. Left out of them: the display, storage, networking, the fans, and the power supply''s own
       losses. This is the whole machine''s draw, not this run''s alone: these counters meter hardware
       and not processes, so whatever else the machine was doing while the command ran is inside the figure.
-      The machine was already drawing 9.9 W before the slice started, which is a floor under how much
-      of the figure was not this run. By the run''s 15% share of the machine''s processor work, 2.6 W
-      of the 21.3 W is attributable to it. Every cost derived from it therefore prices the machine, not
-      the process.'
+      The machine was already drawing 13.8 W before the slice started, which is a floor under how much
+      of the figure was not this run. By the run''s 20% share of the machine''s processor work, 3.0 W
+      of the 17.4 W is attributable to it. Every cost derived from it therefore prices the machine, not
+      the process. Read during the run this model carries, which is the one whose runtime was the median
+      of 5; the middle power of the 5 (19.42 W) is a different run''s. Across them this figure ranged
+      16.13 W to 37.36 W, a spread of 109% of their median. That range is what a second measurement would
+      be free to land anywhere inside.'
   pue:
     value: 1.5
     status: estimated
@@ -95,7 +98,7 @@ assumptions:
       between three and six years; choosing within that range moves the embodied carbon by a factor of
       two, which is why this is asked rather than assumed.
   machine_energy:
-    value: 1.6401499497222223e-07
+    value: 1.338579116388889e-07
     status: measured
     unit: kWh
     source_url: https://doi.org/10.1002/advs.202100707
@@ -193,16 +196,18 @@ scenarios:
 - name: as-audited
   description: One unit of work as this audit found it, on the machine it ran on.
   runtime:
-    value: 0.02772878750000018
+    value: 0.02762663166000493
     status: measured
     unit: s
     notes: "Timed with `saggio measure`: python3 -c \nimport yaml\nfrom saggio import render_html\nmodel\
       \ = yaml.safe_load(open(\"examples/saggio.yaml\", encoding=\"utf-8\"))\nfor _ in range(50):\n  \
       \  render_html(model)\n. The command performed 50 units of work, so the figure is the wall-clock\
-      \ time divided by 50."
+      \ time divided by 50. The median of 5 runs of the same command. Across them this figure ranged 1.326\
+      \ s to 1.538 s, a spread of 15% of their median. That range is what a second measurement would be\
+      \ free to land anywhere inside."
   costs:
     time:
-      value: 0.02772878750000018
+      value: 0.02762663166000493
       status: measured
       unit: s
       derived_from:
@@ -210,9 +215,11 @@ scenarios:
       notes: "Timed with `saggio measure`: python3 -c \nimport yaml\nfrom saggio import render_html\n\
         model = yaml.safe_load(open(\"examples/saggio.yaml\", encoding=\"utf-8\"))\nfor _ in range(50):\n\
         \    render_html(model)\n. The command performed 50 units of work, so the figure is the wall-clock\
-        \ time divided by 50."
+        \ time divided by 50. The median of 5 runs of the same command. Across them this figure ranged\
+        \ 1.326 s to 1.538 s, a spread of 15% of their median. That range is what a second measurement\
+        \ would be free to land anywhere inside."
     energy:
-      value: 2.4602249245833335e-07
+      value: 2.0078686745833334e-07
       status: estimated
       unit: kWh
       source_url: https://doi.org/10.1002/advs.202100707
@@ -221,7 +228,7 @@ scenarios:
       - assumptions.pue
       notes: 'Machine energy x power usage effectiveness: what the building draws.'
     money:
-      value: 6.790220791850001e-08
+      value: 5.5417175418500006e-08
       status: estimated
       unit: USD
       currency: USD
@@ -230,7 +237,7 @@ scenarios:
       - assumptions.electricity_price
       notes: Facility energy x price per kilowatt-hour; hardware and staff are not included.
     carbon:
-      value: 1.0136126689283334e-05
+      value: 8.272418939283334e-06
       status: estimated
       unit: gCO2e
       source_url: https://doi.org/10.1002/advs.202100707
@@ -276,7 +283,7 @@ projections:
       time:
         method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 11091.515000000072
+          value: 11050.652664001971
           status: estimated
           unit: s
           notes: Projected from a slice covering 0.00025% of the run.
@@ -292,7 +299,7 @@ projections:
       energy:
         method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 0.09840899698333333
+          value: 0.08031474698333332
           status: estimated
           unit: kWh
           notes: Projected from a slice covering 0.00025% of the run.
@@ -308,7 +315,7 @@ projections:
       money:
         method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 0.0271608831674
+          value: 0.022166870167400002
           status: estimated
           unit: USD
           currency: USD
@@ -325,7 +332,7 @@ projections:
       carbon:
         method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 4.054450675713333
+          value: 3.3089675757133334
           status: estimated
           unit: gCO2e
           notes: Projected from a slice covering 0.00025% of the run.
@@ -374,36 +381,65 @@ measurement:
   power_sources:
   - system-on-chip
   - memory
-  cpu_seconds: 1.3482
-  idle_watts: 9.89
-  power_note: 'Machine at rest before the slice: 9.9 W. Subtracting it gives 11.4 W as the slice''s own
+  cpu_seconds: 1.3256
+  idle_watts: 13.83
+  power_note: 'Machine at rest before the slice: 13.8 W. Subtracting it gives 3.6 W as the slice''s own
     draw, which holds only if the rest of the machine did the same thing during the run as it did just
     before it.'
   power_by_domain:
-    cpu: 18.04
-    gpu: 0.636
+    cpu: 15.178
+    gpu: 0.118
     ane: 0.0
-    memory: 2.617
+    memory: 2.146
   cpu_share:
-    share: 0.146863
-    run_cpu_seconds: 1.348
-    machine_cpu_seconds: 9.18
-  attributed_watts: 2.65
+    share: 0.198141
+    run_cpu_seconds: 1.326
+    machine_cpu_seconds: 6.69
+  attributed_watts: 3.01
   attributed_scope: the processor cores alone, which is the only part a share of processor work can price
   warnings:
-  - 'No function-level profile was taken: the profiler can only wrap a Python script or a `-m module`
-    invocation. The totals below are unaffected.'
-  - 'Two ways of separating this slice from the machine it ran on disagree: subtracting the idle baseline
-    gives 11.4 W, and attributing the measured draw by the slice''s 15% share of the machine''s processor
-    work gives 2.6 W. The first assumes the rest of the machine held still, the second that the draw divides
-    the way the work does; on a busy machine the second is usually the better of the two. Treat them as
-    the ends of a bracket.'
+  - The machine was already drawing 13.8 W before the slice started, against 17.4 W while it ran, so most
+    of the measured power was not this slice's. The difference, 3.6 W, is what the slice added if nothing
+    else changed in between; measure on a quiet machine if the total is what you need.
+  - 'No function-level profile was taken: the profiler changes what is being timed, so a series with one
+    profiled run among several plain ones would report a spread the profiler put there. Run it once for
+    the profile.'
+  - The runtime moved from 1.326 s to 1.538 s across 5 runs of the same command — 15% of the median, which
+    is wider than the gate `saggio diff` applies to a release. The model carries the median run; this
+    is how much it would move if you took it again.
+  - The measured power moved from 16.13 W to 37.36 W across 5 runs of the same command — 109% of the median,
+    which is wider than the gate `saggio diff` applies to a release. The model carries the median run;
+    this is how much it would move if you took it again.
+  repeats: 5
+  spread:
+    runtime_s:
+      low: 1.325554
+      median: 1.381332
+      high: 1.538204
+      relative: 0.1539
+      runs:
+      - 1.381332
+      - 1.407821
+      - 1.325554
+      - 1.330669
+      - 1.538204
+    power_w:
+      low: 16.132957
+      median: 19.423457
+      high: 37.363475
+      relative: 1.093
+      runs:
+      - 17.442897
+      - 19.423457
+      - 16.132957
+      - 21.654895
+      - 37.363475
 exclusions:
 - Making the hardware. Only the electricity to run it is counted.
 - The people. Salaries, offices, and travel are out of scope.
 - Idle capacity is inside these figures, not outside them. The power was read from the machine's own counters,
-  which meter hardware and not processes, and 9.9 W of the 21.3 W was being drawn before the slice started.
-  The measurement block carries 2.6 W as the run's attributable share, from its 15% of the machine's processor
+  which meter hardware and not processes, and 13.8 W of the 17.4 W was being drawn before the slice started.
+  The measurement block carries 3.0 W as the run's attributable share, from its 20% of the machine's processor
   work; the costs below do not use it.
 provenance_rules:
 - Every sourced value carries source_url and retrieved_date.

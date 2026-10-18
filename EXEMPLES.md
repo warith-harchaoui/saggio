@@ -367,6 +367,41 @@ profileur :
 saggio measure --no-profile -- python train.py --steps 100
 ```
 
+### De combien une seconde exécution la déplacerait-elle ?
+
+Une exécution dit ce qui s'est passé une fois. Elle ne dit pas si cela se
+reproduirait, et la galerie de ce paquet prouve que les deux figures ne se
+comportent pas pareil :
+
+```bash
+saggio measure --repeat 5 --units 50 -- python render_fifty.py
+```
+
+```
+Runs: 5
+Wall-clock: 1.381 s (median of 5; 1.326-1.538 s)
+Average power: 17.4 W (median of 5; 16.1-37.4 W)
+```
+
+**Le temps a bougé de 15 %, la puissance de 109 %.** Le temps est une propriété
+du travail ; la puissance est une propriété de la pièce, parce qu'un compteur
+mesure la machine et que l'une de ces cinq exécutions a attrapé autre chose qui
+se réveillait.
+
+Avec `--into`, le modèle porte l'exécution dont le temps était médian — une
+exécution réelle, et non une médiane assemblée champ par champ, parce que
+l'énergie d'un modèle est son temps multiplié par sa puissance et que mélanger
+des exécutions énoncerait un couple qui n'a jamais eu lieu. L'étendue est
+inscrite à côté, dans le bloc de mesure et dans les notes de chaque quantité
+qu'elle borne. Une valeur mesurée une seule fois le dit, plutôt que de laisser
+un silence passer pour de la stabilité.
+
+Aucun profil par fonction n'est pris quand `--repeat` dépasse un : le profileur
+change ce qui est chronométré, et une série avec une exécution profilée au
+milieu d'exécutions ordinaires rapporterait un écart que le profileur y aurait
+mis. Une fois pour le profil, plusieurs fois pour l'écart.
+
+
 ### Mettre la mesure dans le modèle
 
 Une mesure affichée dans un terminal est un nombre que personne n'a gardé.

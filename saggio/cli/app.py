@@ -468,6 +468,17 @@ def _add_measure(verbs: argparse._SubParsersAction) -> None:
         ),
     )
     parser.add_argument(
+        "--repeat",
+        type=int,
+        default=1,
+        metavar="N",
+        help=(
+            "Run the command N times and report the spread. One run says what "
+            "happened once; it does not say whether it would happen again, and "
+            "the runtime and the power do not behave the same way."
+        ),
+    )
+    parser.add_argument(
         "--into",
         default=None,
         metavar="MODEL",

@@ -43,21 +43,21 @@ One unit of work as this audit found it, on the machine it ran on.
 
 | Dimension | Per unit | Status | Derived from | Notes |
 |---|---|---|---|---|
-| Money | 6.79e-08 USD | `estimated` | `scenarios[0].costs.energy`, `assumptions.electricity_price` | Facility energy x price per kilowatt-hour; hardware and staff are not included. |
-| Time | 0.02773 s | `measured` | `scenarios[0].runtime` | Timed with `saggio measure`: python3 -c  import yaml from saggio import render_html model = yaml.safe_load(open("examples/saggio.yaml", encoding="utf-8")) for _ in range(50):     render_html(model) . The command performed 50 units of work, so the figure is the wall-clock time divided by 50. |
-| Energy | 2.46e-07 kWh | `estimated` | `assumptions.machine_energy`, `assumptions.pue` | Machine energy x power usage effectiveness: what the building draws. |
-| Carbon (location-based) | 1.014e-05 gCO2e | `estimated` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Facility energy x grid carbon intensity, operating emissions only. |
+| Money | 5.542e-08 USD | `estimated` | `scenarios[0].costs.energy`, `assumptions.electricity_price` | Facility energy x price per kilowatt-hour; hardware and staff are not included. |
+| Time | 0.02763 s | `measured` | `scenarios[0].runtime` | Timed with `saggio measure`: python3 -c  import yaml from saggio import render_html model = yaml.safe_load(open("examples/saggio.yaml", encoding="utf-8")) for _ in range(50):     render_html(model) . The command performed 50 units of work, so the figure is the wall-clock time divided by 50. The median of 5 runs of the same command. Across them this figure ranged 1.326 s to 1.538 s, a spread of 15% of their median. That range is what a second measurement would be free to land anywhere inside. |
+| Energy | 2.008e-07 kWh | `estimated` | `assumptions.machine_energy`, `assumptions.pue` | Machine energy x power usage effectiveness: what the building draws. |
+| Carbon (location-based) | 8.272e-06 gCO2e | `estimated` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Facility energy x grid carbon intensity, operating emissions only. |
 | Carbon (market-based) | not known | `TODO` | `scenarios[0].costs.energy`, `assumptions.market_carbon_intensity` | Needs the energy drawn and the emission factor of the electricity you contracted for. A grid average is the other method and will not do here. |
 | Embodied carbon | not known | `TODO` | `assumptions.hardware_embodied_carbon`, `assumptions.hardware_lifetime`, `scenarios[0].runtime` | No product carbon footprint is on file for this hardware, so the carbon of building it is open. Nobody has read one for this part; that is not the same as it having been free to build. Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was read. |
 | Water | not known | `TODO` | `assumptions.machine_energy`, `assumptions.water_usage_effectiveness` | Needs the machine's energy and a published water usage effectiveness. |
 
-*A million units emit about 0.01106 tree-months · 0.05792 km by car (EU average) — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
+*A million units emit about 0.009024 tree-months · 0.04727 km by car (EU average) — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
 
 ## Where this goes in a GHG inventory
 
 | Cost | Per unit | Status | GHG Protocol |
 |---|---|---|---|
-| `carbon` | 1.014e-05 gCO2e | `estimated` | [Scope 2 (location-based)](https://ghgprotocol.org/scope-2-guidance) |
+| `carbon` | 8.272e-06 gCO2e | `estimated` | [Scope 2 (location-based)](https://ghgprotocol.org/scope-2-guidance) |
 | `carbon_market_based` | not known | `TODO` | [Scope 2 (market-based)](https://ghgprotocol.org/scope-2-guidance) |
 | `embodied_carbon` | not known | `TODO` | [Scope 3, category 2 — capital goods](https://ghgprotocol.org/corporate-value-chain-scope-3-standard) |
 
@@ -77,7 +77,7 @@ How well founded these are: 2 `TODO`, 1 `estimated`. A sustainability disclosure
 
 | Assumption | Value | Status | Provenance | Notes |
 |---|---|---|---|---|
-| `power_draw` | 21.29 W | `measured` | — | Read from the machine while the command ran. The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses. This is the whole machine's draw, not this run's alone: these counters meter hardware and not processes, so whatever else the machine was doing while the command ran is inside the figure. The machine was already drawing 9.9 W before the slice started, which is a floor under how much of the figure was not this run. By the run's 15% share of the machine's processor work, 2.6 W of the 21.3 W is attributable to it. Every cost derived from it therefore prices the machine, not the process. |
+| `power_draw` | 17.44 W | `measured` | — | Read from the machine while the command ran. The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses. This is the whole machine's draw, not this run's alone: these counters meter hardware and not processes, so whatever else the machine was doing while the command ran is inside the figure. The machine was already drawing 13.8 W before the slice started, which is a floor under how much of the figure was not this run. By the run's 20% share of the machine's processor work, 3.0 W of the 17.4 W is attributable to it. Every cost derived from it therefore prices the machine, not the process. Read during the run this model carries, which is the one whose runtime was the median of 5; the middle power of the 5 (19.42 W) is a different run's. Across them this figure ranged 16.13 W to 37.36 W, a spread of 109% of their median. That range is what a second measurement would be free to land anywhere inside. |
 | `pue` | 1.5 ratio | `estimated` | [source](https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024), read 2026-09-12 | Power usage effectiveness published by On-premises. |
 | `electricity_price` | 0.276 USD | `estimated` | [source](https://www.globalpetrolprices.com/electricity_prices/), read 2026-10-17 | Indicative tariff for France. Collected Q3 2026. |
 | `grid_carbon_intensity` | 41.2 gCO2e/kWh | `estimated` | [source](https://ember-energy.org/data/yearly-electricity-data/), read 2026-10-17 | Annual average for France, data year 2025. |
@@ -85,7 +85,7 @@ How well founded these are: 2 `TODO`, 1 `estimated`. A sustainability disclosure
 | `water_usage_effectiveness` | not known | `TODO` | — | On-premises publishes no water usage effectiveness. Leave this open rather than inventing a figure. |
 | `hardware_embodied_carbon` | not known | `TODO` | — | No product carbon footprint is on file for apple-m2-max. Add `embodied_kgco2e` to its catalogue row with the footprint's own URL and the date it was read; `saggio catalog add cpu` does the rest. |
 | `hardware_lifetime` | not known | `TODO` | — | How long this hardware stays in service, which only you know. The published footprints are cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster between three and six years; choosing within that range moves the embodied carbon by a factor of two, which is why this is asked rather than assumed. |
-| `machine_energy` | 1.64e-07 kWh | `measured` | [source](https://doi.org/10.1002/advs.202100707) | runtime in hours x average power in watts / 1000. |
+| `machine_energy` | 1.339e-07 kWh | `measured` | [source](https://doi.org/10.1002/advs.202100707) | runtime in hours x average power in watts / 1000. |
 
 ## Services this code pays for
 
@@ -145,18 +145,22 @@ for _ in range(50):
 | measured on | 2026-10-18 |
 | what the counters cover | The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses. |
 | counters that answered | system-on-chip, memory |
-| processor-seconds used by the run | 1.3482 s |
-| machine at rest before the slice | 9.89 W |
-| subtracting that floor | Machine at rest before the slice: 9.9 W. Subtracting it gives 11.4 W as the slice's own draw, which holds only if the rest of the machine did the same thing during the run as it did just before it. |
-| where the power went, by counter | processor cores 18.04 W, graphics cores 0.636 W, neural engine 0 W, memory 2.617 W |
-| the run's share of the machine's processor work | 14.7% (1.348 s of the machine's 9.18 s) |
-| attributable to the run | 2.65 W |
+| processor-seconds used by the run | 1.3256 s |
+| machine at rest before the slice | 13.83 W |
+| subtracting that floor | Machine at rest before the slice: 13.8 W. Subtracting it gives 3.6 W as the slice's own draw, which holds only if the rest of the machine did the same thing during the run as it did just before it. |
+| where the power went, by counter | processor cores 15.178 W, graphics cores 0.118 W, neural engine 0 W, memory 2.146 W |
+| the run's share of the machine's processor work | 19.8% (1.326 s of the machine's 6.69 s) |
+| attributable to the run | 3.01 W |
 | what the attributable figure covers | the processor cores alone, which is the only part a share of processor work can price |
+| times the command was run | 5 |
+| how far the figures moved across those runs | runtime 1.326 s to 1.538 s (15%), power 16.13 W to 37.36 W (109%) |
 
 Read these before trusting the numbers above:
 
-- No function-level profile was taken: the profiler can only wrap a Python script or a `-m module` invocation. The totals below are unaffected.
-- Two ways of separating this slice from the machine it ran on disagree: subtracting the idle baseline gives 11.4 W, and attributing the measured draw by the slice's 15% share of the machine's processor work gives 2.6 W. The first assumes the rest of the machine held still, the second that the draw divides the way the work does; on a busy machine the second is usually the better of the two. Treat them as the ends of a bracket.
+- The machine was already drawing 13.8 W before the slice started, against 17.4 W while it ran, so most of the measured power was not this slice's. The difference, 3.6 W, is what the slice added if nothing else changed in between; measure on a quiet machine if the total is what you need.
+- No function-level profile was taken: the profiler changes what is being timed, so a series with one profiled run among several plain ones would report a spread the profiler put there. Run it once for the profile.
+- The runtime moved from 1.326 s to 1.538 s across 5 runs of the same command — 15% of the median, which is wider than the gate `saggio diff` applies to a release. The model carries the median run; this is how much it would move if you took it again.
+- The measured power moved from 16.13 W to 37.36 W across 5 runs of the same command — 109% of the median, which is wider than the gate `saggio diff` applies to a release. The model carries the median run; this is how much it would move if you took it again.
 
 ## Projections
 
@@ -168,18 +172,18 @@ What a whole run would cost, from the per-unit costs in scenarios[0]. A whole ru
 
 |  | Value | Status | Method |
 |---|---|---|---|
-| time | 1.109e+04 s | `estimated` | Whole run = measured slice / 2.5e-06. |
-| energy | 0.09841 kWh | `estimated` | Whole run = measured slice / 2.5e-06. |
-| money | 0.02716 USD | `estimated` | Whole run = measured slice / 2.5e-06. |
-| carbon | 4.054 gCO2e | `estimated` | Whole run = measured slice / 2.5e-06. |
+| time | 1.105e+04 s | `estimated` | Whole run = measured slice / 2.5e-06. |
+| energy | 0.08031 kWh | `estimated` | Whole run = measured slice / 2.5e-06. |
+| money | 0.02217 USD | `estimated` | Whole run = measured slice / 2.5e-06. |
+| carbon | 3.309 gCO2e | `estimated` | Whole run = measured slice / 2.5e-06. |
 
-*A million runs emit about 4423 tree-months · 2.317e+04 km by car (EU average) · 7.113 New York–San Francisco flights — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
+*A million runs emit about 3610 tree-months · 1.891e+04 km by car (EU average) · 5.805 New York–San Francisco flights — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
 
 ## Not counted
 
 - Making the hardware. Only the electricity to run it is counted.
 - The people. Salaries, offices, and travel are out of scope.
-- Idle capacity is inside these figures, not outside them. The power was read from the machine's own counters, which meter hardware and not processes, and 9.9 W of the 21.3 W was being drawn before the slice started. The measurement block carries 2.6 W as the run's attributable share, from its 15% of the machine's processor work; the costs below do not use it.
+- Idle capacity is inside these figures, not outside them. The power was read from the machine's own counters, which meter hardware and not processes, and 13.8 W of the 17.4 W was being drawn before the slice started. The measurement block carries 3.0 W as the run's attributable share, from its 20% of the machine's processor work; the costs below do not use it.
 
 ## Rules this model follows
 

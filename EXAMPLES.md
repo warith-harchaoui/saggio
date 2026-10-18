@@ -355,6 +355,39 @@ rather than where it went, take it without the profiler:
 saggio measure --no-profile -- python train.py --steps 100
 ```
 
+### How far would a second run move it?
+
+One run tells you what happened once. It does not tell you whether it would
+happen again, and this package's own gallery proves the two figures do not
+behave the same way:
+
+```bash
+saggio measure --repeat 5 --units 50 -- python render_fifty.py
+```
+
+```
+Runs: 5
+Wall-clock: 1.381 s (median of 5; 1.326-1.538 s)
+Average power: 17.4 W (median of 5; 16.1-37.4 W)
+```
+
+**The runtime moved 15%; the power moved 109%.** The runtime is a property of
+the work; the wattage is a property of the room, because a counter meters the
+machine and one of those five runs caught something else waking up.
+
+With `--into`, the model carries the run whose runtime was the median — one
+real run, not a median assembled per field, because a model's energy is its
+runtime times its power and mixing runs would state a pair that never happened.
+The range goes in beside it, in the measurement block and in the notes of every
+quantity it bounds. A figure measured once says *that* instead, rather than
+leaving a silence that reads as stability.
+
+No function-level profile is taken when `--repeat` is above one: the profiler
+changes what is being timed, so a series with one profiled run among plain ones
+would report a spread the profiler put there. Run it once for the profile, and
+several times for the spread.
+
+
 ### Putting the measurement into the model
 
 A measurement printed to a terminal is a number nobody kept. `--into` writes it

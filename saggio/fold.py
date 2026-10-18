@@ -45,6 +45,7 @@ from .analyze.power import (
     is_idle_claim,
     workload_scope,
 )
+from .analyze.repeat import spread_note
 from .estimate.energy import (
     carbon_from_energy,
     facility_energy,
@@ -277,7 +278,10 @@ def fold_measurement(
         value=seconds / units,
         unit="s",
         status=MEASURED,
-        notes=f"{timed}{per_unit}",
+        # A runtime without a repeatability bound reads as a fact about the
+        # work. It is a fact about one run of the work, and the sentence says
+        # which — including when the answer is "nobody ran it twice".
+        notes=f"{timed}{per_unit} {spread_note(measurement, 'runtime_s')}",
     )
     changes.append(_moved("runtime", target.get("runtime"), runtime))
     target["runtime"] = runtime.to_mapping()
@@ -290,7 +294,8 @@ def fold_measurement(
             status=MEASURED,
             notes=(
                 f"Read from the machine while the command ran. {power.scope} "
-                f"{workload_scope(measurement, watts=power.watts)}"
+                f"{workload_scope(measurement, watts=power.watts)} "
+                f"{spread_note(measurement, 'power_w')}"
             ),
         )
         changes.append(_moved("power draw", power_quantity.to_mapping(), measured_power))

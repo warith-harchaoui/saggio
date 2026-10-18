@@ -43,7 +43,8 @@ import os_helper as osh
 
 from ..analyze.capability import measurable, paths_read, probe, summary
 from ..analyze.power import PowerMeter
-from ..analyze.run import record_consent, run_slice
+from ..analyze.repeat import run_slices
+from ..analyze.run import record_consent
 from ..auditor import AuditOptions, audit, audit_git_url
 from ..catalog.refresh import (
     EMBER_KEY_VARIABLE,
@@ -571,19 +572,28 @@ def measure(args: argparse.Namespace) -> int:
             "Nothing to measure. Pass the command after --, for example: measure -- pytest -q"
         )
         return USAGE
-    result = run_slice(
+    repeats = int(getattr(args, "repeat", 1) or 1)
+    if repeats < 1:
+        osh.error(f"A command cannot be run {repeats} times.")
+        return USAGE
+    series = run_slices(
         command,
+        repeats=repeats,
         working_directory=args.directory,
         timeout_seconds=args.timeout,
         fraction_completed=args.fraction,
         profile=not args.no_profile,
         baseline_seconds=args.baseline,
     )
+    # The run the model would carry, and the one every printed figure below is
+    # about. The spread beside it says how far the others fell from it.
+    result = series.representative()
+    measurement = series.to_mapping()
     # The same mapping a model is given, plus the three figures that belong to
     # the run rather than to the model. Hand-listing the keys here is what let
     # this surface drop the attribution it had just computed: the warning below
     # quoted a share of processor work that no field of the JSON carried.
-    payload = dict(result.to_mapping())
+    payload = dict(measurement)
     payload.update(
         {
             "wall_seconds": round(result.wall_seconds, 4),
@@ -598,9 +608,24 @@ def measure(args: argparse.Namespace) -> int:
     else:
         print(f"Ran: {' '.join(result.command)}")
         print(f"Exit code: {result.exit_code}")
-        print(f"Wall-clock: {result.wall_seconds:.3f} s")
+        if len(series.runs) > 1:
+            spread = series.runtime_spread()
+            print(f"Runs: {len(series.runs)}")
+            print(
+                f"Wall-clock: {result.wall_seconds:.3f} s (median of "
+                f"{len(series.runs)}; {spread.low:.3f}-{spread.high:.3f} s)"
+            )
+        else:
+            print(f"Wall-clock: {result.wall_seconds:.3f} s")
         if result.power.measured():
-            print(f"Average power: {result.power.watts:.1f} W (measured)")
+            watts = series.power_spread()
+            if watts is not None and len(series.runs) > 1:
+                print(
+                    f"Average power: {result.power.watts:.1f} W (median of "
+                    f"{len(series.runs)}; {watts.low:.1f}-{watts.high:.1f} W)"
+                )
+            else:
+                print(f"Average power: {result.power.watts:.1f} W (measured)")
             if result.baseline is not None and result.baseline.measured():
                 print(f"  machine at rest before it: {result.baseline.watts:.1f} W")
                 marginal = result.marginal_watts()
@@ -624,14 +649,14 @@ def measure(args: argparse.Namespace) -> int:
             print("Average power: not measured")
         for entry in result.hot_path[:5]:
             print(f"  {entry.cumulative_seconds:8.3f} s  {entry.function}")
-        for warning in result.warnings:
+        for warning in measurement.get("warnings", result.warnings):
             osh.warning(warning)
     if args.into:
-        return _fold_into(args, result)
+        return _fold_into(args, result, measurement)
     return OK
 
 
-def _fold_into(args: argparse.Namespace, result: Any) -> int:
+def _fold_into(args: argparse.Namespace, result: Any, measurement: Any = None) -> int:
     """Write a measurement into a model, or say why it was not written.
 
     Parameters
@@ -651,7 +676,7 @@ def _fold_into(args: argparse.Namespace, result: Any) -> int:
     Examples
     --------
     >>> namespace = argparse.Namespace(into="/nope.yaml", units=1.0, scenario=None)
-    >>> _fold_into(namespace, None)
+    >>> _fold_into(namespace, None, None)
     2
     """
     if result is not None and (result.exit_code != 0 or result.truncated):
@@ -671,7 +696,7 @@ def _fold_into(args: argparse.Namespace, result: Any) -> int:
         seconds=result.wall_seconds,
         units=args.units,
         power=result.power,
-        measurement=result.to_mapping(),
+        measurement=measurement if measurement is not None else result.to_mapping(),
         scenario=args.scenario,
         command=" ".join(result.command),
     )
