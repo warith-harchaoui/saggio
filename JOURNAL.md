@@ -10,6 +10,24 @@ cette ligne.
 
 ## Non publié
 
+### Une page sur les frontières, parce que deux industriels viennent de le prouver
+
+- Google a publié **0,03 gCO2e** pour un prompt Gemini médian et Mistral
+  **1,14 gCO2e** pour une réponse de quatre cents jetons. Environ trente-huit
+  fois d'écart, et aucun n'esquive : l'un compte l'électricité d'un contrat et
+  la capacité au repos réservée pour vous servir, l'autre la moyenne du réseau
+  et les usines.
+- [`BOUNDARIES.md`](BOUNDARIES.md) / [`FRONTIERES.md`](FRONTIERES.md) prend un
+  modèle commité — `examples/request.yaml`, mesuré — et montre ce que son
+  chiffre devient sous quatre frontières. Deux sont calculées ; **deux sont
+  refusées**, chacune nommant ce qu'elle demanderait.
+- L'arithmétique est celle du paquet, sur les chiffres de son propre catalogue.
+  Amortir l'empreinte ISO 14067 de NVIDIA pour une HGX H100 sur le même temps
+  d'exécution donne un terme de fabrication **de trois à six fois
+  l'électricité**, la seule durée de vie du matériel faisant varier la réponse
+  d'un facteur deux. Un chiffre qui omet la fabrication n'est pas un chiffre
+  prudent : c'est un autre chiffre.
+
 ### Le verbe pour la personne qui tient quinze champs ouverts
 
 - Un audit revient avec tous les coûts ouverts, chaque champ portant une phrase

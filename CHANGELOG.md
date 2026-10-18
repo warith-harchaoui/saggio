@@ -9,6 +9,23 @@ release of that line.
 
 ## Unreleased
 
+### A page about boundaries, because two companies just proved the point
+
+- Google published **0.03 gCO2e** for a median Gemini prompt and Mistral
+  **1.14 gCO2e** for a four-hundred-token response. Roughly thirty-eight times
+  apart, and neither is evasive: one counts a contract's electricity and the
+  idle capacity reserved to serve you, the other counts the grid average and
+  the factories.
+- [`BOUNDARIES.md`](BOUNDARIES.md) / [`FRONTIERES.md`](FRONTIERES.md) takes one
+  committed model — `examples/request.yaml`, measured — and shows what its
+  figure becomes under four boundaries. Two are computed; **two are refused**,
+  each naming what it would need.
+- The arithmetic is the package's own, on the catalogue's own figures. Amortise
+  NVIDIA's ISO 14067 footprint for an HGX H100 over the same runtime and the
+  manufacturing term is **three to six times the electricity**, with the
+  hardware lifetime alone moving the answer by a factor of two. A figure that
+  leaves manufacturing out is not a conservative figure; it is a different one.
+
 ### The verb for the person holding fifteen open fields
 
 - An audit comes back with every cost open, each field carrying a sentence
