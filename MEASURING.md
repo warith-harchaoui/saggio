@@ -216,9 +216,10 @@ machine-wide, split into work and idle. Read it before the slice and after, and
 the difference is how many processor-seconds the *whole machine* spent working
 while the slice ran. The slice already knows its own, from `RUSAGE_CHILDREN`.
 The ratio is its share of the work, and multiplying the measured draw by that
-share **attributes** the draw rather than subtracting a floor from it. This is
-how [Kepler](https://sustainable-computing.io/) splits a node between pods and
-how `GreenAlgorithms4HPC` reads a scheduler's accounting.
+share **attributes** the draw rather than subtracting a floor from it. It is the
+same family of method [Kepler](https://sustainable-computing.io/) uses to split
+a node between pods and that `GreenAlgorithms4HPC` applies to a scheduler's
+accounting — but not the same arithmetic, and the difference is below.
 
 Linux publishes the totals in `/proc/stat`. macOS publishes them through the
 Mach call `host_processor_info`, per logical processor, to an ordinary user.
@@ -253,6 +254,36 @@ of two methods that disagree is the pair, not a pick:
 
 On a busy machine the second is usually the better of the two, and on a quiet
 one they converge.
+
+### What this is not: Kepler's formula, and how far it differs
+
+Kepler v0.10 removed its eBPF engine and now reads `/proc` and `/sys` without
+privileges — the same two files this page reads, for the same reason. But its
+attribution splits the node's power **by activity** before dividing it:
+
+> Workload Power = (Workload CPU Time Δ / Node CPU Time Δ) × Active Power
+
+where active power is the measured total with the idle baseline subtracted out.
+This package splits **by hardware domain** instead: the share multiplies the
+processor cores' own counter, which is a figure a meter produced rather than a
+subtraction, and which is why the attributed value may only price processor
+energy.
+
+The two are not interchangeable, and `examples/render.yaml` says by how much.
+Its measurement block carries a 14.7% share, a 21.3 W total, a 9.9 W floor and
+an 18.04 W processor domain:
+
+| | | |
+|---|---|---|
+| This package | 0.147 × 18.04 W | **2.65 W** |
+| Kepler's formula | 0.147 × (21.29 − 9.89) W | **1.68 W** |
+
+**A factor of 1.58 on the same run, from the same numbers.** The gap is the idle
+share of the processor's own draw, which a domain counter cannot separate and a
+subtraction can. Neither figure is wrong; they answer different questions, and a
+model that quoted one while citing the other as its method would be claiming a
+corroboration it has not got. Which of the two belongs in a cost model is not
+settled here.
 
 ## Where the power actually went
 
@@ -375,7 +406,7 @@ the channel names is enough to add the part; see
 - Lannelongue, Grealey & Inouye, *Green Algorithms: Quantifying the Carbon Footprint of Computation*, [doi:10.1002/advs.202100707](https://doi.org/10.1002/advs.202100707) — the arithmetic this package uses, extracted in [`green-algorithms.md`](skills/saggio/references/green-algorithms.md).
 - [Software Carbon Intensity](https://sci.greensoftware.foundation/) (ISO/IEC 21031:2024) and [SCI for AI](https://greensoftware.foundation/standards/sci-ai/) — emissions per functional unit, and what a disclosure has to say.
 - [Boavizta](https://boavizta.org/en) and [EcoLogits](https://ecologits.ai/) — the embodied side, which this package leaves open rather than zero.
-- [Kepler](https://sustainable-computing.io/) — attributing a node's energy to what ran on it, which is the problem beyond this page.
+- [Kepler](https://sustainable-computing.io/) — attributing a node's energy to what ran on it, which is the problem beyond this page. Its [power attribution page](https://sustainable-computing.io/kepler/usage/power-attribution/) states the formula compared above; the [re-architecture announcement](https://www.cncf.io/blog/2026/06/30/kepler-re-architected-improved-power-accuracy-and-a-community-call-to-action/) (2026-06-30) is where v0.10 drops eBPF for `/proc` and `/sys`.
 
 ---
 

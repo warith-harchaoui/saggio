@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from saggio.analyze.power import PowerReading
+from saggio.analyze.power import IDLE_IS_EXCLUDED, PowerReading, states_idle_is_excluded
 from saggio.fold import fold_measurement
 from saggio.model import CostModel
 
@@ -324,3 +324,61 @@ def test_folding_without_a_measurement_block_leaves_the_model_alone() -> None:
     folded = fold_measurement(model_with(), seconds=1.0)
     assert folded.refused is None
     assert "measurement" not in folded.model.data
+
+
+def test_folding_a_measurement_repairs_the_exclusion_it_falsifies() -> None:
+    # A model built from a nameplate rating may truthfully say idle capacity is
+    # out. The moment a whole-machine reading is folded in, that line is false.
+    model = model_with(
+        exclusions=[
+            "The people. Salaries, offices, and travel are out of scope.",
+            IDLE_IS_EXCLUDED,
+        ]
+    )
+    folded = fold_measurement(
+        model,
+        seconds=1.0,
+        power=PowerReading(21.3, 21.3, "soc", by_domain={"cpu": 18.0}),
+        measurement={"idle_watts": 9.9, "attributed_watts": 2.6, "cpu_share": {"share": 0.15}},
+    )
+    assert folded.refused is None
+    lines = folded.model.data["exclusions"]
+    assert not any(states_idle_is_excluded(line) for line in lines)
+    assert "9.9 W of the 21.3 W" in lines[1]
+    assert lines[0].startswith("The people"), "only the idle line moves"
+    assert any(
+        "idle capacity is no longer claimed to be out" in change for change in folded.changes
+    )
+
+
+def test_a_second_fold_refreshes_the_line_rather_than_leaving_stale_watts() -> None:
+    once = fold_measurement(
+        model_with(exclusions=[IDLE_IS_EXCLUDED]),
+        seconds=1.0,
+        power=PowerReading(21.3, 21.3, "soc"),
+        measurement={"idle_watts": 9.9},
+    )
+    assert once.refused is None
+    twice = fold_measurement(
+        once.model,
+        seconds=1.0,
+        power=PowerReading(30.0, 30.0, "soc"),
+        measurement={"idle_watts": 12.0},
+    )
+    assert twice.refused is None
+    line = twice.model.data["exclusions"][0]
+    assert "12.0 W of the 30.0 W" in line
+    assert "9.9" not in line, "the first measurement's watts survived the second fold"
+
+
+def test_a_model_without_an_idle_claim_is_not_given_one() -> None:
+    # Folding a measurement is not licence to add prose to somebody's document.
+    kept = ["The people. Salaries, offices, and travel are out of scope."]
+    folded = fold_measurement(
+        model_with(exclusions=list(kept)),
+        seconds=1.0,
+        power=PowerReading(21.3, 21.3, "soc"),
+        measurement={"idle_watts": 9.9},
+    )
+    assert folded.refused is None
+    assert folded.model.data["exclusions"] == kept

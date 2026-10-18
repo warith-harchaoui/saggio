@@ -22,7 +22,7 @@ deployment:
   cpu: Apple M2 Max
 assumptions:
   power_draw:
-    value: 12.330845647098844
+    value: 21.293898332193436
     status: measured
     unit: W
     notes: 'Read from the machine while the command ran. The figure covers the chip''s processor cores,
@@ -33,7 +33,12 @@ assumptions:
       draw. These are the chip''s own energy counters, which are a model inside the silicon rather than
       a meter on the power rail, and Apple says they are not a basis for comparing one machine against
       another. Left out of them: the display, storage, networking, the fans, and the power supply''s own
-      losses.'
+      losses. This is the whole machine''s draw, not this run''s alone: these counters meter hardware
+      and not processes, so whatever else the machine was doing while the command ran is inside the figure.
+      The machine was already drawing 9.9 W before the slice started, which is a floor under how much
+      of the figure was not this run. By the run''s 15% share of the machine''s processor work, 2.6 W
+      of the 21.3 W is attributable to it. Every cost derived from it therefore prices the machine, not
+      the process.'
   pue:
     value: 1.5
     status: estimated
@@ -90,7 +95,7 @@ assumptions:
       between three and six years; choosing within that range moves the embodied carbon by a factor of
       two, which is why this is asked rather than assumed.
   machine_energy:
-    value: 9.287144523333333e-08
+    value: 1.6401499497222223e-07
     status: measured
     unit: kWh
     source_url: https://doi.org/10.1002/advs.202100707
@@ -188,7 +193,7 @@ scenarios:
 - name: as-audited
   description: One unit of work as this audit found it, on the machine it ran on.
   runtime:
-    value: 0.027113890839973464
+    value: 0.02772878750000018
     status: measured
     unit: s
     notes: "Timed with `saggio measure`: python3 -c \nimport yaml\nfrom saggio import render_html\nmodel\
@@ -197,7 +202,7 @@ scenarios:
       \ time divided by 50."
   costs:
     time:
-      value: 0.027113890839973464
+      value: 0.02772878750000018
       status: measured
       unit: s
       derived_from:
@@ -207,7 +212,7 @@ scenarios:
         \    render_html(model)\n. The command performed 50 units of work, so the figure is the wall-clock\
         \ time divided by 50."
     energy:
-      value: 1.3930716784999999e-07
+      value: 2.4602249245833335e-07
       status: estimated
       unit: kWh
       source_url: https://doi.org/10.1002/advs.202100707
@@ -216,7 +221,7 @@ scenarios:
       - assumptions.pue
       notes: 'Machine energy x power usage effectiveness: what the building draws.'
     money:
-      value: 3.84487783266e-08
+      value: 6.790220791850001e-08
       status: estimated
       unit: USD
       currency: USD
@@ -225,7 +230,7 @@ scenarios:
       - assumptions.electricity_price
       notes: Facility energy x price per kilowatt-hour; hardware and staff are not included.
     carbon:
-      value: 5.73945531542e-06
+      value: 1.0136126689283334e-05
       status: estimated
       unit: gCO2e
       source_url: https://doi.org/10.1002/advs.202100707
@@ -271,7 +276,7 @@ projections:
       time:
         method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 10845.556335989384
+          value: 11091.515000000072
           status: estimated
           unit: s
           notes: Projected from a slice covering 0.00025% of the run.
@@ -287,7 +292,7 @@ projections:
       energy:
         method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 0.05572286713999999
+          value: 0.09840899698333333
           status: estimated
           unit: kWh
           notes: Projected from a slice covering 0.00025% of the run.
@@ -303,7 +308,7 @@ projections:
       money:
         method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 0.015379511330639998
+          value: 0.0271608831674
           status: estimated
           unit: USD
           currency: USD
@@ -320,7 +325,7 @@ projections:
       carbon:
         method: Whole run = measured slice / 2.5e-06.
         result:
-          value: 2.295782126168
+          value: 4.054450675713333
           status: estimated
           unit: gCO2e
           notes: Projected from a slice covering 0.00025% of the run.
@@ -350,10 +355,56 @@ analysis:
     source: examples/walkthrough/counter/config.py::num_samples
   has_tests: true
   llm_note: No local model was reachable; the read is static only.
+measurement:
+  command:
+  - python3
+  - -c
+  - "\nimport yaml\nfrom saggio import render_html\nmodel = yaml.safe_load(open(\"examples/saggio.yaml\"\
+    , encoding=\"utf-8\"))\nfor _ in range(50):\n    render_html(model)\n"
+  exit_code: 0
+  measured_on: '2026-10-18'
+  power_scope: 'The figure covers the chip''s processor cores, graphics cores, and neural engine, from
+    the system-on-chip''s own energy counters and the chip''s memory, from its own energy counter, read
+    from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here:
+    the machine publishes its own memory energy counter, so the figure is what the memory drew rather
+    than what its installed capacity suggests it would draw. These are the chip''s own energy counters,
+    which are a model inside the silicon rather than a meter on the power rail, and Apple says they are
+    not a basis for comparing one machine against another. Left out of them: the display, storage, networking,
+    the fans, and the power supply''s own losses.'
+  power_sources:
+  - system-on-chip
+  - memory
+  cpu_seconds: 1.3482
+  idle_watts: 9.89
+  power_note: 'Machine at rest before the slice: 9.9 W. Subtracting it gives 11.4 W as the slice''s own
+    draw, which holds only if the rest of the machine did the same thing during the run as it did just
+    before it.'
+  power_by_domain:
+    cpu: 18.04
+    gpu: 0.636
+    ane: 0.0
+    memory: 2.617
+  cpu_share:
+    share: 0.146863
+    run_cpu_seconds: 1.348
+    machine_cpu_seconds: 9.18
+  attributed_watts: 2.65
+  attributed_scope: the processor cores alone, which is the only part a share of processor work can price
+  warnings:
+  - 'No function-level profile was taken: the profiler can only wrap a Python script or a `-m module`
+    invocation. The totals below are unaffected.'
+  - 'Two ways of separating this slice from the machine it ran on disagree: subtracting the idle baseline
+    gives 11.4 W, and attributing the measured draw by the slice''s 15% share of the machine''s processor
+    work gives 2.6 W. The first assumes the rest of the machine held still, the second that the draw divides
+    the way the work does; on a busy machine the second is usually the better of the two. Treat them as
+    the ends of a bracket.'
 exclusions:
 - Making the hardware. Only the electricity to run it is counted.
 - The people. Salaries, offices, and travel are out of scope.
-- Idle capacity. This is the cost of one unit of work, not of being ready.
+- Idle capacity is inside these figures, not outside them. The power was read from the machine's own counters,
+  which meter hardware and not processes, and 9.9 W of the 21.3 W was being drawn before the slice started.
+  The measurement block carries 2.6 W as the run's attributable share, from its 15% of the machine's processor
+  work; the costs below do not use it.
 provenance_rules:
 - Every sourced value carries source_url and retrieved_date.
 - A derived value names its inputs and never outranks the weakest of them.

@@ -20,6 +20,7 @@ Warith Harchaoui
 
 from __future__ import annotations
 
+from ..analyze.power import workload_scope
 from ..analyze.run import (
     SliceResult,
 )
@@ -213,11 +214,21 @@ def _power_assumption(
     'W'
     """
     if slice_result is not None and slice_result.power.measured():
+        # Two boundaries, not one. The scope says which silicon the counters
+        # see; the workload scope says how much of that silicon was doing this
+        # work. A figure that carries only the first lets a reader believe the
+        # second was a hundred per cent, which on any machine running anything
+        # else it was not.
+        measurement = slice_result.to_mapping()
         return Quantity(
             value=slice_result.power.watts,
             unit="W",
             status=MEASURED,
-            notes=f"Read from the machine while the slice ran. {slice_result.power.scope}",
+            notes=(
+                f"Read from the machine while the slice ran. "
+                f"{slice_result.power.scope} "
+                f"{workload_scope(measurement, watts=slice_result.power.watts)}"
+            ),
         )
     if context.instance:
         from_catalog = context.instance_power()

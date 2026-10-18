@@ -68,7 +68,7 @@ How well founded these are: 1 `TODO`, 1 `estimated`. A sustainability disclosure
 
 | Assumption | Value | Status | Provenance | Notes |
 |---|---|---|---|---|
-| `power_draw` | 31.88 W | `measured` | — | Read from the machine while the slice ran. The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses. |
+| `power_draw` | 31.88 W | `measured` | — | Read from the machine while the slice ran. The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses. This is the whole machine's draw, not this run's alone: these counters meter hardware and not processes, so whatever else the machine was doing while the command ran is inside the figure. By the run's 10% share of the machine's processor work, 2.9 W of the 31.9 W is attributable to it. Every cost derived from it therefore prices the machine, not the process. |
 | `pue` | 1.5 ratio | `estimated` | [source](https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024), read 2026-09-12 | Power usage effectiveness published by On-premises. |
 | `electricity_price` | 0.276 USD | `estimated` | [source](https://www.globalpetrolprices.com/electricity_prices/), read 2026-10-02 | Indicative tariff for France. Collected Q3 2026. |
 | `grid_carbon_intensity` | 41.2 gCO2e/kWh | `estimated` | [source](https://ember-energy.org/data/yearly-electricity-data/), read 2026-10-02 | Annual average for France, data year 2025. |
@@ -113,7 +113,7 @@ What the whole run would cost, projected from the slice that was measured and fr
 
 - Making the hardware. Only the electricity to run it is counted.
 - The people. Salaries, offices, and travel are out of scope.
-- Idle capacity. This is the cost of one unit of work, not of being ready.
+- Idle capacity is inside these figures, not outside them. The power was read from the machine's own counters, which meter hardware and not processes. The measurement block carries 2.9 W as the run's attributable share, from its 10% of the machine's processor work; the costs below do not use it.
 
 ## Rules this model follows
 

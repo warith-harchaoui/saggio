@@ -9,6 +9,49 @@ release of that line.
 
 ## Unreleased
 
+### A model that said idle capacity was excluded, while pricing the whole machine
+
+- Every model this package writes carried the line *"Idle capacity. This is the
+  cost of one unit of work, not of being ready."* in its `exclusions`. For a
+  model built from a nameplate rating that is true. For a model whose power was
+  **read off this machine's own counters** it is false, and three committed
+  models proved it: `examples/walkthrough/5-run.yaml` priced its unit of work at
+  **31.9 W** while its own measurement block, three fields above, recorded
+  **2.9 W** as the attributable share. A factor of eleven, inside one file.
+- The exclusions list is no longer a constant. `saggio audit --run` writes the
+  line that is true of the figure it just obtained, and `saggio measure --into`
+  **rewrites** the line it has just falsified — naming the floor the machine was
+  drawing, the share of processor work the run was, and admitting that the costs
+  below use neither.
+- A measured `power_draw` now states **both** of its boundaries. The hardware
+  one (which counters answered, what silicon they see) was always there; the
+  workload one — *"This is the whole machine's draw, not this run's alone"* —
+  was not, and without it a reader takes the figure for the run's own.
+- Three contract tests over every committed model: none may claim idle is
+  excluded while its power is `measured`; the idle line must be the one the
+  package would write today, regenerated from that model's own measurement
+  block; and a measured wattage must name its workload boundary. The first
+  fired on four models when it was written.
+- `saggio measure --json` emitted a hand-listed payload that dropped the
+  attribution the same command had just computed — the warning quoted a share
+  of processor work that no field of the JSON carried. It now emits the mapping
+  a model is given, and the text output prints the attributable figure beside
+  the baseline subtraction instead of only the half that flatters.
+- `examples/render.yaml` was re-measured so a gallery model carries the block:
+  **21.3 W** during the slice, **9.9 W** before it, **2.65 W** attributable from
+  a 14.7% share. Runtime 0.0277 s, carbon 1.01e-05 gCO2e. `examples/request.yaml`
+  keeps its figures, which [`BOUNDARIES.md`](BOUNDARIES.md) cites.
+- [`MEASURING.md`](MEASURING.md) / [`MESURER.md`](MESURER.md) said this package
+  attributes power *"the way Kepler does"*. It does not. Kepler v0.10 divides
+  **active** power — the total minus the idle baseline — by the share
+  ([formula](https://sustainable-computing.io/kepler/usage/power-attribution/));
+  this package multiplies the share by the **processor domain's own counter**.
+  On `examples/render.yaml` that is 1.68 W against 2.65 W, **a factor of 1.58
+  from the same measurement**. The page now states both and picks neither.
+- [`LANDSCAPE.md`](LANDSCAPE.md) / [`PAYSAGE.md`](PAYSAGE.md): the "nothing is
+  attributed to a process" gap now says what *is* recorded, and that the costs
+  still use the whole figure.
+
 ### The energy line of an EU AI Act filing
 
 - Annex XI makes a provider of a general-purpose AI model document its **known

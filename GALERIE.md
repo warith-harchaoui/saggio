@@ -195,17 +195,31 @@ sur une machine, avec le pays énoncé.
 
 | Modèle | Unité de travail | Temps | Carbone | Ce qui reste ouvert |
 |---|---|---|---|---|
-| [`render`](examples/render.yaml) · [rapport](examples/render.md) | un rapport HTML produit | 0,0271 s, mesuré | 5,74e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
+| [`render`](examples/render.yaml) · [rapport](examples/render.md) | un rapport HTML produit | 0,0277 s, mesuré | 1,01e-05 gCO2e, estimé | eau, scope 2 market-based, incorporé |
 | [`request`](examples/request.yaml) · [rapport](examples/request.md) | une requête `/scopes` traitée de bout en bout | 0,00385 s, mesuré | 1,19e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
 
 Les deux ont été mesurés sur un Apple M2 Max, douze cœurs, en France, en
 exécutant le travail de nombreuses fois dans un seul interpréteur — cinquante
 rendus, deux cents requêtes — pour que le démarrage de Python, qui n'est pas le
 travail, ne lui soit pas facturé. La puissance est une lecture de compteur et
-non une fiche technique : **12,3 W** pendant les rendus et **18,0 W** pendant
-les requêtes, contre une machine qui tirait 6,5 W et 8,7 W au repos un instant
-plus tôt. La plaque signalétique que ce paquet aurait supposée sinon annonce
+non une fiche technique : **21,3 W** pendant les rendus et **18,0 W** pendant
+les requêtes. La plaque signalétique que ce paquet aurait supposée sinon annonce
 83,76 W.
+
+**Et ces watts sont ceux de la machine, pas ceux de l'exécution.** Un compteur
+mesure du matériel, pas des processus : une valeur lue pendant qu'une tranche
+tourne contient tout ce que la machine faisait par ailleurs. Le modèle `render`
+enregistre désormais ce que c'était : la machine tirait déjà **9,9 W** avant le
+démarrage de la tranche, et selon la **part de 15 %** du travail processeur de
+la machine, **2,6 W** des 21,3 W lui sont attribuables. Deux façons de séparer
+l'exécution de sa machine donnent donc 11,4 W et 2,6 W, et les coûts du tableau
+n'utilisent ni l'une ni l'autre : ils utilisent les 21,3 W entiers, la seule
+valeur qu'un compteur puisse réellement voir. Chacun de ces nombres est dans le
+modèle, dans la phrase attachée à la figure de puissance et dans la liste des
+exclusions à côté.
+
+Le modèle `request` est antérieur au bloc qui enregistre un plancher : le sien
+n'est pas dans le dépôt et n'est donc pas cité ici.
 
 **Ce que « terminé » veut dire ici, et ce que ça ne veut pas dire.** Quatre
 nombres sur sept sont établis et trois restent ouverts, et c'est l'état final,
@@ -220,7 +234,8 @@ chose, et chacun le dit dans ses propres notes.
 La différence avec les huit ci-dessus est celle qui mérite le regard : un temps
 d'exécution mesuré transforme trois `TODO` en chiffres par la chaîne de
 dérivation, et la figure de puissance passe d'une supposition de fiche technique
-à une lecture de compteur six fois plus petite.
+à une lecture de compteur quatre fois plus petite — et qui, contrairement à la
+supposition, dit quelle part d'elle-même était cette exécution.
 
 ## La démonstration pas à pas : une charge, quatre étapes
 

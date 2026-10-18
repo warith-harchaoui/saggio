@@ -58,6 +58,8 @@ its own scope.
 :mod:`~saggio.analyze.power.graphics`     AMD and Intel, through hwmon
 :mod:`~saggio.analyze.power.soc`          Apple Silicon, per subsystem
 :mod:`~saggio.analyze.power.reading`      what was measured, and what it covers
+:mod:`~saggio.analyze.power.boundary`     how much of the metered hardware
+                                          was doing *this* work
 :mod:`~saggio.analyze.power.meter`        running everything that answers here
 ========================================= =====================================
 
@@ -80,6 +82,14 @@ from .accelerator import (
     AcceleratorSampler,
     _query_nvidia_smi,
     read_accelerator_energy_millijoules,
+)
+from .boundary import (
+    IDLE_IS_EXCLUDED,
+    INCLUDED_MARKER,
+    idle_exclusion,
+    is_idle_claim,
+    states_idle_is_excluded,
+    workload_scope,
 )
 from .graphics import (
     GraphicsSampler,
@@ -108,6 +118,8 @@ from .tables import (
 
 __all__ = [
     "AcceleratorSampler",
+    "IDLE_IS_EXCLUDED",
+    "INCLUDED_MARKER",
     "GRAPHICS_ENERGY_FILE",
     "GRAPHICS_HWMON_GLOB",
     "GRAPHICS_POWER_FILE",
@@ -125,7 +137,11 @@ __all__ = [
     "read_graphics_watts",
     "read_memory_energy_microjoules",
     "read_package_energy_microjoules",
+    "idle_exclusion",
+    "is_idle_claim",
+    "states_idle_is_excluded",
     "unavailable_reason",
+    "workload_scope",
     "_graphics_hwmon_directories",
     "_query_nvidia_smi",
     "_soc_reading",

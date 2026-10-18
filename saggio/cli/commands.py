@@ -579,18 +579,20 @@ def measure(args: argparse.Namespace) -> int:
         profile=not args.no_profile,
         baseline_seconds=args.baseline,
     )
-    payload = {
-        "command": list(result.command),
-        "exit_code": result.exit_code,
-        "wall_seconds": round(result.wall_seconds, 4),
-        "watts": result.power.watts,
-        "idle_watts": result.baseline.watts if result.baseline else None,
-        "marginal_watts": result.marginal_watts(),
-        "power_scope": result.power.scope,
-        "truncated": result.truncated,
-        "hot_path": [entry.to_mapping() for entry in result.hot_path],
-        "warnings": list(result.warnings),
-    }
+    # The same mapping a model is given, plus the three figures that belong to
+    # the run rather than to the model. Hand-listing the keys here is what let
+    # this surface drop the attribution it had just computed: the warning below
+    # quoted a share of processor work that no field of the JSON carried.
+    payload = dict(result.to_mapping())
+    payload.update(
+        {
+            "wall_seconds": round(result.wall_seconds, 4),
+            "watts": result.power.watts,
+            "idle_watts": result.baseline.watts if result.baseline else None,
+            "marginal_watts": result.marginal_watts(),
+            "truncated": result.truncated,
+        }
+    )
     if args.json:
         _emit(payload, as_json=True)
     else:
@@ -609,6 +611,15 @@ def measure(args: argparse.Namespace) -> int:
                     if marginal is not None
                     else "  added by this slice: not established"
                 )
+            attributed = result.attributed_watts()
+            if attributed is not None:
+                # The other end of the bracket. On a machine doing anything
+                # else, this is the better of the two, and printing only the
+                # subtraction left the reader with the half that flatters.
+                share = result.cpu_share.share if result.cpu_share else None
+                by_share = f" ({share:.0%} of the machine's processor work)" if share else ""
+                print(f"  attributable to it{by_share}: {attributed:.1f} W")
+                print(f"    covering {result.attributed_scope()}")
         else:
             print("Average power: not measured")
         for entry in result.hot_path[:5]:

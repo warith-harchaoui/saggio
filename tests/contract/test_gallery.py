@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from saggio.analyze.power import idle_exclusion, states_idle_is_excluded
 from saggio.model import CostModel, validate
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -263,4 +264,61 @@ def test_the_two_comparison_figures_have_the_same_shape() -> None:
         assert colour_en == colour_fr, "a family changed colour between languages"
     assert sorted(figure.TEXT["en"]) == sorted(figure.TEXT["fr"]), (
         "one language's figure says something the other does not"
+    )
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_no_model_claims_idle_is_out_while_pricing_the_whole_machine(model: str) -> None:
+    # The defect this exists for: every model in the gallery asserted "Idle
+    # capacity. This is the cost of one unit of work, not of being ready." while
+    # three of them priced that unit with a wattage read off a whole machine.
+    # examples/walkthrough/5-run.yaml carried 31.9 W as the price and 2.9 W as
+    # the attributable share, three fields apart, in the same file.
+    data = yaml.safe_load((ROOT / model).read_text(encoding="utf-8"))
+    power = (data.get("assumptions") or {}).get("power_draw") or {}
+    if power.get("status") != "measured":
+        return
+    for line in data.get("exclusions") or []:
+        assert not states_idle_is_excluded(str(line)), (
+            f"{model} prices one unit of work with {power.get('value')} W read off the "
+            f"machine, and still tells the reader idle capacity is out of the figure"
+        )
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_the_idle_line_is_the_one_the_package_would_write_today(model: str) -> None:
+    # Stronger than the rule above, and the reason the rule has a single home:
+    # the line is regenerated from the model's own power figure and its own
+    # measurement block, so a hand-edit that drifts from what `audit --run` and
+    # `measure --into` produce fails here rather than ageing quietly in a file
+    # nobody re-renders.
+    data = yaml.safe_load((ROOT / model).read_text(encoding="utf-8"))
+    power = (data.get("assumptions") or {}).get("power_draw") or {}
+    expected = idle_exclusion(
+        data.get("measurement"),
+        measured=power.get("status") == "measured",
+        watts=power.get("value"),
+    )
+    idle_lines = [
+        str(line)
+        for line in data.get("exclusions") or []
+        if str(line).strip().lower().startswith("idle capacity")
+    ]
+    assert idle_lines, f"{model} says nothing about idle capacity either way"
+    assert idle_lines == [expected], f"{model}: the idle exclusion is not the generated one"
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_a_measured_power_figure_names_both_of_its_boundaries(model: str) -> None:
+    # The hardware boundary (which counters answered) was always there. The
+    # workload boundary — how much of that hardware was doing this work — was
+    # not, and without it a reader takes the figure for the run's own.
+    data = yaml.safe_load((ROOT / model).read_text(encoding="utf-8"))
+    power = (data.get("assumptions") or {}).get("power_draw") or {}
+    if power.get("status") != "measured":
+        return
+    notes = str(power.get("notes") or "")
+    assert "whole machine's draw, not this run's alone" in notes, (
+        f"{model} states a measured wattage without saying how much of the "
+        f"metered hardware was this run"
     )

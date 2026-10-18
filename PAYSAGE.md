@@ -268,12 +268,17 @@ Elle se place en amont d'un outil comme celui-ci plutôt qu'à côté.
 
 Autant être honnête sur les manques, puisque c'est toute la prémisse de l'outil.
 
-- **Rien n'est attribué à un processus.** Chaque compteur ici mesure la *machine*,
-  et une ligne de base prise avant la tranche est la seule chose qui sépare
-  l'exécution du navigateur à côté. Scaphandre, PowerAPI et Kepler modélisent la
-  consommation par processus et par conteneur ; ce paquet ne le fait pas, et le dit
-  dans le périmètre que porte chaque lecture. C'est le manque qui compte le plus
-  sur une machine partagée.
+- **Les coûts tarifent toujours la machine, pas le processus.** Chaque compteur
+  ici mesure du *matériel* : la puissance que porte un modèle de coût contient
+  le navigateur d'à côté. Deux séparations sont désormais enregistrées auprès
+  d'elle — le plancher au repos que la machine tirait avant, et la part du
+  temps processeur de la machine revenant à l'exécution, appliquée au compteur
+  propre du processeur — et un modèle mesuré énonce les deux dans la phrase
+  attachée à sa figure de puissance. Ce qui n'a pas changé, c'est le nombre que
+  les coûts utilisent : le nombre entier. Scaphandre, PowerAPI et Kepler vont
+  plus loin et modélisent une consommation par processus et par conteneur ; ce
+  paquet enregistre l'encadrement et refuse de choisir à l'intérieur. Sur une
+  machine partagée, c'est toujours le manque qui compte le plus.
 - **Deux plateformes, pas trois.** Linux et macOS, qui lisent toutes deux de
   vrais compteurs — zones powercap par leur nom, `IOReport` sur Apple Silicon,
   NVML et les interfaces sysfs `amdgpu` / `i915` / `xe` pour l'accélérateur.

@@ -21,6 +21,7 @@ from typing import Any, Final
 import os_helper as osh
 
 from ..analyze import llm
+from ..analyze.power import idle_exclusion
 from ..analyze.static import (
     read_repository,
 )
@@ -39,7 +40,7 @@ from ..estimate.machine import detect_machine
 from ..model.cost_model import CostModel
 from ..model.quantity import Quantity
 from ..model.schema import SCHEMA_VERSION
-from ..model.taxonomy import TODO
+from ..model.taxonomy import MEASURED, TODO
 from ..model.validate import validate
 from .assumptions import (
     _embodied_assumption,
@@ -151,6 +152,7 @@ def audit(
                 "llm_note", "No local model was reachable; the read is static only."
             )
 
+    measurement = slice_result.to_mapping() if slice_result is not None else None
     power = _power_assumption(machine, context, slice_result)
     runtime = _runtime_assumption(reading, slice_result)
     pue = context.pue()
@@ -278,7 +280,11 @@ def audit(
         "exclusions": [
             "Making the hardware. Only the electricity to run it is counted.",
             "The people. Salaries, offices, and travel are out of scope.",
-            "Idle capacity. This is the cost of one unit of work, not of being ready.",
+            # Not a constant. A model whose power came off this machine's own
+            # counters has idle capacity inside its figures, and the line that
+            # used to say otherwise was contradicted by the measurement block
+            # three fields above it.
+            idle_exclusion(measurement, measured=power.status == MEASURED, watts=power.value),
         ],
         "provenance_rules": [
             "Every sourced value carries source_url and retrieved_date.",
@@ -290,8 +296,8 @@ def audit(
         data["external_services"] = _service_blocks(reading)
     if reading.models:
         data["models_called"] = _model_blocks(reading, settings)
-    if slice_result is not None:
-        data["measurement"] = slice_result.to_mapping()
+    if slice_result is not None and measurement is not None:
+        data["measurement"] = measurement
         if scaling is not None:
             # The exponent travels with the measurement rather than with the
             # projection that used it, because it is a fact about the workload

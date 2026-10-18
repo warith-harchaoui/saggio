@@ -184,16 +184,29 @@ machine, with the country stated.
 
 | Model | Unit of work | Time | Carbon | What stayed open |
 |---|---|---|---|---|
-| [`render`](examples/render.yaml) · [report](examples/render.md) | one HTML report rendered | 0.0271 s, measured | 5.74e-06 gCO2e, estimated | water, market-based scope 2, embodied |
+| [`render`](examples/render.yaml) · [report](examples/render.md) | one HTML report rendered | 0.0277 s, measured | 1.01e-05 gCO2e, estimated | water, market-based scope 2, embodied |
 | [`request`](examples/request.yaml) · [report](examples/request.md) | one `/scopes` request handled end to end | 0.00385 s, measured | 1.19e-06 gCO2e, estimated | water, market-based scope 2, embodied |
 
 Both were measured on an Apple M2 Max, twelve cores, in France, by running the
 work many times inside one interpreter — fifty renders, two hundred requests —
 so that Python's start-up, which is not the work, is not charged to it. The
-power is a counter reading rather than a datasheet: **12.3 W** during the
-renders and **18.0 W** during the requests, against a machine drawing 6.5 W and
-8.7 W at rest a moment before. The nameplate this package would otherwise have
-assumed is 83.76 W.
+power is a counter reading rather than a datasheet: **21.3 W** during the
+renders and **18.0 W** during the requests. The nameplate this package would
+otherwise have assumed is 83.76 W.
+
+**And those watts are the machine's, not the run's.** A counter meters
+hardware, not processes, so a figure read while a slice runs includes whatever
+else the machine was doing. The `render` model now records what that was: the
+machine was already drawing **9.9 W** before the slice started, and by the
+run's **15% share** of the machine's processor work, **2.6 W** of the 21.3 W is
+attributable to it. Two ways of separating the run from its machine therefore
+give 11.4 W and 2.6 W, and the costs in the table use neither — they use the
+whole 21.3 W, which is the only figure a meter can actually see. Each of those
+numbers is in the model, in the sentence attached to the power figure and in
+the exclusions list beside it.
+
+The `request` model predates the block that records a floor, so its own is not
+in the repository and is not quoted here.
 
 **What "finished" means here, and what it does not.** Four of seven numbers are
 established and three are still open, and that is the end state rather than an
@@ -206,8 +219,9 @@ each needs somebody to state something, and each says so in its own notes.
 
 The difference from the eight above is the one worth looking at: a measured
 runtime turns three `TODO`s into figures through the derivation chain, and the
-power figure moves from a datasheet guess to a counter reading that is six times
-smaller.
+power figure moves from a datasheet guess to a counter reading that is four
+times smaller — and, unlike the guess, one that says how much of itself was
+this run.
 
 ## The walkthrough: one workload, four stages
 

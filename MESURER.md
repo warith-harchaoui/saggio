@@ -226,9 +226,10 @@ avant la tranche et après : la différence est le nombre de secondes-processeur
 la machine *entière* a passées à travailler pendant que la tranche tournait. La
 tranche connaît déjà les siennes, par `RUSAGE_CHILDREN`. Le rapport est sa part du
 travail, et multiplier la consommation mesurée par cette part **attribue** la
-consommation au lieu d'en soustraire un plancher. C'est ainsi que
-[Kepler](https://sustainable-computing.io/) répartit un nœud entre ses pods et que
-`GreenAlgorithms4HPC` lit la comptabilité d'un ordonnanceur.
+consommation au lieu d'en soustraire un plancher. C'est la même famille de
+méthode que [Kepler](https://sustainable-computing.io/) emploie pour répartir un
+nœud entre ses pods et que `GreenAlgorithms4HPC` applique à la comptabilité d'un
+ordonnanceur — mais pas la même arithmétique, et l'écart est dit plus bas.
 
 Linux publie ces totaux dans `/proc/stat`. macOS les publie par l'appel Mach
 `host_processor_info`, par processeur logique, à un utilisateur ordinaire. Les
@@ -266,6 +267,37 @@ choix :
 
 Sur une machine occupée, la seconde est en général la meilleure des deux ; sur
 une machine calme, elles convergent.
+
+### Ce que ce n'est pas : la formule de Kepler, et de combien elle diffère
+
+Kepler v0.10 a retiré son moteur eBPF et lit désormais `/proc` et `/sys` sans
+privilèges — les deux mêmes fichiers que cette page lit, pour la même raison.
+Mais son attribution découpe d'abord la puissance du nœud **par activité** :
+
+> Workload Power = (Workload CPU Time Δ / Node CPU Time Δ) × Active Power
+
+où la puissance active est le total mesuré dont on a soustrait la ligne de base
+au repos. Ce paquet découpe **par domaine matériel** à la place : la part
+multiplie le compteur propre des cœurs processeur, une valeur qu'un compteur a
+produite plutôt qu'une soustraction, et c'est pourquoi la valeur attribuée ne
+peut tarifer que de l'énergie processeur.
+
+Les deux ne sont pas interchangeables, et `examples/render.yaml` dit de combien.
+Son bloc de mesure porte une part de 14,7 %, un total de 21,3 W, un plancher de
+9,9 W et un domaine processeur de 18,04 W :
+
+| | | |
+|---|---|---|
+| Ce paquet | 0,147 × 18,04 W | **2,65 W** |
+| Formule de Kepler | 0,147 × (21,29 − 9,89) W | **1,68 W** |
+
+**Un facteur 1,58 sur la même exécution, à partir des mêmes nombres.** L'écart
+est la part au repos de la consommation du processeur lui-même, qu'un compteur
+de domaine ne sait pas séparer et qu'une soustraction sait isoler. Aucune des
+deux valeurs n'est fausse ; elles répondent à des questions différentes, et un
+modèle qui citerait l'une en invoquant l'autre comme méthode revendiquerait une
+corroboration qu'il n'a pas. Laquelle des deux a sa place dans un modèle de
+coût n'est pas tranché ici.
 
 ## Où la puissance est réellement passée
 
@@ -393,7 +425,7 @@ le dit. Envoyer les noms de canaux suffit à ajouter la pièce ; voir
 - Lannelongue, Grealey & Inouye, *Green Algorithms: Quantifying the Carbon Footprint of Computation*, [doi:10.1002/advs.202100707](https://doi.org/10.1002/advs.202100707) — l'arithmétique qu'utilise ce paquet, extraite dans [`green-algorithms.md`](skills/saggio/references/green-algorithms.md).
 - [Software Carbon Intensity](https://sci.greensoftware.foundation/) (ISO/IEC 21031:2024) et [SCI for AI](https://greensoftware.foundation/standards/sci-ai/) — les émissions par unité fonctionnelle, et ce qu'une déclaration doit dire.
 - [Boavizta](https://boavizta.org/en) et [EcoLogits](https://ecologits.ai/) — le versant incorporé, que ce paquet laisse ouvert plutôt qu'à zéro.
-- [Kepler](https://sustainable-computing.io/) — attribuer l'énergie d'un nœud à ce qui y a tourné, le problème qui commence après cette page.
+- [Kepler](https://sustainable-computing.io/) — attribuer l'énergie d'un nœud à ce qui y a tourné, le problème qui commence après cette page. Sa [page d'attribution de puissance](https://sustainable-computing.io/kepler/usage/power-attribution/) énonce la formule comparée ci-dessus ; l'[annonce de la ré-architecture](https://www.cncf.io/blog/2026/06/30/kepler-re-architected-improved-power-accuracy-and-a-community-call-to-action/) (2026-06-30) est l'endroit où la v0.10 abandonne eBPF pour `/proc` et `/sys`.
 
 ---
 

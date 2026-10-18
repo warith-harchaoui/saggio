@@ -30,7 +30,10 @@ assumptions:
       draw. These are the chip''s own energy counters, which are a model inside the silicon rather than
       a meter on the power rail, and Apple says they are not a basis for comparing one machine against
       another. Left out of them: the display, storage, networking, the fans, and the power supply''s own
-      losses.'
+      losses. This is the whole machine''s draw, not this run''s alone: these counters meter hardware
+      and not processes, so whatever else the machine was doing while the command ran is inside the figure.
+      Nothing here established how much of it was, so treat the figure as an upper bound on what the run
+      cost and not as what it cost.'
   pue:
     value: 1.5
     status: estimated
@@ -43,16 +46,16 @@ assumptions:
     status: estimated
     unit: USD/kWh
     currency: USD
-    source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    retrieved_date: "2026-10-02"
-    notes: "Indicative tariff for France. Collected Q3 2026."
+    source_url: https://www.globalpetrolprices.com/electricity_prices/
+    retrieved_date: '2026-10-02'
+    notes: Indicative tariff for France. Collected Q3 2026.
   grid_carbon_intensity:
     value: 41.2
     status: estimated
     unit: gCO2e/kWh
-    source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    retrieved_date: "2026-10-02"
-    notes: "Annual average for France, data year 2025."
+    source_url: https://ember-energy.org/data/yearly-electricity-data/
+    retrieved_date: '2026-10-02'
+    notes: Annual average for France, data year 2025.
   water_usage_effectiveness:
     value: null
     status: TODO
@@ -235,7 +238,8 @@ analysis:
 exclusions:
 - Making the hardware. Only the electricity to run it is counted.
 - The people. Salaries, offices, and travel are out of scope.
-- Idle capacity. This is the cost of one unit of work, not of being ready.
+- Idle capacity is inside these figures, not outside them. The power was read from the machine's own counters,
+  which meter hardware and not processes.
 provenance_rules:
 - Every sourced value carries source_url and retrieved_date.
 - A derived value names its inputs and never outranks the weakest of them.

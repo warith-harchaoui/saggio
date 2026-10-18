@@ -10,6 +10,56 @@ cette ligne.
 
 ## Non publié
 
+### Un modèle qui disait exclure la capacité au repos, tout en tarifant la machine entière
+
+- Tout modèle écrit par ce paquet portait la ligne *« Idle capacity. This is the
+  cost of one unit of work, not of being ready. »* dans ses `exclusions`. Pour un
+  modèle bâti sur une plaque signalétique, c'est vrai. Pour un modèle dont la
+  puissance a été **lue sur les compteurs de cette machine**, c'est faux, et
+  trois modèles commités le prouvaient : `examples/walkthrough/5-run.yaml`
+  tarifait son unité de travail à **31,9 W** alors que son propre bloc de mesure,
+  trois champs plus haut, enregistrait **2,9 W** comme part attribuable. Un
+  facteur onze, dans un seul fichier.
+- La liste des exclusions n'est plus une constante. `saggio audit --run` écrit
+  la ligne vraie de la valeur qu'il vient d'obtenir, et `saggio measure --into`
+  **réécrit** celle qu'il vient de rendre fausse — en nommant le plancher que la
+  machine tirait, la part de travail processeur qu'était l'exécution, et en
+  admettant que les coûts n'utilisent ni l'un ni l'autre.
+- Un `power_draw` mesuré énonce désormais **ses deux** frontières. Celle du
+  matériel (quels compteurs ont répondu, quel silicium ils voient) y était déjà ;
+  celle de la charge — *« This is the whole machine's draw, not this run's
+  alone »* — n'y était pas, et sans elle un lecteur prend la valeur pour celle de
+  l'exécution.
+- Trois tests de contrat sur chaque modèle commité : aucun ne peut prétendre
+  exclure le repos pendant que sa puissance est `measured` ; la ligne sur le
+  repos doit être celle que le paquet écrirait aujourd'hui, régénérée depuis le
+  bloc de mesure du modèle lui-même ; et une puissance mesurée doit nommer sa
+  frontière de charge. Le premier a tiré sur quatre modèles le jour où il a été
+  écrit.
+- `saggio measure --json` émettait une charge utile listée à la main qui perdait
+  l'attribution que la même commande venait de calculer — l'avertissement citait
+  une part de travail processeur qu'aucun champ du JSON ne portait. Il émet
+  désormais la table qu'un modèle reçoit, et la sortie texte imprime la valeur
+  attribuable à côté de la soustraction de ligne de base, au lieu de la seule
+  moitié qui flatte.
+- `examples/render.yaml` a été remesuré pour qu'un modèle de la galerie porte le
+  bloc : **21,3 W** pendant la tranche, **9,9 W** avant elle, **2,65 W**
+  attribuables à partir d'une part de 14,7 %. Temps 0,0277 s, carbone
+  1,01e-05 gCO2e. `examples/request.yaml` conserve ses valeurs, que
+  [`FRONTIERES.md`](FRONTIERES.md) cite.
+- [`MEASURING.md`](MEASURING.md) / [`MESURER.md`](MESURER.md) affirmait que ce
+  paquet attribue la puissance *« comme Kepler »*. C'est faux. Kepler v0.10
+  divise la puissance **active** — le total moins la ligne de base au repos —
+  par la part
+  ([formule](https://sustainable-computing.io/kepler/usage/power-attribution/)) ;
+  ce paquet multiplie la part par **le compteur propre du domaine processeur**.
+  Sur `examples/render.yaml`, cela donne 1,68 W contre 2,65 W, **un facteur 1,58
+  à partir de la même mesure**. La page énonce désormais les deux et n'en choisit
+  aucune.
+- [`LANDSCAPE.md`](LANDSCAPE.md) / [`PAYSAGE.md`](PAYSAGE.md) : le manque « rien
+  n'est attribué à un processus » dit maintenant ce qui *est* enregistré, et que
+  les coûts utilisent toujours la valeur entière.
+
 ### La ligne énergie d'un dossier au titre du règlement IA
 
 - L'annexe XI impose au fournisseur d'un modèle d'IA à usage général de

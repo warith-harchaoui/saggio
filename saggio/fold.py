@@ -39,7 +39,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from .analyze.power import PowerReading
+from .analyze.power import (
+    PowerReading,
+    idle_exclusion,
+    is_idle_claim,
+    workload_scope,
+)
 from .estimate.energy import (
     carbon_from_energy,
     facility_energy,
@@ -89,6 +94,59 @@ class Fold:
     model: CostModel
     changes: tuple[str, ...] = field(default_factory=tuple)
     refused: str | None = None
+
+
+def _rewrite_idle_exclusion(
+    data: dict[str, Any], measurement: dict[str, Any] | None, *, watts: float | None
+) -> list[str]:
+    """Replace an exclusion that the measurement just made false.
+
+    A model built from a nameplate rating may truthfully say idle capacity is
+    out of its figures. The moment a measured whole-machine draw is folded into
+    it, that line is false, and a false line in the ``exclusions`` list is worse
+    than a missing one: a reader checks what a document says is *not* counted
+    precisely because they intend to trust the rest.
+
+    Parameters
+    ----------
+    data : dict
+        The model being folded into, modified in place.
+    measurement : dict or None
+        The measurement block, for the floor and the attributable share.
+    watts : float or None
+        The figure the new line quotes the floor against.
+
+    Returns
+    -------
+    list of str
+        One line describing the rewrite, or nothing when the model carried no
+        such claim. A line the model never had is never invented here: folding a
+        measurement is not licence to add prose to somebody's document.
+
+    Examples
+    --------
+    >>> model = {"exclusions": ["The people. Salaries are out of scope."]}
+    >>> _rewrite_idle_exclusion(model, None, watts=12.0)
+    []
+    >>> model = {"exclusions": ["Idle capacity. This is the cost of one unit of work."]}
+    >>> len(_rewrite_idle_exclusion(model, None, watts=12.0))
+    1
+    >>> _rewrite_idle_exclusion(model, None, watts=99.0)[0].startswith("exclusions")
+    True
+    """
+    exclusions = data.get("exclusions")
+    if not isinstance(exclusions, list):
+        return []
+    replacement = idle_exclusion(measurement, measured=True, watts=watts)
+    changes: list[str] = []
+    for position, line in enumerate(exclusions):
+        if isinstance(line, str) and is_idle_claim(line):
+            exclusions[position] = replacement
+            changes.append(
+                "exclusions: idle capacity is no longer claimed to be out, "
+                "because the power figure was read off the whole machine"
+            )
+    return changes
 
 
 def _scenario_index(data: dict[str, Any], name: str | None) -> int | None:
@@ -230,11 +288,15 @@ def fold_measurement(
             value=power.watts,
             unit="W",
             status=MEASURED,
-            notes=f"Read from the machine while the command ran. {power.scope}",
+            notes=(
+                f"Read from the machine while the command ran. {power.scope} "
+                f"{workload_scope(measurement, watts=power.watts)}"
+            ),
         )
         changes.append(_moved("power draw", power_quantity.to_mapping(), measured_power))
         updated.setdefault("assumptions", {})["power_draw"] = measured_power.to_mapping()
         power_quantity = measured_power
+        changes.extend(_rewrite_idle_exclusion(updated, measurement, watts=power.watts))
 
     machine_energy = it_energy_from_runtime(runtime, power_quantity).with_derivation(
         f"{scenario_path}.runtime", _POWER_PATH

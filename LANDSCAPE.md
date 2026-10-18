@@ -255,11 +255,16 @@ It sits upstream of a tool like this one rather than beside it.
 
 Being honest about the gaps, since that is the whole premise of the tool.
 
-- **Nothing is attributed to a process.** Every counter here measures the
-  *machine*, and a baseline taken before the slice is the only thing separating
-  the run from the browser beside it. Scaphandre, PowerAPI and Kepler model
-  per-process and per-container draw; this package does not, and says so in the
-  scope every reading carries. That is the gap that matters most on a shared box.
+- **The costs still price the machine, not the process.** Every counter here
+  meters *hardware*, so the wattage a cost model carries includes the browser
+  beside the run. Two separations are now recorded next to it — the idle floor
+  the machine was drawing beforehand, and the run's share of the machine's
+  processor time applied to the processor's own counter — and a measured model
+  states both in the sentence attached to its power figure. What has not
+  changed is which number the costs use: the whole one. Scaphandre, PowerAPI
+  and Kepler go further and model a per-process and per-container draw; this
+  package records the bracket and refuses to pick inside it. On a shared box
+  that is still the gap that matters most.
 - **Two platforms, not three.** Linux and macOS, both reading real counters —
   powercap zones by name, `IOReport` on Apple Silicon, NVML and the `amdgpu` /
   `i915` / `xe` sysfs interfaces for the accelerator. Windows is out of scope
