@@ -235,6 +235,7 @@ analysis:
   total_work:
     unit: num_samples
     stated_as: '400000'
+    units: 400000.0
     source: config.py::num_samples
   entrypoint: predict.py
   has_tests: false

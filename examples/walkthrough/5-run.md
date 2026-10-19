@@ -90,6 +90,7 @@ How well founded these are: 1 `TODO`, 1 `estimated`. A sustainability disclosure
 | what the counters cover | The figure covers the chip's processor cores, graphics cores, and neural engine, from the system-on-chip's own energy counters and the chip's memory, from its own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory drew rather than what its installed capacity suggests it would draw. These are the chip's own energy counters, which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not a basis for comparing one machine against another. Left out of them: the display, storage, networking, the fans, and the power supply's own losses. |
 | counters that answered | system-on-chip, memory |
 | processor-seconds used by the run | 0.4714 s |
+| share of the whole run this slice covered | 0.001 |
 | where the power went, by counter | processor cores 28.525 W, graphics cores 0.123 W, neural engine 0 W, memory 3.234 W |
 | the run's share of the machine's processor work | 10.1% (0.471 s of the machine's 4.67 s) |
 | attributable to the run | 2.88 W |

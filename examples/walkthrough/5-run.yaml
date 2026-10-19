@@ -260,6 +260,7 @@ analysis:
   total_work:
     unit: num_samples
     stated_as: '400000'
+    units: 400000.0
     source: config.py::num_samples
   entrypoint: predict.py
   has_tests: false
@@ -283,6 +284,7 @@ measurement:
   - system-on-chip
   - memory
   cpu_seconds: 0.4714
+  fraction_completed: 0.001
   power_by_domain:
     cpu: 28.525
     gpu: 0.123

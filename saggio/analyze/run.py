@@ -556,6 +556,11 @@ class SliceResult:
             mapping["power_sources"] = list(self.power.sources)
         if self.cpu_seconds is not None:
             mapping["cpu_seconds"] = round(self.cpu_seconds, 4)
+        if self.fraction_completed is not None:
+            # What every projection built from this slice divides by. The slice
+            # knew it, the projections used it, and the file kept only the
+            # sentence saying so.
+            mapping["fraction_completed"] = self.fraction_completed
         if self.baseline is not None and self.baseline.watts is not None:
             # Diagnostic context, like cpu_seconds: the power that prices the run
             # is the scenario's quantity, and this is the floor it was measured

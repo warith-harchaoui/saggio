@@ -197,6 +197,7 @@ analysis:
   total_work:
     unit: num_samples
     stated_as: '400000'
+    units: 400000.0
     source: examples/walkthrough/counter/config.py::num_samples
   has_tests: true
 exclusions:

@@ -40,16 +40,16 @@ assumptions:
     status: estimated
     unit: USD/kWh
     currency: USD
-    source_url: "https://www.globalpetrolprices.com/electricity_prices/"
-    retrieved_date: "2026-10-02"
-    notes: "Indicative tariff for France. Collected Q3 2026."
+    source_url: https://www.globalpetrolprices.com/electricity_prices/
+    retrieved_date: '2026-10-02'
+    notes: Indicative tariff for France. Collected Q3 2026.
   grid_carbon_intensity:
     value: 41.2
     status: estimated
     unit: gCO2e/kWh
-    source_url: "https://ember-energy.org/data/yearly-electricity-data/"
-    retrieved_date: "2026-10-02"
-    notes: "Annual average for France, data year 2025."
+    source_url: https://ember-energy.org/data/yearly-electricity-data/
+    retrieved_date: '2026-10-02'
+    notes: Annual average for France, data year 2025.
   water_usage_effectiveness:
     value: null
     status: TODO
@@ -159,6 +159,7 @@ analysis:
   total_work:
     unit: epochs
     stated_as: '400'
+    units: 400.0
     source: dinov2/configs/train/cell_dino/vitl16_boc_hpafov.yaml::epochs
   total_work_conflicts:
   - epochs is stated more than once and the statements disagree (dinov2/configs/train/cell_dino/vitl16_boc_hpafov.yaml::epochs

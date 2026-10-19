@@ -10,6 +10,32 @@ cette ligne.
 
 ## Non publié
 
+### Le diviseur dont dépend tout coût projeté est désormais une valeur, pas une phrase
+
+- Un modèle portait la taille de la course en `analysis.total_work.stated_as :
+  '400000'` — une **chaîne de caractères** — et la fraction par laquelle les
+  projections divisent nulle part. Tout coût projeté de ce dépôt reposait sur un
+  nombre qui n'apparaissait qu'à l'intérieur d'une phrase de méthode.
+- Deux nombres que le code détenait déjà atteignent le fichier :
+  `total_work.units` à côté du jeton littéral que la source écrit, et
+  `measurement.fraction_completed`, que `SliceResult` a toujours connu et n'a
+  jamais consigné. Le même défaut deux fois — une valeur que l'objet tient et
+  que le fichier n'obtient pas — et le même que `measure --json` perdant son
+  attribution ou `marginal_watts` ne vivant qu'en prose.
+- Un contrat exige que le diviseur énoncé par une méthode soit une valeur que le
+  modèle porte, et que les deux s'accordent. Il a tiré sur chaque modèle muni
+  d'une projection.
+- **Il a aussi tranché une divergence au lieu de la masquer.**
+  `walkthrough/5-run.yaml` divise par `0,001` alors que son `total_work` annonce
+  400 000, un facteur 400 d'écart. Les deux ont raison et mesurent des choses
+  différentes : 400 000 est la course entière, `0,001` la part que la tranche a
+  couverte — et la commande du même bloc a lancé `--num_samples 400`, soit
+  exactement 400 000 × 0,001. Le champ manquant était la part de la tranche, pas
+  un nombre faux.
+- Le rapport nomme le nouveau champ (*« share of the whole run this slice
+  covered »*), et les deux valeurs sont déclarées sous la règle du nombre nu
+  avec la raison pour laquelle elles ne sont pas des coûts.
+
 ### Ce qu'une machine dit pouvoir mesurer, face à ce qu'elle a mesuré
 
 - `saggio power` rapporte quels compteurs répondent. La suite prend une vraie

@@ -333,3 +333,40 @@ def _single(cell: str) -> float | None:
     """
     numbers = re.findall(r"\d+(?:\.\d+)?(?:[eE][-+]?\d+)?", _normalise(cell))
     return float(numbers[0]) if len(numbers) == 1 else None
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_the_divisor_a_projection_states_is_a_number_the_model_carries(model: str) -> None:
+    # Until now the divisor appeared *only* in the method sentence: the model
+    # held `analysis.total_work.stated_as` as a string and the fraction
+    # nowhere, so the one quantity every projected cost turns on was prose. The
+    # test above reads it out of that sentence; this one requires the file to
+    # carry it as a figure, and the two to agree.
+    data = yaml.safe_load((ROOT / model).read_text(encoding="utf-8"))
+    carried: list[tuple[str, float]] = []
+    measurement = data.get("measurement") or {}
+    share = measurement.get("fraction_completed")
+    if isinstance(share, (int, float)):
+        carried.append(("measurement.fraction_completed", float(share)))
+    units = ((data.get("analysis") or {}).get("total_work") or {}).get("units")
+    if isinstance(units, (int, float)) and units > 0:
+        carried.append(("analysis.total_work.units", 1.0 / float(units)))
+
+    offenders: list[str] = []
+    for block, body in (data.get("projections") or {}).items():
+        for dimension, projection in (body.get("costs") or {}).items():
+            found = PROJECTION.match(str(projection.get("method") or ""))
+            if found is None:
+                continue
+            stated = float(found.group("fraction"))
+            if not carried:
+                offenders.append(
+                    f"{block}.{dimension} divides by {found.group('fraction')} and the "
+                    f"model carries that figure nowhere"
+                )
+            elif not any(_close(value, stated) for _, value in carried):
+                offenders.append(
+                    f"{block}.{dimension} divides by {found.group('fraction')}, and the "
+                    f"model carries {', '.join(f'{name}={value:.6g}' for name, value in carried)}"
+                )
+    assert not offenders, f"{model}: " + "; ".join(offenders)

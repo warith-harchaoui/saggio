@@ -9,6 +9,30 @@ release of that line.
 
 ## Unreleased
 
+### The divisor every projected cost turns on is a figure now, not a sentence
+
+- A model held the run size as `analysis.total_work.stated_as: '400000'` — a
+  **string** — and the fraction the projections divide by nowhere at all. Every
+  projected cost in this repository rested on a number that appeared only
+  inside a method sentence.
+- Two numbers the code already had now reach the file: `total_work.units`
+  beside the literal token the source spells it with, and
+  `measurement.fraction_completed`, which `SliceResult` has always known and
+  never wrote down. The same defect twice — a figure the object holds and the
+  file never gets — and the same one as `measure --json` dropping its
+  attribution and `marginal_watts` living only in prose.
+- A contract requires the divisor a method states to be a figure the model
+  carries, and the two to agree. It fired on every model with a projection.
+- **It also settled a discrepancy rather than papering over one.**
+  `walkthrough/5-run.yaml` divides by `0.001` while its `total_work` says
+  400 000, a factor of 400 apart. Both are right and they measure different
+  things: 400 000 is the whole run, `0.001` is the share the slice covered —
+  and the command in the same block ran `--num_samples 400`, which is exactly
+  400 000 × 0.001. The missing field was the slice's share, not a wrong number.
+- The report names the new field (*"share of the whole run this slice
+  covered"*), and both figures are declared under the bare-number rule with
+  the reason they are not costs.
+
 ### What a machine says it can measure, against what it measured
 
 - `saggio power` reports which counters answer. The suite takes a real slice on

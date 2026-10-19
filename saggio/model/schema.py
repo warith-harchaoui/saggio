@@ -81,11 +81,19 @@ BARE_NUMBER_EXEMPT_PREFIXES: Final[tuple[str, ...]] = (
     "deployment.accelerator_count",
     "dimensions",
     "analysis.language_file_counts",
+    # The run size as a number, beside the literal token the source file spells
+    # it with. Not a cost: a fact about the repository, read rather than run,
+    # and the divisor every projected cost turns on.
+    "analysis.total_work.units",
     "measurement.exit_code",
     # Diagnostic context about how the run went, not a cost: the runtime that
     # prices everything is the scenario's quantity, and this is the processor
     # time beside it so a reader can spot an I/O-bound slice.
     "measurement.cpu_seconds",
+    # The share of the whole run this slice covered. Diagnostic in the same
+    # sense: the projection that uses it carries its own quantity, and this is
+    # the number that projection divides by.
+    "measurement.fraction_completed",
     # What the machine drew before the slice started. Also diagnostic: it is the
     # floor the run was measured above, not a cost anybody is charged for, and a
     # reader needs it to see how much of the total was the machine itself.

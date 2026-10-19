@@ -301,7 +301,12 @@ class RepositoryReading:
         if self.work_size is not None:
             mapping["total_work"] = {
                 "unit": self.work_size.key,
+                # The literal token as the file spells it, and the number it
+                # parses to. Only the token was kept, so the one quantity every
+                # projected cost divides by was a string: readable, and not a
+                # figure anything could check.
                 "stated_as": f"{self.work_size.value:g}",
+                "units": float(self.work_size.value),
                 "source": self.work_size.source,
             }
         if self.work_size_conflicts:
