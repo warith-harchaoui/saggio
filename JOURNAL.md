@@ -10,6 +10,43 @@ cette ligne.
 
 ## Non publié
 
+### Un règlement qui publie des chiffres en retour, et le TODO eau qu'il ferme
+
+- Les notes de travail annonçaient que le dispositif européen de déclaration
+  transformerait les `TODO` PUE et WUE en lignes de catalogue avec provenance.
+  **La moitié était fausse**, et le rapport le dit lui-même : *« All data have
+  been anonymised to avoid disclosing personal, company, or location-specific
+  details pursuant to Article 5(5) of Delegated Regulation (EU) 2024/1364. »*
+  Il n'y a aucune valeur par installation à mettre où que ce soit, et il n'y en
+  aura pas.
+- Ce qui **est** publié vaut à l'échelle de l'Union, et mérite d'être pris.
+  [COM(2026) 500 final](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf)
+  du 21 septembre 2026 donne pour 2024 un **PUE de 1,36**, pondéré par l'énergie
+  sur les 681 centres dont la valeur a passé le contrôle qualité, et un **WUE de
+  0,58** L/kWh sur les 458 ayant déclaré une consommation d'eau non nulle. Les
+  deux forment le fournisseur `on-prem-eu`.
+- **Cela ferme un `TODO` que chaque modèle auto-hébergé porte depuis la première
+  version.** L'eau restait ouverte parce que *« On-premises publishes no water
+  usage effectiveness »*. Pour une salle dans l'Union, cette phrase n'est plus
+  vraie, et un audit UE mesuré ferme désormais cinq dimensions sur sept au lieu
+  de quatre.
+- La ligne porte ce que le rapport dit de **lui-même** : environ 36 % seulement
+  des centres concernés ont déclaré, 70,1 % de ce qu'ils ont déclaré a passé le
+  contrôle qualité, et la moyenne WUE exclut les salles à refroidissement sec,
+  donc la surestime. Une ligne de catalogue se lit à la place du document dont
+  elle vient : les limites du document doivent voyager avec elle.
+- **Les moyennes nationales sont refusées**, et la raison est la règle du paquet
+  lui-même. Elles existent dans le rapport — de 1,15 à 1,66 — mais seulement en
+  étiquettes sur un diagramme en barres, et la Commission signale les quatre
+  États membres comptant moins de trois installations déclarantes comme
+  possiblement non représentatifs. Recopier une valeur depuis un graphique est
+  la façon dont un nombre cesse de pouvoir dire d'où il vient.
+- La page de la Commission pour ce rapport redirige vers EUR-Lex, qui sert un
+  corps vide à tout ce qui n'est pas un navigateur. La citation est la copie du
+  Conseil, document identique, qui répond 200 — choisie pour la raison qui avait
+  fait déplacer la citation Ember deux versions plus tôt : une source qu'un
+  lecteur ne peut pas atteindre n'est pas une source.
+
 ### Deux refus tranchés, deux qui n'en étaient pas, et une affirmation fausse
 
 - **La page d'accueil contredisait chaque modèle mesuré, depuis douze

@@ -208,6 +208,36 @@ satisfies SCI satisfies Annex XI with room to spare; the reverse is not true.
 The Green Software Foundation has mapped one onto the other in
 [SCI for AI and EU AI Act environmental compliance](https://greensoftware.foundation/policy/research/sci-ai-eu-ai-act/).
 
+### And one regulation that publishes numbers back
+
+The recast Energy Efficiency Directive goes the other way: under Article 12,
+Member States must make operators of data centres above 500 kW report their
+energy and water performance, and the Commission publishes what comes back.
+[COM(2026) 500 final](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf),
+of 21 September 2026, is the first such assessment.
+
+For 2024 it gives a Union-wide **PUE of 1.36**, energy-weighted over the 681
+data centres whose figure passed the quality review, and a **WUE of 0.58**
+litres per kilowatt-hour over the 458 that reported water above zero. Both are
+in the catalogue as the `on-prem-eu` provider, and the second one matters more
+than it looks: water was a `TODO` on every self-run model this package wrote,
+because *"On-premises publishes no water usage effectiveness"*. For a room
+inside the Union, that sentence is no longer true.
+
+**What the report says about itself**, carried in the row rather than left for a
+reader to find: only about 36% of the data centres in scope reported at all,
+70.1% of what they reported passed the quality review, and the WUE average
+excludes dry-cooled rooms and therefore overstates the typical one.
+
+**And what cannot be put in a catalogue.** National averages are in the report —
+they range from 1.15 to 1.66 — but only as labels on a bar chart, and the four
+Member States with fewer than three reporting facilities are flagged by the
+Commission itself as possibly unrepresentative. Transcribing a figure off a
+chart is how a number stops being able to say where it came from, so none of
+them is here. Facility-level figures are not available at all, and will not be:
+Article 5(5) of Delegated Regulation (EU) 2024/1364 requires the database to be
+anonymised.
+
 ## Doing it
 
 ```bash
@@ -234,6 +264,7 @@ design: a standard you half-satisfy, and know exactly which half.
 ## Sources
 
 - [Software Carbon Intensity specification](https://sci.greensoftware.foundation/), ISO/IEC 21031:2024 · [SCI for AI](https://greensoftware.foundation/standards/sci-ai/)
+- *Report on the energy efficiency of data centres in the EU*, COM(2026) 500 final, 21 September 2026 — [Council copy, PDF](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf) · the Commission's own page redirects to [EUR-Lex](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A52026DC0500), which serves an empty body to anything that is not a browser.
 - [NVIDIA HGX H100 PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) · [HGX B200 PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) — ISO 14067, third-party reviewed, cradle-to-gate.
 - *More than Carbon: Cradle-to-Grave environmental impacts of GenAI training on the NVIDIA A100 GPU*, [arXiv:2509.00093](https://arxiv.org/abs/2509.00093).
 - *Life-Cycle Emissions of AI Hardware: A Cradle-To-Grave Approach and

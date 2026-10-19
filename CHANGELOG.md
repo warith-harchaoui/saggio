@@ -9,6 +9,41 @@ release of that line.
 
 ## Unreleased
 
+### A regulation that publishes numbers back, and the water TODO it closes
+
+- The working notes said the EU data centre reporting scheme would turn the PUE
+  and WUE `TODO`s into catalogue rows with provenance. **Half of that was
+  wrong**, and the report says so itself: *"All data have been anonymised to
+  avoid disclosing personal, company, or location-specific details pursuant to
+  Article 5(5) of Delegated Regulation (EU) 2024/1364."* There is no
+  facility-level figure to put anywhere, and there will not be.
+- What **is** published is Union-wide, and it is worth having.
+  [COM(2026) 500 final](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf)
+  of 21 September 2026 gives a 2024 **PUE of 1.36**, energy-weighted over the
+  681 data centres whose figure passed the quality review, and a **WUE of
+  0.58** L/kWh over the 458 that reported water above zero. Both are now the
+  `on-prem-eu` provider.
+- **It closes a `TODO` that every self-run model has carried since the first
+  release.** Water was permanently open because *"On-premises publishes no
+  water usage effectiveness"*. For a room inside the Union that sentence is no
+  longer true, and a measured EU audit now closes five of seven dimensions
+  instead of four.
+- The row carries what the report says about **itself**: only about 36% of the
+  data centres in scope reported at all, 70.1% of what they reported passed the
+  quality review, and the WUE average excludes dry-cooled rooms and so
+  overstates the typical one. A catalogue row is read instead of the document
+  it came from, so the document's own limits have to travel with it.
+- **National averages are refused**, and the reason is the package's own rule.
+  They exist in the report — 1.15 to 1.66 — but only as labels on a bar chart,
+  and the Commission flags the four Member States with fewer than three
+  reporting facilities as possibly unrepresentative. Transcribing a figure off
+  a chart is how a number stops being able to say where it came from.
+- The Commission's own page for the report redirects to EUR-Lex, which serves
+  an empty body to anything that is not a browser. The citation is the Council's
+  copy of the identical document, which answers 200 — chosen for the same reason
+  the Ember citation was moved two releases ago: a source a reader cannot reach
+  is not a source.
+
 ### Two refusals decided, two that were never refusals, and a claim that was false
 
 - **The headline page contradicted every measured model, for twelve releases.**

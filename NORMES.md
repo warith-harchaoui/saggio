@@ -216,6 +216,40 @@ faux.
 La Green Software Foundation a cartographié l'un sur l'autre dans
 [SCI for AI and EU AI Act environmental compliance](https://greensoftware.foundation/policy/research/sci-ai-eu-ai-act/).
 
+### Et un règlement qui publie des chiffres en retour
+
+La directive sur l'efficacité énergétique refondue va dans l'autre sens : au
+titre de l'article 12, les États membres obligent les exploitants de centres de
+données au-dessus de 500 kW à déclarer leurs performances énergétiques et
+hydriques, et la Commission publie ce qui remonte.
+[COM(2026) 500 final](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf),
+du 21 septembre 2026, est la première évaluation de ce type.
+
+Pour 2024, elle donne un **PUE de 1,36** à l'échelle de l'Union, pondéré par
+l'énergie sur les 681 centres dont la valeur a passé le contrôle qualité, et un
+**WUE de 0,58** litre par kilowattheure sur les 458 ayant déclaré une
+consommation d'eau non nulle. Les deux sont au catalogue sous le fournisseur
+`on-prem-eu`, et le second compte plus qu'il n'y paraît : l'eau était un `TODO`
+sur chaque modèle auto-hébergé que ce paquet a écrit, parce que *« On-premises
+publishes no water usage effectiveness »*. Pour une salle située dans l'Union,
+cette phrase n'est plus vraie.
+
+**Ce que le rapport dit de lui-même**, porté par la ligne plutôt que laissé à
+trouver : environ 36 % seulement des centres concernés ont déclaré quoi que ce
+soit, 70,1 % de ce qu'ils ont déclaré a passé le contrôle qualité, et la moyenne
+WUE exclut les salles à refroidissement sec, ce qui la rend plus élevée que la
+salle typique.
+
+**Et ce qui ne peut pas entrer dans un catalogue.** Les moyennes nationales sont
+dans le rapport — elles vont de 1,15 à 1,66 — mais seulement en étiquettes sur
+un diagramme en barres, et les quatre États membres comptant moins de trois
+installations déclarantes sont signalés par la Commission elle-même comme
+possiblement non représentatifs. Recopier une valeur depuis un graphique est la
+façon dont un nombre cesse de pouvoir dire d'où il vient : aucune n'est ici. Les
+valeurs par installation ne sont pas disponibles du tout, et ne le seront pas :
+l'article 5(5) du règlement délégué (UE) 2024/1364 impose l'anonymisation de la
+base.
+
 ## Le faire
 
 ```bash
@@ -243,6 +277,7 @@ moitié.
 ## Sources
 
 - [Spécification Software Carbon Intensity](https://sci.greensoftware.foundation/), ISO/IEC 21031:2024 · [SCI for AI](https://greensoftware.foundation/standards/sci-ai/)
+- *Report on the energy efficiency of data centres in the EU*, COM(2026) 500 final, 21 septembre 2026 — [copie du Conseil, PDF](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf) · la page de la Commission redirige vers [EUR-Lex](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A52026DC0500), qui sert un corps vide à tout ce qui n'est pas un navigateur.
 - [Résumé PCF NVIDIA HGX H100](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) · [HGX B200](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) — ISO 14067, revue par un tiers, du berceau à la sortie d'usine.
 - *More than Carbon: Cradle-to-Grave environmental impacts of GenAI training on the NVIDIA A100 GPU*, [arXiv:2509.00093](https://arxiv.org/abs/2509.00093).
 - *Life-Cycle Emissions of AI Hardware: A Cradle-To-Grave Approach and

@@ -704,3 +704,26 @@ def test_the_link_checker_finds_the_links_the_repository_asks_you_to_follow() ->
     # An illustrative link is skipped by rule rather than by a list: a made-up
     # source on a real vendor's domain is indistinguishable from a stale one.
     assert not any("example.invalid" in url for url in cited)
+
+
+def test_the_eu_row_carries_what_the_report_says_about_itself() -> None:
+    # A catalogue row is read instead of the document it came from, so the
+    # limits the document states about its own figures have to travel with it.
+    # This one's are unusually load-bearing: a third of the population reported,
+    # and the water average excludes the rooms that use none.
+    row = Catalog.load("providers", overlay=Path("/nonexistent")).rows("providers")["on-prem-eu"]
+    assert row["pue"] == 1.36
+    assert row["wue_l_per_kwh"] == 0.58
+    assert row["operated_by"] == "self", "a room you run is your own scope 2"
+    notes = str(row["notes"])
+    for stated in ("681", "458", "36%", "70.1%", "Article 5(5)"):
+        assert stated in notes, f"the row does not carry {stated!r}, which the report states"
+
+
+def test_a_european_room_can_close_its_water() -> None:
+    # The point of the row. Water was a TODO on every self-run model because
+    # "On-premises publishes no water usage effectiveness" — true until the
+    # Commission published one.
+    providers = Catalog.load("providers", overlay=Path("/nonexistent")).rows("providers")
+    assert providers["on-prem"]["wue_l_per_kwh"] is None, "the global row still publishes none"
+    assert providers["on-prem-eu"]["wue_l_per_kwh"] is not None

@@ -37,6 +37,27 @@ providers:
     source_url: "https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024"
     retrieved_date: "2026-09-12"
     notes: "Industry-average PUE for a self-run room; measure your own if you can. Price comes from the country tariff."
+  - key: on-prem-eu
+    name: "On-premises, European Union"
+    operated_by: self
+    pue: 1.36
+    wue_l_per_kwh: 0.58
+    price_usd_per_kwh: null
+    source_url: "https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf"
+    retrieved_date: "2026-10-19"
+    notes: >-
+      Union-wide averages for 2024, reported under Article 12 of the Energy
+      Efficiency Directive and published by the Commission as COM(2026) 500
+      final on 2026-09-21. PUE is the energy-weighted average over the 681 data
+      centres whose figure the quality review accepted; WUE is the same over the
+      458 that reported water above zero, which excludes dry-cooled rooms and so
+      overstates the average room. Mandatory reporting over a known population
+      beats a voluntary global survey for a room inside the Union, which is the
+      only reason this row exists beside `on-prem`. Two limits the report states
+      about itself: only about 36% of the data centres in scope reported at all,
+      and 70.1% of what they reported passed the quality review. Facility-level
+      figures are not public and cannot be: Article 5(5) of Delegated Regulation
+      (EU) 2024/1364 requires the database to be anonymised.
   - key: aws
     name: "Amazon Web Services"
     operated_by: vendor
