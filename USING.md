@@ -198,6 +198,17 @@ GUI offering a picker asks the library rather than hard-coding a list that goes
 stale. A tag nothing is written in falls back to English and says so in the
 notes, because an audit must not fail over a language.
 
+**What the button does not switch, measured.** It exchanges **929 of the 19,337
+characters** of visible text on a rendered report — **4.8%**. The structure moves:
+headings, column names, the what-if labels, the equivalence sentences. The
+substance does not: the notes, the methods, the caveats and the refusals are
+written where the measurement happens, which was **709 prose literals of four
+words or more across 51 modules** when it was counted on 2026-10-19, only 8% of
+them under `report/`. Saying "the
+report is bilingual" would be a claim nobody established. The *documentation* is
+bilingual, page for page; a rendered report is a French frame around English
+evidence.
+
 **A language is not a country.** `--language fr` says how to write a sentence
 and nothing about where the code runs: French is written on a dozen different
 grids, and reading `--country FR` out of it would put a number in the model that

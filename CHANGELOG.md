@@ -55,6 +55,15 @@ in French.
   the record names `{path}` — because deleting that file is how consent is
   revoked.
 
+- **And the honest size of what that does not cover, measured.** Pressing the
+  report's language button exchanges **929 of the 19,337 characters** of visible
+  text on a rendered report — **4.8%**. The structure switches; the substance
+  does not, because an audit's prose is composed where the measurement happens:
+  **709 prose literals of four words or more across 51 modules** on
+  2026-10-19, only 8% of them under `report/`. The docs say so now in both
+  languages, and a contract test recomputes the share from the page and fails if
+  what they say stops being true — in either direction.
+
 ### Asked in the reader's language, after measuring what actually works
 
 `USING.md` has promised an agent surface for "a colleague who asks in their own

@@ -294,7 +294,9 @@ read, so it is the only one that can arrive in a language nobody asked for.
 asked for beside it, and leaves the closed set of categories untranslated. The
 report's own labels have always come from a translation file; the page carries a
 language button built from whatever that file contains. Adding a language is two
-files and no code.
+files and no code — and it switches the page's structure, not the sentences an
+audit composes while measuring: 4.8% of a rendered report, measured, not the
+whole of it.
 
 And it never counts what it cannot count. Making the hardware, the people, the
 office: all of it is listed in the report as excluded, because a footprint that

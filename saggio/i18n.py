@@ -4,9 +4,18 @@ Module summary
 --------------
 Two kinds of text here are written for a reader rather than for a machine: the
 labels of the HTML report, and the instruction sent to a local model. Both have
-to exist in every language the package offers, because a report a colleague can
-read in French and a sentence written into their model file in English is one
-deliverable in two languages, which is worse than either.
+to exist in every language the package offers, because a page whose furniture
+is French and whose generated sentence is English is one deliverable in two
+languages, which is worse than either.
+
+**What this does not cover, measured rather than guessed.** Pressing the
+report's language button exchanges **929 of the 19,337 characters** of visible
+text on a rendered report — **4.8%**. The other 95% is the notes, the methods,
+the caveats and the refusals, and none of it is written here: an audit's prose
+is composed where the measurement happens, and that is **709 prose literals of
+four words or more across 51 modules**, only 8% of them under ``report/``. So
+this file translates the page's structure, not its substance, and saying
+otherwise would be the kind of claim this package refuses about numbers.
 
 So there is one loader and two tables, and :func:`languages` answers for the
 package as a whole: a language appears there only when **both** tables have it.

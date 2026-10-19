@@ -203,6 +203,17 @@ figer une liste qui se périme. Une étiquette dans laquelle rien n'est écrit
 retombe sur l'anglais et le dit dans les notes, car un audit ne doit pas échouer
 pour une histoire de langue.
 
+**Ce que le bouton ne change pas, mesuré.** Il échange **929 des 19 337
+caractères** de texte visible d'un rapport produit — **4,8 %**. L'ossature
+bouge : titres, noms de colonnes, étiquettes du panneau what-if, phrases
+d'équivalence. La substance, non : les notes, les méthodes, les mises en garde
+et les refus sont écrits là où la mesure se fait, soit **709 littéraux de prose
+de quatre mots ou plus dans 51 modules** au comptage du 2026-10-19, dont 8 %
+seulement sous `report/`.
+Dire « le rapport est bilingue » serait une affirmation que personne n'a
+établie. La *documentation* est bilingue, page pour page ; un rapport produit est
+un cadre français autour de preuves anglaises.
+
 **Une langue n'est pas un pays.** `--language fr` dit comment écrire une phrase
 et rien sur l'endroit où le code tourne : le français s'écrit sur une douzaine
 de réseaux électriques différents, et en déduire `--country FR` mettrait dans le

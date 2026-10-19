@@ -15,6 +15,7 @@ updated.
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 import pytest
 
@@ -26,6 +27,8 @@ from saggio.i18n import DEFAULT_LANGUAGE, labels, languages, prompts
 from saggio.model import CostModel
 from saggio.report import render_html
 from saggio.report.dashboard import render_dashboard
+
+ROOT = Path(__file__).resolve().parents[2]
 
 MODEL = CostModel.from_mapping(
     {
@@ -107,6 +110,50 @@ def test_a_prompt_carries_its_own_language_and_only_its_own(code: str) -> None:
     assert prompts()[code]["prompt.classify.language"] in prompt
     for other in set(prompts()) - {code}:
         assert prompts()[other]["prompt.classify.language"] not in prompt
+
+
+# --- What the language button actually switches ------------------------------
+
+
+def test_the_share_of_a_report_the_button_switches_is_the_share_the_docs_quote() -> None:
+    """The claim `USING.md` makes, recomputed from the page it is about.
+
+    The point of pinning it: the button switches the page's furniture, and
+    saying "the report is bilingual" would be a claim nobody established. If
+    somebody translates more of it the figure improves and this fails, which is
+    the pleasant direction for a gate to fail in — and if the page grows more
+    English, it fails in the direction that matters.
+    """
+    import yaml
+
+    from saggio.i18n import labels
+
+    model = CostModel.from_mapping(
+        yaml.safe_load((ROOT / "examples" / "render.yaml").read_text(encoding="utf-8"))
+    )
+    page = render_html(model)
+    body = re.sub(r"<script.*?</script>|<style.*?</style>", "", page, flags=re.S)
+    swapped = 0
+    for found in re.finditer(r'data-i18n="([^"]+)"[^>]*>(.*?)<', body, re.S):
+        key, shown = found.group(1), re.sub(r"<[^>]+>", "", found.group(2))
+        swapped += len(labels()["fr"].get(key, shown).strip())
+    visible = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", body)).strip()
+    visible = re.sub(r"[A-Za-z0-9+/]{200,}=*", "", visible)
+    share = 100 * swapped / len(visible)
+
+    quoted = re.search(
+        r"\*\*929 of the ([\d,]+)\s*\ncharacters\*\* of visible text on a rendered report "
+        r"— \*\*([\d.]+)%\*\*",
+        (ROOT / "USING.md").read_text(encoding="utf-8"),
+    )
+    assert quoted is not None, "USING.md no longer states what the button switches"
+    assert len(visible) == int(quoted.group(1).replace(",", "")), (
+        f"USING.md counts {quoted.group(1)} visible characters, the page has {len(visible):,}"
+    )
+    assert round(share, 1) == float(quoted.group(2)), (
+        f"USING.md says {quoted.group(2)}% of a report switches language, it is {share:.1f}%"
+    )
+    assert swapped == 929, f"USING.md says 929 characters switch, it is {swapped}"
 
 
 # --- The consent wording, which is the most load-bearing prose here ----------

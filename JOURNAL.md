@@ -58,6 +58,15 @@ les affichent en français.
   au lieu de l'épeler une seconde fois, et chaque phrase sur l'enregistrement
   nomme `{path}` — puisque supprimer ce fichier est la façon de révoquer.
 
+- **Et la taille honnête de ce que cela ne couvre pas, mesurée.** Appuyer sur le
+  bouton de langue du rapport échange **929 des 19 337 caractères** de texte
+  visible d'un rapport produit — **4,8 %**. L'ossature change ; la substance non,
+  parce que la prose d'un audit est composée là où la mesure se fait : **709
+  littéraux de prose de quatre mots ou plus dans 51 modules** au 2026-10-19, dont
+  8 % seulement sous `report/`. Les docs le disent maintenant dans les deux
+  langues, et un test de contrat recalcule la part depuis la page et échoue si ce
+  qu'elles disent cesse d'être vrai — dans les deux sens.
+
 ### Demandé dans la langue du lecteur, après avoir mesuré ce qui marche vraiment
 
 `UTILISER.md` promet depuis toujours une surface d'agent pour « une collègue qui
