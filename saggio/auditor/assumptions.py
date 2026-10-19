@@ -34,6 +34,7 @@ from ..estimate.energy import (
 )
 from ..estimate.ghg import market_based_sources
 from ..estimate.machine import MachineProfile
+from ..i18n import say
 from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, MEASURED, TODO
 from .naming import describe_command
@@ -79,14 +80,10 @@ def _embodied_assumption(machine: MachineProfile, options: AuditOptions) -> Quan
         return Quantity(
             unit="kgCO2e",
             status=TODO,
-            notes=(
-                "No accelerator was identified, and the processor resolved only to a "
-                "generic default, whose footprint would be a generic default too. "
-                "Excluded rather than assumed to be zero."
+            notes=say(
+                "assumption.embodied.generic_cpu"
                 if machine.cpu_key is not None
-                else "Neither an accelerator nor a processor could be identified, so "
-                "the carbon of building this machine is not something this model can "
-                "state. Excluded rather than assumed to be zero."
+                else "assumption.embodied.nothing_identified"
             ),
         )
     figure = row.get("embodied_kgco2e")
@@ -94,11 +91,7 @@ def _embodied_assumption(machine: MachineProfile, options: AuditOptions) -> Quan
         return Quantity(
             unit="kgCO2e",
             status=TODO,
-            notes=(
-                f"No product carbon footprint is on file for {part}. Add "
-                "`embodied_kgco2e` to its catalogue row with the footprint's own URL "
-                f"and the date it was read; `saggio catalog add {section}` does the rest."
-            ),
+            notes=say("assumption.embodied.no_footprint", part=part, section=section),
         )
     return Quantity(
         value=float(figure),
@@ -107,7 +100,7 @@ def _embodied_assumption(machine: MachineProfile, options: AuditOptions) -> Quan
         source_kind="first-party",
         source_url=row.get("embodied_source_url") or row.get("source_url"),
         retrieved_date=row.get("embodied_retrieved_date") or row.get("retrieved_date"),
-        notes=str(row.get("embodied_scope") or "Published product carbon footprint."),
+        notes=str(row.get("embodied_scope") or say("assumption.embodied.published")),
     )
 
 
@@ -134,13 +127,7 @@ def _lifetime_assumption() -> Quantity:
     return Quantity(
         unit="years",
         status=TODO,
-        notes=(
-            "How long this hardware stays in service, which only you know. The "
-            "published footprints are cradle-to-gate and exclude the use phase, so "
-            "none of them states a lifespan. Reported figures cluster between three "
-            "and six years; choosing within that range moves the embodied carbon by "
-            "a factor of two, which is why this is asked rather than assumed."
-        ),
+        notes=say("assumption.lifetime"),
     )
 
 
@@ -169,15 +156,7 @@ def _market_factor_assumption() -> Quantity:
     return Quantity(
         unit="gCO2e/kWh",
         status=TODO,
-        notes=(
-            "The emission factor of the electricity you contracted for, which no "
-            "catalogue can hold: it is a property of your contract, not of your "
-            f"country. {market_based_sources()} Record it with the supplier document "
-            "or certificate that states it and the date you read it — this is the "
-            "one figure in the model nobody else can check and nothing here can "
-            "refresh. Leaving it open is a complete answer; a zero because the "
-            "electricity is 'green' is not one."
-        ),
+        notes=say("assumption.market_factor", sources=market_based_sources()),
         source_url="",
     )
 
@@ -224,10 +203,10 @@ def _power_assumption(
             value=slice_result.power.watts,
             unit="W",
             status=MEASURED,
-            notes=(
-                f"Read from the machine while the slice ran. "
-                f"{slice_result.power.scope} "
-                f"{workload_scope(measurement, watts=slice_result.power.watts)}"
+            notes=say(
+                "assumption.power.measured",
+                scope=slice_result.power.scope,
+                boundary=workload_scope(measurement, watts=slice_result.power.watts),
             ),
         )
     if context.instance:
@@ -273,13 +252,13 @@ def _runtime_assumption(reading: RepositoryReading, slice_result: SliceResult | 
             value=slice_result.wall_seconds,
             unit="s",
             status=MEASURED,
-            notes=f"Wall-clock time of `{describe_command(slice_result.command)}`.",
+            notes=say(
+                "assumption.runtime.measured",
+                command=describe_command(slice_result.command),
+            ),
         )
     return Quantity(
         unit="s",
         status=TODO,
-        notes=(
-            "No run was measured. Measure the real command with "
-            "`saggio measure`, or audit again with --run."
-        ),
+        notes=say("assumption.runtime.not_measured"),
     )

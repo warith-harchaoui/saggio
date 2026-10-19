@@ -9,6 +9,26 @@ release of that line.
 
 ## Unreleased
 
+### What an audit writes, in the language it was asked in
+
+Three modules whose sentences are composed while the measurement happens and
+**written into the model file**, which is the half of the catalogue that does
+not change how an existing report reads: a model carries the sentences it was
+written with. Running the audit in French is what produces a French model.
+
+- **How every quantity was computed** (`estimate/energy.py`): the six method
+  lines — facility energy, carbon, the market-based twin, water, money, the
+  total — and the twelve refusals beside them, each of which says what is
+  missing rather than returning a zero.
+- **What the figures rest on** (`auditor/assumptions.py`): the hardware
+  lifetime that moves embodied carbon by a factor of two, the market-based
+  factor nobody else can check, the two reasons an embodied figure stays open,
+  what a measured power and runtime are.
+- **Where the code runs** (`estimate/context.py`): seventeen sentences, every
+  one of them about a catalogue row that is there or is not — the country stated
+  or inferred, the tariff standing in, the water effectiveness nobody
+  publishes, the instance shape nobody named.
+
 ### The measurement block, the honesty statuses, and the static report's own prose
 
 Three more modules into the catalogue, in the order of how much of a report they

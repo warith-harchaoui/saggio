@@ -10,6 +10,28 @@ cette ligne.
 
 ## Non publié
 
+### Ce qu'un audit écrit, dans la langue où on le lui a demandé
+
+Trois modules dont les phrases sont composées pendant la mesure et **écrites
+dans le fichier de modèle**, c'est-à-dire la moitié du catalogue qui ne change
+pas la lecture d'un rapport existant : un modèle porte les phrases avec
+lesquelles il a été écrit. C'est lancer l'audit en français qui produit un
+modèle en français.
+
+- **Comment chaque grandeur a été calculée** (`estimate/energy.py`) : les six
+  lignes de méthode — énergie du site, carbone, le jumeau market-based, eau,
+  argent, le total — et les douze refus qui vont avec, chacun disant ce qui
+  manque plutôt que de rendre un zéro.
+- **Sur quoi reposent les chiffres** (`auditor/assumptions.py`) : la durée de
+  vie du matériel qui fait varier l'incorporé d'un facteur deux, le facteur
+  market-based que personne d'autre ne peut vérifier, les deux raisons pour
+  lesquelles une empreinte reste ouverte, ce que sont une puissance et un temps
+  mesurés.
+- **Où le code tourne** (`estimate/context.py`) : dix-sept phrases, toutes au
+  sujet d'une ligne de catalogue présente ou absente — le pays indiqué ou déduit,
+  le tarif qui tient lieu de substitut, l'efficacité d'usage de l'eau que
+  personne ne publie, la forme d'instance que personne n'a nommée.
+
 ### Le bloc de mesure, les statuts d'honnêteté, et la prose propre au rapport statique
 
 Trois modules de plus dans le catalogue, dans l'ordre de ce qu'ils écrivent d'un

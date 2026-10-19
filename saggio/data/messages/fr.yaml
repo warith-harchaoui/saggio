@@ -252,3 +252,147 @@ report.measurement.cumulative: "Secondes cumulées"
 report.measurement.calls: "Appels"
 report.measurement.warnings: "À lire avant de se fier aux chiffres ci-dessus :"
 report.generated: "Produit par [saggio](https://github.com/warith-harchaoui/saggio)."
+
+# --- Comment chaque grandeur a été calculée, et ce qu'elle exige
+#     (estimate/energy.py)
+
+energy.needs.it: "Exige à la fois un temps d'exécution et une puissance moyenne."
+energy.needs.facility: >-
+  Exige l'énergie propre à la machine et l'efficacité énergétique du site (PUE).
+energy.needs.carbon: >-
+  Exige l'énergie tirée et l'intensité carbone du réseau là où le code tourne.
+energy.needs.market: >-
+  Exige l'énergie tirée et le facteur d'émission de l'électricité que vous avez
+  contractée. Une moyenne de réseau relève de l'autre méthode et ne convient pas
+  ici.
+energy.needs.water: >-
+  Exige l'énergie de la machine et une efficacité d'usage de l'eau publiée.
+energy.needs.money: "Exige l'énergie tirée et un prix du kilowattheure."
+energy.negative.it: >-
+  Un temps ou une puissance négatifs sont une erreur de signe, pas un coût.
+energy.negative.facility: >-
+  Une énergie ou un facteur de surcoût négatifs sont une erreur de signe, pas un
+  coût.
+energy.negative.carbon: >-
+  Une énergie ou une intensité négatives sont une erreur de signe, pas un coût.
+energy.negative.market: >-
+  Une énergie ou un facteur négatifs sont une erreur de signe, pas un coût.
+energy.negative.water: >-
+  Une énergie ou une efficacité négatives sont une erreur de signe, pas un coût.
+energy.negative.money: >-
+  Une énergie ou un prix négatifs sont une erreur de signe, pas un coût.
+energy.method.it: "temps en heures x puissance moyenne en watts / 1000."
+energy.method.facility: >-
+  Énergie de la machine x efficacité énergétique du site : ce que tire le
+  bâtiment.
+energy.method.carbon: >-
+  Énergie du site x intensité carbone du réseau, émissions d'exploitation
+  seulement.
+energy.method.market: >-
+  Énergie du site x votre facteur d'émission contracté, émissions d'exploitation
+  seulement. Market-based : déclaré à côté du chiffre location-based, pas à sa
+  place.
+energy.method.water: >-
+  Énergie de la machine x efficacité d'usage de l'eau sur site ; l'eau utilisée
+  pour produire l'électricité n'est pas comptée.
+energy.method.money: >-
+  Énergie du site x prix du kilowattheure ; le matériel et les salaires ne sont
+  pas compris.
+energy.method.total: "Somme des coûts monétaires d'une unité de travail."
+energy.power.no_cpu: >-
+  Le processeur n'est pas identifié : sa puissance ne peut donc pas être
+  recherchée.
+energy.power.unknown_part: >-
+  {part} n'est pas dans le catalogue matériel ; ajoutez-le avec le TDP de sa
+  fiche technique avant qu'une puissance puisse être donnée.
+energy.power.unknown_accelerators: >-
+  Cette machine a {count} accélérateur(s) que le catalogue matériel ne reconnaît
+  pas, et leur puissance de carte est l'essentiel de ce qu'ils tirent. Ajoutez la
+  ligne avec `saggio catalog add gpu` et le TDP de leur fiche technique, ou
+  nommez la forme de la machine avec --instance.
+energy.power.nameplate: "Somme des plaques, méthode Green Algorithms : {parts}"
+energy.total.none: "Aucun montant ne portait de nombre."
+energy.total.currencies: >-
+  Les montants sont dans des devises différentes ({currencies}) ; convertissez-les
+  avant de les additionner, et notez le taux utilisé.
+energy.total.partial: >-
+  {open_count} des {total_count} coûts monétaires ne portent aucun nombre : ce
+  n'est donc pas le total, c'est {amount} jusqu'ici. Renseignez les termes
+  ouverts et le total se fermera avec eux.
+
+# --- Sur quoi reposent les chiffres, tel qu'un audit l'écrit
+#     (auditor/assumptions.py)
+
+assumption.embodied.generic_cpu: >-
+  Aucun accélérateur n'a été identifié, et le processeur ne s'est résolu qu'en un
+  défaut générique, dont l'empreinte serait générique elle aussi. Exclu plutôt
+  que supposé nul.
+assumption.embodied.nothing_identified: >-
+  Ni accélérateur ni processeur n'ont pu être identifiés : le carbone de
+  fabrication de cette machine n'est donc pas quelque chose que ce modèle puisse
+  énoncer. Exclu plutôt que supposé nul.
+assumption.embodied.no_footprint: >-
+  Aucune empreinte carbone produit n'est au dossier pour {part}. Ajoutez
+  `embodied_kgco2e` à sa ligne de catalogue avec l'URL de l'empreinte elle-même
+  et la date de lecture ; `saggio catalog add {section}` fait le reste.
+assumption.embodied.published: "Empreinte carbone produit publiée."
+assumption.lifetime: >-
+  Combien de temps ce matériel reste en service, ce que vous seul savez. Les
+  empreintes publiées sont du berceau à la sortie d'usine et excluent la phase
+  d'usage : aucune n'énonce de durée de vie. Les chiffres rapportés se groupent
+  entre trois et six ans ; choisir dans cette fourchette fait varier le carbone
+  incorporé d'un facteur deux, et c'est pourquoi la question est posée plutôt que
+  tranchée.
+assumption.market_factor: >-
+  Le facteur d'émission de l'électricité que vous avez contractée, qu'aucun
+  catalogue ne peut porter : c'est une propriété de votre contrat, pas de votre
+  pays. {sources} Enregistrez-le avec le document fournisseur ou le certificat
+  qui l'énonce et la date de lecture — c'est le seul chiffre du modèle que
+  personne d'autre ne peut vérifier et que rien ici ne peut rafraîchir. Le
+  laisser ouvert est une réponse complète ; un zéro parce que l'électricité est
+  « verte » n'en est pas une.
+assumption.power.measured: >-
+  Lu sur la machine pendant l'exécution de la tranche. {scope} {boundary}
+assumption.runtime.measured: "Temps d'horloge de `{command}`."
+assumption.runtime.not_measured: >-
+  Aucune exécution n'a été mesurée. Mesurez la vraie commande avec
+  `saggio measure`, ou relancez l'audit avec --run.
+
+# --- Où le code tourne, et ce que les catalogues en savent
+#     (estimate/context.py)
+
+context.country.stated: "Indiqué par l'appelant."
+context.country.stated_uncatalogued: >-
+  Indiqué par l'appelant ; absent du catalogue des réseaux.
+context.country.from_environment: "Lu dans ${variable}."
+context.country.inferred: >-
+  Déduit du fuseau horaire de la machine {timezone} ; confirmez-le avant de citer
+  le chiffre carbone.
+context.country.unresolved: "Non résolu ; indiquez le pays où le code tourne."
+context.country.not_catalogued: >-
+  Le pays {code} n'est pas dans le catalogue des réseaux ; ajoutez-le avant que
+  son intensité carbone puisse servir.
+context.grid.missing: "Aucune intensité carbone au catalogue pour {country}."
+context.tariff.missing: "Aucun tarif d'électricité au catalogue pour {country}."
+context.tariff.indicative: "Tarif indicatif pour {country}."
+context.tariff.machine_hours: >-
+  {provider} vend des heures-machine et non des kilowattheures : le tarif local
+  tient donc lieu de prix de l'électricité comprise dans ce tarif.
+context.tariff.unknown_provider: >-
+  Le fournisseur {provider} n'est pas au catalogue : le tarif local tient lieu de
+  substitut ; ajoutez la ligne du fournisseur pour le tarifer correctement.
+context.provider.missing: >-
+  Le fournisseur {provider} n'est pas dans le catalogue des fournisseurs.
+context.pue.published: "Efficacité énergétique publiée par {provider}."
+context.wue.missing: >-
+  {provider} ne publie aucune efficacité d'usage de l'eau. Laissez ce champ
+  ouvert plutôt que d'inventer un chiffre.
+context.wue.published: >-
+  Efficacité d'usage de l'eau sur site publiée par {provider} ; elle exclut l'eau
+  utilisée pour produire l'électricité.
+context.instance.unnamed: >-
+  Aucun type d'instance nommé ; mesurez la machine ou nommez sa forme.
+context.instance.missing: "L'instance {instance} n'est pas dans le catalogue des instances."
+context.instance.nameplate: >-
+  Consommation soutenue déduite de la plaque pour {instance} ; mesurez la machine
+  pour remplacer ce chiffre par un relevé.

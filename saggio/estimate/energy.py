@@ -43,6 +43,7 @@ from __future__ import annotations
 from typing import Final
 
 from ..catalog.registry import Catalog
+from ..i18n import say
 from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, TODO, weakest
 from .ghg import GHG_PROTOCOL_SCOPE2
@@ -213,16 +214,12 @@ def node_power(
     usage = 1.0 if usage_factor is None else usage_factor
 
     if not cpu_key:
-        return _unresolved("W", "The CPU is not identified, so its power cannot be looked up.")
+        return _unresolved("W", say("energy.power.no_cpu"))
 
     catalog = overlay_catalog if overlay_catalog is not None else Catalog.load("hardware")
     cpu_row = catalog.row("cpus", cpu_key)
     if cpu_row is None or cpu_row.get("w_per_core") is None:
-        return _unresolved(
-            "W",
-            f"CPU {cpu_key!r} is not in the hardware catalogue; "
-            "add it with its datasheet TDP before a power figure can be given.",
-        )
+        return _unresolved("W", say("energy.power.unknown_part", part=f"CPU {cpu_key!r}"))
 
     # The clamped figures go into the note as well as the sum: a note stating
     # "0 cores" above a non-zero wattage would be a formula that does not
@@ -241,23 +238,13 @@ def node_power(
         # An accelerator that is present but unidentified cannot simply be left
         # out of the sum: a board drawing several hundred watts would vanish from
         # a figure that still called itself a nameplate total for this machine.
-        return _unresolved(
-            "W",
-            f"This machine has {accelerator_count} accelerator(s) that the hardware "
-            "catalogue does not recognise, and their board power is most of what it "
-            "draws. Add the row with `saggio catalog add gpu` and its datasheet TDP, "
-            "or name the machine shape with --instance.",
-        )
+        return _unresolved("W", say("energy.power.unknown_accelerators", count=accelerator_count))
 
     gpu_power = 0.0
     if gpu_key and accelerator_count > 0:
         gpu_row = catalog.row("gpus", gpu_key)
         if gpu_row is None or gpu_row.get("tdp_w") is None:
-            return _unresolved(
-                "W",
-                f"GPU {gpu_key!r} is not in the hardware catalogue; "
-                "add it with its datasheet TDP before a power figure can be given.",
-            )
+            return _unresolved("W", say("energy.power.unknown_part", part=f"GPU {gpu_key!r}"))
         gpu_power = float(gpu_row["tdp_w"]) * accelerator_count * usage
         parts.append(f"{accelerator_count} x {gpu_row['tdp_w']} W{scaled}")
 
@@ -267,7 +254,7 @@ def node_power(
         status=ESTIMATED,
         source_url=GREEN_ALGORITHMS_SOURCE,
         retrieved_date=cpu_row.get("retrieved_date"),
-        notes="Nameplate sum, Green Algorithms method: " + " + ".join(parts),
+        notes=say("energy.power.nameplate", parts=" + ".join(parts)),
     )
 
 
@@ -297,16 +284,16 @@ def it_energy_from_runtime(runtime: Quantity, power: Quantity) -> Quantity:
     'TODO'
     """
     if not (runtime.is_known() and power.is_known()):
-        return _unresolved("kWh", "Needs both a runtime and an average power draw.")
+        return _unresolved("kWh", say("energy.needs.it"))
     if _negative(runtime, power):
-        return _unresolved("kWh", "A negative runtime or power draw is a sign error, not a cost.")
+        return _unresolved("kWh", say("energy.negative.it"))
     hours = float(runtime.value) / _SECONDS_PER_HOUR
     return Quantity(
         value=hours * float(power.value) / _WATTS_PER_KILOWATT,
         unit="kWh",
         status=_combine(runtime, power) or ESTIMATED,
         source_url=GREEN_ALGORITHMS_SOURCE,
-        notes="runtime in hours x average power in watts / 1000.",
+        notes=say("energy.method.it"),
     )
 
 
@@ -333,20 +320,15 @@ def facility_energy(it_energy: Quantity, pue: Quantity) -> Quantity:
     1.2
     """
     if not (it_energy.is_known() and pue.is_known()):
-        return _unresolved(
-            "kWh",
-            "Needs the machine's own energy and the site's power usage effectiveness.",
-        )
+        return _unresolved("kWh", say("energy.needs.facility"))
     if _negative(it_energy, pue):
-        return _unresolved(
-            "kWh", "A negative energy or overhead ratio is a sign error, not a cost."
-        )
+        return _unresolved("kWh", say("energy.negative.facility"))
     return Quantity(
         value=float(it_energy.value) * float(pue.value),
         unit="kWh",
         status=_combine(it_energy, pue) or ESTIMATED,
         source_url=GREEN_ALGORITHMS_SOURCE,
-        notes="Machine energy x power usage effectiveness: what the building draws.",
+        notes=say("energy.method.facility"),
     )
 
 
@@ -408,18 +390,15 @@ def carbon_from_energy(energy: Quantity, intensity: Quantity) -> Quantity:
     'TODO'
     """
     if not (energy.is_known() and intensity.is_known()):
-        return _unresolved(
-            "gCO2e",
-            "Needs the energy drawn and the grid carbon intensity where it runs.",
-        )
+        return _unresolved("gCO2e", say("energy.needs.carbon"))
     if _negative(energy, intensity):
-        return _unresolved("gCO2e", "A negative energy or intensity is a sign error, not a cost.")
+        return _unresolved("gCO2e", say("energy.negative.carbon"))
     return Quantity(
         value=float(energy.value) * float(intensity.value),
         unit="gCO2e",
         status=_combine(energy, intensity) or ESTIMATED,
         source_url=GREEN_ALGORITHMS_SOURCE,
-        notes="Facility energy x grid carbon intensity, operating emissions only.",
+        notes=say("energy.method.carbon"),
     )
 
 
@@ -458,23 +437,15 @@ def market_carbon_from_energy(energy: Quantity, factor: Quantity) -> Quantity:
     'TODO'
     """
     if not (energy.is_known() and factor.is_known()):
-        return _unresolved(
-            "gCO2e",
-            "Needs the energy drawn and the emission factor of the electricity you "
-            "contracted for. A grid average is the other method and will not do here.",
-        )
+        return _unresolved("gCO2e", say("energy.needs.market"))
     if _negative(energy, factor):
-        return _unresolved("gCO2e", "A negative energy or factor is a sign error, not a cost.")
+        return _unresolved("gCO2e", say("energy.negative.market"))
     return Quantity(
         value=float(energy.value) * float(factor.value),
         unit="gCO2e",
         status=_combine(energy, factor) or ESTIMATED,
         source_url=GHG_PROTOCOL_SCOPE2,
-        notes=(
-            "Facility energy x your contracted emission factor, operating emissions "
-            "only. Market-based: reported beside the location-based figure, not "
-            "instead of it."
-        ),
+        notes=say("energy.method.market"),
     )
 
 
@@ -504,18 +475,14 @@ def water_from_energy(it_energy: Quantity, effectiveness: Quantity) -> Quantity:
     3.0
     """
     if not (it_energy.is_known() and effectiveness.is_known()):
-        return _unresolved(
-            "L",
-            "Needs the machine's energy and a published water usage effectiveness.",
-        )
+        return _unresolved("L", say("energy.needs.water"))
     if _negative(it_energy, effectiveness):
-        return _unresolved("L", "A negative energy or effectiveness is a sign error, not a cost.")
+        return _unresolved("L", say("energy.negative.water"))
     return Quantity(
         value=float(it_energy.value) * float(effectiveness.value),
         unit="L",
         status=_combine(it_energy, effectiveness) or ESTIMATED,
-        notes="Machine energy x on-site water usage effectiveness; "
-        "the water used to generate the electricity is not included.",
+        notes=say("energy.method.water"),
     )
 
 
@@ -542,23 +509,15 @@ def money_from_energy(energy: Quantity, price: Quantity) -> Quantity:
     (2.4, 'EUR')
     """
     if not (energy.is_known() and price.is_known()):
-        return _unresolved(
-            "currency",
-            "Needs the energy drawn and a price per kilowatt-hour.",
-            currency=price.currency,
-        )
+        return _unresolved("currency", say("energy.needs.money"), currency=price.currency)
     if _negative(energy, price):
-        return _unresolved(
-            "currency",
-            "A negative energy or price is a sign error, not a cost.",
-            currency=price.currency,
-        )
+        return _unresolved("currency", say("energy.negative.money"), currency=price.currency)
     return Quantity(
         value=float(energy.value) * float(price.value),
         unit=price.currency or "currency",
         currency=price.currency,
         status=_combine(energy, price) or ESTIMATED,
-        notes="Facility energy x price per kilowatt-hour; hardware and staff are not included.",
+        notes=say("energy.method.money"),
     )
 
 
@@ -602,18 +561,14 @@ def total_money(*amounts: Quantity) -> Quantity:
     """
     known = [amount for amount in amounts if amount.is_known()]
     if not known:
-        return _unresolved("currency", "No money amount carried a number.")
+        return _unresolved("currency", say("energy.total.none"))
     # None counts as its own currency here: an amount that does not say which
     # money it is cannot be added to one that does, and dropping it from the
     # check would sum it into the other's currency silently.
     currencies = {amount.currency for amount in known}
     if len(currencies) > 1:
         listed = ", ".join(sorted(code or "no currency" for code in currencies))
-        return _unresolved(
-            "currency",
-            f"The amounts are in different currencies ({listed}); "
-            "convert them before adding, and record the rate you used.",
-        )
+        return _unresolved("currency", say("energy.total.currencies", currencies=listed))
     currency = next(iter(currencies), None)
     running = sum(float(amount.value) for amount in known)
 
@@ -621,9 +576,12 @@ def total_money(*amounts: Quantity) -> Quantity:
     if missing:
         return _unresolved(
             "currency",
-            f"{missing} of the {len(amounts)} money costs carries no number, so this "
-            f"is not the total: it is {running:g} {currency or 'in the shared currency'} "
-            "so far. Fill the open terms in, and the total closes with them.",
+            say(
+                "energy.total.partial",
+                open_count=missing,
+                total_count=len(amounts),
+                amount=f"{running:g} {currency or 'in the shared currency'}",
+            ),
             currency=currency,
         )
 
@@ -632,5 +590,5 @@ def total_money(*amounts: Quantity) -> Quantity:
         unit=currency or "currency",
         currency=currency,
         status=weakest(*(amount.status for amount in amounts)) or ESTIMATED,
-        notes="Sum of the money costs of one unit of work.",
+        notes=say("energy.method.total"),
     )

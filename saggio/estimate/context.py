@@ -51,6 +51,7 @@ from typing import Any, Final
 import os_helper as osh
 
 from ..catalog.registry import Catalog
+from ..i18n import say
 from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, MEASURED, TODO
 
@@ -333,16 +334,17 @@ class DeploymentContext:
         if explicit:
             code = explicit.strip().upper()
             if code in known:
-                return code, MEASURED, "Stated by the caller."
-            osh.warning(
-                f"Country {code!r} is not in the grid catalogue; "
-                "add it before its carbon intensity can be used."
-            )
-            return code, MEASURED, "Stated by the caller; not in the grid catalogue."
+                return code, MEASURED, say("context.country.stated")
+            osh.warning(say("context.country.not_catalogued", code=repr(code)))
+            return code, MEASURED, say("context.country.stated_uncatalogued")
 
         from_env = os.environ.get(COUNTRY_ENVIRONMENT_VARIABLE, "").strip().upper()
         if from_env and from_env in known:
-            return from_env, MEASURED, f"Read from ${COUNTRY_ENVIRONMENT_VARIABLE}."
+            return (
+                from_env,
+                MEASURED,
+                say("context.country.from_environment", variable=COUNTRY_ENVIRONMENT_VARIABLE),
+            )
 
         if allow_timezone_inference:
             timezone = local_timezone_name()
@@ -352,10 +354,9 @@ class DeploymentContext:
                     return (
                         inferred,
                         ESTIMATED,
-                        f"Inferred from the machine timezone {timezone}; "
-                        "confirm it before quoting the carbon number.",
+                        say("context.country.inferred", timezone=timezone),
                     )
-        return None, TODO, "Not resolved; state the country the code runs in."
+        return None, TODO, say("context.country.unresolved")
 
     def _country_row(self) -> dict[str, Any] | None:
         """Return the grid catalogue row for the resolved country.
@@ -431,7 +432,7 @@ class DeploymentContext:
                 notes=(
                     self.country_note
                     if self.country is None
-                    else f"No grid intensity catalogued for {self.country}."
+                    else say("context.grid.missing", country=self.country)
                 ),
             )
         # A refreshed row carries its own carbon provenance, because the carbon
@@ -490,23 +491,17 @@ class DeploymentContext:
                 notes=(
                     self.country_note
                     if self.country is None
-                    else f"No electricity tariff catalogued for {self.country}."
+                    else say("context.tariff.missing", country=self.country)
                 ),
             )
-        note = f"Indicative tariff for {row.get('name')}."
+        note = say("context.tariff.indicative", country=row.get("name"))
         if provider_row and self.provider != DEFAULT_PROVIDER:
-            note += (
-                f" {provider_row.get('name')} sells machine-hours rather than kilowatt-hours, "
-                "so the local tariff stands in for the electricity inside that price."
-            )
+            note += " " + say("context.tariff.machine_hours", provider=provider_row.get("name"))
         elif not provider_row and self.provider and self.provider != DEFAULT_PROVIDER:
             # The caller named a provider the catalogue does not know. The
             # tariff is still the country's, but saying so without naming the
             # unrecognised provider would make the fallback look deliberate.
-            note += (
-                f" The provider {self.provider!r} is not in the catalogue, so the "
-                "local tariff stands in; add the provider row to price it properly."
-            )
+            note += " " + say("context.tariff.unknown_provider", provider=repr(self.provider))
         # The period the tariff describes, which is not the day it was read. A
         # figure read today out of a Q3 release is a Q3 figure, and a reader
         # comparing two countries deserves to know they are the same vintage.
@@ -542,7 +537,7 @@ class DeploymentContext:
             return Quantity(
                 unit="ratio",
                 status=TODO,
-                notes=f"Provider {self.provider!r} is not in the providers catalogue.",
+                notes=say("context.provider.missing", provider=repr(self.provider)),
             )
         return Quantity(
             value=row["pue"],
@@ -550,7 +545,7 @@ class DeploymentContext:
             status=ESTIMATED,
             source_url=row.get("source_url"),
             retrieved_date=row.get("retrieved_date"),
-            notes=f"Power usage effectiveness published by {row.get('name')}.",
+            notes=say("context.pue.published", provider=row.get("name")),
         )
 
     def water_effectiveness(self) -> Quantity:
@@ -576,10 +571,7 @@ class DeploymentContext:
             return Quantity(
                 unit="L/kWh",
                 status=TODO,
-                notes=(
-                    f"{name} publishes no water usage effectiveness. "
-                    "Leave this open rather than inventing a figure."
-                ),
+                notes=say("context.wue.missing", provider=name),
             )
         return Quantity(
             value=row["wue_l_per_kwh"],
@@ -587,8 +579,7 @@ class DeploymentContext:
             status=ESTIMATED,
             source_url=row.get("source_url"),
             retrieved_date=row.get("retrieved_date"),
-            notes=f"On-site water usage effectiveness published by {row.get('name')}; "
-            "it excludes the water used to generate the electricity.",
+            notes=say("context.wue.published", provider=row.get("name")),
         )
 
     def instance_power(self) -> Quantity:
@@ -611,14 +602,14 @@ class DeploymentContext:
             return Quantity(
                 unit="W",
                 status=TODO,
-                notes="No instance type named; measure the machine or name its shape.",
+                notes=say("context.instance.unnamed"),
             )
         row = Catalog.load("instances", overlay=self.overlay).row("instances", self.instance)
         if row is None or row.get("sustained_power_w") is None:
             return Quantity(
                 unit="W",
                 status=TODO,
-                notes=f"Instance {self.instance!r} is not in the instances catalogue.",
+                notes=say("context.instance.missing", instance=repr(self.instance)),
             )
         return Quantity(
             value=row["sustained_power_w"],
@@ -626,8 +617,7 @@ class DeploymentContext:
             status=ESTIMATED,
             source_url=row.get("source_url"),
             retrieved_date=row.get("retrieved_date"),
-            notes=f"Nameplate-derived sustained draw for {row.get('name')}; "
-            "measure the machine to replace this with a recorded figure.",
+            notes=say("context.instance.nameplate", instance=row.get("name")),
         )
 
     def _country_derived_note(self, note: str) -> str:
