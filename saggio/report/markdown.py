@@ -948,10 +948,58 @@ def _projections_section(model: CostModel) -> list[str]:
             for key, value in costs.items():
                 rows += _projection_rows(key, value)
         lines += [_table(["", "Value", "Status", "Method"], rows), ""]
+        lines += _projection_caveats(block)
         lines += _felt_size_lines(block.get("costs"), per="run")
         held = block.get("held_constant")
         if held:
             lines += [f"*{_escape(held)}*", ""]
+    return lines
+
+
+def _projection_caveats(block: object) -> list[str]:
+    """Return what a projection block rests on and where it breaks.
+
+    Every projected cost carries its own ``assumptions`` and ``limits``, and the
+    report showed neither: four extrapolated figures, a method beside each, and
+    five model-carried warnings left in the file. A projection is the most
+    extrapolated number a model holds — ``examples/render.yaml`` projects a
+    whole run from a slice covering 0.00025% of it — so printing the figure
+    without what it rests on is the shape this package exists to refuse.
+
+    They are deduplicated across the dimensions and printed once. The four
+    costs in a block are projected by one method from one slice, so they carry
+    the same sentences; repeating each four times would teach a reader to skip
+    them, which is the same as not printing them.
+
+    Parameters
+    ----------
+    block : object
+        One projection block, as the model carries it.
+
+    Returns
+    -------
+    list of str
+        Markdown lines, empty when the block states neither.
+
+    Examples
+    --------
+    >>> _projection_caveats({"costs": {"time": {"limits": ["it may not scale"]}}})
+    ['**Where it breaks**', '', '- it may not scale', '']
+    """
+    costs = (block or {}).get("costs") if isinstance(block, dict) else None
+    if not isinstance(costs, dict):
+        return []
+    lines: list[str] = []
+    for field, heading in (("assumptions", "What it assumes"), ("limits", "Where it breaks")):
+        seen: list[str] = []
+        for projection in costs.values():
+            for sentence in (projection or {}).get(field) or []:
+                if isinstance(projection, dict) and str(sentence) not in seen:
+                    seen.append(str(sentence))
+        if seen:
+            lines += [f"**{heading}**", ""]
+            lines += [f"- {_escape(sentence)}" for sentence in seen]
+            lines += [""]
     return lines
 
 

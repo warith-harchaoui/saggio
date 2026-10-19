@@ -20,7 +20,7 @@ from saggio.analyze.power import idle_exclusion, measurement_rows, states_idle_i
 from saggio.analyze.repeat import spread_note, spread_warnings
 from saggio.analyze.run import baseline_note
 from saggio.model import CostModel, validate
-from saggio.report import render_markdown
+from saggio.report import render_html, render_markdown
 
 ROOT = Path(__file__).resolve().parents[2]
 EXAMPLES = ROOT / "examples"
@@ -409,3 +409,29 @@ def test_a_subtraction_written_in_a_note_is_a_subtraction_that_works(model: str)
     assert round(power - floor, 2) == round(marginal, 2), (
         f"{model}: {power} - {floor} is not the {marginal} the model records"
     )
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_a_projection_shows_what_it_rests_on_and_where_it_breaks(model: str) -> None:
+    # A projection is the most extrapolated number a model holds:
+    # examples/render.yaml projects a whole run from a slice covering 0.00025%
+    # of it. Both reports printed the figure and its method and left all five
+    # model-carried caveats in the file.
+    data = yaml.safe_load((ROOT / model).read_text(encoding="utf-8"))
+    projections = data.get("projections")
+    if not isinstance(projections, dict) or not projections:
+        return
+    wanted: list[str] = []
+    for block in projections.values():
+        for projection in ((block or {}).get("costs") or {}).values():
+            for field in ("assumptions", "limits"):
+                for sentence in (projection or {}).get(field) or []:
+                    if str(sentence) not in wanted:
+                        wanted.append(str(sentence))
+    if not wanted:
+        return
+    markdown = render_markdown(CostModel.from_mapping(data))
+    html = render_html(CostModel.from_mapping(data))
+    for sentence in wanted:
+        assert sentence in markdown, f"{model}: the Markdown report drops {sentence[:50]!r}"
+        assert sentence in html, f"{model}: the HTML report drops {sentence[:50]!r}"

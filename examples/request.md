@@ -143,6 +143,17 @@ What a whole run would cost, from the per-unit costs in scenarios[0]. A whole ru
 | money | 0.003187 USD | `estimated` | Whole run = measured slice / 2.5e-06. |
 | carbon | 0.4757 gCO2e | `estimated` | Whole run = measured slice / 2.5e-06. |
 
+**What it assumes**
+
+- The remaining work costs the same per unit as the slice that was run.
+- Warm-up, checkpointing, and data loading are spread evenly across the run.
+
+**Where it breaks**
+
+- A run whose later stages differ in shape, such as a learning-rate schedule that changes batch size, will not scale linearly.
+- One-off costs paid entirely inside the slice are counted as though they recurred throughout.
+- Nothing here checked that the work is uniform. Measuring a few slices of different sizes would turn that assumption into an exponent; see saggio.estimate.scaling.
+
 *A million runs emit about 518.9 tree-months · 2718 km by car (EU average) · 9.513 Paris–London flights — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
 
 ## Not counted

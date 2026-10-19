@@ -590,11 +590,55 @@ def _projections_section(model: CostModel) -> str:
                 widths=[18, 20, 11, 51],
             )
         )
+        blocks.append(_projection_caveats(block))
         blocks.append(_felt_size_paragraph(block.get("costs"), per="run"))
         for sentence in (block.get("costs_note"), block.get("held_constant")):
             if sentence:
                 blocks.append(f'<p class="muted">{_escape(sentence)}</p>')
     return "".join(blocks)
+
+
+def _projection_caveats(block: object) -> str:
+    """Return what a projection rests on and where it breaks, as markup.
+
+    The same two lists the Markdown report prints, for the same reason: four
+    extrapolated figures with a method beside each and no caveats is a figure
+    without its boundary, and a projection is the most extrapolated number a
+    model holds.
+
+    Parameters
+    ----------
+    block : object
+        One projection block.
+
+    Returns
+    -------
+    str
+        Markup, empty when the block states neither. Deduplicated across the
+        dimensions, which share one method and therefore one set of sentences.
+
+    Examples
+    --------
+    >>> "it may not scale" in _projection_caveats(
+    ...     {"costs": {"time": {"limits": ["it may not scale"]}}})
+    True
+    """
+    costs = block.get("costs") if isinstance(block, dict) else None
+    if not isinstance(costs, dict):
+        return ""
+    parts: list[str] = []
+    for field, heading in (("assumptions", "What it assumes"), ("limits", "Where it breaks")):
+        seen: list[str] = []
+        for projection in costs.values():
+            if not isinstance(projection, dict):
+                continue
+            for sentence in projection.get(field) or []:
+                if str(sentence) not in seen:
+                    seen.append(str(sentence))
+        if seen:
+            bullets = "".join(f"<li>{_escape(sentence)}</li>" for sentence in seen)
+            parts.append(f"{_heading(4, heading)}<ul class=\"plain\">{bullets}</ul>")
+    return "".join(parts)
 
 
 def _projection_rows(key: str, value: object) -> list[str]:

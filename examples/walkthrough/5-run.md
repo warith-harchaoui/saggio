@@ -112,6 +112,18 @@ What the whole run would cost, projected from the slice that was measured and fr
 | money | 0.0002085 USD | `estimated` | Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size) over 3 runs: seconds = 0.007966 × size^0.687. |
 | carbon | 0.03112 gCO2e | `estimated` | Whole run = measured slice / 0.001^0.687. Least squares of log(seconds) on log(size) over 3 runs: seconds = 0.007966 × size^0.687. |
 
+**What it assumes**
+
+- The workload keeps the scaling it was measured to have over the sizes that were run.
+- Warm-up, checkpointing, and data loading grow with the size the same way the measured slices did.
+
+**Where it breaks**
+
+- The exponent holds between sizes 25 and 400, and the whole run is about 4e+05 at the same scale, which is 1e+03 times the largest size actually run.
+- The exponent was measured between sizes 25 and 400. Outside that range it is an extrapolation like any other.
+- A cost that changes shape partway through a real run — a learning-rate schedule that changes batch size, a dataset that stops fitting in memory — is not visible in slices that all ran before it.
+- Beyond the largest size measured, the exponent is an extrapolation: it describes how the work grew where it was watched growing, not a law.
+
 *A million runs emit about 33.95 tree-months · 177.8 km by car (EU average) · 62% of a Paris–London flight — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
 
 ## Not counted
