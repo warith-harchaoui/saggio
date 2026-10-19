@@ -39,7 +39,7 @@ One unit of work as this audit found it, on the machine it ran on.
 | Dimension | Per unit | Status | Derived from | Notes |
 |---|---|---|---|---|
 | Money | 1.812e-06 USD | `estimated` | `scenarios[0].costs.energy`, `assumptions.electricity_price` | Facility energy x price per kilowatt-hour; hardware and staff are not included. |
-| Time | 0.4941 s | `measured` | `scenarios[0].runtime` | Wall-clock time of `python3.13 predict.py --num_samples 400`. Measured once, so nothing here bounds how far a second run would move it. Pass `--repeat N` to find out. |
+| Time | 494.1 ms | `measured` | `scenarios[0].runtime` | Wall-clock time of `python3.13 predict.py --num_samples 400`. Measured once, so nothing here bounds how far a second run would move it. Pass `--repeat N` to find out. |
 | Energy | 6.564e-06 kWh | `estimated` | `assumptions.machine_energy`, `assumptions.pue` | Machine energy x power usage effectiveness: what the building draws. |
 | Carbon (location-based) | 0.0002704 gCO2e | `estimated` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Facility energy x grid carbon intensity, operating emissions only. |
 | Embodied carbon | not known | `TODO` | `assumptions.hardware_embodied_carbon`, `assumptions.hardware_lifetime`, `scenarios[0].runtime` | No product carbon footprint is on file for this hardware, so the carbon of building it is open. Nobody has read one for this part; that is not the same as it having been free to build. Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was read. |

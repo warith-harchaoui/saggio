@@ -10,6 +10,33 @@ cette ligne.
 
 ## Non publié
 
+### Un curseur machine sur le rapport web, et des durées qu'un lecteur peut tenir
+
+- Le rapport HTML recalculait déjà un modèle ailleurs : deux curseurs, le pays
+  et le fournisseur. Il en a un troisième, **la machine** — et celui-là est
+  d'une autre nature. Changer de pays remet une valeur à l'échelle ; changer de
+  machine la **recalcule**, parce que l'énergie est le temps multiplié par la
+  puissance et que seule la puissance a bougé.
+- **Et cela change ce que la valeur est.** La puissance de ce modèle peut être
+  une lecture de compteur ; chaque ligne de catalogue est une plaque
+  signalétique. Dès qu'une autre machine est choisie, la note sous le panneau le
+  dit : *« at its datasheet rating of 350 W. That rating is estimated, not
+  measured: these figures are no longer this machine's. »* Un panneau qui
+  laisserait une plaque signalétique porter le statut d'une mesure serait le
+  pire chiffre de la page.
+- Le défaut est la constante du rapport statique, et c'est la seule option qui
+  puisse être une mesure. Vingt-cinq accélérateurs et six processeurs sont
+  proposés à côté, chacun avec la valeur à laquelle il sera calculé. Une ligne
+  processeur énonce des watts par cœur et un nombre de cœurs : les deux facteurs
+  sont multipliés ici et voyagent avec la valeur.
+- **`1,087e+04 s`, ce sont trois heures et une minute**, et un paquet dont
+  l'argument est qu'une valeur doit être lisible n'avait rien à faire d'imprimer
+  la première écriture. Les durées se lisent désormais comme on les dit —
+  `3 h 1 min (10870.4 s)`, `27.2 ms`, `250 ns` — avec les secondes exactes
+  conservées à côté des longues, parce que qui vérifie le rapport contre le
+  modèle a besoin du nombre que le modèle porte. Les deux rapports les écrivent
+  pareil, et un test l'exige.
+
 ### Lire l'empreinte produit d'un constructeur, et refuser de deviner
 
 - La version précédente soutenait qu'il ne devait exister **aucun** verbe lisant

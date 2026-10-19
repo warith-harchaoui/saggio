@@ -44,7 +44,7 @@ One unit of work as this audit found it, on the machine it ran on.
 | Dimension | Per unit | Status | Derived from | Notes |
 |---|---|---|---|---|
 | Money | 5.585e-08 USD | `estimated` | `scenarios[0].costs.energy`, `assumptions.electricity_price` | Facility energy x price per kilowatt-hour; hardware and staff are not included. |
-| Time | 0.02718 s | `measured` | `scenarios[0].runtime` | Timed with `saggio measure`: python3 -c  import yaml from saggio import render_html model = yaml.safe_load(open("examples/saggio.yaml", encoding="utf-8")) for _ in range(50):     render_html(model) . The command performed 50 units of work, so the figure is the wall-clock time divided by 50. The median of 5 runs of the same command. Across them this figure ranged 1.31 s to 1.371 s, a spread of 4% of their median. A range from 5 runs is not a bound: the next run lands outside it about one time in 3, whatever the shape of the variation, and nothing need have changed for it to. |
+| Time | 27.18 ms | `measured` | `scenarios[0].runtime` | Timed with `saggio measure`: python3 -c  import yaml from saggio import render_html model = yaml.safe_load(open("examples/saggio.yaml", encoding="utf-8")) for _ in range(50):     render_html(model) . The command performed 50 units of work, so the figure is the wall-clock time divided by 50. The median of 5 runs of the same command. Across them this figure ranged 1.31 s to 1.371 s, a spread of 4% of their median. A range from 5 runs is not a bound: the next run lands outside it about one time in 3, whatever the shape of the variation, and nothing need have changed for it to. |
 | Energy | 2.024e-07 kWh | `estimated` | `assumptions.machine_energy`, `assumptions.pue` | Machine energy x power usage effectiveness: what the building draws. |
 | Carbon (location-based) | 8.337e-06 gCO2e | `estimated` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Facility energy x grid carbon intensity, operating emissions only. |
 | Carbon (market-based) | not known | `TODO` | `scenarios[0].costs.energy`, `assumptions.market_carbon_intensity` | Needs the energy drawn and the emission factor of the electricity you contracted for. A grid average is the other method and will not do here. |
@@ -172,7 +172,7 @@ What a whole run would cost, from the per-unit costs in scenarios[0]. A whole ru
 
 |  | Value | Status | Method |
 |---|---|---|---|
-| time | 1.087e+04 s | `estimated` | Whole run = measured slice / 2.5e-06. |
+| time | 3 h 1 min (10870.6 s) | `estimated` | Whole run = measured slice / 2.5e-06. |
 | energy | 0.08094 kWh | `estimated` | Whole run = measured slice / 2.5e-06. |
 | money | 0.02234 USD | `estimated` | Whole run = measured slice / 2.5e-06. |
 | carbon | 3.335 gCO2e | `estimated` | Whole run = measured slice / 2.5e-06. |

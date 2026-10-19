@@ -45,7 +45,7 @@ One unit of work as this audit found it, on the machine it ran on.
 | Dimension | Per unit | Status | Derived from | Notes |
 |---|---|---|---|---|
 | Money | 7.966e-09 USD | `estimated` | `scenarios[0].costs.energy`, `assumptions.electricity_price` | Facility energy x price per kilowatt-hour; hardware and staff are not included. |
-| Time | 0.003853 s | `measured` | `scenarios[0].runtime` | Timed with `saggio measure`: python3 -c  import json, urllib.request body = json.dumps({"cost_model": {"deployment": {"provider": "on-prem"},  "scenarios": [{"name": "one", "costs": {"carbon": {"value": 1.4, "unit": "gCO2e", "status": "estimated"}}}]}}).encode() for _ in range(200):     req = urllib.request.Request("http://127.0.0.1:8795/scopes", data=body, headers={"content-type": "application/json"})     urllib.request.urlopen(req, timeout=10).read() . The command performed 200 units of work, so the figure is the wall-clock time divided by 200. Measured once, so nothing here bounds how far a second run would move it. Pass `--repeat N` to find out. |
+| Time | 3.853 ms | `measured` | `scenarios[0].runtime` | Timed with `saggio measure`: python3 -c  import json, urllib.request body = json.dumps({"cost_model": {"deployment": {"provider": "on-prem"},  "scenarios": [{"name": "one", "costs": {"carbon": {"value": 1.4, "unit": "gCO2e", "status": "estimated"}}}]}}).encode() for _ in range(200):     req = urllib.request.Request("http://127.0.0.1:8795/scopes", data=body, headers={"content-type": "application/json"})     urllib.request.urlopen(req, timeout=10).read() . The command performed 200 units of work, so the figure is the wall-clock time divided by 200. Measured once, so nothing here bounds how far a second run would move it. Pass `--repeat N` to find out. |
 | Energy | 2.886e-08 kWh | `estimated` | `assumptions.machine_energy`, `assumptions.pue` | Machine energy x power usage effectiveness: what the building draws. |
 | Carbon (location-based) | 1.189e-06 gCO2e | `estimated` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Facility energy x grid carbon intensity, operating emissions only. |
 | Carbon (market-based) | not known | `TODO` | `scenarios[0].costs.energy`, `assumptions.market_carbon_intensity` | Needs the energy drawn and the emission factor of the electricity you contracted for. A grid average is the other method and will not do here. |
@@ -138,7 +138,7 @@ What a whole run would cost, from the per-unit costs in scenarios[0]. A whole ru
 
 |  | Value | Status | Method |
 |---|---|---|---|
-| time | 1541 s | `estimated` | Whole run = measured slice / 2.5e-06. |
+| time | 25 min 41 s (1541.4 s) | `estimated` | Whole run = measured slice / 2.5e-06. |
 | energy | 0.01155 kWh | `estimated` | Whole run = measured slice / 2.5e-06. |
 | money | 0.003187 USD | `estimated` | Whole run = measured slice / 2.5e-06. |
 | carbon | 0.4757 gCO2e | `estimated` | Whole run = measured slice / 2.5e-06. |

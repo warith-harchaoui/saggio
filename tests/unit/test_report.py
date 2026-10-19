@@ -534,3 +534,58 @@ def test_every_data_i18n_key_in_both_pages_exists_in_every_language() -> None:
     for language, table in translations().items():
         missing = used - set(table)
         assert not missing, f"{language} is missing {sorted(missing)}"
+
+
+# --- Durations read the way somebody would say them ---------------------------
+
+
+def test_a_long_duration_is_not_spelled_in_scientific_notation() -> None:
+    # `1.087e+04 s` is three hours. A package whose argument is that a figure
+    # should be legible has no business printing the first spelling.
+    from saggio.report import format_duration
+
+    assert format_duration(10870.4) == "3 h 1 min (10870.4 s)"
+    assert "e+" not in format_duration(10870.4)
+
+
+def test_a_short_duration_takes_the_prefix_a_reader_thinks_in() -> None:
+    from saggio.report import format_duration
+
+    assert format_duration(0.0272) == "27.2 ms"
+    assert format_duration(2.5e-07) == "250 ns"
+    assert format_duration(1.5e-06) == "1.5 µs"
+
+
+def test_the_exact_seconds_stay_beside_the_readable_form() -> None:
+    # A reader checking the report against the model needs the number the model
+    # holds, so the spelled form never replaces it — it precedes it.
+    from saggio.report import format_duration
+
+    assert "(90 s)" in format_duration(90)
+    assert "(190800 s)" in format_duration(190800)
+
+
+def test_a_quantity_in_seconds_is_rendered_as_a_duration() -> None:
+    from saggio.model import Quantity
+    from saggio.report import format_quantity
+
+    assert format_quantity(Quantity(value=10870.4, unit="s", status="estimated")).startswith("3 h")
+    # And nothing else is: a figure in kWh is not a duration.
+    energy = Quantity(value=10870.4, unit="kWh", status="estimated")
+    assert format_quantity(energy) == "1.087e+04 kWh"
+
+
+def test_both_reports_spell_a_projected_duration_the_same_way() -> None:
+    # Two surfaces may not answer the same question differently.
+    from pathlib import Path
+
+    import yaml
+
+    from saggio.model import CostModel
+    from saggio.report import render_html, render_markdown
+
+    root = Path(__file__).resolve().parents[2]
+    data = yaml.safe_load((root / "examples/render.yaml").read_text(encoding="utf-8"))
+    model = CostModel.from_mapping(data)
+    for page in (render_markdown(model), render_html(model)):
+        assert "3 h 1 min" in page, "a projected whole run is hours, and should say so"

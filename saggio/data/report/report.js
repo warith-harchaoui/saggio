@@ -103,11 +103,44 @@
   function recompute() {
     var countryPicker = document.getElementById("whatif-country");
     var providerPicker = document.getElementById("whatif-provider");
+    var machinePicker = document.getElementById("whatif-machine");
     if (!countryPicker || !providerPicker) { return; }
 
     var country = DATA.countries[countryPicker.value] || null;
     var provider = DATA.providers[providerPicker.value] || null;
     var machineEnergy = DATA.machine_energy_kwh;
+
+    /* Moving the machine cursor does not rescale the energy: it recomputes it,
+       because energy is runtime times power and only the power changed. And it
+       changes what the figure *is*. This model's own power may be a counter
+       reading; every catalogue row is a datasheet rating, so the moment one is
+       chosen the readout stops being a measurement and the note says so. A
+       panel that let a nameplate wear a measurement's status would be the
+       worst number on the page. */
+    var swapped = machinePicker && machinePicker.value ? machinePicker.value : null;
+    var basis = document.getElementById("whatif-basis");
+    if (swapped) {
+      var half = swapped.split(":");
+      var table = half[0] === "cpu" ? DATA.processors : DATA.accelerators;
+      var part = table ? table[half[1]] : null;
+      if (!part || DATA.runtime_s === null || DATA.runtime_s === undefined) {
+        /* No runtime, or no rating for that part: there is nothing to compute
+           and nothing to invent. */
+        machineEnergy = null;
+      } else {
+        machineEnergy = (DATA.runtime_s / 3600) * (part.watts / 1000);
+      }
+      if (basis && part) {
+        basis.textContent =
+          "Recomputed in your browser for " + part.name + " at its datasheet rating of " +
+          format(part.watts) + " W. That rating is estimated, not measured: these figures " +
+          "are no longer this machine's, and nothing is sent anywhere.";
+      }
+    } else if (basis) {
+      basis.textContent =
+        "Recomputed in your browser from the energy this model already states. " +
+        "Nothing is sent anywhere.";
+    }
 
     var energyOut = document.getElementById("whatif-energy");
     var carbonOut = document.getElementById("whatif-carbon");
@@ -161,7 +194,7 @@
     });
   }
 
-  ["whatif-country", "whatif-provider"].forEach(function (id) {
+  ["whatif-country", "whatif-provider", "whatif-machine"].forEach(function (id) {
     var node = document.getElementById(id);
     if (node) { node.addEventListener("change", recompute); }
   });

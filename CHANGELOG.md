@@ -9,6 +9,31 @@ release of that line.
 
 ## Unreleased
 
+### A machine cursor on the web report, and durations a reader can hold
+
+- The HTML report already recomputed a model somewhere else: two cursors,
+  country and provider. It now has a third, **the machine** — and that one is
+  different in kind. Changing the country rescales a figure; changing the
+  machine **recomputes** it, because energy is runtime times power and only the
+  power moved.
+- **And it changes what the figure is.** This model's own power may be a
+  counter reading; every catalogue row is a datasheet rating. The moment a
+  different machine is chosen the note under the panel says so: *"at its
+  datasheet rating of 350 W. That rating is estimated, not measured: these
+  figures are no longer this machine's."* A panel that let a nameplate wear a
+  measurement's status would be the worst number on the page.
+- The default is the static report's own constant, and it is the only option
+  there that may be a measurement. Twenty-five accelerators and six processors
+  are offered beside it, each with the rating it will be computed at. A
+  processor row states watts per core and a core count, so the two factors are
+  multiplied here and both travel with the figure.
+- **`1.087e+04 s` is three hours and one minute**, and a package whose argument
+  is that a figure should be legible had no business printing the first
+  spelling. Durations now read as a reader says them — `3 h 1 min (10870.4 s)`,
+  `27.2 ms`, `250 ns` — with the exact seconds kept beside the long ones,
+  because somebody checking the report against the model needs the number the
+  model holds. Both reports spell them the same way, and a test says so.
+
 ### Reading a vendor's product carbon footprint, and refusing to guess
 
 - The previous release argued there should be **no** verb that reads a PCF,

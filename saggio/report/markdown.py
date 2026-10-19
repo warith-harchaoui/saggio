@@ -122,9 +122,102 @@ def format_quantity(quantity: Quantity) -> str:
     """
     if not quantity.is_known():
         return NOT_KNOWN
+    # A duration is the one unit a reader already thinks in, and the general
+    # number format turns three hours into `1.087e+04 s`.
+    if (quantity.unit or "") == "s" and not quantity.currency:
+        return format_duration(quantity.value)
     number = format_number(quantity.value)
     unit = quantity.currency or quantity.unit
     return f"{number} {unit}" if unit and unit != "currency" else number
+
+
+#: How a duration is spelled, largest unit first, with the factor that reaches
+#: it from one second. A reader holds "3 h 1 min", not "1.087e+04 s", and a
+#: package whose whole argument is that a figure should be legible has no
+#: business printing the second one.
+_DURATION_STEPS: Final[tuple[tuple[str, float], ...]] = (
+    ("d", 86400.0),
+    ("h", 3600.0),
+    ("min", 60.0),
+)
+
+#: Below a second the SI prefixes are what a reader already thinks in: a
+#: request takes milliseconds, a function call microseconds.
+_SUBSECOND_STEPS: Final[tuple[tuple[str, float], ...]] = (
+    ("ms", 1e-3),
+    ("\u00b5s", 1e-6),
+    ("ns", 1e-9),
+)
+
+
+def format_duration(seconds: float | int | None) -> str:
+    """Render a number of seconds the way somebody would say it.
+
+    Parameters
+    ----------
+    seconds : float or int or None
+        A duration in seconds, which is the unit every time figure in a model
+        is stated in.
+
+    Returns
+    -------
+    str
+        The duration in the units a reader holds. Above a minute it is spelled
+        out largest-unit-first and the seconds are kept beside it, because the
+        exact figure is the one a reader may want to check against the model.
+        Below a second it takes the SI prefix that puts the figure between one
+        and a thousand. A duration of zero, or none at all, is said plainly.
+
+    Examples
+    --------
+    >>> format_duration(10870.4)
+    '3 h 1 min (10870.4 s)'
+    >>> format_duration(0.0272)
+    '27.2 ms'
+    >>> format_duration(1.5)
+    '1.5 s'
+    >>> format_duration(90)
+    '1 min 30 s (90 s)'
+    >>> format_duration(2.5e-07)
+    '250 ns'
+    >>> format_duration(0)
+    '0 s'
+    >>> format_duration(None)
+    'not known'
+    """
+    if seconds is None:
+        return NOT_KNOWN
+    total = float(seconds)
+    if total == 0.0:
+        return "0 s"
+    if total < 0:
+        return f"-{format_duration(-total)}"
+    if total < 1.0:
+        for name, factor in _SUBSECOND_STEPS:
+            if total >= factor:
+                return f"{format_number(total / factor)} {name}"
+        # Below a nanosecond nothing anybody measures is real, and the general
+        # format is more honest than inventing a prefix for it.
+        return f"{format_number(total)} s"
+    if total < 60.0:
+        return f"{format_number(total)} s"
+
+    parts: list[str] = []
+    left = total
+    for name, factor in _DURATION_STEPS:
+        whole = int(left // factor)
+        if whole:
+            parts.append(f"{whole} {name}")
+            left -= whole * factor
+    remaining = round(left)
+    if remaining and len(parts) < 2:
+        parts.append(f"{remaining} s")
+    # The exact figure stays, because a reader checking the report against the
+    # model needs the number the model holds. Plainly, though: `1.087e+04 s` is
+    # the spelling this function exists to stop printing, and printing it in
+    # the parenthesis would be the same fault one bracket further in.
+    exact = f"{total:.1f}".rstrip("0").rstrip(".")
+    return f"{' '.join(parts[:2])} ({exact} s)"
 
 
 #: Display names for the reference flight routes, keyed as the equivalences

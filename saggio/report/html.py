@@ -1073,6 +1073,28 @@ def _whatif_section(model: CostModel, *, overlay: Any = None) -> str:
     )
     panel = location_impact(countries, current_country or None)
 
+    # The machine cursor. Its first option is this model's own figure, which is
+    # the default the static report prints and the only one here that may be a
+    # measurement; every other option is a datasheet rating, and the panel says
+    # so the moment one is chosen.
+    machine = Catalog.load("hardware", overlay=overlay)
+    parts = "".join(
+        f'<option value="{kind}:{_escape(key)}">{_escape(key)}'
+        f" — {row.get('tdp_w') or ''}"
+        + (f"{float(row['w_per_core']) * float(row['cores']):g}" if row.get("cores") else "")
+        + " W</option>"
+        for kind, section in (("gpu", "gpus"), ("cpu", "cpus"))
+        for key, row in machine.rows(section).items()
+        if row.get("tdp_w") or (row.get("w_per_core") and row.get("cores"))
+    )
+    stated = model.get("assumptions.power_draw") or {}
+    measured_here = str(stated.get("status") or "") == "measured"
+    here = (
+        "this machine, as measured"
+        if measured_here
+        else "this machine, as the catalogue estimates it"
+    )
+
     return (
         # S608 reads the words "What if" as the start of a SQL clause. There is no
         # database anywhere in this package.
@@ -1082,6 +1104,9 @@ def _whatif_section(model: CostModel, *, overlay: Any = None) -> str:
         f'<select id="whatif-country">{country_options}</select></div>'
         + '<div><label for="whatif-provider" data-i18n="whatif.provider">Provider</label>'
         f'<select id="whatif-provider">{provider_options}</select></div>'
+        + '<div><label for="whatif-machine" data-i18n="whatif.machine">Machine</label>'
+        f'<select id="whatif-machine"><option value="">{_escape(here)}</option>{parts}</select>'
+        "</div>"
         + "</div>"
         + '<dl class="readout">'
         + '<div><dt data-i18n="whatif.energy">Energy</dt><dd id="whatif-energy">—</dd></div>'
@@ -1089,8 +1114,8 @@ def _whatif_section(model: CostModel, *, overlay: Any = None) -> str:
         + '<div><dt data-i18n="whatif.money">Electricity</dt><dd id="whatif-money">—</dd></div>'
         + '<div><dt data-i18n="whatif.water">Water</dt><dd id="whatif-water">—</dd></div>'
         + "</dl>"
-        + '<p class="muted" data-i18n="whatif.note">Recomputed in your browser from the '
-        "energy this model already states. Nothing is sent anywhere.</p>"
+        + '<p class="muted" id="whatif-basis" data-i18n="whatif.note">Recomputed in your '
+        "browser from the energy this model already states. Nothing is sent anywhere.</p>"
         + (f"<figure>{panel}</figure>" if panel else "")
         + "</div>"
     )
@@ -1184,10 +1209,43 @@ def _page_data(model: CostModel, *, overlay: Any = None) -> str:
     """
     countries = Catalog.load("grid", overlay=overlay).rows("countries")
     providers = Catalog.load("providers", overlay=overlay).rows("providers")
+    hardware = Catalog.load("hardware", overlay=overlay)
     energy = scenario_energy(model)
+    runtime = Quantity.from_mapping(model.get("scenarios[0].runtime") or {})
+    power = Quantity.from_mapping(model.get("assumptions.power_draw") or {})
     payload = {
         "i18n": translations(),
         "machine_energy_kwh": float(energy.value) if energy.is_known() else None,
+        # What the page needs to put a different machine under the same work.
+        # Energy is runtime times power, so moving the hardware cursor has to
+        # recompute the energy rather than rescale it — and the status has to
+        # move with it: this model's own power may be a counter reading, and
+        # every catalogue row here is a nameplate rating. A panel that showed
+        # the second wearing the first's status would be the worst number on
+        # the page.
+        "runtime_s": float(runtime.value) if runtime.is_known() else None,
+        "power_w": float(power.value) if power.is_known() else None,
+        "power_status": power.status,
+        "machine": str(model.get("deployment.cpu") or model.get("deployment.gpu") or ""),
+        "accelerators": {
+            key: {"name": key, "watts": row.get("tdp_w")}
+            for key, row in hardware.rows("gpus").items()
+            if row.get("tdp_w")
+        },
+        # A processor row states watts per core and a core count rather than a
+        # package figure, because that is what the datasheet gives and what the
+        # node-power sum needs. Multiplied here so the panel compares like with
+        # like, and the two factors travel with it so a reader can check.
+        "processors": {
+            key: {
+                "name": key,
+                "watts": float(row["w_per_core"]) * float(row["cores"]),
+                "per_core": row["w_per_core"],
+                "cores": row["cores"],
+            }
+            for key, row in hardware.rows("cpus").items()
+            if row.get("w_per_core") and row.get("cores")
+        },
         "countries": {
             key: {
                 "name": row.get("name"),

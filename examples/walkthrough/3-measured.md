@@ -39,7 +39,7 @@ One unit of work as this audit found it, on the machine it ran on.
 | Dimension | Per unit | Status | Derived from | Notes |
 |---|---|---|---|---|
 | Money | 4.724e-09 USD | `estimated` | `scenarios[0].costs.energy`, `assumptions.electricity_price` | Facility energy x price per kilowatt-hour; hardware and staff are not included. |
-| Time | 0.001321 s | `measured` | `scenarios[0].runtime` | Timed with `saggio measure`: python predict.py --num_samples 500. The command performed 500 units of work, so the figure is the wall-clock time divided by 500. Measured once, so nothing here bounds how far a second run would move it. Pass `--repeat N` to find out. |
+| Time | 1.321 ms | `measured` | `scenarios[0].runtime` | Timed with `saggio measure`: python predict.py --num_samples 500. The command performed 500 units of work, so the figure is the wall-clock time divided by 500. Measured once, so nothing here bounds how far a second run would move it. Pass `--repeat N` to find out. |
 | Energy | 1.711e-08 kWh | `estimated` | `assumptions.machine_energy`, `assumptions.pue` | Machine energy x power usage effectiveness: what the building draws. |
 | Carbon (location-based) | 7.051e-07 gCO2e | `estimated` | `scenarios[0].costs.energy`, `assumptions.grid_carbon_intensity` | Facility energy x grid carbon intensity, operating emissions only. |
 | Embodied carbon | not known | `TODO` | `assumptions.hardware_embodied_carbon`, `assumptions.hardware_lifetime`, `scenarios[0].runtime` | No product carbon footprint is on file for this hardware, so the carbon of building it is open. Nobody has read one for this part; that is not the same as it having been free to build. Add an `embodied_kgco2e` to the catalogue row with the footprint's own URL and the date it was read. |
@@ -87,7 +87,7 @@ What a whole run would cost, from the per-unit costs in scenarios[0]. A whole ru
 
 |  | Value | Status | Method |
 |---|---|---|---|
-| time | 528.2 s | `estimated` | Whole run = measured slice / 2.5e-06. |
+| time | 8 min 48 s (528.2 s) | `estimated` | Whole run = measured slice / 2.5e-06. |
 | energy | 0.006846 kWh | `estimated` | Whole run = measured slice / 2.5e-06. |
 | money | 0.001889 USD | `estimated` | Whole run = measured slice / 2.5e-06. |
 | carbon | 0.2821 gCO2e | `estimated` | Whole run = measured slice / 2.5e-06. |

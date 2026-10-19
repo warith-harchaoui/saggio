@@ -36,7 +36,13 @@ from .figures import (
     scenario_energy,
 )
 from .html import PROJECT_URL, render_html, translations
-from .markdown import NOT_KNOWN, format_number, format_quantity, render_markdown
+from .markdown import (
+    NOT_KNOWN,
+    format_duration,
+    format_number,
+    format_quantity,
+    render_markdown,
+)
 from .office import OFFICE_FORMATS, md2star_available, render_office
 
 __all__ = [
@@ -45,6 +51,7 @@ __all__ = [
     "PROJECT_URL",
     "count_statuses",
     "derivation_chain",
+    "format_duration",
     "format_number",
     "format_quantity",
     "honesty_bar",
