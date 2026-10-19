@@ -57,6 +57,9 @@ Warith Harchaoui
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from functools import cache
 from importlib import resources
 from typing import Final
@@ -74,6 +77,20 @@ _LABEL_PACKAGE: Final[str] = "saggio.data.report"
 _LABEL_FILE: Final[str] = "i18n.yaml"
 _PROMPT_PACKAGE: Final[str] = "saggio.data"
 _PROMPT_FILE: Final[str] = "prompts.yaml"
+
+#: Where the engine's own sentences live: one file per language, because there
+#: are hundreds of them and a translator should be able to read their diff.
+#: Reached through the data package rather than as a package of its own, so it
+#: needs no ``__init__.py`` and ships as package data like every catalogue.
+_MESSAGE_FOLDER: Final[str] = "messages"
+
+#: The language the current piece of work is being done in. A context variable
+#: rather than a parameter on every function that composes a sentence: the prose
+#: of an audit is written where the measurement happens, across dozens of
+#: modules, and threading a tag through all of them would be a larger change
+#: with more places to forget it. Set once at the edge — a command, a request, a
+#: library call — and read where a sentence is built.
+_CURRENT: ContextVar[str] = ContextVar("saggio_language", default=DEFAULT_LANGUAGE)
 
 #: What to say when a caller asks for a language nothing here is written in.
 #: Named here so the CLI, the API and the audit notes word it identically.
@@ -157,17 +174,140 @@ def languages() -> tuple[str, ...]:
     Returns
     -------
     tuple of str
-        Codes present in **both** tables. A language only one table has is left
-        out here and reported by a contract test: offering a reader a language
-        the package can only half write is the defect this guards against, and
-        silently serving them English for the other half is how it would show.
+        Codes present in **all three** tables — the page's labels, what the
+        package asks, and what it says. A language only some of them have is
+        left out here and reported by a contract test: offering a reader a
+        language the package can only half write is the defect this guards
+        against, and silently serving them English for the other half is how it
+        would show.
 
     Examples
     --------
     >>> languages()
     ('en', 'fr')
     """
-    return tuple(sorted(set(labels()) & set(prompts())))
+    return tuple(sorted(set(labels()) & set(prompts()) & set(messages())))
+
+
+@cache
+def messages() -> dict[str, dict[str, str]]:
+    """Return the engine's own sentences, by language.
+
+    The prose an audit composes while it measures: the notes, the methods, the
+    caveats and the refusals. One file per language under
+    ``saggio/data/messages/``, because there are hundreds of them and a
+    translator should be able to read the diff of their own language.
+
+    Returns
+    -------
+    dict
+        Language code to key-value mapping.
+
+    Examples
+    --------
+    >>> "en" in messages()
+    True
+    """
+    folder = resources.files(_PROMPT_PACKAGE).joinpath(_MESSAGE_FOLDER)
+    found: dict[str, dict[str, str]] = {}
+    for entry in folder.iterdir():
+        name = entry.name
+        if not name.endswith(".yaml"):
+            continue
+        loaded = yaml.safe_load(entry.read_text("utf-8")) or {}
+        if isinstance(loaded, dict):
+            found[name[: -len(".yaml")]] = {str(key): str(value) for key, value in loaded.items()}
+    return found
+
+
+def current_language() -> str:
+    """Return the language the work in hand is being done in.
+
+    Returns
+    -------
+    str
+        A code :func:`languages` contains.
+
+    Examples
+    --------
+    >>> current_language()
+    'en'
+    """
+    return _CURRENT.get()
+
+
+@contextmanager
+def language(code: str | None) -> Iterator[str]:
+    """Do a piece of work in a language, and put the previous one back after.
+
+    Parameters
+    ----------
+    code : str or None
+        A language tag. ``None`` and anything unwritten mean English.
+
+    Yields
+    ------
+    str
+        The code actually in force, after :func:`resolve`.
+
+    Examples
+    --------
+    >>> with language("fr") as code:
+    ...     code, current_language()
+    ('fr', 'fr')
+    >>> current_language()
+    'en'
+    """
+    chosen = resolve(code)
+    token = _CURRENT.set(chosen)
+    try:
+        yield chosen
+    finally:
+        _CURRENT.reset(token)
+
+
+def say(key: str, /, **arguments: object) -> str:
+    """Return one of the engine's sentences, in the language in force.
+
+    Parameters
+    ----------
+    key : str
+        The sentence's key in the message catalogue.
+    **arguments
+        What the sentence names in braces. Formatted with :meth:`str.format`,
+        so a sentence may use its arguments in whatever order its own language
+        needs — which is the point of a catalogue rather than a concatenation.
+
+    Returns
+    -------
+    str
+        The sentence. A key the language has no wording for falls back to
+        English, and a key nothing has is returned bracketed so it shows up in
+        a page instead of vanishing — a missing sentence is a defect, and a
+        contract test fails for it, but it must not take an audit down.
+
+    Examples
+    --------
+    >>> say("ghg.label.scope2_location")
+    'Scope 2 (location-based)'
+    >>> with language("fr"):
+    ...     say("ghg.not_an_emission.money")
+    "L'argent est un coût, pas une émission. Aucun scope ne s'applique."
+    >>> say("nothing.has.this.key")
+    '[nothing.has.this.key]'
+    """
+    table = messages()
+    for candidate in (current_language(), DEFAULT_LANGUAGE):
+        wording = table.get(candidate, {}).get(key)
+        if wording:
+            try:
+                return wording.format(**arguments) if arguments else wording
+            except (IndexError, KeyError) as error:
+                # A translation naming an argument the caller does not pass is a
+                # defect in the catalogue, caught by a contract test. Here it
+                # must not take an audit down, and it must not pretend either.
+                return f"[{key}: {error}]"
+    return f"[{key}]"
 
 
 def resolve(language: str | None) -> str:

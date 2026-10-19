@@ -1,0 +1,125 @@
+# Les phrases du moteur, en français.
+#
+# La prose qu'un audit compose en mesurant : les notes, les méthodes, les
+# mises en garde et les refus qui finissent dans un modèle de coût et sur un
+# rapport. Un fichier par langue, lu par `saggio/i18n.py` et utilisé par `say()`.
+#
+# Trois règles tenues par un test de contrat :
+#
+#   * Toute clé du fichier anglais existe ici. Une langue qui répond à moitié
+#     laisse des trous anglais dans une page par ailleurs traduite.
+#   * Chaque clé sert quelque part dans le paquet, et chaque clé que le code
+#     demande est présente. Formulation morte et formulation manquante sont
+#     toutes deux des défauts.
+#   * Une phrase nomme ses arguments entre accolades — `{pue}`, `{country}` — et
+#     chaque langue nomme exactement les mêmes. Le français peut les mettre dans
+#     l'ordre qui se lit le mieux : c'est tout l'intérêt d'un catalogue plutôt
+#     que d'une concaténation.
+#
+# Deux règles que seul un lecteur peut tenir :
+#
+#   * Traduire pour le sens, pas mot à mot. Ce sont des phrases qu'on lit à côté
+#     d'un nombre, et le nombre est le sujet.
+#   * Jamais une quantité mesurée dans la formulation. Tout chiffre arrive en
+#     argument, depuis une mesure ou un catalogue. (« Scope 2 » est un nom, pas
+#     un chiffre.)
+
+# --- Où un coût se range dans un bilan GES (saggio/estimate/ghg.py)
+
+ghg.label.no_scope: "Hors scope"
+ghg.label.scope2_location: "Scope 2 (location-based)"
+ghg.label.scope2_market: "Scope 2 (market-based)"
+ghg.label.scope3_cat1: "Scope 3, catégorie 1 — biens et services achetés"
+ghg.label.scope3_cat2: "Scope 3, catégorie 2 — biens d'équipement"
+
+ghg.location_based: >-
+  location-based : un facteur d'émission moyen du réseau national, sans aucun
+  ajustement lié à un instrument contractuel
+ghg.market_based: >-
+  market-based : le facteur d'émission de l'électricité que cette organisation a
+  contractée, et non la moyenne du réseau dont elle a tiré le courant
+
+ghg.not_an_emission.money: "L'argent est un coût, pas une émission. Aucun scope ne s'applique."
+ghg.not_an_emission.time: "Le temps est un coût, pas une émission. Aucun scope ne s'applique."
+ghg.not_an_emission.energy: >-
+  L'énergie est la donnée d'activité à partir de laquelle le chiffre de scope 2
+  ou de scope 3 est calculé, pas une émission en soi. Les normes européennes la
+  déclarent à part, en consommation d'énergie, à côté des émissions qu'elle a
+  produites.
+ghg.not_an_emission.water: >-
+  L'eau n'est pas un gaz à effet de serre et n'a pas de scope. Les normes
+  européennes la déclarent au titre de l'eau et des ressources marines, pas du
+  changement climatique.
+
+ghg.unregistered_dimension: >-
+  {dimension} est une dimension que ce projet a enregistrée. Savoir si c'est un
+  gaz à effet de serre, et sous quel scope, est une question sur votre dimension
+  plutôt que sur ce paquet, qui ne la devinera pas depuis une unité.
+
+ghg.operator_unknown.named_provider: >-
+  Le fournisseur ne dit pas qui exploite la machine, et c'est précisément le fait
+  dont dépend le scope : la même émission est en scope 2 sur du matériel qui vous
+  appartient et en scope 3 catégorie 1 sur du matériel que vous louez. Renseignez
+  `operated_by` sur la ligne de catalogue du fournisseur — `self` ou `vendor` —
+  plutôt que de laisser déduire.
+ghg.operator_unknown.no_provider: >-
+  Le modèle n'indique aucun fournisseur, et le scope dépend de qui exploite la
+  machine. Nommez-en un dans `deployment.provider`.
+
+ghg.vendor_market_based: >-
+  La machine est exploitée par un fournisseur : il n'y a donc ici aucun scope 2
+  qui soit le vôtre, ni d'une méthode ni de l'autre. L'électricité est le scope 2
+  du fournisseur, et le couple location-based / market-based est sa déclaration à
+  lui. Ce qui vous parvient est un service acheté, en scope 3 catégorie 1, où la
+  norme ne trace aucun couple de ce genre — un chiffre market-based sur du
+  matériel loué n'est donc pas une réponse plus précise, c'est la réponse à la
+  question de quelqu'un d'autre.
+ghg.vendor_service: >-
+  La machine est exploitée par un fournisseur : l'organisation a donc acheté un
+  service, et non de l'électricité ou du matériel. C'est le scope 2 et le scope 3
+  catégorie 2 du fournisseur ; cela arrive chez l'organisation sous la forme du
+  service acheté.
+ghg.vendor_service.embodied: >-
+  La plupart des fournisseurs ne publient aucun chiffre par client pour la part
+  matérielle : une facture ne contiendra donc presque jamais ce nombre, et c'est
+  celui que le modèle d'à côté calcule.
+ghg.capital_goods: >-
+  L'organisation exploite la machine : elle a donc acheté le matériel. Biens
+  d'équipement plutôt que biens et services achetés, parce que la durée
+  d'utilité de l'actif dépasse l'année — c'est la distinction que la norme fait
+  entre les deux catégories, et aussi la raison pour laquelle ce chiffre est
+  amorti plutôt que compté une fois pour toutes.
+
+ghg.bought_electricity_market: >-
+  L'organisation exploite la machine : elle a donc acheté l'électricité, et elle
+  l'a achetée sous contrat. Le chiffre indiqué ici est {method}. Il repose sur un
+  facteur que vous avez énoncé, qui est le seul fait de ce nombre que personne
+  d'autre ne détient — ce paquet ne l'a ni dérivé ni ne peut le rafraîchir.
+ghg.bought_electricity_location: >-
+  L'organisation exploite la machine : elle a donc acheté l'électricité. Le
+  chiffre indiqué ici est {method}.
+
+ghg.market_based_companion: >-
+  Ceci est une moitié du couple. Le chiffre location-based d'à côté, `carbon`,
+  est l'autre, et les deux sont déclarés : un contrat change ce dont vous
+  répondez, pas ce que le réseau a émis.
+ghg.market_based_sources: >-
+  Il se construit à partir du facteur d'émission de votre fournisseur, des
+  instruments contractuels que vous détenez — garanties d'origine, RECs, un PPA —
+  ou, à défaut des deux, du mix résiduel de votre marché, qui existe précisément
+  pour que l'électricité non revendiquée ne soit pas comptée propre par défaut.
+ghg.market_based_missing: >-
+  Le chiffre market-based est un autre nombre, et il n'est pas ici. {sources}
+  Aucun des trois ne se déduit d'une moyenne de réseau : ce paquet ne déclare
+  donc ni chiffre market-based ni zéro. Renseignez le facteur dans
+  `assumptions.market_carbon_intensity` et le chiffre est calculé puis rangé à
+  côté de celui-ci. Là où des instruments contractuels existent sur votre marché,
+  le GHG Protocol exige les deux nombres, chacun étiqueté de la méthode qui l'a
+  produit.
+ghg.market_based_present: >-
+  Le chiffre market-based exigé à côté de celui-ci est dans le modèle, sous
+  `carbon_market_based`. Les deux sont déclarés : le nombre market-based ne
+  remplace pas celui-ci, et un contrat ne change pas quels électrons le réseau a
+  livrés. Vérifiez que ce que vous avez enregistré satisfait les critères de
+  qualité de la Scope 2 Guidance pour un instrument contractuel — ce paquet ne
+  peut pas le faire, et ne prétend pas le faire.

@@ -198,8 +198,18 @@ GUI offering a picker asks the library rather than hard-coding a list that goes
 stale. A tag nothing is written in falls back to English and says so in the
 notes, because an audit must not fail over a language.
 
-**What the button does not switch, measured.** It exchanges **929 of the 19,337
-characters** of visible text on a rendered report — **4.8%**. The structure moves:
+**The engine's own sentences are moving into a message catalogue**, module by
+module, so that `--language fr` renders them too rather than only the furniture.
+`saggio/data/messages/*.yaml` holds them, one file per language; a sentence names
+its arguments in braces so each language can put the numbers where its own
+grammar wants them. Contract tests refuse a key the code asks for and nothing
+answers, a key one language has and another does not, wording nothing reaches,
+and a translation that renames an argument. Where the inventory placements had
+moved on 2026-10-19 — the first module — **11% of a static report** came out in
+French.
+
+**What the button alone does not switch, measured.** It exchanges **929 of the
+19,337 characters** of visible text on a rendered report — **4.8%**. The structure moves:
 headings, column names, the what-if labels, the equivalence sentences. The
 substance does not: the notes, the methods, the caveats and the refusals are
 written where the measurement happens, which was **709 prose literals of four

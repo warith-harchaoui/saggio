@@ -32,7 +32,7 @@ from ..estimate.context import DeploymentContext
 from ..estimate.energy import (
     node_power,
 )
-from ..estimate.ghg import MARKET_BASED_SOURCES
+from ..estimate.ghg import market_based_sources
 from ..estimate.machine import MachineProfile
 from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, MEASURED, TODO
@@ -172,7 +172,7 @@ def _market_factor_assumption() -> Quantity:
         notes=(
             "The emission factor of the electricity you contracted for, which no "
             "catalogue can hold: it is a property of your contract, not of your "
-            f"country. {MARKET_BASED_SOURCES} Record it with the supplier document "
+            f"country. {market_based_sources()} Record it with the supplier document "
             "or certificate that states it and the date you read it — this is the "
             "one figure in the model nobody else can check and nothing here can "
             "refresh. Leaving it open is a complete answer; a zero because the "

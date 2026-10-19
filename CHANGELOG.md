@@ -9,6 +9,38 @@ release of that line.
 
 ## Unreleased
 
+### A message catalogue, so the engine can say what it says in another language
+
+The decision was Warith's, after the measurement in the entry above: a full
+catalogue rather than a narrowed promise. This is the mechanism and the first
+module.
+
+- **`saggio/data/messages/*.yaml`, one file per language.** A sentence names its
+  arguments in braces — `{dimension}`, `{method}` — so each language puts the
+  figures where its own grammar wants them, which is the whole difference
+  between a catalogue and a concatenation.
+- **`say("key", **arguments)` reads the language in force**, held in a
+  `ContextVar` that the command line sets around every verb. A parameter would
+  have had to be threaded through every function that composes a sentence
+  between the edge and the measurement, across dozens of modules, and the one
+  that was forgotten would have been the defect.
+- **`--language` is on every verb, from one definition**, attached by walking
+  the sub-parsers rather than written out sixteen times: a verb added later gets
+  it without anybody remembering to.
+- **Four contract tests**, because a catalogue rots quietly: a key the code asks
+  for that nothing answers (which renders as `[the.key]` in a report rather than
+  crashing), a key one language has and another does not, wording nothing in the
+  package reaches, and a translation that renames or drops an argument.
+- **First module: where a cost lands in a greenhouse-gas inventory.** Twenty-four
+  sentences, including the scope labels and the dual-reporting note the Scope 2
+  Guidance turns on. `saggio scopes examples/render.yaml --language fr` reads in
+  French; **11% of a static report** comes out in French from this module alone.
+- The five sentence constants it used to export — `LOCATION_BASED`,
+  `MARKET_BASED_MISSING` and their neighbours — are functions now
+  (`location_based()`, `market_based_missing()`, …). A constant holds one
+  language by construction, and leaving one beside the catalogue would have been
+  a second way to get the sentence that ignores the language.
+
 ### Consent asked in a language the reader has, and two defects in the asking
 
 The one place in this package where a translation is not a convenience: before

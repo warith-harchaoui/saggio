@@ -134,7 +134,7 @@ include = ["saggio*"]
 # The catalogues, the templates, and the report's own assets all ship inside the
 # wheel and are read through importlib.resources, so a checkout and an installed
 # copy behave identically.
-"saggio.data" = ["*.yaml", "templates/*.yaml", "report/*"]
+"saggio.data" = ["*.yaml", "templates/*.yaml", "report/*", "messages/*.yaml"]
 
 # --- Linting and formatting -------------------------------------------------
 

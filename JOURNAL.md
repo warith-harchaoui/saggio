@@ -10,6 +10,40 @@ cette ligne.
 
 ## Non publié
 
+### Un catalogue de messages, pour que le moteur dise ce qu'il dit dans une autre langue
+
+La décision est celle de Warith, après la mesure de l'entrée précédente : un
+catalogue complet plutôt qu'une promesse restreinte. Voici la mécanique et le
+premier module.
+
+- **`saggio/data/messages/*.yaml`, un fichier par langue.** Une phrase nomme ses
+  arguments entre accolades — `{dimension}`, `{method}` — chaque langue met donc
+  les chiffres là où sa grammaire les veut, et c'est toute la différence entre un
+  catalogue et une concaténation.
+- **`say("clé", **arguments)` lit la langue en vigueur**, tenue dans un
+  `ContextVar` que la ligne de commande pose autour de chaque verbe. Un paramètre
+  aurait dû traverser toutes les fonctions qui composent une phrase entre le bord
+  et la mesure, dans des dizaines de modules, et celle qu'on aurait oubliée
+  aurait été le défaut.
+- **`--language` est sur chaque verbe, depuis une seule définition**, posée en
+  parcourant les sous-analyseurs plutôt qu'écrite seize fois : un verbe ajouté
+  plus tard l'obtient sans que personne y pense.
+- **Quatre tests de contrat**, parce qu'un catalogue pourrit en silence : une clé
+  que le code demande et que rien ne fournit (elle sort en `[la.clé]` dans un
+  rapport au lieu de planter), une clé qu'une langue a et l'autre non, une
+  formulation que rien dans le paquet n'atteint, et une traduction qui renomme ou
+  supprime un argument.
+- **Premier module : où un coût se range dans un bilan GES.** Vingt-quatre
+  phrases, dont les étiquettes de scope et la note de double déclaration dont
+  dépend la Scope 2 Guidance. `saggio scopes examples/render.yaml --language fr`
+  se lit en français ; **11 % d'un rapport statique** en sort en français grâce à
+  ce seul module.
+- Les cinq constantes de phrases qu'il exportait — `LOCATION_BASED`,
+  `MARKET_BASED_MISSING` et leurs voisines — sont désormais des fonctions
+  (`location_based()`, `market_based_missing()`, …). Une constante porte une
+  seule langue par construction, et en laisser une à côté du catalogue aurait été
+  une seconde façon d'obtenir la phrase, qui ignore la langue.
+
 ### Le consentement demandé dans une langue que le lecteur a, et deux défauts dans la demande
 
 Le seul endroit de ce paquet où une traduction n'est pas un confort : avant qu'un

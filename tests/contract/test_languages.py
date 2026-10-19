@@ -14,6 +14,7 @@ updated.
 
 from __future__ import annotations
 
+import ast
 import re
 from pathlib import Path
 
@@ -23,7 +24,7 @@ from saggio.analyze.llm import WORKLOAD_KINDS, _build_prompt
 from saggio.api.app import AuditIn
 from saggio.auditor.options import AuditOptions
 from saggio.cli.app import build_parser
-from saggio.i18n import DEFAULT_LANGUAGE, labels, languages, prompts
+from saggio.i18n import DEFAULT_LANGUAGE, labels, languages, messages, prompts
 from saggio.model import CostModel
 from saggio.report import render_html
 from saggio.report.dashboard import render_dashboard
@@ -141,10 +142,14 @@ def test_the_share_of_a_report_the_button_switches_is_the_share_the_docs_quote()
     visible = re.sub(r"[A-Za-z0-9+/]{200,}=*", "", visible)
     share = 100 * swapped / len(visible)
 
+    # Read from the flattened text, because the claim is prose: it gets rewrapped
+    # whenever a sentence around it is edited, and a test that fails for a line
+    # break teaches a contributor to distrust it.
+    written = re.sub(r"\s+", " ", (ROOT / "USING.md").read_text(encoding="utf-8"))
     quoted = re.search(
-        r"\*\*929 of the ([\d,]+)\s*\ncharacters\*\* of visible text on a rendered report "
-        r"— \*\*([\d.]+)%\*\*",
-        (ROOT / "USING.md").read_text(encoding="utf-8"),
+        r"\*\*929 of the ([\d,]+) characters\*\* of visible text on a rendered "
+        r"report — \*\*([\d.]+)%\*\*",
+        written,
     )
     assert quoted is not None, "USING.md no longer states what the button switches"
     assert len(visible) == int(quoted.group(1).replace(",", "")), (
@@ -298,3 +303,88 @@ def test_no_page_ships_the_model_instructions_to_a_browser(page) -> None:
             longest = max(value.split('"'), key=len)
             if len(longest) >= 25:
                 assert longest not in rendered, f"{key} reached the page"
+
+
+# --- The engine's own sentences -----------------------------------------------
+
+
+def keys_the_code_asks_for() -> dict[str, list[str]]:
+    """Return every key passed literally to `say`, with where it was asked for."""
+    asked: dict[str, list[str]] = {}
+    for path in sorted((ROOT / "saggio").rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == "say"
+                and node.args
+                and isinstance(node.args[0], ast.Constant)
+                and isinstance(node.args[0].value, str)
+            ):
+                where = f"{path.relative_to(ROOT).as_posix()}:{node.lineno}"
+                asked.setdefault(node.args[0].value, []).append(where)
+    return asked
+
+
+def literals_in_the_package() -> set[str]:
+    """Return every string literal in the package, for finding dead wording.
+
+    By literal rather than by `say` call, because a key is often held in a
+    mapping — the dimensions that are not emissions, the scope labels — and
+    read from there. A key spelled nowhere is wording nobody can reach.
+    """
+    found: set[str] = set()
+    for path in sorted((ROOT / "saggio").rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                found.add(node.value)
+    return found
+
+
+def test_every_sentence_the_code_asks_for_is_written() -> None:
+    # The defect this prevents is quiet: `say` on a missing key returns the key
+    # in brackets, which shows up in a report rather than crashing, and a report
+    # nobody reads that day ships with `[ghg.capital_goods]` in it.
+    english = messages()[DEFAULT_LANGUAGE]
+    missing = {key: where for key, where in keys_the_code_asks_for().items() if key not in english}
+    assert not missing, f"no wording for: {missing}"
+
+
+@pytest.mark.parametrize("code", sorted(messages()))
+def test_no_language_is_missing_a_sentence(code: str) -> None:
+    missing = sorted(set(messages()[DEFAULT_LANGUAGE]) - set(messages()[code]))
+    assert not missing, f"{code} is missing {len(missing)} sentences: {missing[:5]}"
+
+
+@pytest.mark.parametrize("code", sorted(messages()))
+def test_no_language_invents_a_sentence(code: str) -> None:
+    # A key only one language has is wording the code never asks for in any
+    # other, which means nobody will ever see it.
+    extra = sorted(set(messages()[code]) - set(messages()[DEFAULT_LANGUAGE]))
+    assert not extra, f"{code} has {len(extra)} sentences nothing asks for: {extra[:5]}"
+
+
+def test_no_sentence_is_dead() -> None:
+    orphans = sorted(set(messages()[DEFAULT_LANGUAGE]) - literals_in_the_package())
+    assert not orphans, f"wording nothing reaches: {orphans}"
+
+
+@pytest.mark.parametrize("code", sorted(messages()))
+def test_every_language_names_the_same_arguments(code: str) -> None:
+    # A translation that renamed `{pue}` gets a bracketed error in place of a
+    # sentence; one that dropped it silently loses the figure the sentence is
+    # about. Both are caught here rather than by a reader.
+    english = messages()[DEFAULT_LANGUAGE]
+    for key, wording in messages()[code].items():
+        mine = set(re.findall(r"\{(\w+)\}", wording))
+        theirs = set(re.findall(r"\{(\w+)\}", english.get(key, "")))
+        assert mine == theirs, f"{code}/{key} names {sorted(mine)}, English names {sorted(theirs)}"
+
+
+@pytest.mark.parametrize("code", sorted(messages()))
+def test_every_sentence_formats_with_the_arguments_it_names(code: str) -> None:
+    for key, wording in messages()[code].items():
+        named = re.findall(r"\{(\w+)\}", wording)
+        assert wording.format(**dict.fromkeys(named, "x")), key

@@ -71,6 +71,7 @@ from dataclasses import dataclass
 from typing import Any, Final
 
 from ..catalog.registry import Catalog
+from ..i18n import say
 from ..model.cost_model import CostModel
 
 #: The standard that defines the three scopes and the two kinds of indirect
@@ -91,55 +92,108 @@ GHG_PROTOCOL_SCOPE2: Final[str] = "https://ghgprotocol.org/scope-2-guidance"
 OPERATED_BY_SELF: Final[str] = "self"
 OPERATED_BY_VENDOR: Final[str] = "vendor"
 
-#: What the carbon figure in this package is, in the words the guidance uses.
-#: Written here rather than in a report, because it is a property of the
-#: catalogue's method and not of any one rendering of it.
-LOCATION_BASED: Final[str] = (
-    "location-based: a grid-average emission factor for the country, carrying no "
-    "adjustment for any contractual instrument"
-)
+#: The keys of the sentences this module says, in the message catalogue. The
+#: wording lives in `saggio/data/messages/*.yaml`, one file per language, because
+#: a placement is read by a sustainability team rather than by a machine and a
+#: team reads in its own language. These were module constants until the
+#: catalogue existed; a constant holds one language by construction, so what is
+#: named here is the key and `say()` resolves it against the language in force.
+_SCOPE_LABELS: Final[dict[str, str]] = {
+    "no_scope": "ghg.label.no_scope",
+    "scope2_location": "ghg.label.scope2_location",
+    "scope2_market": "ghg.label.scope2_market",
+    "scope3_cat1": "ghg.label.scope3_cat1",
+    "scope3_cat2": "ghg.label.scope3_cat2",
+}
 
-#: What the market-based figure is, in the same shape as the line above, for the
-#: half of the pair that comes from a contract rather than from a grid.
-MARKET_BASED: Final[str] = (
-    "market-based: the emission factor of the electricity this organisation "
-    "contracted for, rather than the average of the grid it drew from"
-)
 
-#: Where a market-based factor may honestly come from, in the order the Scope 2
-#: Guidance puts them. Printed when the figure is missing, so the sentence is a
-#: shopping list rather than a refusal, and kept in one place because the report,
-#: the command and the model's own notes all say it.
-MARKET_BASED_SOURCES: Final[str] = (
-    "It is built from your supplier's own emission factor, from the contractual "
-    "instruments you hold — guarantees of origin, RECs, a PPA — or, failing both, "
-    "from your market's residual mix, which exists precisely so that unclaimed "
-    "electricity is not counted as clean by default."
-)
+def location_based() -> str:
+    """Return what the carbon figure in this package is, in the guidance's words.
 
-#: Why the other half of the required pair is absent, and what it would take.
-#: A sustainability team reads this as a shopping list rather than as a refusal.
-MARKET_BASED_MISSING: Final[str] = (
-    "The market-based figure is a different number and is not here. "
-    + MARKET_BASED_SOURCES
-    + " None of the three can be derived from a grid average, so this package "
-    "reports neither a market-based figure nor a zero. Record the factor as "
-    "`assumptions.market_carbon_intensity` and the figure is computed and placed "
-    "beside this one. Where contractual instruments exist in your market, the GHG "
-    "Protocol requires both numbers, each labelled with the method that produced it."
-)
+    Returns
+    -------
+    str
+        The phrase, in the language in force.
 
-#: The same slot, once the companion figure is actually in the model. It says
-#: what the pair is for, because the commonest misuse of a market-based number
-#: is to publish it alone — which is the one thing the guidance forbids.
-MARKET_BASED_PRESENT: Final[str] = (
-    "The market-based figure required beside this one is in the model, as "
-    "`carbon_market_based`. Both are disclosed: the market-based number does not "
-    "replace this one, and a contract does not change which electrons the grid "
-    "delivered. Check that what you recorded meets the Scope 2 Guidance's quality "
-    "criteria for a contractual instrument — this package cannot, and does not "
-    "pretend to."
-)
+    Examples
+    --------
+    >>> location_based().startswith("location-based")
+    True
+    """
+    return say("ghg.location_based")
+
+
+def market_based() -> str:
+    """Return what the market-based figure is, in the same shape.
+
+    Returns
+    -------
+    str
+        The phrase, in the language in force.
+
+    Examples
+    --------
+    >>> market_based().startswith("market-based")
+    True
+    """
+    return say("ghg.market_based")
+
+
+def market_based_sources() -> str:
+    """Return where a market-based factor may honestly come from.
+
+    In the order the Scope 2 Guidance puts them. Said when the figure is
+    missing, so the sentence is a shopping list rather than a refusal, and kept
+    in one place because the report, the command and the model's own notes all
+    say it.
+
+    Returns
+    -------
+    str
+        The sentence, in the language in force.
+
+    Examples
+    --------
+    >>> "residual mix" in market_based_sources()
+    True
+    """
+    return say("ghg.market_based_sources")
+
+
+def market_based_missing() -> str:
+    """Return why the other half of the required pair is absent.
+
+    Returns
+    -------
+    str
+        The sentence, which a sustainability team reads as a shopping list
+        rather than as a refusal.
+
+    Examples
+    --------
+    >>> "market_carbon_intensity" in market_based_missing()
+    True
+    """
+    return say("ghg.market_based_missing", sources=market_based_sources())
+
+
+def market_based_present() -> str:
+    """Return what the pair is for, once the companion figure is in the model.
+
+    The commonest misuse of a market-based number is to publish it alone, which
+    is the one thing the guidance forbids.
+
+    Returns
+    -------
+    str
+        The sentence, in the language in force.
+
+    Examples
+    --------
+    >>> "does not" in market_based_present()
+    True
+    """
+    return say("ghg.market_based_present")
 
 
 @dataclass(frozen=True, slots=True)
@@ -206,21 +260,14 @@ GHG_EMISSIONS: Final[tuple[str, ...]] = ("carbon", "carbon_market_based", "embod
 MARKET_BASED_DIMENSION: Final[str] = "carbon_market_based"
 
 
-#: Why a dimension that is not an emission has no scope. One sentence each,
-#: because "not applicable" in a report reads as an omission rather than a fact.
+#: Dimensions that are not emissions, each with the key of its own sentence.
+#: One sentence each, because "not applicable" in a report reads as an omission
+#: rather than as a fact.
 _NOT_AN_EMISSION: Final[dict[str, str]] = {
-    "money": "Money is a cost, not an emission. No scope applies.",
-    "time": "Time is a cost, not an emission. No scope applies.",
-    "energy": (
-        "Energy is the activity datum the scope 2 or scope 3 figure is computed "
-        "from, not an emission itself. Under the European standards it is "
-        "disclosed on its own, as energy consumption, beside the emissions it "
-        "produced."
-    ),
-    "water": (
-        "Water is not a greenhouse gas and has no scope. The European standards "
-        "disclose it under water and marine resources, not under climate change."
-    ),
+    "money": "ghg.not_an_emission.money",
+    "time": "ghg.not_an_emission.time",
+    "energy": "ghg.not_an_emission.energy",
+    "water": "ghg.not_an_emission.water",
 }
 
 
@@ -311,19 +358,21 @@ def placement(
     True
     """
     if dimension in _NOT_AN_EMISSION:
-        return Placement(dimension, None, None, "No scope", _NOT_AN_EMISSION[dimension], "")
+        return Placement(
+            dimension,
+            None,
+            None,
+            say(_SCOPE_LABELS["no_scope"]),
+            say(_NOT_AN_EMISSION[dimension]),
+            "",
+        )
     if dimension not in GHG_EMISSIONS:
         return Placement(
             dimension,
             None,
             None,
-            "No scope",
-            (
-                f"{dimension!r} is a dimension this project registered. Whether it "
-                "is a greenhouse gas, and under which scope, is a question about "
-                "your dimension rather than about this package, which will not "
-                "guess at it from a unit."
-            ),
+            say(_SCOPE_LABELS["no_scope"]),
+            say("ghg.unregistered_dimension", dimension=repr(dimension)),
             "",
         )
 
@@ -333,16 +382,11 @@ def placement(
             dimension,
             None,
             None,
-            "No scope",
-            (
-                "The provider does not say who operates the machine, and that is "
-                "the fact the scope turns on: the same emission is scope 2 on "
-                "hardware you own and scope 3 category 1 on hardware you rent. "
-                "Set `operated_by` on the provider's catalogue row — `self` or "
-                "`vendor` — rather than letting this be inferred."
+            say(_SCOPE_LABELS["no_scope"]),
+            say(
+                "ghg.operator_unknown.named_provider"
                 if provider
-                else "The model states no provider, and the scope turns on who "
-                "operates the machine. Name one in `deployment.provider`."
+                else "ghg.operator_unknown.no_provider"
             ),
             "",
         )
@@ -355,16 +399,8 @@ def placement(
             dimension,
             None,
             None,
-            "No scope",
-            (
-                "The machine is operated by a vendor, so there is no scope 2 of "
-                "yours here to report either way. The electricity is the vendor's "
-                "scope 2, and the location-based / market-based pair is its "
-                "disclosure to make. What reaches you is one purchased service, in "
-                "scope 3 category 1, where the standard draws no such pair — so a "
-                "market-based figure on rented hardware is not a more precise "
-                "answer, it is an answer to somebody else's question."
-            ),
+            say(_SCOPE_LABELS["no_scope"]),
+            say("ghg.vendor_market_based"),
             "",
         )
 
@@ -376,20 +412,9 @@ def placement(
             dimension,
             "3",
             1,
-            "Scope 3, category 1 — purchased goods and services",
-            (
-                "The machine is operated by a vendor, so the organisation bought a "
-                "service rather than electricity or hardware. This is the vendor's "
-                "own scope 2 and scope 3 category 2; it reaches the organisation "
-                "as the purchased service."
-                + (
-                    " Most providers publish no per-customer figure for the "
-                    "hardware share, so a vendor invoice will rarely contain this "
-                    "number: it is the one the model beside it computes."
-                    if dimension == "embodied_carbon"
-                    else ""
-                )
-            ),
+            say(_SCOPE_LABELS["scope3_cat1"]),
+            say("ghg.vendor_service")
+            + (" " + say("ghg.vendor_service.embodied") if dimension == "embodied_carbon" else ""),
             GHG_PROTOCOL_SCOPE3,
         )
 
@@ -398,14 +423,8 @@ def placement(
             dimension,
             "3",
             2,
-            "Scope 3, category 2 — capital goods",
-            (
-                "The organisation operates the machine, so it bought the hardware. "
-                "Capital goods rather than purchased goods and services, because "
-                "the asset's useful life is longer than a year — which is the "
-                "distinction the standard draws between the two categories, and "
-                "also the reason this figure is amortised rather than counted once."
-            ),
+            say(_SCOPE_LABELS["scope3_cat2"]),
+            say("ghg.capital_goods"),
             GHG_PROTOCOL_SCOPE3,
         )
 
@@ -414,33 +433,20 @@ def placement(
             dimension,
             "2",
             None,
-            "Scope 2 (market-based)",
-            (
-                "The organisation operates the machine, so it bought the electricity, "
-                "and it bought it under a contract. The figure here is "
-                f"{MARKET_BASED}. It rests on a factor you stated, which is the one "
-                "fact about this number nobody else holds — this package neither "
-                "derived it nor can refresh it."
-            ),
+            say(_SCOPE_LABELS["scope2_market"]),
+            say("ghg.bought_electricity_market", method=market_based()),
             GHG_PROTOCOL_SCOPE2,
-            (
-                "This is one half of the pair. The location-based figure beside it, "
-                "`carbon`, is the other, and both are disclosed: a contract changes "
-                "what you are accountable for, not what the grid emitted."
-            ),
+            say("ghg.market_based_companion"),
         )
 
     return Placement(
         dimension,
         "2",
         None,
-        "Scope 2 (location-based)",
-        (
-            "The organisation operates the machine, so it bought the electricity. "
-            f"The figure here is {LOCATION_BASED}."
-        ),
+        say(_SCOPE_LABELS["scope2_location"]),
+        say("ghg.bought_electricity_location", method=location_based()),
         GHG_PROTOCOL_SCOPE2,
-        MARKET_BASED_PRESENT if market_based_reported else MARKET_BASED_MISSING,
+        market_based_present() if market_based_reported else market_based_missing(),
     )
 
 

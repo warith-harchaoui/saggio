@@ -1,0 +1,118 @@
+# The engine's own sentences, in English, which is the authored language.
+#
+# The prose an audit composes while it measures: the notes, the methods, the
+# caveats and the refusals that end up in a cost model and on a report. One file
+# per language, read by `saggio/i18n.py` and used through `say()`.
+#
+# Three rules a contract test enforces:
+#
+#   * Every key here exists in every other language file. A language that
+#     half-answers would show English holes in an otherwise translated page.
+#   * Every key here is used somewhere in the package, and every key the code
+#     asks for is here. Dead wording and missing wording are both defects.
+#   * A sentence names its arguments in braces — `{pue}`, `{country}` — and each
+#     language names exactly the same ones. Your language may put them in
+#     whatever order reads best; that is the point of a catalogue rather than a
+#     concatenation.
+#
+# Two rules only a reader can keep:
+#
+#   * Translate for sense, not word by word. These are sentences somebody reads
+#     next to a number, and the number is the point.
+#   * Never write a measured quantity into the wording. Every figure arrives as
+#     an argument, from a measurement or from a catalogue. ("Scope 2" is a name,
+#     not a figure.)
+
+# --- Where a cost lands in a greenhouse-gas inventory (saggio/estimate/ghg.py)
+
+ghg.label.no_scope: "No scope"
+ghg.label.scope2_location: "Scope 2 (location-based)"
+ghg.label.scope2_market: "Scope 2 (market-based)"
+ghg.label.scope3_cat1: "Scope 3, category 1 — purchased goods and services"
+ghg.label.scope3_cat2: "Scope 3, category 2 — capital goods"
+
+ghg.location_based: >-
+  location-based: a grid-average emission factor for the country, carrying no
+  adjustment for any contractual instrument
+ghg.market_based: >-
+  market-based: the emission factor of the electricity this organisation
+  contracted for, rather than the average of the grid it drew from
+
+ghg.not_an_emission.money: "Money is a cost, not an emission. No scope applies."
+ghg.not_an_emission.time: "Time is a cost, not an emission. No scope applies."
+ghg.not_an_emission.energy: >-
+  Energy is the activity datum the scope 2 or scope 3 figure is computed from,
+  not an emission itself. Under the European standards it is disclosed on its
+  own, as energy consumption, beside the emissions it produced.
+ghg.not_an_emission.water: >-
+  Water is not a greenhouse gas and has no scope. The European standards
+  disclose it under water and marine resources, not under climate change.
+
+ghg.unregistered_dimension: >-
+  {dimension} is a dimension this project registered. Whether it is a greenhouse
+  gas, and under which scope, is a question about your dimension rather than
+  about this package, which will not guess at it from a unit.
+
+ghg.operator_unknown.named_provider: >-
+  The provider does not say who operates the machine, and that is the fact the
+  scope turns on: the same emission is scope 2 on hardware you own and scope 3
+  category 1 on hardware you rent. Set `operated_by` on the provider's catalogue
+  row — `self` or `vendor` — rather than letting this be inferred.
+ghg.operator_unknown.no_provider: >-
+  The model states no provider, and the scope turns on who operates the machine.
+  Name one in `deployment.provider`.
+
+ghg.vendor_market_based: >-
+  The machine is operated by a vendor, so there is no scope 2 of yours here to
+  report either way. The electricity is the vendor's scope 2, and the
+  location-based / market-based pair is its disclosure to make. What reaches you
+  is one purchased service, in scope 3 category 1, where the standard draws no
+  such pair — so a market-based figure on rented hardware is not a more precise
+  answer, it is an answer to somebody else's question.
+ghg.vendor_service: >-
+  The machine is operated by a vendor, so the organisation bought a service
+  rather than electricity or hardware. This is the vendor's own scope 2 and
+  scope 3 category 2; it reaches the organisation as the purchased service.
+ghg.vendor_service.embodied: >-
+  Most providers publish no per-customer figure for the hardware share, so a
+  vendor invoice will rarely contain this number: it is the one the model beside
+  it computes.
+ghg.capital_goods: >-
+  The organisation operates the machine, so it bought the hardware. Capital
+  goods rather than purchased goods and services, because the asset's useful
+  life is longer than a year — which is the distinction the standard draws
+  between the two categories, and also the reason this figure is amortised
+  rather than counted once.
+
+ghg.bought_electricity_market: >-
+  The organisation operates the machine, so it bought the electricity, and it
+  bought it under a contract. The figure here is {method}. It rests on a factor
+  you stated, which is the one fact about this number nobody else holds — this
+  package neither derived it nor can refresh it.
+ghg.bought_electricity_location: >-
+  The organisation operates the machine, so it bought the electricity. The
+  figure here is {method}.
+
+ghg.market_based_companion: >-
+  This is one half of the pair. The location-based figure beside it, `carbon`,
+  is the other, and both are disclosed: a contract changes what you are
+  accountable for, not what the grid emitted.
+ghg.market_based_sources: >-
+  It is built from your supplier's own emission factor, from the contractual
+  instruments you hold — guarantees of origin, RECs, a PPA — or, failing both,
+  from your market's residual mix, which exists precisely so that unclaimed
+  electricity is not counted as clean by default.
+ghg.market_based_missing: >-
+  The market-based figure is a different number and is not here. {sources} None
+  of the three can be derived from a grid average, so this package reports
+  neither a market-based figure nor a zero. Record the factor as
+  `assumptions.market_carbon_intensity` and the figure is computed and placed
+  beside this one. Where contractual instruments exist in your market, the GHG
+  Protocol requires both numbers, each labelled with the method that produced it.
+ghg.market_based_present: >-
+  The market-based figure required beside this one is in the model, as
+  `carbon_market_based`. Both are disclosed: the market-based number does not
+  replace this one, and a contract does not change which electrons the grid
+  delivered. Check that what you recorded meets the Scope 2 Guidance's quality
+  criteria for a contractual instrument — this package cannot, and does not
+  pretend to.

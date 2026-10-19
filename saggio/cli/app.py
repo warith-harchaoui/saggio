@@ -33,7 +33,7 @@ from ..analyze.run import DEFAULT_BASELINE_SECONDS, DEFAULT_TIMEOUT_SECONDS
 from ..catalog.registry import EXPIRING_WITHIN_DAYS, SECTION_OF_KIND
 from ..diff import DEFAULT_DRIFT_THRESHOLD_PERCENT
 from ..estimate.extrapolate import DEFAULT_PRECISION
-from ..i18n import DEFAULT_LANGUAGE
+from ..i18n import DEFAULT_LANGUAGE, language
 from ..i18n import languages as LANGUAGES_FROM_FILES
 from ..model.taxonomy import STATUS_ORDER
 from ..report.office import DEFAULT_AUTHOR, OFFICE_FORMATS
@@ -124,7 +124,48 @@ def build_parser() -> argparse.ArgumentParser:
     _add_power(verbs)
     _add_consent(verbs)
     _add_catalog(verbs)
+    _add_language_everywhere(verbs)
     return parser
+
+
+def _add_language_everywhere(verbs: argparse._SubParsersAction) -> None:
+    """Give every verb the same ``--language``, from one definition.
+
+    Walked rather than written out once per verb, for the reason this package
+    keeps its surfaces in step with tests rather than with discipline: a verb
+    added later gets the option without anybody having to remember, and there
+    is one sentence of help to keep true instead of sixteen.
+
+    It is per-verb rather than global so that ``saggio audit --language fr``
+    reads the way the cookbook writes it, and so each verb's own ``--help``
+    lists it.
+
+    Parameters
+    ----------
+    verbs : argparse._SubParsersAction
+        The sub-parser collection, after every verb has been attached.
+
+    Examples
+    --------
+    >>> build_parser().parse_args(["validate", "m.yaml"]).language
+    'en'
+    >>> build_parser().parse_args(["render", "m.yaml", "--language", "fr"]).language
+    'fr'
+    """
+    offered = list(LANGUAGES_FROM_FILES())
+    for parser in verbs.choices.values():
+        parser.add_argument(
+            "--language",
+            default=DEFAULT_LANGUAGE,
+            choices=offered,
+            help=(
+                "Language for what this command writes, asks and prints. "
+                "Sentences already recorded in a model stay as they were written."
+            ),
+        )
+        for action in parser._actions:
+            if isinstance(action, argparse._SubParsersAction):
+                _add_language_everywhere(action)
 
 
 def _add_init(verbs: argparse._SubParsersAction) -> None:
@@ -355,15 +396,6 @@ def _add_audit(verbs: argparse._SubParsersAction) -> None:
         action="store_true",
         help=(
             "Do not ask a local model to classify the workload. Numbers never come from it anyway."
-        ),
-    )
-    parser.add_argument(
-        "--language",
-        default=DEFAULT_LANGUAGE,
-        choices=list(LANGUAGES_FROM_FILES()),
-        help=(
-            "Language for the one sentence a local model writes into the model, "
-            "so it matches the language the report is read in."
         ),
     )
     parser.add_argument(
@@ -630,12 +662,6 @@ def _add_consent(verbs: argparse._SubParsersAction) -> None:
         default=None,
         help="Record the decision in this file instead of the per-user one.",
     )
-    parser.add_argument(
-        "--language",
-        default=DEFAULT_LANGUAGE,
-        choices=list(LANGUAGES_FROM_FILES()),
-        help="Language to show the terms in. Somebody who cannot read them has not been asked.",
-    )
 
 
 def _add_catalog(verbs: argparse._SubParsersAction) -> None:
@@ -843,7 +869,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     if handler is None:
         parser.print_help()
         return USAGE
-    return handler(args)
+    # The whole verb runs inside the language it was given, so a sentence
+    # composed four modules deep comes out in the reader's language without that
+    # tag being threaded through every signature between here and there.
+    with language(getattr(args, "language", None)):
+        return handler(args)
 
 
 def run() -> None:

@@ -203,7 +203,17 @@ figer une liste qui se périme. Une étiquette dans laquelle rien n'est écrit
 retombe sur l'anglais et le dit dans les notes, car un audit ne doit pas échouer
 pour une histoire de langue.
 
-**Ce que le bouton ne change pas, mesuré.** Il échange **929 des 19 337
+**Les phrases du moteur passent dans un catalogue de messages**, module par
+module, pour que `--language fr` les rende aussi et pas seulement l'ossature.
+`saggio/data/messages/*.yaml` les porte, un fichier par langue ; une phrase nomme
+ses arguments entre accolades, chaque langue peut donc mettre les nombres là où
+sa grammaire les veut. Des tests de contrat refusent une clé que le code demande
+et que rien ne fournit, une clé qu'une langue a et l'autre non, une formulation
+que rien n'atteint, et une traduction qui renomme un argument. Au 2026-10-19, le
+premier module passé — les placements d'inventaire — faisait sortir **11 % d'un
+rapport statique** en français.
+
+**Ce que le bouton seul ne change pas, mesuré.** Il échange **929 des 19 337
 caractères** de texte visible d'un rapport produit — **4,8 %**. L'ossature
 bouge : titres, noms de colonnes, étiquettes du panneau what-if, phrases
 d'équivalence. La substance, non : les notes, les méthodes, les mises en garde
