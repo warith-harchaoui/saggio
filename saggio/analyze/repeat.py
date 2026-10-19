@@ -50,7 +50,13 @@ from pathlib import Path
 from statistics import median
 from typing import Any, Final
 
-from .run import DEFAULT_BASELINE_SECONDS, DEFAULT_TIMEOUT_SECONDS, SliceResult, run_slice
+from ..i18n import say
+from .run import (
+    DEFAULT_BASELINE_SECONDS,
+    DEFAULT_TIMEOUT_SECONDS,
+    SliceResult,
+    run_slice,
+)
 
 #: A spread wider than this is reported as a warning rather than left to a
 #: reader to notice. It is the threshold ``saggio diff`` gates on, deliberately:
@@ -58,18 +64,28 @@ from .run import DEFAULT_BASELINE_SECONDS, DEFAULT_TIMEOUT_SECONDS, SliceResult,
 #: that gate, and a reader is better told before they commit it than after.
 WIDE_SPREAD: Final[float] = 0.10
 
-#: Why a repeated measurement has no function-level profile.
-_PROFILE_SKIPPED: Final[str] = (
-    "No function-level profile was taken: the profiler changes what is being "
-    "timed, so a series with one profiled run among several plain ones would "
-    "report a spread the profiler put there. Run it once for the profile."
-)
+#: Why a repeated measurement has no function-level profile, and what a single
+#: run can say about its own repeatability, which is nothing. Both are catalogue
+#: keys: they end up in a model file, and a model written during a French audit
+#: should read as French throughout.
+_PROFILE_SKIPPED_KEY: Final[str] = "repeat.profile_skipped"
+_MEASURED_ONCE_KEY: Final[str] = "repeat.measured_once"
 
-#: What a single run can say about its own repeatability, which is nothing.
-MEASURED_ONCE: Final[str] = (
-    "Measured once, so nothing here bounds how far a second run would move it. "
-    "Pass `--repeat N` to find out."
-)
+
+def measured_once() -> str:
+    """Return what one run says about how far a second would move.
+
+    Returns
+    -------
+    str
+        The sentence, in the language in force.
+
+    Examples
+    --------
+    >>> measured_once().startswith("Measured once")
+    True
+    """
+    return say(_MEASURED_ONCE_KEY)
 
 
 @dataclass(frozen=True, slots=True)
@@ -462,11 +478,9 @@ class SliceSeries:
         return mapping
 
 
-#: What each repeated figure is called in the warning, and its unit.
-_SPREAD_LABELS: Final[dict[str, tuple[str, str]]] = {
-    "runtime_s": ("runtime", "s"),
-    "power_w": ("measured power", "W"),
-}
+#: The unit each repeated figure carries. What it is *called* is a catalogue
+#: key built from the same name.
+_SPREAD_UNITS: Final[dict[str, str]] = {"runtime_s": "s", "power_w": "W"}
 
 
 def spread_warnings(measurement: Mapping[str, Any] | None) -> list[str]:
@@ -507,7 +521,7 @@ def spread_warnings(measurement: Mapping[str, Any] | None) -> list[str]:
     if not isinstance(repeats, int) or repeats < 2 or not isinstance(spreads, Mapping):
         return []
     found: list[str] = []
-    for key, (label, unit) in _SPREAD_LABELS.items():
+    for key, unit in _SPREAD_UNITS.items():
         block = spreads.get(key)
         if not isinstance(block, Mapping):
             continue
@@ -518,12 +532,14 @@ def spread_warnings(measurement: Mapping[str, Any] | None) -> list[str]:
         if not isinstance(relative, (int, float)) or relative <= WIDE_SPREAD:
             continue
         found.append(
-            f"The {label} moved from {low:.4g} {unit} to "
-            f"{high:.4g} {unit} across {repeats} runs of the "
-            f"same command — {relative:.0%} of the median, which is "
-            f"wider than the gate `saggio diff` applies to a release. The "
-            f"model carries the median run; this is how much it would move "
-            f"if you took it again."
+            say(
+                "repeat.wide",
+                figure=say(f"repeat.figure.{key}"),
+                low=f"{low:.4g} {unit}",
+                high=f"{high:.4g} {unit}",
+                repeats=repeats,
+                relative=f"{relative:.0%}",
+            )
         )
     return found
 
@@ -550,8 +566,8 @@ def _as_odds(probability: float) -> str:
     'every time'
     """
     if probability >= 1.0:
-        return "every time"
-    return f"one time in {round(1.0 / probability)}"
+        return say("repeat.odds.every_time")
+    return say("repeat.odds.one_in", count=round(1.0 / probability))
 
 
 def spread_note(measurement: Mapping[str, Any] | None, key: str) -> str:
@@ -573,7 +589,7 @@ def spread_note(measurement: Mapping[str, Any] | None, key: str) -> str:
 
     Examples
     --------
-    >>> spread_note(None, "runtime_s") == MEASURED_ONCE
+    >>> spread_note(None, "runtime_s") == measured_once()
     True
     >>> block = {"repeats": 3, "spread": {"runtime_s":
     ...          {"low": 1.0, "median": 2.0, "high": 3.0, "relative": 1.0}}}
@@ -585,24 +601,24 @@ def spread_note(measurement: Mapping[str, Any] | None, key: str) -> str:
     True
     """
     if not isinstance(measurement, Mapping):
-        return MEASURED_ONCE
+        return measured_once()
     repeats = measurement.get("repeats")
     spreads = measurement.get("spread")
     if not isinstance(repeats, int) or repeats < 2 or not isinstance(spreads, Mapping):
-        return MEASURED_ONCE
+        return measured_once()
     block = spreads.get(key)
     if not isinstance(block, Mapping):
-        return MEASURED_ONCE
+        return measured_once()
     low, high, relative = block.get("low"), block.get("high"), block.get("relative")
     if not isinstance(low, (int, float)) or not isinstance(high, (int, float)):
-        return MEASURED_ONCE
+        return measured_once()
     unit = " s" if key == "runtime_s" else " W"
     middle = block.get("median")
-    width = f", a spread of {relative:.0%} of their median" if isinstance(relative, float) else ""
+    width = say("repeat.width", relative=f"{relative:.0%}") if isinstance(relative, float) else ""
     if key == "runtime_s":
         # The model carries this figure exactly: the representative run is
         # chosen by runtime, so the runtime it carries is the median one.
-        opening = f"The median of {repeats} runs of the same command"
+        opening = say("repeat.opening.runtime", repeats=repeats)
     else:
         # It does not carry this one. The run the model carries was chosen by
         # its runtime, so the power beside it is that run's power and not the
@@ -610,20 +626,19 @@ def spread_note(measurement: Mapping[str, Any] | None, key: str) -> str:
         # far the two happen to differ, which on the gallery's own model is
         # 17.4 W against 19.4 W.
         middling = f" ({middle:.4g}{unit})" if isinstance(middle, (int, float)) else ""
-        opening = (
-            f"Read during the run this model carries, which is the one whose "
-            f"runtime was the median of {repeats}; the middle power of the "
-            f"{repeats}{middling} is a different run's"
-        )
+        opening = say("repeat.opening.other", repeats=repeats, middle=middling)
     # What the range is worth, which is a different question from how wide it
     # is. A reader who is told only the width reads it as a bound; it is not
     # one, and the odds say by how much.
     odds = 2.0 / (repeats + 1)
-    return (
-        f"{opening}. Across them this figure ranged {low:.4g}{unit} to "
-        f"{high:.4g}{unit}{width}. A range from {repeats} runs is not a bound: "
-        f"the next run lands outside it about {_as_odds(odds)}, whatever the "
-        f"shape of the variation, and nothing need have changed for it to."
+    return say(
+        "repeat.ranged",
+        opening=opening,
+        low=f"{low:.4g}{unit}",
+        high=f"{high:.4g}{unit}",
+        width=width,
+        repeats=repeats,
+        odds=_as_odds(odds),
     )
 
 
@@ -682,7 +697,7 @@ def run_slices(
     1
     """
     if repeats < 1:
-        raise ValueError(f"A command cannot be run {repeats} times.")
+        raise ValueError(say("repeat.cannot_run", repeats=repeats))
     runs: list[SliceResult] = []
     for _ in range(repeats):
         result = run_slice(
@@ -699,5 +714,5 @@ def run_slices(
             break
     series = SliceSeries(tuple(runs))
     if profile and repeats > 1:
-        return series.with_warning(_PROFILE_SKIPPED)
+        return series.with_warning(say(_PROFILE_SKIPPED_KEY))
     return series

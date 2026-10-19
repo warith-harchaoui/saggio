@@ -9,6 +9,18 @@ release of that line.
 
 ## Unreleased
 
+### The spread, the embodied half, and the odds a reader can hold
+
+- **What repeating a measurement says** (`analyze/repeat.py`): the sentence that
+  bounds how far a figure would move again, the wide-spread warning, and
+  `2/(n+1)` put as *"one time in 3"* rather than a decimal — in French too,
+  because a reader counts occasions in whatever language they count in.
+- **The embodied half and the SCI score** (`estimate/embodied.py`): the calendar
+  amortisation the standard defines, the four reasons the figure stays open, and
+  the refusal to publish half an SCI under the standard's name.
+- `MEASURED_ONCE` and `_SPREAD_LABELS` were constants; a constant holds one
+  language. They are `measured_once()` and a catalogue family now.
+
 ### What an audit writes, in the language it was asked in
 
 Three modules whose sentences are composed while the measurement happens and

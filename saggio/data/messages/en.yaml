@@ -357,3 +357,70 @@ context.instance.missing: "Instance {instance} is not in the instances catalogue
 context.instance.nameplate: >-
   Nameplate-derived sustained draw for {instance}; measure the machine to
   replace this with a recorded figure.
+
+# --- The embodied half, and the SCI score (estimate/embodied.py)
+
+embodied.calendar_note: >-
+  Amortised over calendar life, as the SCI specification defines the time share:
+  idle time is charged to nobody. Amortising over busy hours instead would give
+  a larger figure and is not what the standard says.
+embodied.no_footprint: >-
+  No product carbon footprint is on file for this hardware, so the carbon of
+  building it is open. Nobody has read one for this part; that is not the same
+  as it having been free to build. Add an `embodied_kgco2e` to the catalogue row
+  with the footprint's own URL and the date it was read.
+embodied.no_lifetime: >-
+  The hardware's expected lifespan is not stated, so there is nothing to
+  amortise over. Every vendor footprint here is cradle-to-gate and excludes the
+  use phase on purpose: the vendor gave the numerator and withheld the
+  denominator. State `assumptions.hardware_lifetime`; published figures cluster
+  between three and six years, and that range alone moves this number by a
+  factor of two.
+embodied.no_runtime: >-
+  The runtime of one unit of work is not known in a unit this can convert, so
+  the share of the hardware's life it reserved is open.
+embodied.share_open: >-
+  A resource share was offered and carries no number, so what fraction of the
+  hardware this work reserved is open.
+embodied.share_impossible: >-
+  A resource share of {share} is outside (0, 1]: a unit of work cannot reserve a
+  negative part of a machine, nor more of one than there is.
+embodied.method: >-
+  M = TE x TS x RS: {footprint} of manufacturing, times {hours} over a
+  {years}-year life, times a resource share of {share}. {calendar}
+embodied.sci.half_open: >-
+  The {missing} half of this score is open, so the score is. SCI is the sum of
+  both; reporting one of them under the name of the standard would understate it
+  with the standard's authority.
+embodied.sci.method: >-
+  SCI = (E x I + M) per R, where R is this model's unit of work. {source}
+
+# --- What repeating a measurement says about it (analyze/repeat.py)
+
+repeat.profile_skipped: >-
+  No function-level profile was taken: the profiler changes what is being timed,
+  so a series with one profiled run among several plain ones would report a
+  spread the profiler put there. Run it once for the profile.
+repeat.measured_once: >-
+  Measured once, so nothing here bounds how far a second run would move it. Pass
+  `--repeat N` to find out.
+repeat.wide: >-
+  The {figure} moved from {low} to {high} across {repeats} runs of the same
+  command — {relative} of the median, which is wider than the gate
+  `saggio diff` applies to a release. The model carries the median run; this is
+  how much it would move if you took it again.
+repeat.opening.runtime: "The median of {repeats} runs of the same command"
+repeat.opening.other: >-
+  Read during the run this model carries, which is the one whose runtime was the
+  median of {repeats}; the middle power of the {repeats}{middle} is a different
+  run's
+repeat.ranged: >-
+  {opening}. Across them this figure ranged {low} to {high}{width}. A range from
+  {repeats} runs is not a bound: the next run lands outside it about {odds},
+  whatever the shape of the variation, and nothing need have changed for it to.
+repeat.width: ", a spread of {relative} of their median"
+repeat.odds.every_time: "every time"
+repeat.odds.one_in: "one time in {count}"
+repeat.figure.runtime_s: "runtime"
+repeat.figure.power_w: "measured power"
+repeat.cannot_run: "A command cannot be run {repeats} times."

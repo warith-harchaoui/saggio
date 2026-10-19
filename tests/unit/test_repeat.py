@@ -14,10 +14,10 @@ import pytest
 
 from saggio.analyze.power import PowerReading, measurement_rows
 from saggio.analyze.repeat import (
-    MEASURED_ONCE,
     WIDE_SPREAD,
     SliceSeries,
     Spread,
+    measured_once,
     run_slices,
     spread_note,
 )
@@ -112,9 +112,9 @@ def test_a_single_run_warns_about_nothing_because_it_knows_nothing() -> None:
 
 def test_a_quantity_measured_once_says_so_rather_than_saying_nothing() -> None:
     # Silence reads as stability, and this is the figure that is not stable.
-    assert spread_note(None, "runtime_s") == MEASURED_ONCE
-    assert spread_note({"repeats": 1}, "runtime_s") == MEASURED_ONCE
-    assert "--repeat" in MEASURED_ONCE
+    assert spread_note(None, "runtime_s") == measured_once()
+    assert spread_note({"repeats": 1}, "runtime_s") == measured_once()
+    assert "--repeat" in measured_once()
 
 
 def test_the_sentence_quotes_the_range_the_repeats_established() -> None:
@@ -137,8 +137,8 @@ def test_the_power_sentence_does_not_call_the_carried_figure_a_median() -> None:
 
 def test_a_malformed_spread_block_falls_back_to_the_honest_default() -> None:
     # Measurement blocks are YAML a human may have edited.
-    assert spread_note({"repeats": 3, "spread": "lots"}, "runtime_s") == MEASURED_ONCE
-    assert spread_note({"repeats": "three", "spread": {}}, "runtime_s") == MEASURED_ONCE
+    assert spread_note({"repeats": 3, "spread": "lots"}, "runtime_s") == measured_once()
+    assert spread_note({"repeats": "three", "spread": {}}, "runtime_s") == measured_once()
 
 
 # --- The report row ----------------------------------------------------------

@@ -67,6 +67,7 @@ from __future__ import annotations
 
 from typing import Final
 
+from ..i18n import say
 from ..model.quantity import Quantity
 from ..model.taxonomy import TODO, weakest
 
@@ -87,11 +88,7 @@ GRAMS_PER_KILOGRAM: Final[float] = 1000.0
 
 #: Said on every figure this module produces, because the choice it records is
 #: not the only defensible one.
-_CALENDAR_NOTE: Final[str] = (
-    "Amortised over calendar life, as the SCI specification defines the time "
-    "share: idle time is charged to nobody. Amortising over busy hours instead "
-    "would give a larger figure and is not what the standard says."
-)
+_CALENDAR_NOTE_KEY: Final[str] = "embodied.calendar_note"
 
 
 def _hours(duration: Quantity) -> float | None:
@@ -206,13 +203,7 @@ def embodied_carbon(
         return Quantity(
             unit="gCO2e",
             status=TODO,
-            notes=(
-                "No product carbon footprint is on file for this hardware, so the "
-                "carbon of building it is open. Nobody has read one for this part; "
-                "that is not the same as it having been free to build. Add an "
-                "`embodied_kgco2e` to the catalogue row with the footprint's own URL "
-                "and the date it was read."
-            ),
+            notes=say("embodied.no_footprint"),
         )
 
     lifetime_hours = _hours(lifetime)
@@ -220,14 +211,7 @@ def embodied_carbon(
         return Quantity(
             unit="gCO2e",
             status=TODO,
-            notes=(
-                "The hardware's expected lifespan is not stated, so there is nothing "
-                "to amortise over. Every vendor footprint here is cradle-to-gate and "
-                "excludes the use phase on purpose: the vendor gave the numerator and "
-                "withheld the denominator. State `assumptions.hardware_lifetime`; "
-                "published figures cluster between three and six years, and that range "
-                "alone moves this number by a factor of two."
-            ),
+            notes=say("embodied.no_lifetime"),
         )
 
     run_hours = _hours(runtime)
@@ -235,10 +219,7 @@ def embodied_carbon(
         return Quantity(
             unit="gCO2e",
             status=TODO,
-            notes=(
-                "The runtime of one unit of work is not known in a unit this can "
-                "convert, so the share of the hardware's life it reserved is open."
-            ),
+            notes=say("embodied.no_runtime"),
         )
 
     share = 1.0
@@ -247,21 +228,14 @@ def embodied_carbon(
             return Quantity(
                 unit="gCO2e",
                 status=TODO,
-                notes=(
-                    "A resource share was offered and carries no number, so what "
-                    "fraction of the hardware this work reserved is open."
-                ),
+                notes=say("embodied.share_open"),
             )
         share = float(resource_share.value)
         if not 0.0 < share <= 1.0:
             return Quantity(
                 unit="gCO2e",
                 status=TODO,
-                notes=(
-                    f"A resource share of {share!r} is outside (0, 1]: a unit of work "
-                    "cannot reserve a negative part of a machine, nor more of one than "
-                    "there is."
-                ),
+                notes=say("embodied.share_impossible", share=repr(share)),
             )
 
     time_share = run_hours / lifetime_hours
@@ -270,10 +244,13 @@ def embodied_carbon(
         value=grams,
         unit="gCO2e",
         status=weakest("estimated", embodied.status, lifetime.status),
-        notes=(
-            f"M = TE x TS x RS: {embodied.value:g} kgCO2e of manufacturing, times "
-            f"{run_hours:g} h over a {lifetime_hours / HOURS_PER_YEAR:.2f}-year life, "
-            f"times a resource share of {share:g}. {_CALENDAR_NOTE}"
+        notes=say(
+            "embodied.method",
+            footprint=f"{embodied.value:g} kgCO2e",
+            hours=f"{run_hours:g} h",
+            years=f"{lifetime_hours / HOURS_PER_YEAR:.2f}",
+            share=f"{share:g}",
+            calendar=say(_CALENDAR_NOTE_KEY),
         ),
     )
 
@@ -315,15 +292,11 @@ def software_carbon_intensity(*, operational: Quantity, embodied: Quantity) -> Q
         return Quantity(
             unit="gCO2e",
             status=TODO,
-            notes=(
-                f"The {missing} half of this score is open, so the score is. SCI is "
-                "the sum of both; reporting one of them under the name of the "
-                "standard would understate it with the standard's authority."
-            ),
+            notes=say("embodied.sci.half_open", missing=missing),
         )
     return Quantity(
         value=float(operational.value) + float(embodied.value),
         unit="gCO2e",
         status=weakest(operational.status, embodied.status),
-        notes=(f"SCI = (E x I + M) per R, where R is this model's unit of work. {SCI_SOURCE}"),
+        notes=say("embodied.sci.method", source=SCI_SOURCE),
     )

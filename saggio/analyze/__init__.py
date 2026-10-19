@@ -45,10 +45,10 @@ from .power import (
     unavailable_reason,
 )
 from .repeat import (
-    MEASURED_ONCE,
     WIDE_SPREAD,
     SliceSeries,
     Spread,
+    measured_once,
     run_slices,
     spread_note,
     spread_warnings,
@@ -123,7 +123,7 @@ __all__ = [
     "SliceResult",
     "SliceSeries",
     "Spread",
-    "MEASURED_ONCE",
+    "measured_once",
     "WIDE_SPREAD",
     "ProfileEntry",
     "run_slice",

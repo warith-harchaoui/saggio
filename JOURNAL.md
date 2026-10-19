@@ -10,6 +10,20 @@ cette ligne.
 
 ## Non publié
 
+### L'étendue, la moitié incorporée, et une probabilité qu'un lecteur peut tenir
+
+- **Ce que répéter une mesure en dit** (`analyze/repeat.py`) : la phrase qui
+  borne de combien un chiffre rebougerait, l'avertissement d'étendue large, et
+  `2/(n+1)` énoncé comme *« une fois sur 3 »* plutôt qu'en décimale — en français
+  aussi, parce qu'un lecteur compte des occasions dans la langue où il compte.
+- **La moitié incorporée et le score SCI** (`estimate/embodied.py`) :
+  l'amortissement calendaire que la norme définit, les quatre raisons pour
+  lesquelles le chiffre reste ouvert, et le refus de publier la moitié d'un SCI
+  sous le nom de la norme.
+- `MEASURED_ONCE` et `_SPREAD_LABELS` étaient des constantes ; une constante
+  porte une seule langue. Ce sont maintenant `measured_once()` et une famille de
+  clés.
+
 ### Ce qu'un audit écrit, dans la langue où on le lui a demandé
 
 Trois modules dont les phrases sont composées pendant la mesure et **écrites

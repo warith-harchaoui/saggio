@@ -396,3 +396,75 @@ context.instance.missing: "L'instance {instance} n'est pas dans le catalogue des
 context.instance.nameplate: >-
   Consommation soutenue déduite de la plaque pour {instance} ; mesurez la machine
   pour remplacer ce chiffre par un relevé.
+
+# --- La moitié incorporée, et le score SCI (estimate/embodied.py)
+
+embodied.calendar_note: >-
+  Amorti sur la durée de vie calendaire, comme la spécification SCI définit la
+  part de temps : le temps d'inactivité n'est imputé à personne. Amortir sur les
+  heures occupées donnerait un chiffre plus grand et n'est pas ce que dit la
+  norme.
+embodied.no_footprint: >-
+  Aucune empreinte carbone produit n'est au dossier pour ce matériel : le carbone
+  de sa fabrication reste donc ouvert. Personne n'en a lu pour cette pièce, ce
+  qui n'est pas la même chose que l'avoir fabriquée gratuitement. Ajoutez un
+  `embodied_kgco2e` à la ligne de catalogue avec l'URL de l'empreinte elle-même
+  et la date de lecture.
+embodied.no_lifetime: >-
+  La durée de vie attendue du matériel n'est pas indiquée : il n'y a donc rien
+  sur quoi amortir. Toutes les empreintes fournisseur ici vont du berceau à la
+  sortie d'usine et excluent délibérément la phase d'usage : le fournisseur a
+  donné le numérateur et retenu le dénominateur. Renseignez
+  `assumptions.hardware_lifetime` ; les chiffres publiés se groupent entre trois
+  et six ans, et cette seule fourchette fait varier ce nombre d'un facteur deux.
+embodied.no_runtime: >-
+  Le temps d'une unité de travail n'est pas connu dans une unité convertible
+  ici : la part de vie du matériel qu'elle a réservée reste donc ouverte.
+embodied.share_open: >-
+  Une part de ressource a été proposée sans porter de nombre : la fraction de
+  matériel que ce travail a réservée reste donc ouverte.
+embodied.share_impossible: >-
+  Une part de ressource de {share} est en dehors de (0, 1] : une unité de travail
+  ne peut pas réserver une part négative de machine, ni plus de machine qu'il n'y
+  en a.
+embodied.method: >-
+  M = TE x TS x RS : {footprint} de fabrication, fois {hours} sur une vie de
+  {years} ans, fois une part de ressource de {share}. {calendar}
+embodied.sci.half_open: >-
+  La moitié {missing} de ce score est ouverte, donc le score l'est. Le SCI est la
+  somme des deux ; déclarer l'une sous le nom de la norme la sous-estimerait avec
+  l'autorité de la norme.
+embodied.sci.method: >-
+  SCI = (E x I + M) par R, où R est l'unité de travail de ce modèle. {source}
+
+# --- Ce que répéter une mesure en dit (analyze/repeat.py)
+
+repeat.profile_skipped: >-
+  Aucun profil par fonction n'a été pris : le profileur change ce qui est
+  chronométré, donc une série où une exécution est profilée parmi plusieurs qui
+  ne le sont pas rapporterait une étendue que le profileur y a mise. Lancez-la
+  une seule fois pour le profil.
+repeat.measured_once: >-
+  Mesuré une fois : rien ici ne borne de combien une seconde exécution
+  bougerait. Passez `--repeat N` pour le savoir.
+repeat.wide: >-
+  {figure} est passé de {low} à {high} sur {repeats} exécutions de la même
+  commande — {relative} de la médiane, soit plus large que la porte que
+  `saggio diff` applique à une livraison. Le modèle porte l'exécution médiane ;
+  voilà de combien il bougerait si vous la refaisiez.
+repeat.opening.runtime: "La médiane de {repeats} exécutions de la même commande"
+repeat.opening.other: >-
+  Lu pendant l'exécution que ce modèle porte, celle dont le temps était la
+  médiane de {repeats} ; la puissance médiane des {repeats}{middle} appartient à
+  une autre exécution
+repeat.ranged: >-
+  {opening}. Sur l'ensemble, ce chiffre est allé de {low} à {high}{width}. Une
+  étendue sur {repeats} exécutions n'est pas une borne : la suivante tombe en
+  dehors environ {odds}, quelle que soit la forme de la variation, et rien n'a
+  besoin d'avoir changé pour cela.
+repeat.width: ", soit une étendue de {relative} de leur médiane"
+repeat.odds.every_time: "à chaque fois"
+repeat.odds.one_in: "une fois sur {count}"
+repeat.figure.runtime_s: "le temps d'exécution"
+repeat.figure.power_w: "la puissance mesurée"
+repeat.cannot_run: "Une commande ne peut pas être exécutée {repeats} fois."
