@@ -10,6 +10,23 @@ cette ligne.
 
 ## Non publié
 
+### Le README dit ce que fait l'i18n et où elle s'arrête
+
+Réécrit plutôt que rapiécé, parce que le paragraphe avait vieilli deux fois : il
+disait encore « ajouter une langue, c'est deux fichiers » alors qu'il y en a
+trois, et il décrivait le bouton de langue comme la totalité de ce que fait une
+langue.
+
+Ce qu'il dit maintenant, chaque chiffre mesuré : `--language` sur chaque verbe et
+sur chaque route HTTP qui répond par de la prose ; des chiffres écrits comme la
+langue les écrit ; quatre cents phrases dans des fichiers de traduction. Et les
+deux limites, qui comptent plus que la fonctionnalité — **un modèle porte les
+phrases avec lesquelles il a été écrit**, donc 48 % du texte d'un rapport
+statique vient du fichier quoi qu'on demande, et le bouton de langue change
+l'ossature de la page, 4,9 %, tandis que demander le rapport dans une langue en
+donne 29,4 % en français (au 2026-10-19, une part qui grandit avec le catalogue ;
+la date est là parce que le nombre bouge).
+
 ### Projeter une tranche sur une course entière, dans la langue du lecteur
 
 La moitié d'`estimate/extrapolate.py` que porte chaque modèle de la galerie :

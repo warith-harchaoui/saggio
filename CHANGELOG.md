@@ -9,6 +9,22 @@ release of that line.
 
 ## Unreleased
 
+### The README says what the i18n does and where it stops
+
+Rewritten rather than patched, because the paragraph had gone out of date twice
+over: it still said "adding a language is two files" when there are three, and
+it described the language button as the whole of what a language does.
+
+What it says now, and every number in it is measured: `--language` on every verb
+and on every HTTP route that answers with prose; figures written the way the
+language writes them; four hundred sentences in translation files. And the two
+limits, which matter more than the feature — **a model carries the sentences it
+was written with**, so 48% of a static report's text comes from the file itself
+whatever you ask for, and the language button switches the page's furniture,
+4.9%, while asking for the report in a language gives 29.4% of it in French (on
+2026-10-19, a share that grows as the catalogue does; the date is there because
+the number moves).
+
 ### Projecting a slice onto a whole run, in the reader's language
 
 The half of `estimate/extrapolate.py` that every gallery model carries: the two

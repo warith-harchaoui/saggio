@@ -288,15 +288,21 @@ running, is asked what shape of work your repository does and nothing else. Its
 answer is labelled with the model's name and marked low confidence. Every number
 comes from a file you can open or a counter you can read.
 
-That answer is also the only sentence in the model that is written rather than
-read, so it is the only one that can arrive in a language nobody asked for.
-`saggio audit --language fr` asks for it in yours, records which language was
-asked for beside it, and leaves the closed set of categories untranslated. The
-report's own labels have always come from a translation file; the page carries a
-language button built from whatever that file contains. Adding a language is two
-files and no code — and it switches the page's structure, not the sentences an
-audit composes while measuring: 4.9% of a rendered report, measured, not the
-whole of it.
+It speaks your language, and says where that stops. `--language fr` is on every
+verb and on every HTTP route that answers with prose, so the validator's
+findings, an inventory placement's reasoning, a report's headings, the notes an
+audit writes and the question it asks before running your code all come back in
+it. Figures are written the way the language writes them: `17.4 W` in English,
+`17,4 W` in French. Four hundred sentences live in translation files; adding a
+language is those files and no code.
+
+Two limits, measured rather than implied. A model carries the sentences it was
+written with, so a model audited in English renders in English however you ask
+for it — **48% of a static report's text** comes from the file itself. And the
+language button on an HTML page switches the page's furniture, **4.9%** of it,
+because the rest is prose the renderer composed server-side; ask for the report
+in a language instead and **29.4%** of it was French on 2026-10-19, a share that
+grows as the catalogue does.
 
 And it never counts what it cannot count. Making the hardware, the people, the
 office: all of it is listed in the report as excluded, because a footprint that

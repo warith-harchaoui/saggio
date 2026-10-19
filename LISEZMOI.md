@@ -295,15 +295,22 @@ dépôt, et rien d'autre. Sa réponse est étiquetée du nom du modèle et marqu
 confiance faible. Chaque chiffre vient d'un fichier qu'on peut ouvrir ou d'un
 compteur qu'on peut lire.
 
-Cette réponse est aussi la seule phrase du modèle qui soit écrite plutôt que
-lue : c'est donc la seule qui puisse arriver dans une langue que personne n'a
-demandée. `saggio audit --language fr` la demande dans la vôtre, enregistre à
-côté d'elle la langue demandée, et laisse l'ensemble fermé des catégories non
-traduit. Les étiquettes du rapport, elles, viennent depuis toujours d'un fichier
-de traduction ; la page porte un bouton de langue construit depuis ce que ce
-fichier contient. Ajouter une langue, c'est deux fichiers et pas une ligne de
-code — et cela change l'ossature de la page, pas les phrases qu'un audit compose
-en mesurant : 4,9 % d'un rapport produit, mesuré, pas la totalité.
+Il parle votre langue, et dit où cela s'arrête. `--language fr` est sur chaque
+verbe et sur chaque route HTTP qui répond par de la prose : les constats du
+validateur, le raisonnement d'un placement d'inventaire, les titres d'un rapport,
+les notes qu'un audit écrit et la question qu'il pose avant d'exécuter votre code
+reviennent donc dedans. Les chiffres sont écrits comme la langue les écrit :
+`17.4 W` en anglais, `17,4 W` en français. Quatre cents phrases vivent dans des
+fichiers de traduction ; ajouter une langue, c'est ces fichiers et pas une ligne
+de code.
+
+Deux limites, mesurées plutôt que sous-entendues. Un modèle porte les phrases
+avec lesquelles il a été écrit : un modèle audité en anglais se rend en anglais
+quoi que vous demandiez — **48 % du texte d'un rapport statique** vient du
+fichier lui-même. Et le bouton de langue d'une page HTML change l'ossature de la
+page, **4,9 %**, parce que le reste est de la prose que le moteur a composée côté
+serveur ; demandez plutôt le rapport dans une langue et **29,4 %** en sortaient en
+français au 2026-10-19, une part qui grandit avec le catalogue.
 
 Et il ne compte jamais ce qu'il ne peut pas compter. La fabrication du matériel,
 les gens, les bureaux : tout cela est listé comme exclu dans le rapport, parce
