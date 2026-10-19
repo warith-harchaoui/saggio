@@ -215,12 +215,33 @@ def test_every_sentence_about_the_record_names_the_file(code: str, key: str) -> 
 
 
 def test_the_command_line_offers_exactly_the_languages_that_exist() -> None:
+    import argparse
+
     parser = build_parser()
-    action = next(action for action in parser._actions if action.dest == "verb")
-    audit = action.choices["audit"]
-    language = next(a for a in audit._actions if a.dest == "language")
-    assert tuple(language.choices) == languages()
-    assert language.default == DEFAULT_LANGUAGE
+    overall = next(a for a in parser._actions if a.dest == "language")
+    assert tuple(overall.choices) == languages()
+    assert overall.default == DEFAULT_LANGUAGE, "the global spelling carries the default"
+
+    action = next(a for a in parser._actions if a.dest == "verb")
+    for name, verb in action.choices.items():
+        language = next((a for a in verb._actions if a.dest == "language"), None)
+        assert language is not None, f"{name} offers no --language"
+        assert tuple(language.choices) == languages(), name
+        # SUPPRESS, so that `saggio --language fr audit .` is not overwritten by
+        # the verb's own default on its way through the sub-parser. A default
+        # here is the argparse trap that makes a global option look ignored.
+        assert language.default is argparse.SUPPRESS, name
+
+
+def test_the_global_spelling_and_the_verb_spelling_agree() -> None:
+    parser = build_parser()
+    assert parser.parse_args(["validate", "m.yaml"]).language == DEFAULT_LANGUAGE
+    assert parser.parse_args(["--language", "fr", "validate", "m.yaml"]).language == "fr"
+    assert parser.parse_args(["validate", "m.yaml", "--language", "fr"]).language == "fr"
+    # The verb wins when both are given, which is the way round a reader expects:
+    # the nearer word to the thing it describes.
+    both = parser.parse_args(["--language", "en", "validate", "m.yaml", "--language", "fr"])
+    assert both.language == "fr"
 
 
 def test_the_library_the_http_surface_and_the_agent_tool_share_one_default() -> None:

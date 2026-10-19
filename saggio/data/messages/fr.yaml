@@ -686,3 +686,182 @@ api.fetch_refused: >-
   fait récupérer au serveur une adresse choisie par le client : c'est donc
   désactivé sauf si {switch} est défini. Lisez-la depuis chez vous avec
   `saggio catalog read-pcf <url>`, qui ne sollicite aucun serveur que le vôtre.
+
+# --- L'aide de la ligne de commande (saggio/cli/app.py)
+
+cli.help.init.summary: "Écrire un modèle de coût de départ."
+cli.help.init.template: "Quel modèle de départ écrire. Par défaut {default}."
+cli.help.init.o: "Où l'écrire. Sortie standard si omis."
+cli.help.validate.summary: >-
+  Vérifier un modèle contre le schéma et les règles d'honnêteté.
+cli.help.validate.model: "Le modèle de coût à vérifier."
+cli.help.validate.json: "Afficher le verdict en JSON."
+cli.help.scopes.summary: >-
+  Dire à quel scope du GHG Protocol appartient chaque coût d'un modèle.
+cli.help.scopes.model: "Le modèle de coût à ranger."
+cli.help.scopes.scenario: >-
+  Quel scénario ranger. Le premier si omis.
+cli.help.scopes.json: "Afficher les placements en JSON."
+cli.help.next.summary: >-
+  Dire quelle question ouverte fermerait le plus de chiffres.
+cli.help.next.model: "Le modèle de coût à lire."
+cli.help.next.json: "Afficher les questions en JSON."
+cli.help.render.summary: "Transformer un modèle en rapport."
+cli.help.render.model: "Le modèle de coût à produire."
+cli.help.render.f: >-
+  Markdown pour une pull request, HTML pour tous les autres, docx ou pdf pour
+  un document.
+cli.help.render.o: "Où l'écrire. Sortie standard si omis."
+cli.help.render.reference_doc: >-
+  Un .docx dont une sortie Word ou PDF doit suivre les styles.
+cli.help.render.author: >-
+  Qui le bloc de titre Word ou PDF désigne comme auteur. Par défaut {default},
+  qui est bien ce qui l'a produit.
+cli.help.render.generated: >-
+  La date que le document déclare comme date de fabrication, reprise telle
+  quelle. Pas la date du dernier changement du modèle, que le rapport porte
+  déjà. Aujourd'hui par défaut.
+cli.help.render.offline: >-
+  Refuser toute étape réseau d'une conversion Word ou PDF. Sans ce drapeau, le
+  convertisseur récupère un gabarit de marque en HTTP quand aucun
+  --reference-doc n'est donné : une production exige alors une connexion et
+  peut changer quand ce gabarit change.
+cli.help.dashboard.summary: >-
+  Produire plusieurs modèles de coût en une seule page d'équipe.
+cli.help.dashboard.models: "Les modèles de coût à montrer, un chemin chacun."
+cli.help.dashboard.o: "Où l'écrire. Sortie standard si omis."
+cli.help.audit.summary: "Construire un modèle de coût pour un dépôt."
+cli.help.audit.target: "Un répertoire, ou une URL git à cloner et auditer."
+cli.help.audit.o: >-
+  Où écrire le modèle. Sortie standard si omis.
+cli.help.audit.json: "Afficher le modèle et le verdict en JSON."
+cli.help.audit.run: >-
+  Exécuter une tranche plafonnée pour la mesurer. Demande le consentement une
+  fois.
+cli.help.audit.no_llm: >-
+  Ne pas demander à un modèle local de classer la charge. De toute façon, aucun
+  chiffre n'en vient.
+cli.help.audit.country: >-
+  Code ISO 3166-1 alpha-2 du pays où le code tourne, par exemple FR. Jamais
+  deviné.
+cli.help.audit.provider: "Clé de fournisseur, par exemple gcp ou on-prem."
+cli.help.audit.instance: "Clé de forme de machine, par exemple node-1x-h100."
+cli.help.audit.timeout: "Secondes pendant lesquelles une tranche peut tourner. Par défaut {default}."
+cli.help.audit.baseline: >-
+  Observer la machine pendant ce temps avant chaque tranche, pour distinguer ce
+  que la tranche a ajouté de ce que la machine tirait déjà. 0 saute l'étape. Une
+  série d'échelle prend un seul plancher pour toute l'échelle.
+cli.help.audit.scaling_steps: >-
+  Exécuter N tranches de tailles différentes et mesurer comment le coût croît
+  avec la taille du travail, au lieu de supposer qu'il croît proportionnellement.
+  Trois est le minimum vérifiable, et coûte environ 1,3 fois une tranche. Par
+  défaut 1, qui conserve l'hypothèse et le dit.
+cli.help.audit.source_accelerator: >-
+  Accélérateur que la mesure représente, quand ce n'est pas celui de cette
+  machine. C'est ce qui permet à un portable de projeter sur un GPU de centre de
+  données.
+cli.help.audit.target_accelerator: >-
+  Accélérateur sur lequel projeter le temps d'exécution.
+cli.help.audit.precision: >-
+  Précision numérique dans laquelle la charge tourne. Par défaut {default}.
+cli.help.audit.fetch_prices: >-
+  Rechercher les tarifs publiés des modèles que le code nomme. Lit une source
+  structurée, jamais une page web, et note laquelle. Désactivé par défaut : c'est
+  la seule partie d'un audit qui touche le réseau.
+cli.help.measure.summary: "Exécuter une commande et dire ce qu'elle a coûté."
+cli.help.measure.command: "La commande à exécuter."
+cli.help.measure.C: "Où l'exécuter."
+cli.help.measure.timeout: >-
+  Secondes avant arrêt. Par défaut {default}.
+cli.help.measure.fraction: >-
+  La part d'une course entière que cette commande couvre, si vous la connaissez.
+cli.help.measure.no_profile: "Sauter le profil par fonction."
+cli.help.measure.baseline: >-
+  Observer la machine pendant ce temps avant de démarrer, pour distinguer ce que
+  la tranche a ajouté de ce que la machine tirait déjà. 0 saute l'étape.
+cli.help.measure.repeat: >-
+  Exécuter la commande N fois et rapporter l'étendue. Une exécution dit ce qui
+  s'est passé une fois ; elle ne dit pas si cela se reproduirait, et le temps et
+  la puissance ne se comportent pas de la même façon.
+cli.help.measure.into: >-
+  Écrire la mesure dans ce modèle de coût et recalculer tout ce qui en dérive.
+  Sans ce drapeau, la mesure est seulement affichée.
+cli.help.measure.units: >-
+  Combien d'unités de travail la commande a accomplies. Le temps enregistré est
+  le temps d'horloge divisé par ce nombre. Par défaut 1.
+cli.help.measure.scenario: >-
+  Dans quel scénario écrire, par nom. Le premier par défaut.
+cli.help.measure.json: "Afficher la mesure en JSON."
+cli.help.diff.summary: >-
+  Comparer deux modèles et échouer quand un coût a dérivé.
+cli.help.diff.before: "Le modèle antérieur."
+cli.help.diff.after: "Le modèle postérieur."
+cli.help.diff.threshold: >-
+  Pourcentage dont un coût peut empirer. Par défaut {default}.
+cli.help.diff.json: "Afficher la comparaison en JSON."
+cli.help.machine.summary: >-
+  Montrer ce qu'est cette machine et si le catalogue la connaît.
+cli.help.machine.json: "L'afficher en JSON."
+cli.help.power.summary: >-
+  Montrer quels compteurs d'énergie cette machine laisse lire.
+cli.help.power.json: "L'afficher en JSON."
+cli.help.power.seconds: >-
+  Mesurer aussi la consommation propre de la machine pendant tant de secondes,
+  pour voir les compteurs fonctionner avant qu'une exécution en dépende.
+cli.help.consent.summary: >-
+  Accorder ou révoquer la permission d'exécuter du code téléchargé.
+cli.help.consent.path: >-
+  Enregistrer la décision dans ce fichier au lieu de celui de l'utilisateur.
+cli.help.catalog.summary: >-
+  Lire et étendre les catalogues de matériel, de réseaux, de fournisseurs et de
+  services.
+cli.help.list.summary: "Afficher les lignes d'un catalogue."
+cli.help.catalog.list.json: "Les afficher en JSON."
+cli.help.add.summary: "Ajouter une ligne localement, provenance obligatoire."
+cli.help.catalog.add.key: "La clé de la ligne, par exemple H200 ou FR."
+cli.help.catalog.add.source_url: "D'où viennent les chiffres."
+cli.help.catalog.add.retrieved_date: "AAAA-MM-JJ de votre lecture."
+cli.help.catalog.add.field: >-
+  Un champ de la ligne, répétable, par exemple --field tdp_w=700.
+cli.help.read_pcf.summary: >-
+  Lire l'empreinte carbone produit d'un fournisseur et en ébaucher une ligne.
+cli.help.catalog.read-pcf.document: >-
+  Le lien https vers la fiche du fournisseur, ou un chemin vers une fiche déjà
+  téléchargée.
+cli.help.catalog.read-pcf.json: "Afficher la lecture en JSON."
+cli.help.refresh.summary: >-
+  Relire les chiffres d'un catalogue depuis la source qu'il cite. Lecture seule
+  sauf si --write est donné.
+cli.help.catalog.refresh.catalog: >-
+  Quel catalogue : `grid` ou `hardware`.
+cli.help.catalog.refresh.api_key: >-
+  Clé d'API Ember, facultative. À défaut, EMBER_API_KEY. Sans clé, la colonne
+  carbone est lue dans le jeu de données annuel publié par Ember — la même série
+  sous CC-BY-4.0, celle que chaque ligne cite ; avec une clé, elle est lue dans
+  l'API d'Ember, et l'exécution dit laquelle a répondu. Rien d'extérieur à Ember
+  ne sert de substitut, parce que l'autre série ouverte qui paraît équivalente
+  mesure le cycle de vie et non les émissions d'exploitation.
+cli.help.catalog.refresh.year: >-
+  Année des données. Par défaut la plus récente dont chaque pays dispose, qui
+  n'est pas la même année pour tous : une ligne enregistre la sienne.
+cli.help.catalog.refresh.column: >-
+  Quelle colonne relire. Pour `grid` : `carbon` interroge Ember, `price` la page
+  de tarifs, `timezones` vérifie les noms contre la base IANA qui les définit,
+  `both` fait carbone et prix, `all` fait les trois. Pour `hardware` :
+  `embodied` demande les empreintes de processeurs. Chaque colonne porte sa
+  propre source et sa propre date, parce qu'elles ne viennent pas du même endroit
+  et ne bougent pas ensemble.
+cli.help.catalog.refresh.write: >-
+  Appliquer le résultat à ce fichier de catalogue. Sans ce drapeau, rien n'est
+  écrit.
+cli.help.catalog.refresh.json: "Afficher le résultat en JSON."
+cli.help.freshness.summary: >-
+  Lister les lignes que personne n'a vérifiées récemment. Sort en 1 si l'une est
+  périmée.
+cli.help.catalog.freshness.within: >-
+  Avertir aussi des lignes qui se périment dans tant de jours, sans échouer. Par
+  défaut {default} ; 0 éteint l'avertissement.
+cli.help.catalog.freshness.json: "Les afficher en JSON."
+cli.help.language: >-
+  Langue de ce que cette commande écrit, demande et affiche. Les phrases déjà
+  enregistrées dans un modèle restent telles qu'elles ont été écrites.

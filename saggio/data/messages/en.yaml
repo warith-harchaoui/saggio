@@ -627,3 +627,178 @@ api.fetch_refused: >-
   makes the server retrieve an address the client chose, so it is off unless
   {switch} is set. Read it where you are with `saggio catalog read-pcf <url>`,
   which asks nobody's server but your own.
+
+# --- The command line's own help (saggio/cli/app.py)
+
+cli.help.init.summary: "Write a starter cost model."
+cli.help.init.template: "Which starter to write. Default {default}."
+cli.help.init.o: "Where to write it. Standard output when omitted."
+cli.help.validate.summary: >-
+  Check a model against the schema and the honesty rules.
+cli.help.validate.model: "The cost model to check."
+cli.help.validate.json: "Print the verdict as JSON."
+cli.help.scopes.summary: >-
+  Say which GHG Protocol scope each of a model's costs belongs to.
+cli.help.scopes.model: "The cost model to place."
+cli.help.scopes.scenario: >-
+  Which scenario's costs to place. The first one when omitted.
+cli.help.scopes.json: "Print the placements as JSON."
+cli.help.next.summary: >-
+  Say which open question would close the most numbers.
+cli.help.next.model: "The cost model to read."
+cli.help.next.json: "Print the questions as JSON."
+cli.help.render.summary: "Turn a model into a report."
+cli.help.render.model: "The cost model to render."
+cli.help.render.f: >-
+  Markdown for a pull request, HTML for anyone else, docx or pdf for a
+  document.
+cli.help.render.o: "Where to write it. Standard output when omitted."
+cli.help.render.reference_doc: >-
+  A .docx whose styles a Word or PDF output should follow.
+cli.help.render.author: >-
+  Who the Word or PDF title block names as having produced it. Defaults to
+  {default}, which is what did.
+cli.help.render.generated: >-
+  The date the document states it was made on, used verbatim. Not the date
+  the model was last changed, which the report already carries. Defaults to
+  today.
+cli.help.render.offline: >-
+  Refuse every network step of a Word or PDF conversion. Without it the
+  converter fetches a branded template over HTTP when no --reference-doc is
+  given, so a render needs a connection and can change when that template
+  does.
+cli.help.dashboard.summary: >-
+  Render several cost models as one team page.
+cli.help.dashboard.models: "The cost models to show, one path each."
+cli.help.dashboard.o: "Where to write it. Standard output when omitted."
+cli.help.audit.summary: "Build a cost model for a repository."
+cli.help.audit.target: "A directory, or a git URL to clone and audit."
+cli.help.audit.o: >-
+  Where to write the model. Standard output when omitted.
+cli.help.audit.json: "Print the model and verdict as JSON."
+cli.help.audit.run: >-
+  Execute a capped slice to measure it. Asks for consent once.
+cli.help.audit.no_llm: >-
+  Do not ask a local model to classify the workload. Numbers never come from
+  it anyway.
+cli.help.audit.country: >-
+  ISO 3166-1 alpha-2 code where the code runs, for example FR. Never
+  guessed.
+cli.help.audit.provider: "Provider key, for example gcp or on-prem."
+cli.help.audit.instance: "Machine-shape key, for example node-1x-h100."
+cli.help.audit.timeout: "Seconds a slice may run. Default {default}."
+cli.help.audit.baseline: >-
+  Watch the machine for this long before each slice, so what the slice added
+  can be told apart from what the machine was already drawing. 0 skips it. A
+  scaling series takes one baseline for the whole ladder.
+cli.help.audit.scaling_steps: >-
+  Run N differently sized slices and measure how the cost grows with the
+  size of the job, instead of assuming it grows in proportion. Three is the
+  fewest that can be checked, and costs about 1.3 times one slice. Default
+  1, which keeps the assumption and says so.
+cli.help.audit.source_accelerator: >-
+  Accelerator the measurement represents, when it is not this machine's.
+  This is what lets a laptop project onto a datacenter GPU.
+cli.help.audit.target_accelerator: >-
+  Accelerator to project the runtime onto.
+cli.help.audit.precision: >-
+  Numeric precision the workload runs in. Default {default}.
+cli.help.audit.fetch_prices: >-
+  Look up published rates for the models the code names. Reads a structured
+  source, never a web page, and records which. Off by default: it is the
+  only part of an audit that reaches the network.
+cli.help.measure.summary: "Run a command and report what it cost to run."
+cli.help.measure.command: "The command to run."
+cli.help.measure.C: "Where to run it."
+cli.help.measure.timeout: >-
+  Seconds before it is stopped. Default {default}.
+cli.help.measure.fraction: >-
+  The share of a whole run this command covers, if you know it.
+cli.help.measure.no_profile: "Skip the function-level profile."
+cli.help.measure.baseline: >-
+  Watch the machine for this long before starting, so what the slice added
+  can be told apart from what the machine was already drawing. 0 skips it.
+cli.help.measure.repeat: >-
+  Run the command N times and report the spread. One run says what happened
+  once; it does not say whether it would happen again, and the runtime and
+  the power do not behave the same way.
+cli.help.measure.into: >-
+  Write the measurement into this cost model and recompute everything
+  derived from it. Without it, the measurement is only printed.
+cli.help.measure.units: >-
+  How many units of work the command performed. The runtime recorded is the
+  wall-clock time divided by this. Default 1.
+cli.help.measure.scenario: >-
+  Which scenario to write into, by name. The first one by default.
+cli.help.measure.json: "Print the measurement as JSON."
+cli.help.diff.summary: >-
+  Compare two models and fail when a cost has drifted.
+cli.help.diff.before: "The earlier model."
+cli.help.diff.after: "The later model."
+cli.help.diff.threshold: >-
+  Percentage a cost may worsen by. Default {default}.
+cli.help.diff.json: "Print the comparison as JSON."
+cli.help.machine.summary: >-
+  Show what this machine is and whether the catalogue knows it.
+cli.help.machine.json: "Print it as JSON."
+cli.help.power.summary: >-
+  Show which energy counters this machine will let you read.
+cli.help.power.json: "Print it as JSON."
+cli.help.power.seconds: >-
+  Also measure the machine's own draw for this many seconds, so the counters
+  can be seen working before a run depends on them.
+cli.help.consent.summary: >-
+  Grant or revoke permission to run downloaded code.
+cli.help.consent.path: >-
+  Record the decision in this file instead of the per-user one.
+cli.help.catalog.summary: >-
+  Read and extend the catalogues of hardware, grids, providers, and
+  services.
+cli.help.list.summary: "Print a catalogue's rows."
+cli.help.catalog.list.json: "Print them as JSON."
+cli.help.add.summary: "Add a row locally, provenance required."
+cli.help.catalog.add.key: "The row key, for example H200 or FR."
+cli.help.catalog.add.source_url: "Where the numbers came from."
+cli.help.catalog.add.retrieved_date: "YYYY-MM-DD you read it."
+cli.help.catalog.add.field: >-
+  A field of the row, repeatable, for example --field tdp_w=700.
+cli.help.read_pcf.summary: >-
+  Read a vendor's product carbon footprint and draft a row from it.
+cli.help.catalog.read-pcf.document: >-
+  The https link to the vendor's summary, or a path to one already
+  downloaded.
+cli.help.catalog.read-pcf.json: "Print the reading as JSON."
+cli.help.refresh.summary: >-
+  Re-read a catalogue's numbers from the source it cites. Read-only unless
+  --write is given.
+cli.help.catalog.refresh.catalog: >-
+  Which catalogue: `grid` or `hardware`.
+cli.help.catalog.refresh.api_key: >-
+  Ember API key, optional. Falls back to EMBER_API_KEY. Without one the
+  carbon column is read from Ember's published yearly dataset, which is the
+  same series under CC-BY-4.0 and what every row cites; with one it is read
+  from Ember's API instead, and the run says which answered. Nothing outside
+  Ember is used as a substitute, because the other open series that looks
+  equivalent measures lifecycle rather than operating emissions.
+cli.help.catalog.refresh.year: >-
+  Data year. By default the most recent each country has, which is not the
+  same year for every country: a row records its own.
+cli.help.catalog.refresh.column: >-
+  Which column to re-read. For `grid`: `carbon` asks Ember, `price` asks the
+  tariff page, `timezones` checks the names against the IANA database that
+  defines them, `both` does carbon and price, `all` does the three. For
+  `hardware`: `embodied` asks for processor footprints. Each column carries
+  its own source and its own date, because they do not come from the same
+  place and do not move together.
+cli.help.catalog.refresh.write: >-
+  Apply the result to this catalogue file. Without it, nothing is written.
+cli.help.catalog.refresh.json: "Print the result as JSON."
+cli.help.freshness.summary: >-
+  List the rows nobody has checked lately. Exits 1 when any are stale.
+cli.help.catalog.freshness.within: >-
+  Also warn about rows that go stale within this many days, without failing.
+  Default {default}; 0 turns the warning off.
+cli.help.catalog.freshness.json: "Print them as JSON."
+cli.help.language: >-
+  Language for what this command writes, asks and prints. Sentences already
+  recorded in a model stay as they were written.

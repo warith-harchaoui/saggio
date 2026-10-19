@@ -23,6 +23,8 @@ Warith Harchaoui
 from __future__ import annotations
 
 import argparse
+import os
+import sys
 from collections.abc import Callable, Sequence
 from typing import Final
 
@@ -33,7 +35,7 @@ from ..analyze.run import DEFAULT_BASELINE_SECONDS, DEFAULT_TIMEOUT_SECONDS
 from ..catalog.registry import EXPIRING_WITHIN_DAYS, SECTION_OF_KIND
 from ..diff import DEFAULT_DRIFT_THRESHOLD_PERCENT
 from ..estimate.extrapolate import DEFAULT_PRECISION
-from ..i18n import DEFAULT_LANGUAGE, language
+from ..i18n import DEFAULT_LANGUAGE, language, say
 from ..i18n import languages as LANGUAGES_FROM_FILES
 from ..model.taxonomy import STATUS_ORDER
 from ..report.office import DEFAULT_AUTHOR, OFFICE_FORMATS
@@ -109,6 +111,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Say nothing on standard error but errors themselves.",
     )
+    parser.add_argument(
+        "--language",
+        default=DEFAULT_LANGUAGE,
+        choices=list(LANGUAGES_FROM_FILES()),
+        help=say("cli.help.language"),
+    )
     verbs = parser.add_subparsers(dest="verb", metavar="verb")
 
     _add_init(verbs)
@@ -151,17 +159,20 @@ def _add_language_everywhere(verbs: argparse._SubParsersAction) -> None:
     'en'
     >>> build_parser().parse_args(["render", "m.yaml", "--language", "fr"]).language
     'fr'
+    >>> build_parser().parse_args(["--language", "fr", "render", "m.yaml"]).language
+    'fr'
     """
     offered = list(LANGUAGES_FROM_FILES())
     for parser in verbs.choices.values():
         parser.add_argument(
             "--language",
-            default=DEFAULT_LANGUAGE,
+            # SUPPRESS rather than a default: a default here is written into the
+            # namespace before the verb is parsed, and would overwrite a global
+            # `--language` with the authored one whenever the verb's own was
+            # absent — which is the argparse trap this comment exists to mark.
+            default=argparse.SUPPRESS,
             choices=offered,
-            help=(
-                "Language for what this command writes, asks and prints. "
-                "Sentences already recorded in a model stay as they were written."
-            ),
+            help=say("cli.help.language"),
         )
         for action in parser._actions:
             if isinstance(action, argparse._SubParsersAction):
@@ -182,18 +193,18 @@ def _add_init(verbs: argparse._SubParsersAction) -> None:
     True
     """
     described = "; ".join(f"{name}: {TEMPLATES[name]}" for name in template_names())
-    parser = verbs.add_parser("init", help="Write a starter cost model.", epilog=described)
+    parser = verbs.add_parser("init", help=say("cli.help.init.summary"), epilog=described)
     parser.add_argument(
         "--template",
         choices=template_names(),
         default=DEFAULT_TEMPLATE,
-        help=f"Which starter to write. Default {DEFAULT_TEMPLATE}.",
+        help=say("cli.help.init.template", default=DEFAULT_TEMPLATE),
     )
     parser.add_argument(
         "-o",
         "--output",
         default=None,
-        help="Where to write it. Standard output when omitted.",
+        help=say("cli.help.init.o"),
     )
 
 
@@ -213,11 +224,11 @@ def _add_validate(verbs: argparse._SubParsersAction) -> None:
     statuses = ", ".join(STATUS_ORDER)
     parser = verbs.add_parser(
         "validate",
-        help="Check a model against the schema and the honesty rules.",
+        help=say("cli.help.validate.summary"),
         epilog=f"Statuses, strongest to weakest: {statuses}.",
     )
-    parser.add_argument("model", help="The cost model to check.")
-    parser.add_argument("--json", action="store_true", help="Print the verdict as JSON.")
+    parser.add_argument("model", help=say("cli.help.validate.model"))
+    parser.add_argument("--json", action="store_true", help=say("cli.help.validate.json"))
 
 
 def _add_scopes(verbs: argparse._SubParsersAction) -> None:
@@ -235,7 +246,7 @@ def _add_scopes(verbs: argparse._SubParsersAction) -> None:
     """
     parser = verbs.add_parser(
         "scopes",
-        help="Say which GHG Protocol scope each of a model's costs belongs to.",
+        help=say("cli.help.scopes.summary"),
         epilog=(
             "The scope turns on who operates the machine, which the model already "
             "states. A market-based scope 2 figure is never produced here: it "
@@ -243,13 +254,13 @@ def _add_scopes(verbs: argparse._SubParsersAction) -> None:
             "printed instead."
         ),
     )
-    parser.add_argument("model", help="The cost model to place.")
+    parser.add_argument("model", help=say("cli.help.scopes.model"))
     parser.add_argument(
         "--scenario",
         default=None,
-        help="Which scenario's costs to place. The first one when omitted.",
+        help=say("cli.help.scopes.scenario"),
     )
-    parser.add_argument("--json", action="store_true", help="Print the placements as JSON.")
+    parser.add_argument("--json", action="store_true", help=say("cli.help.scopes.json"))
 
 
 def _add_next(verbs: argparse._SubParsersAction) -> None:
@@ -262,11 +273,11 @@ def _add_next(verbs: argparse._SubParsersAction) -> None:
     )
     parser = verbs.add_parser(
         "next",
-        help="Say which open question would close the most numbers.",
+        help=say("cli.help.next.summary"),
         epilog=described,
     )
-    parser.add_argument("model", help="The cost model to read.")
-    parser.add_argument("--json", action="store_true", help="Print the questions as JSON.")
+    parser.add_argument("model", help=say("cli.help.next.model"))
+    parser.add_argument("--json", action="store_true", help=say("cli.help.next.json"))
 
 
 def _add_render(verbs: argparse._SubParsersAction) -> None:
@@ -282,50 +293,36 @@ def _add_render(verbs: argparse._SubParsersAction) -> None:
     >>> build_parser().parse_args(["render", "m.yaml"]).format
     'md'
     """
-    parser = verbs.add_parser("render", help="Turn a model into a report.")
-    parser.add_argument("model", help="The cost model to render.")
+    parser = verbs.add_parser("render", help=say("cli.help.render.summary"))
+    parser.add_argument("model", help=say("cli.help.render.model"))
     parser.add_argument(
         "-f",
         "--format",
         choices=_RENDER_FORMATS,
         default="md",
-        help="Markdown for a pull request, HTML for anyone else, docx or pdf for a document.",
+        help=say("cli.help.render.f"),
     )
-    parser.add_argument(
-        "-o", "--output", default=None, help="Where to write it. Standard output when omitted."
-    )
+    parser.add_argument("-o", "--output", default=None, help=say("cli.help.render.o"))
     parser.add_argument(
         "--reference-doc",
         default=None,
-        help="A .docx whose styles a Word or PDF output should follow.",
+        help=say("cli.help.render.reference_doc"),
     )
     parser.add_argument(
         "--author",
         default=DEFAULT_AUTHOR,
-        help=(
-            "Who the Word or PDF title block names as having produced it. "
-            f"Defaults to {DEFAULT_AUTHOR!r}, which is what did."
-        ),
+        help=(say("cli.help.render.author", default=DEFAULT_AUTHOR)),
     )
     parser.add_argument(
         "--generated",
         default=None,
         metavar="DATE",
-        help=(
-            "The date the document states it was made on, used verbatim. Not the "
-            "date the model was last changed, which the report already carries. "
-            "Defaults to today."
-        ),
+        help=(say("cli.help.render.generated")),
     )
     parser.add_argument(
         "--offline",
         action="store_true",
-        help=(
-            "Refuse every network step of a Word or PDF conversion. Without it the "
-            "converter fetches a branded template over HTTP when no --reference-doc "
-            "is given, so a render needs a connection and can change when that "
-            "template does."
-        ),
+        help=(say("cli.help.render.offline")),
     )
 
 
@@ -344,16 +341,14 @@ def _add_dashboard(verbs: argparse._SubParsersAction) -> None:
     """
     parser = verbs.add_parser(
         "dashboard",
-        help="Render several cost models as one team page.",
+        help=say("cli.help.dashboard.summary"),
         epilog=(
             "Each project's costs are per its own unit of work, so the page "
             "compares how well founded the models are, never the costs across rows."
         ),
     )
-    parser.add_argument("models", nargs="+", help="The cost models to show, one path each.")
-    parser.add_argument(
-        "-o", "--output", default=None, help="Where to write it. Standard output when omitted."
-    )
+    parser.add_argument("models", nargs="+", help=say("cli.help.dashboard.models"))
+    parser.add_argument("-o", "--output", default=None, help=say("cli.help.dashboard.o"))
 
 
 def _add_audit(verbs: argparse._SubParsersAction) -> None:
@@ -371,97 +366,75 @@ def _add_audit(verbs: argparse._SubParsersAction) -> None:
     """
     parser = verbs.add_parser(
         "audit",
-        help="Build a cost model for a repository.",
+        help=say("cli.help.audit.summary"),
         epilog=(
             "Without --run, nothing is executed and the runtime stays open. With "
             "--run, a capped slice of the repository is executed on your machine, "
             "with your permissions, after you have agreed to it once."
         ),
     )
-    parser.add_argument("target", help="A directory, or a git URL to clone and audit.")
+    parser.add_argument("target", help=say("cli.help.audit.target"))
     parser.add_argument(
         "-o",
         "--output",
         default=None,
-        help="Where to write the model. Standard output when omitted.",
+        help=say("cli.help.audit.o"),
     )
-    parser.add_argument("--json", action="store_true", help="Print the model and verdict as JSON.")
+    parser.add_argument("--json", action="store_true", help=say("cli.help.audit.json"))
     parser.add_argument(
         "--run",
         action="store_true",
-        help="Execute a capped slice to measure it. Asks for consent once.",
+        help=say("cli.help.audit.run"),
     )
     parser.add_argument(
         "--no-llm",
         action="store_true",
-        help=(
-            "Do not ask a local model to classify the workload. Numbers never come from it anyway."
-        ),
+        help=(say("cli.help.audit.no_llm")),
     )
     parser.add_argument(
         "--country",
         default=None,
-        help="ISO 3166-1 alpha-2 code where the code runs, for example FR. Never guessed.",
+        help=say("cli.help.audit.country"),
     )
-    parser.add_argument(
-        "--provider", default=None, help="Provider key, for example gcp or on-prem."
-    )
-    parser.add_argument(
-        "--instance", default=None, help="Machine-shape key, for example node-1x-h100."
-    )
+    parser.add_argument("--provider", default=None, help=say("cli.help.audit.provider"))
+    parser.add_argument("--instance", default=None, help=say("cli.help.audit.instance"))
     parser.add_argument(
         "--timeout",
         type=float,
         default=DEFAULT_TIMEOUT_SECONDS,
-        help=f"Seconds a slice may run. Default {DEFAULT_TIMEOUT_SECONDS:g}.",
+        help=say("cli.help.audit.timeout", default=f"{DEFAULT_TIMEOUT_SECONDS:g}"),
     )
     parser.add_argument(
         "--baseline",
         type=float,
         default=DEFAULT_BASELINE_SECONDS,
         metavar="SECONDS",
-        help=(
-            "Watch the machine for this long before each slice, so what the slice "
-            "added can be told apart from what the machine was already drawing. "
-            "0 skips it. A scaling series takes one baseline for the whole ladder."
-        ),
+        help=(say("cli.help.audit.baseline")),
     )
     parser.add_argument(
         "--scaling-steps",
         type=int,
         default=1,
         metavar="N",
-        help=(
-            "Run N differently sized slices and measure how the cost grows with "
-            "the size of the job, instead of assuming it grows in proportion. "
-            "Three is the fewest that can be checked, and costs about 1.3 times "
-            "one slice. Default 1, which keeps the assumption and says so."
-        ),
+        help=(say("cli.help.audit.scaling_steps")),
     )
     parser.add_argument(
         "--source-accelerator",
         default=None,
-        help=(
-            "Accelerator the measurement represents, when it is not this machine's. "
-            "This is what lets a laptop project onto a datacenter GPU."
-        ),
+        help=(say("cli.help.audit.source_accelerator")),
     )
     parser.add_argument(
-        "--target-accelerator", default=None, help="Accelerator to project the runtime onto."
+        "--target-accelerator", default=None, help=say("cli.help.audit.target_accelerator")
     )
     parser.add_argument(
         "--precision",
         default=DEFAULT_PRECISION,
-        help=f"Numeric precision the workload runs in. Default {DEFAULT_PRECISION}.",
+        help=say("cli.help.audit.precision", default=DEFAULT_PRECISION),
     )
     parser.add_argument(
         "--fetch-prices",
         action="store_true",
-        help=(
-            "Look up published rates for the models the code names. Reads a "
-            "structured source, never a web page, and records which. Off by "
-            "default: it is the only part of an audit that reaches the network."
-        ),
+        help=(say("cli.help.audit.fetch_prices")),
     )
 
 
@@ -480,72 +453,58 @@ def _add_measure(verbs: argparse._SubParsersAction) -> None:
     """
     parser = verbs.add_parser(
         "measure",
-        help="Run a command and report what it cost to run.",
+        help=say("cli.help.measure.summary"),
         epilog="Put the command after --, for example: measure -- python train.py --steps 100",
     )
-    parser.add_argument("command", nargs=argparse.REMAINDER, help="The command to run.")
-    parser.add_argument("-C", "--directory", default=None, help="Where to run it.")
+    parser.add_argument("command", nargs=argparse.REMAINDER, help=say("cli.help.measure.command"))
+    parser.add_argument("-C", "--directory", default=None, help=say("cli.help.measure.C"))
     parser.add_argument(
         "--timeout",
         type=float,
         default=DEFAULT_TIMEOUT_SECONDS,
-        help=f"Seconds before it is stopped. Default {DEFAULT_TIMEOUT_SECONDS:g}.",
+        help=say("cli.help.measure.timeout", default=f"{DEFAULT_TIMEOUT_SECONDS:g}"),
     )
     parser.add_argument(
         "--fraction",
         type=float,
         default=None,
-        help="The share of a whole run this command covers, if you know it.",
+        help=say("cli.help.measure.fraction"),
     )
     parser.add_argument(
-        "--no-profile", action="store_true", help="Skip the function-level profile."
+        "--no-profile", action="store_true", help=say("cli.help.measure.no_profile")
     )
     parser.add_argument(
         "--baseline",
         type=float,
         default=DEFAULT_BASELINE_SECONDS,
         metavar="SECONDS",
-        help=(
-            "Watch the machine for this long before starting, so what the slice "
-            "added can be told apart from what the machine was already drawing. "
-            "0 skips it."
-        ),
+        help=(say("cli.help.measure.baseline")),
     )
     parser.add_argument(
         "--repeat",
         type=int,
         default=1,
         metavar="N",
-        help=(
-            "Run the command N times and report the spread. One run says what "
-            "happened once; it does not say whether it would happen again, and "
-            "the runtime and the power do not behave the same way."
-        ),
+        help=(say("cli.help.measure.repeat")),
     )
     parser.add_argument(
         "--into",
         default=None,
         metavar="MODEL",
-        help=(
-            "Write the measurement into this cost model and recompute everything "
-            "derived from it. Without it, the measurement is only printed."
-        ),
+        help=(say("cli.help.measure.into")),
     )
     parser.add_argument(
         "--units",
         type=float,
         default=1.0,
-        help=(
-            "How many units of work the command performed. The runtime recorded "
-            "is the wall-clock time divided by this. Default 1."
-        ),
+        help=(say("cli.help.measure.units")),
     )
     parser.add_argument(
         "--scenario",
         default=None,
-        help="Which scenario to write into, by name. The first one by default.",
+        help=say("cli.help.measure.scenario"),
     )
-    parser.add_argument("--json", action="store_true", help="Print the measurement as JSON.")
+    parser.add_argument("--json", action="store_true", help=say("cli.help.measure.json"))
 
 
 def _add_diff(verbs: argparse._SubParsersAction) -> None:
@@ -563,21 +522,21 @@ def _add_diff(verbs: argparse._SubParsersAction) -> None:
     """
     parser = verbs.add_parser(
         "diff",
-        help="Compare two models and fail when a cost has drifted.",
+        help=say("cli.help.diff.summary"),
         epilog=(
             "A status that weakened, or a quantity that disappeared, fails the gate "
             "whatever the numbers did."
         ),
     )
-    parser.add_argument("before", help="The earlier model.")
-    parser.add_argument("after", help="The later model.")
+    parser.add_argument("before", help=say("cli.help.diff.before"))
+    parser.add_argument("after", help=say("cli.help.diff.after"))
     parser.add_argument(
         "--threshold",
         type=float,
         default=DEFAULT_DRIFT_THRESHOLD_PERCENT,
-        help=f"Percentage a cost may worsen by. Default {DEFAULT_DRIFT_THRESHOLD_PERCENT:g}.",
+        help=say("cli.help.diff.threshold", default=f"{DEFAULT_DRIFT_THRESHOLD_PERCENT:g}"),
     )
-    parser.add_argument("--json", action="store_true", help="Print the comparison as JSON.")
+    parser.add_argument("--json", action="store_true", help=say("cli.help.diff.json"))
 
 
 def _add_machine(verbs: argparse._SubParsersAction) -> None:
@@ -593,10 +552,8 @@ def _add_machine(verbs: argparse._SubParsersAction) -> None:
     >>> build_parser().parse_args(["machine"]).verb
     'machine'
     """
-    parser = verbs.add_parser(
-        "machine", help="Show what this machine is and whether the catalogue knows it."
-    )
-    parser.add_argument("--json", action="store_true", help="Print it as JSON.")
+    parser = verbs.add_parser("machine", help=say("cli.help.machine.summary"))
+    parser.add_argument("--json", action="store_true", help=say("cli.help.machine.json"))
 
 
 def _add_power(verbs: argparse._SubParsersAction) -> None:
@@ -616,22 +573,19 @@ def _add_power(verbs: argparse._SubParsersAction) -> None:
     """
     parser = verbs.add_parser(
         "power",
-        help="Show which energy counters this machine will let you read.",
+        help=say("cli.help.power.summary"),
         epilog=(
             "Nothing here is run as another user. Where a counter needs "
             "administrator rights, the command that would open it is printed "
             "and not executed, together with the reason it is shut."
         ),
     )
-    parser.add_argument("--json", action="store_true", help="Print it as JSON.")
+    parser.add_argument("--json", action="store_true", help=say("cli.help.power.json"))
     parser.add_argument(
         "--seconds",
         type=float,
         default=0.0,
-        help=(
-            "Also measure the machine's own draw for this many seconds, so the "
-            "counters can be seen working before a run depends on them."
-        ),
+        help=(say("cli.help.power.seconds")),
     )
 
 
@@ -650,7 +604,7 @@ def _add_consent(verbs: argparse._SubParsersAction) -> None:
     """
     parser = verbs.add_parser(
         "consent",
-        help="Grant or revoke permission to run downloaded code.",
+        help=say("cli.help.consent.summary"),
         epilog=(
             "Running a repository under study executes third-party code on this "
             "machine, with your permissions. There is no sandbox."
@@ -660,7 +614,7 @@ def _add_consent(verbs: argparse._SubParsersAction) -> None:
     parser.add_argument(
         "--path",
         default=None,
-        help="Record the decision in this file instead of the per-user one.",
+        help=say("cli.help.consent.path"),
     )
 
 
@@ -680,36 +634,38 @@ def _add_catalog(verbs: argparse._SubParsersAction) -> None:
     kinds = sorted(SECTION_OF_KIND)
     parser = verbs.add_parser(
         "catalog",
-        help="Read and extend the catalogues of hardware, grids, providers, and services.",
+        help=say("cli.help.catalog.summary"),
     )
     sub = parser.add_subparsers(dest="catalog_verb", metavar="action")
 
-    listing = sub.add_parser("list", help="Print a catalogue's rows.")
+    listing = sub.add_parser("list", help=say("cli.help.list.summary"))
     listing.add_argument("kind", choices=kinds)
-    listing.add_argument("--json", action="store_true", help="Print them as JSON.")
+    listing.add_argument("--json", action="store_true", help=say("cli.help.catalog.list.json"))
 
     adding = sub.add_parser(
         "add",
-        help="Add a row locally, provenance required.",
+        help=say("cli.help.add.summary"),
         epilog=(
             "A row cannot be added without a source and a date. That is the rule "
             "that keeps the catalogues worth trusting."
         ),
     )
     adding.add_argument("kind", choices=kinds)
-    adding.add_argument("key", help="The row key, for example H200 or FR.")
-    adding.add_argument("--source-url", required=True, help="Where the numbers came from.")
-    adding.add_argument("--retrieved-date", required=True, help="YYYY-MM-DD you read it.")
+    adding.add_argument("key", help=say("cli.help.catalog.add.key"))
+    adding.add_argument("--source-url", required=True, help=say("cli.help.catalog.add.source_url"))
+    adding.add_argument(
+        "--retrieved-date", required=True, help=say("cli.help.catalog.add.retrieved_date")
+    )
     adding.add_argument(
         "--field",
         action="append",
         default=[],
         metavar="NAME=VALUE",
-        help="A field of the row, repeatable, for example --field tdp_w=700.",
+        help=say("cli.help.catalog.add.field"),
     )
     pcf = sub.add_parser(
         "read-pcf",
-        help="Read a vendor's product carbon footprint and draft a row from it.",
+        help=say("cli.help.read_pcf.summary"),
         epilog=(
             "It reads, shows its working, and stops. Nothing is written: a "
             "catalogue row is a claim somebody makes, and the person making it "
@@ -718,74 +674,54 @@ def _add_catalog(verbs: argparse._SubParsersAction) -> None:
     )
     pcf.add_argument(
         "document",
-        help="The https link to the vendor's summary, or a path to one already downloaded.",
+        help=say("cli.help.catalog.read-pcf.document"),
     )
-    pcf.add_argument("--json", action="store_true", help="Print the reading as JSON.")
+    pcf.add_argument("--json", action="store_true", help=say("cli.help.catalog.read-pcf.json"))
 
     refresh = sub.add_parser(
         "refresh",
-        help="Re-read a catalogue's numbers from the source it cites. Read-only "
-        "unless --write is given.",
+        help=say("cli.help.refresh.summary"),
     )
-    refresh.add_argument("catalog", help="Which catalogue: `grid` or `hardware`.")
+    refresh.add_argument("catalog", help=say("cli.help.catalog.refresh.catalog"))
     refresh.add_argument(
         "--api-key",
         default=None,
-        help=(
-            "Ember API key, optional. Falls back to EMBER_API_KEY. Without one the "
-            "carbon column is read from Ember's published yearly dataset, which is "
-            "the same series under CC-BY-4.0 and what every row cites; with one it "
-            "is read from Ember's API instead, and the run says which answered. "
-            "Nothing outside Ember is used as a substitute, because the other open "
-            "series that looks equivalent measures lifecycle rather than operating "
-            "emissions."
-        ),
+        help=(say("cli.help.catalog.refresh.api_key")),
     )
     refresh.add_argument(
         "--year",
         type=int,
         default=None,
-        help=(
-            "Data year. By default the most recent each country has, which is not "
-            "the same year for every country: a row records its own."
-        ),
+        help=(say("cli.help.catalog.refresh.year")),
     )
     refresh.add_argument(
         "--column",
         choices=("carbon", "price", "timezones", "embodied", "both", "all"),
         default="carbon",
-        help=(
-            "Which column to re-read. For `grid`: `carbon` asks Ember, `price` asks "
-            "the tariff page, `timezones` checks the names against the IANA database "
-            "that defines them, `both` does carbon and price, `all` does the three. "
-            "For `hardware`: `embodied` asks for processor footprints. Each column "
-            "carries its own source and its own date, because they do not come from "
-            "the same place and do not move together."
-        ),
+        help=(say("cli.help.catalog.refresh.column")),
     )
     refresh.add_argument(
         "--write",
         default=None,
         metavar="PATH",
-        help="Apply the result to this catalogue file. Without it, nothing is written.",
+        help=say("cli.help.catalog.refresh.write"),
     )
-    refresh.add_argument("--json", action="store_true", help="Print the result as JSON.")
+    refresh.add_argument("--json", action="store_true", help=say("cli.help.catalog.refresh.json"))
 
     freshness = sub.add_parser(
         "freshness",
-        help="List the rows nobody has checked lately. Exits 1 when any are stale.",
+        help=say("cli.help.freshness.summary"),
     )
     freshness.add_argument(
         "--within",
         type=int,
         default=EXPIRING_WITHIN_DAYS,
         metavar="DAYS",
-        help=(
-            "Also warn about rows that go stale within this many days, without "
-            f"failing. Default {EXPIRING_WITHIN_DAYS}; 0 turns the warning off."
-        ),
+        help=(say("cli.help.catalog.freshness.within", default=EXPIRING_WITHIN_DAYS)),
     )
-    freshness.add_argument("--json", action="store_true", help="Print them as JSON.")
+    freshness.add_argument(
+        "--json", action="store_true", help=say("cli.help.catalog.freshness.json")
+    )
 
 
 def _configure_logging(args: argparse.Namespace) -> None:
@@ -822,6 +758,48 @@ def _configure_logging(args: argparse.Namespace) -> None:
         osh.verbosity(0)
 
 
+#: Where a deployment states the language once, so a container does not repeat
+#: it on every verb.
+LANGUAGE_ENVIRONMENT_VARIABLE: Final[str] = "SAGGIO_LANGUAGE"
+
+
+def requested_language(argv: Sequence[str] | None = None) -> str | None:
+    """Find the language before a parser exists, because help is built with it.
+
+    ``--help`` is rendered from strings the parser already holds, and the parser
+    is built before anything is parsed. So the language has to be read off the
+    arguments by hand, once, or every ``--help`` would come out in the authored
+    language however the caller asked.
+
+    Parameters
+    ----------
+    argv : sequence of str or None, optional
+        The arguments, without the program name. Taken from the process when
+        omitted, which is what :func:`main` does.
+
+    Returns
+    -------
+    str or None
+        What was asked for, or what the environment says, or ``None``.
+
+    Examples
+    --------
+    >>> requested_language(["audit", ".", "--language", "fr"])
+    'fr'
+    >>> requested_language(["audit", ".", "--language=fr"])
+    'fr'
+    >>> requested_language(["audit", "."]) is None
+    True
+    """
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    for index, argument in enumerate(arguments):
+        if argument == "--language" and index + 1 < len(arguments):
+            return arguments[index + 1]
+        if argument.startswith("--language="):
+            return argument.split("=", 1)[1]
+    return os.environ.get(LANGUAGE_ENVIRONMENT_VARIABLE, "").strip() or None
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the command line.
 
@@ -844,7 +822,36 @@ def main(argv: Sequence[str] | None = None) -> int:
     >>> without_a_verb, with_a_verb
     (2, 0)
     """
-    parser = build_parser()
+    # Before the parser, because the parser's help text is built from the
+    # catalogue and a `--help` in the wrong language would be the one piece of
+    # this surface nobody could ask to change.
+    with language(requested_language(argv)):
+        return _dispatch(build_parser(), argv)
+
+
+def _dispatch(parser: argparse.ArgumentParser, argv: Sequence[str] | None) -> int:
+    """Parse the arguments and run the verb they name.
+
+    Parameters
+    ----------
+    parser : argparse.ArgumentParser
+        The parser, already built in the caller's language.
+    argv : sequence of str or None
+        The arguments.
+
+    Returns
+    -------
+    int
+        The exit code.
+
+    Examples
+    --------
+    >>> import contextlib, io
+    >>> with contextlib.redirect_stdout(io.StringIO()):
+    ...     code = _dispatch(build_parser(), ["machine", "--json"])
+    >>> code
+    0
+    """
     args = parser.parse_args(argv)
     _configure_logging(args)
 

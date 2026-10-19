@@ -10,6 +10,31 @@ cette ligne.
 
 ## Non publié
 
+### `--help` dans la langue du lecteur, ce qui demandait de lire l'argument deux fois
+
+Quatre-vingt-cinq phrases d'aide dans le catalogue, et un problème d'ordre à
+régler d'abord : **`--help` est rendu depuis des chaînes que l'analyseur porte
+déjà, et l'analyseur est construit avant que quoi que ce soit soit analysé.** La
+langue est donc lue sur les arguments à la main, une fois, avant que l'analyseur
+existe — `requested_language()` — avec `SAGGIO_LANGUAGE` comme repli pour un
+conteneur qui l'énonce une fois pour toutes.
+
+- `saggio --language fr audit --help` se lit en français, et
+  `saggio audit --help --language fr` aussi : la pré-lecture se moque de
+  l'endroit où l'option se trouve.
+- **Deux orthographes, l'une qui gagne.** L'option est sur l'analyseur
+  principal **et** sur chaque verbe, et celle du verbe est déclarée avec
+  `default=argparse.SUPPRESS`. Ce n'est pas une coquetterie : un défaut à cet
+  endroit est écrit dans l'espace de noms avant que le verbe soit analysé, et
+  écraserait donc un `--language fr` global par la langue d'origine chaque fois
+  que celle du verbe est absente. Un test de contrat fixe la suppression et les
+  deux orthographes, y compris laquelle gagne quand les deux sont données — le
+  mot le plus proche de ce qu'il décrit.
+- Les clés sont dérivées de l'analyseur qui possède l'option : un lecteur du
+  YAML voit donc de quel `--help` une phrase relève. `cli.help.audit.country`
+  est l'option pays de `saggio audit`, `cli.help.catalog.refresh.json` le
+  `--json` de `saggio catalog refresh`.
+
 ### Une langue sur chaque route qui répond par de la prose
 
 La ligne de commande a `--language` sur chaque verbe depuis que le catalogue

@@ -9,6 +9,29 @@ release of that line.
 
 ## Unreleased
 
+### `--help` in the reader's language, which needed reading the argument twice
+
+Eighty-five help sentences into the catalogue, and a problem of order to solve
+first: **`--help` is rendered from strings the parser already holds, and the
+parser is built before anything is parsed.** So the language is read off the
+arguments by hand, once, before the parser exists — `requested_language()` —
+falling back to `SAGGIO_LANGUAGE` for a container that states it once.
+
+- `saggio --language fr audit --help` reads in French, and so does
+  `saggio audit --help --language fr`: the pre-scan does not care where the
+  option sits.
+- **Two spellings, one of them winning.** The option is on the top-level parser
+  *and* on every verb, and the per-verb one is declared with
+  `default=argparse.SUPPRESS`. That is not a flourish: a default there is
+  written into the namespace before the verb is parsed, so it would overwrite a
+  global `--language fr` with the authored language every time the verb's own
+  was absent. A contract test pins the suppression and both spellings, including
+  which wins when both are given — the nearer word to the thing it describes.
+- Keys are derived from the parser that owns the option, so a reader of the YAML
+  can tell which `--help` a sentence belongs to: `cli.help.audit.country` is the
+  country option of `saggio audit`, `cli.help.catalog.refresh.json` the `--json`
+  of `saggio catalog refresh`.
+
 ### A language on every route that answers with prose
 
 The command line has had `--language` on every verb since the catalogue existed.
