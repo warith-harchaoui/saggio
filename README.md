@@ -281,8 +281,31 @@ answer is labelled with the model's name and marked low confidence. Every number
 comes from a file you can open or a counter you can read.
 
 And it never counts what it cannot count. Making the hardware, the people, the
-office, the idle capacity: all of it is listed in the report as excluded, because
-a footprint that quietly leaves out the largest term is worse than no footprint.
+office: all of it is listed in the report as excluded, because a footprint that
+quietly leaves out the largest term is worse than no footprint.
+
+Idle capacity is the one that changed its answer. When the power is a nameplate
+rating it really is excluded, and the report says so. When the power was read
+off this machine's own counters it is **inside** the figure — a counter meters
+hardware, not processes, so whatever else the machine was doing is in there —
+and the report says *that* instead, with the floor the machine was drawing
+beside it. An exclusions list that read the same either way would be false in
+one of the two cases.
+
+It never watches continuously. Every figure here is *per unit of work*, and a
+daemon has no unit of work: it would have to split a stream across whatever
+happened to be running, which is the attribution this package measured to be
+the least reproducible of three — a range of 67% to 190% across five runs,
+against 8% to 49% for the metered total. A number whose spread cannot be bounded
+cannot say how far it can be trusted, which is the one thing every number here
+is for. `saggio measure` runs a slice you chose, and stops.
+
+It never reads your cloud invoice. A bill states money for an account over a
+month; splitting it across units of work needs a key nobody publishes, and an
+importer would have to invent one. What you may do is read the figure yourself
+and record it: a quantity carries `source_kind: stated` for exactly that, and a
+figure a human took off the vendor's own invoice has **better** provenance than
+the `aggregator` tariff the catalogue would otherwise use.
 
 ## Where the numbers come from
 

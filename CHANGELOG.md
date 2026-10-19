@@ -9,6 +9,41 @@ release of that line.
 
 ## Unreleased
 
+### Two refusals decided, two that were never refusals, and a claim that was false
+
+- **The headline page contradicted every measured model, for twelve releases.**
+  `README.md` listed idle capacity among what the package never counts;
+  `examples/render.yaml` and `examples/request.yaml` have said the opposite
+  since the exclusions list stopped being a constant — *"Idle capacity is
+  inside these figures, not outside them."* The same sentence was wrong in
+  `LISEZMOI.md`.
+- **No sonde could see it.** It is not a figure, not an arithmetic and not a
+  link, so the three prose checks and the link checker all looked past it. A
+  new one binds the two: a page may not list among its exclusions a subject a
+  committed model says is inside. Aimed at the **enumeration**, not the page —
+  the first version banned the phrase outright and would have forbidden the
+  page from explaining the nuance.
+- Both pages now say the true thing, which is more interesting than the false
+  one: idle capacity is excluded when the power is a nameplate rating and
+  **inside** when it was read off this machine's counters. An exclusions list
+  that read the same either way would be false in one of the two cases.
+- **Refused by name: continuous monitoring.** Every figure here is per unit of
+  work and a daemon has no unit of work; it would have to split a stream across
+  whatever happened to be running, which is the attribution measured two
+  iterations ago as the least reproducible of three — 67% to 190% across five
+  runs against 8% to 49% for the metered total. A number whose spread cannot be
+  bounded cannot say how far it can be trusted.
+- **Refused by name: reading a cloud invoice.** A bill states money for an
+  account over a month, and splitting it across units of work needs a key
+  nobody publishes. What is allowed is said beside the refusal: read the figure
+  yourself and record it with `source_kind: stated`, which is **better**
+  provenance than the `aggregator` tariff the catalogue would otherwise use.
+- **Two entries on the working list were not refusals at all.** Extra
+  dimensions are accepted — the registry takes them, the annotated template
+  ships `egress`, and a contract test exercises it. A sixth surface has a
+  documented procedure in `USING.md`. Both had been carried as refusals in
+  private notes that nobody had checked against the code.
+
 ### What a range of five runs is worth, exactly
 
 - `--repeat 5` records a range and nothing said what a range *is*. The module

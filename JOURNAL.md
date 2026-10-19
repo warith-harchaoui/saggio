@@ -10,6 +10,41 @@ cette ligne.
 
 ## Non publié
 
+### Deux refus tranchés, deux qui n'en étaient pas, et une affirmation fausse
+
+- **La page d'accueil contredisait chaque modèle mesuré, depuis douze
+  versions.** `LISEZMOI.md` rangeait la capacité au repos parmi ce que le paquet
+  ne compte jamais ; `examples/render.yaml` et `examples/request.yaml` disent
+  l'inverse depuis que la liste d'exclusions a cessé d'être une constante —
+  *« Idle capacity is inside these figures, not outside them. »* La même phrase
+  était fausse dans `README.md`.
+- **Aucune sonde ne pouvait le voir.** Ce n'est ni un chiffre, ni un calcul, ni
+  un lien : les trois vérifications de prose et le vérificateur de liens
+  passaient à côté. Une nouvelle lie les deux : une page ne peut pas ranger
+  dans ses exclusions un sujet qu'un modèle commité déclare dedans. Visant
+  l'**énumération** et non la page — la première version interdisait le mot
+  partout et aurait empêché la page d'expliquer la nuance.
+- Les deux pages disent désormais le vrai, plus intéressant que le faux : la
+  capacité au repos est exclue quand la puissance est une plaque signalétique et
+  **dedans** quand elle a été lue sur les compteurs de la machine. Une liste
+  d'exclusions identique dans les deux cas serait fausse dans l'un des deux.
+- **Refusé nommément : la surveillance continue.** Chaque valeur ici est par
+  unité de travail et un démon n'en a pas ; il devrait répartir un flux entre ce
+  qui se trouvait tourner, c'est-à-dire l'attribution mesurée il y a deux
+  itérations comme la moins reproductible des trois — 67 % à 190 % sur cinq
+  exécutions contre 8 % à 49 % pour le total au compteur. Une valeur dont on ne
+  sait pas borner l'écart ne peut pas dire jusqu'où on peut lui faire confiance.
+- **Refusé nommément : lire une facture cloud.** Une facture énonce de l'argent
+  pour un compte sur un mois, et la répartir entre des unités de travail demande
+  une clé que personne ne publie. Ce qui est permis est dit à côté du refus :
+  relever la valeur soi-même et l'enregistrer avec `source_kind: stated`, qui a
+  une **meilleure** provenance que le tarif `aggregator` du catalogue.
+- **Deux entrées de la liste de travail n'étaient pas des refus.** Les
+  dimensions supplémentaires sont acceptées — le registre les prend, le modèle
+  annoté livre `egress`, et un test de contrat l'exerce. Une sixième surface a
+  une procédure documentée dans `USING.md`. Les deux étaient portées comme des
+  refus dans des notes privées que personne n'avait confrontées au code.
+
 ### Ce que vaut une étendue de cinq exécutions, exactement
 
 - `--repeat 5` enregistre une étendue et rien ne disait ce qu'une étendue

@@ -310,3 +310,56 @@ def test_a_table_row_about_a_model_quotes_that_models_quantities(page: str) -> N
                 continue
             offenders.append(f"{page}:{number}: {cell!r} is not in {models[0]}")
     assert not offenders, "\n".join(offenders)
+
+
+#: Every committed model, which is where the exclusions actually live.
+MODELS = sorted(path.relative_to(ROOT).as_posix() for path in (ROOT / "examples").rglob("*.yaml"))
+
+#: Where a reader is told what the package leaves out, and the subject that must
+#: not be in that list. Both languages, because a claim corrected in one and left
+#: standing in the other is still false.
+#:
+#: The rule is about the **enumeration**, not the page: a page that explains why
+#: idle capacity is sometimes in and sometimes out has to be able to name it.
+#: The first version of this check banned the phrase outright and would have
+#: forbidden the page from telling the truth.
+HEADLINE_PAGES = {
+    "README.md": ("listed in the report as excluded", "idle capacity"),
+    "LISEZMOI.md": ("listé comme exclu", "capacité inutilisée"),
+}
+
+
+@pytest.mark.parametrize("page", sorted(HEADLINE_PAGES))
+def test_no_page_claims_to_exclude_what_a_model_says_it_includes(page: str) -> None:
+    """A categorical claim is a claim, and this one was false for twelve releases.
+
+    `README.md` listed idle capacity among what the package never counts. Every
+    measured model has said the opposite since the exclusions list stopped being
+    a constant: *"Idle capacity is inside these figures, not outside them."* No
+    other sonde could see it — it is not a figure, not an arithmetic, and not a
+    link, so the three prose checks and the link checker all look past it.
+    """
+    from saggio.analyze.power import states_idle_is_excluded
+
+    including = [
+        model
+        for model in MODELS
+        for line in (yaml.safe_load((ROOT / model).read_text(encoding="utf-8")) or {}).get(
+            "exclusions"
+        )
+        or []
+        if str(line).strip().lower().startswith(("idle capacity", "la capacité"))
+        and not states_idle_is_excluded(str(line))
+    ]
+    if not including:
+        return
+    text = (ROOT / page).read_text(encoding="utf-8").lower()
+    marker, subject = HEADLINE_PAGES[page]
+    assert marker in text, f"{page} no longer enumerates what is excluded; re-aim this check"
+    # The enumeration is the clause that runs into the marker, not the page.
+    enumeration = text[max(0, text.index(marker) - 240) : text.index(marker)]
+    assert subject not in enumeration, (
+        f"{page} lists {subject!r} among what is left out, while "
+        f"{len(including)} committed model(s) say it is inside the figures: "
+        f"{', '.join(including)}"
+    )

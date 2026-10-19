@@ -287,9 +287,34 @@ confiance faible. Chaque chiffre vient d'un fichier qu'on peut ouvrir ou d'un
 compteur qu'on peut lire.
 
 Et il ne compte jamais ce qu'il ne peut pas compter. La fabrication du matériel,
-les gens, les bureaux, la capacité inutilisée : tout cela est listé comme exclu
-dans le rapport, parce qu'une empreinte qui laisse discrètement de côté le plus
-gros terme est pire qu'aucune empreinte.
+les gens, les bureaux : tout cela est listé comme exclu dans le rapport, parce
+qu'une empreinte qui laisse discrètement de côté le plus gros terme est pire
+qu'aucune empreinte.
+
+La capacité au repos est celle qui a changé de réponse. Quand la puissance est
+une plaque signalétique, elle est réellement exclue, et le rapport le dit. Quand
+la puissance a été lue sur les compteurs de cette machine, elle est **dedans** —
+un compteur mesure du matériel, pas des processus, donc tout ce que la machine
+faisait par ailleurs y est — et le rapport dit *cela* à la place, avec le
+plancher que la machine tirait à côté. Une liste d'exclusions identique dans les
+deux cas serait fausse dans l'un des deux.
+
+Il ne surveille jamais en continu. Chaque valeur ici est *par unité de travail*,
+et un démon n'a pas d'unité de travail : il devrait répartir un flux entre ce
+qui se trouvait tourner, c'est-à-dire l'attribution que ce paquet a mesurée
+comme la moins reproductible des trois — une étendue de 67 % à 190 % sur cinq
+exécutions, contre 8 % à 49 % pour le total au compteur. Une valeur dont on ne
+sait pas borner l'écart ne peut pas dire jusqu'où on peut lui faire confiance,
+ce qui est l'unique raison d'être de chaque chiffre d'ici. `saggio measure`
+exécute une tranche que vous avez choisie, et s'arrête.
+
+Il ne lit jamais votre facture cloud. Une facture énonce de l'argent pour un
+compte sur un mois ; la répartir entre des unités de travail demande une clé que
+personne ne publie, et un importateur devrait l'inventer. Ce que vous pouvez
+faire, c'est lire la valeur vous-même et l'enregistrer : une quantité porte
+`source_kind: stated` exactement pour cela, et une valeur qu'un humain a relevée
+sur la facture du fournisseur a une **meilleure** provenance que le tarif
+`aggregator` que le catalogue utiliserait sinon.
 
 ## D'où viennent les chiffres
 
