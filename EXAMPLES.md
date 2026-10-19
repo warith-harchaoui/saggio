@@ -318,6 +318,23 @@ machine, so three baselines would measure the same idle three times:
 saggio audit . --country FR --run --baseline 0 --scaling-steps 3 -o cost_of_running.yaml
 ```
 
+**The fit it writes can be checked against its own evidence.** The block keeps
+the sizes and the seconds it was fitted over, the exponent as a quantity, and —
+since it stopped living only inside the method sentence — the coefficient, the
+`a` of `y = a · x^b`. With all four a reader redoes the arithmetic:
+
+```
+size  25: the fit predicts 0.072682 s, 0.073587 s was observed   (1.2%)
+size 100: the fit predicts 0.188343 s, 0.183739 s was observed   (2.5%)
+size 400: the fit predicts 0.488059 s, 0.494136 s was observed   (1.2%)
+```
+
+A contract test does exactly that on every committed model, and a second one
+requires the two numbers the method sentence spells to be the two the fields
+carry. Before the coefficient was a field, the observations were kept for a
+check nobody could perform.
+
+
 On a machine that publishes no counter at all there is nothing to skip: the
 baseline returns "not measured" immediately rather than watching an instrument
 that does not exist for a second first.

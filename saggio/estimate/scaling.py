@@ -251,13 +251,20 @@ class ScalingFit:
         --------
         >>> fit = fit_power_law([Observation(n, 2.0 * n) for n in (1, 10, 100)])
         >>> sorted(fit.to_mapping())
-        ['exponent', 'limits', 'method', 'observations', 'r_squared', 'reading']
+        ['coefficient', 'exponent', 'limits', 'method', 'observations', 'r_squared', 'reading']
         """
         mapping: dict[str, Any] = {
             "method": self.method,
             "reading": self.reading,
             "exponent": self.exponent.to_mapping(),
         }
+        if self.coefficient is not None:
+            # The `a` of `y = a * x ** b`. Its docstring says it is "useful for
+            # redoing the arithmetic and not much else" — and the arithmetic
+            # could not be redone from this block, because the exponent was
+            # written and the coefficient was not. It appeared only inside the
+            # method sentence, which is where the projection divisor lived too.
+            mapping["coefficient"] = round(float(self.coefficient), 9)
         if self.r_squared is not None:
             mapping["r_squared"] = round(float(self.r_squared), 6)
         if self.observations:

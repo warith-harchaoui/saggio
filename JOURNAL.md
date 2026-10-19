@@ -10,6 +10,48 @@ cette ligne.
 
 ## Non publié
 
+### L'ajustement qu'un modèle enregistre peut être vérifié contre les preuves posées à côté
+
+- Un bloc de mise à l'échelle conserve les tailles et les secondes sur
+  lesquelles il a été ajusté, *« pour qu'un lecteur refasse le calcul plutôt que
+  de croire l'exposant sur parole »*. Le lecteur ne pouvait pas. `y = a · x^b`
+  demande les deux nombres, et seul `b` était un champ : le coefficient
+  n'apparaissait **que dans la phrase de méthode** — la même forme que le
+  diviseur des projections une itération plus tôt, un cran plus bas. Son propre
+  docstring dit qu'il sert *« à refaire le calcul, et à peu près à rien
+  d'autre »*.
+- `measurement.scaling.coefficient` est désormais écrit, et deux contrats s'en
+  servent : l'ajustement doit reproduire chaque observation enregistrée à côté
+  de lui, et les deux nombres épelés par la phrase de méthode doivent être ceux
+  que portent les champs. Les deux sabotages tirent — déplacer le coefficient,
+  ou déplacer une observation.
+- Rétro-rempli dans `walkthrough/5-run.yaml` en **réajustant les observations du
+  fichier lui-même** avec l'estimateur du paquet, pas en recopiant la phrase. Le
+  réajustement retombe sur l'exposant enregistré à neuf décimales et sur le R²
+  enregistré exactement, ce qui prouve que c'est l'ajustement qui a produit le
+  bloc. Il prédit les trois observations à 1,2 %, 2,5 % et 1,2 % près.
+
+### Une règle mesurée puis rejetée : « tout champ doit atteindre le fichier »
+
+- Trois itérations ont trouvé le même défaut — une valeur que l'objet tient et
+  que le fichier n'obtient pas (`measure --json`, `marginal_watts`,
+  `fraction_completed`) — donc le réflexe était un contrat sur chaque classe
+  sérialisable. Il a d'abord été mesuré, comme les deux itérations précédentes
+  l'ont enseigné.
+- **Par le nom : 47 champs sur 111 (42 %) n'apparaissent jamais comme clé.**
+  Presque tous sont des renommages — `Spread.values` s'écrit `runs`,
+  `SliceResult.baseline` devient `idle_watts`, `MachineProfile` devient tout le
+  bloc `deployment`.
+- **Par l'atteignabilité de la valeur : 24 sur 105 (23 %)**, sous le seuil —
+  mais chacun a dû être trié à la main, et tous sauf un se sont révélés faux
+  positifs ou omissions délibérées. `ServiceHit.pricing_source_url` et les
+  champs de source de `RateTable` atteignent bien le fichier, par un autre
+  chemin.
+- La règle générale n'est donc pas livrée : un contrat qui exige un verdict
+  humain à chaque signalement n'est pas un contrat. Ce qui est livré, c'est le
+  seul vrai défaut qu'elle a trouvé, et une vérification assez précise pour être
+  exacte.
+
 ### Le diviseur dont dépend tout coût projeté est désormais une valeur, pas une phrase
 
 - Un modèle portait la taille de la course en `analysis.total_work.stated_as :

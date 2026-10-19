@@ -9,6 +9,41 @@ release of that line.
 
 ## Unreleased
 
+### The fit a model records can now be checked against the evidence beside it
+
+- A scaling block keeps the sizes and seconds it was fitted over, *"so a reader
+  can redo the arithmetic rather than take the exponent on trust"*. The reader
+  could not. `y = a · x^b` needs both numbers, and only `b` was a field: the
+  coefficient appeared **only inside the method sentence** — the same shape as
+  the projection divisor one iteration ago, one level down. Its own docstring
+  says it is *"useful for redoing the arithmetic and not much else"*.
+- `measurement.scaling.coefficient` is written now, and two contracts use it:
+  the fit must reproduce every observation recorded beside it, and the two
+  numbers the method sentence spells must be the two the fields carry. Both
+  sabotages fire — move the coefficient, or move an observation.
+- Backfilled into `walkthrough/5-run.yaml` by **refitting the file's own
+  observations** with the package's estimator, not by transcribing the
+  sentence. The refit lands on the recorded exponent to nine digits and the
+  recorded R² exactly, which is what says it is the fit that produced the
+  block. It predicts the three observations to within 1.2%, 2.5% and 1.2%.
+
+### A rule measured and rejected: "every field must reach the file"
+
+- Three iterations found the same defect — a figure the object holds and the
+  file never gets (`measure --json`, `marginal_watts`, `fraction_completed`) —
+  so the obvious move was a contract over every serialisable class. It was
+  measured first, as the last two iterations taught.
+- **Name matching: 47 of 111 fields (42%) never appear as a key.** Almost all
+  are renames — `Spread.values` is written as `runs`, `SliceResult.baseline` as
+  `idle_watts`, `MachineProfile` becomes the whole `deployment` block.
+- **Value reachability: 24 of 105 (23%)**, under the threshold — but every one
+  had to be triaged by hand, and all but one turned out to be a false positive
+  or a deliberate omission. `ServiceHit.pricing_source_url` and `RateTable`'s
+  source fields do reach the file, by another path.
+- So the general rule is not shipped: a contract needing a human verdict on
+  each hit is not a contract. What is shipped is the one real defect it found,
+  and a check that is specific enough to be exact.
+
 ### The divisor every projected cost turns on is a figure now, not a sentence
 
 - A model held the run size as `analysis.total_work.stated_as: '400000'` — a

@@ -306,6 +306,7 @@ measurement:
       status: measured
       unit: exponent
       notes: Fitted over 3 runs of sizes 25 to 400, R² = 0.999.
+    coefficient: 0.007966268
     r_squared: 0.999494
     observations:
     - size: 25.0

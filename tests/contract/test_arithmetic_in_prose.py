@@ -370,3 +370,66 @@ def test_the_divisor_a_projection_states_is_a_number_the_model_carries(model: st
                     f"model carries {', '.join(f'{name}={value:.6g}' for name, value in carried)}"
                 )
     assert not offenders, f"{model}: " + "; ".join(offenders)
+
+
+#: The power law a scaling block records, as its method sentence spells it.
+#: The sentence ends in a full stop, so the number must not be allowed to
+#: swallow it: `[\d.]+` matched "0.687." and float() refused it.
+POWER_LAW = re.compile(
+    r"seconds = (?P<coefficient>\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)"
+    r"\s*(?:×|x|\*)\s*size\^(?P<exponent>\d+(?:\.\d+)?)"
+)
+
+#: A least-squares fit does not pass through its points. Five per cent is loose
+#: enough for a good fit over a decade of sizes and tight enough that a fit
+#: recorded against somebody else's observations fails.
+FIT_TOLERANCE = 0.05
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_a_recorded_fit_reproduces_the_observations_recorded_beside_it(model: str) -> None:
+    # The block says it keeps the observations "so a reader can redo the
+    # arithmetic rather than take the exponent on trust". The reader could not:
+    # the exponent was a field, and the coefficient — the `a` of `y = a·x^b` —
+    # appeared only inside the method sentence. The same shape as the
+    # projection divisor, one level down.
+    data = yaml.safe_load((ROOT / model).read_text(encoding="utf-8"))
+    fit = (data.get("measurement") or {}).get("scaling")
+    if not isinstance(fit, dict):
+        return
+    observations = fit.get("observations")
+    if not isinstance(observations, list) or not observations:
+        return
+
+    coefficient = fit.get("coefficient")
+    exponent = (fit.get("exponent") or {}).get("value")
+    assert isinstance(coefficient, (int, float)), (
+        f"{model}: the fit records observations and no coefficient, so nothing "
+        f"here can be checked against them"
+    )
+    assert isinstance(exponent, (int, float)), f"{model}: a fit with no exponent"
+
+    # The method sentence states the same two numbers. They must be the same two.
+    spelled = POWER_LAW.search(str(fit.get("method") or ""))
+    if spelled is not None:
+        assert _close(float(spelled.group("coefficient")), float(coefficient)), (
+            f"{model}: the method says a={spelled.group('coefficient')} and the "
+            f"field says {coefficient}"
+        )
+        assert _close(float(spelled.group("exponent")), float(exponent)), (
+            f"{model}: the method says b={spelled.group('exponent')} and the "
+            f"field says {exponent}"
+        )
+
+    offenders: list[str] = []
+    for seen in observations:
+        size, seconds = seen.get("size"), seen.get("seconds")
+        if not isinstance(size, (int, float)) or not isinstance(seconds, (int, float)):
+            continue
+        predicted = float(coefficient) * float(size) ** float(exponent)
+        if abs(predicted - seconds) / seconds <= FIT_TOLERANCE:
+            continue
+        offenders.append(
+            f"size {size:g}: the fit predicts {predicted:.6g} s and {seconds:.6g} s was observed"
+        )
+    assert not offenders, f"{model}: the recorded fit does not fit — " + "; ".join(offenders)

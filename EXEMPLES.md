@@ -328,6 +328,24 @@ même repos :
 saggio audit . --country FR --run --baseline 0 --scaling-steps 3 -o cost_of_running.yaml
 ```
 
+**L'ajustement qu'elle écrit peut être vérifié contre ses propres preuves.** Le
+bloc conserve les tailles et les secondes sur lesquelles il a été ajusté,
+l'exposant comme quantité et — depuis qu'il a cessé de ne vivre que dans la
+phrase de méthode — le coefficient, le `a` de `y = a · x^b`. Avec les quatre, un
+lecteur refait le calcul :
+
+```
+taille  25 : l'ajustement prédit 0,072682 s, 0,073587 s observé   (1,2 %)
+taille 100 : l'ajustement prédit 0,188343 s, 0,183739 s observé   (2,5 %)
+taille 400 : l'ajustement prédit 0,488059 s, 0,494136 s observé   (1,2 %)
+```
+
+Un test de contrat fait exactement cela sur chaque modèle commité, et un second
+exige que les deux nombres épelés par la phrase de méthode soient ceux que
+portent les champs. Avant que le coefficient soit un champ, les observations
+étaient conservées pour une vérification que personne ne pouvait faire.
+
+
 Sur une machine qui ne publie aucun compteur, il n'y a rien à passer : la ligne de
 base rend « non mesuré » immédiatement au lieu de regarder pendant une seconde un
 instrument qui n'existe pas.

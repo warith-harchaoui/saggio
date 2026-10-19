@@ -114,6 +114,11 @@ BARE_NUMBER_EXEMPT_PREFIXES: Final[tuple[str, ...]] = (
     # quantity and is checked like one; these are the runs it was fitted to and
     # how well the fit worked, which is what lets a reader redo the arithmetic
     # rather than take the exponent on trust.
+    # The `a` of `y = a * x ** b`, beside the `b` that is already a quantity.
+    # Not a cost and not about the algorithm — it absorbs every fixed cost in
+    # the run — but without it the observations recorded next to it cannot be
+    # checked against the fit they produced.
+    "measurement.scaling.coefficient",
     "measurement.scaling.r_squared",
     "measurement.scaling.observations",
     # How many times the command was run and how far each figure moved across
