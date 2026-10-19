@@ -32,6 +32,13 @@ falling back to `SAGGIO_LANGUAGE` for a container that states it once.
   country option of `saggio audit`, `cli.help.catalog.refresh.json` the `--json`
   of `saggio catalog refresh`.
 
+- **And the two tests that were missing.** Converting the clone refusal I wrote
+  `raise HTTPException(...) if request.language == DEFAULT_LANGUAGE else None`,
+  which raises nothing at all for a French caller. I caught it by rereading the
+  line; nothing in the suite would have, because no test asked a refusal for a
+  language. Both gates have one now, and a sabotage confirms they fall when the
+  language context around the `raise` is removed.
+
 ### A language on every route that answers with prose
 
 The command line has had `--language` on every verb since the catalogue existed.

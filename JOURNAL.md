@@ -35,6 +35,14 @@ conteneur qui l'énonce une fois pour toutes.
   est l'option pays de `saggio audit`, `cli.help.catalog.refresh.json` le
   `--json` de `saggio catalog refresh`.
 
+- **Et les deux tests qui manquaient.** En convertissant le refus de clonage,
+  j'ai écrit `raise HTTPException(...) if request.language == DEFAULT_LANGUAGE
+  else None`, qui ne lève rien du tout pour un appelant français. Attrapé en
+  relisant la ligne ; rien dans la suite ne l'aurait fait, parce qu'aucun test
+  ne demandait un refus dans une langue. Les deux portes en ont un désormais, et
+  un sabotage confirme qu'ils tombent si l'on retire le contexte de langue
+  autour du `raise`.
+
 ### Une langue sur chaque route qui répond par de la prose
 
 La ligne de commande a `--language` sur chaque verbe depuis que le catalogue

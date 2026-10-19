@@ -196,6 +196,34 @@ def test_cloning_is_refused_by_default_and_the_refusal_says_what_to_do(
     assert "saggio audit ." in detail
 
 
+def test_a_refusal_is_read_in_the_language_the_caller_asked_for(client: TestClient) -> None:
+    """The sentence a caller reads most often from this surface.
+
+    Written because I converted this refusal to the catalogue and produced
+    `raise HTTPException(...) if request.language == DEFAULT_LANGUAGE else None`
+    on the way — which raises nothing at all for a French caller. I caught it by
+    rereading the line; nothing here would have.
+    """
+    answer = client.post(
+        "/audit", json={"git_url": "https://example.invalid/x.git", "language": "fr"}
+    )
+    assert answer.status_code == 403
+    detail = answer.json()["detail"]
+    assert "ne clone pas" in detail, detail
+    assert CLONE_SWITCH in detail, "the switch is named in every language"
+
+
+def test_a_refused_document_also_answers_in_the_caller_s_language() -> None:
+    # The other gate, which is a separate switch for a separate hazard.
+    refusing = TestClient(create_app(allow_clone=False, allow_fetch=False))
+    answer = refusing.post(
+        "/catalog/read-pcf",
+        json={"document": "https://example.invalid/pcf.pdf", "language": "fr"},
+    )
+    assert answer.status_code == 403
+    assert "ne récupère pas" in answer.json()["detail"]
+
+
 def test_the_environment_can_turn_cloning_on_and_nothing_else_can(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
