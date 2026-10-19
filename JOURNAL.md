@@ -10,6 +10,45 @@ cette ligne.
 
 ## Non publié
 
+### Lire l'empreinte produit d'un constructeur, et refuser de deviner
+
+- La version précédente soutenait qu'il ne devait exister **aucun** verbe lisant
+  un PCF, parce que la valeur énoncée vaut pour une carte de base alors que
+  l'unité de ce catalogue est un accélérateur, et que le diviseur est sur une
+  autre page. C'était une raison de le construire soigneusement, pas de le
+  refuser — et le dessin qui le rend sûr était déjà écrit dans le refus
+  lui-même.
+- `saggio catalog read-pcf <url>` va chercher le document, en extrait le texte
+  et **montre son raisonnement** : la phrase dont vient la valeur, la ligne dont
+  vient le diviseur, et l'arithmétique entre les deux. Puis il imprime un
+  brouillon de ligne et s'arrête.
+- **Il retombe sur les valeurs commitées sans qu'on les lui souffle.** Lancé sur
+  les deux documents que ce paquet cite, il lit 1 312 et 2 274 kgCO2e pour les
+  cartes HGX H100 et HGX B200, trouve `Form Factor 8x …` sur une autre page, et
+  produit 164,0 et 284,25 — les valeurs qu'un humain avait mises au catalogue un
+  mois plus tôt, à la main.
+- **Trois refus le rendent sûr.** Une valeur doit venir d'une *phrase* :
+  l'analyseur fait de l'OCR, donc un diagramme en barres devient du texte comme
+  le reste, et une valeur relevée sur un graphique est la seule chose que ce
+  paquet refuse de porter. Une valeur de carte sans facteur de forme est
+  **refusée**, pas divisée par une supposition. Et rien n'est écrit — il n'y a
+  pas de `--into`, parce qu'une ligne de catalogue est une affirmation que
+  quelqu'un fait et que celui qui la fait est celui à qui l'on peut demander
+  pourquoi. Le brouillon ne porte d'ailleurs aucune `key` : un document ne sait
+  pas comment ce catalogue nomme les choses.
+- L'`embodied_scope` du brouillon est écrit pour lui, et satisfait le contrat
+  ajouté à la version précédente : il commence par nommer une unité et énonce la
+  division.
+- Cinq surfaces, comme la règle l'exige : la bibliothèque, la ligne de commande,
+  `POST /catalog/read-pcf`, l'outil agent qui en dérive, et les deux livres de
+  recettes. La route est **fermée sauf si `SAGGIO_API_ALLOW_FETCH` est
+  positionné** — aller chercher une adresse choisie par le client est le risque
+  que le clonage est, barré à part parce qu'un exploitant qui laisse le serveur
+  lire un PDF n'a pas pour autant accepté qu'il clone un dépôt.
+- L'analyseur est un extra optionnel, `pip install 'saggio[pcf]'`. Les trois
+  dépendances d'exécution restent trois, et le verbe dit quoi installer au lieu
+  d'échouer sur un import trois cadres plus bas.
+
 ### Pourquoi il n'existe aucun verbe qui lit une empreinte produit
 
 - La liste de travail portait depuis octobre l'idée d'un verbe qui lirait le PDF

@@ -308,6 +308,18 @@ sait pas borner l'écart ne peut pas dire jusqu'où on peut lui faire confiance,
 ce qui est l'unique raison d'être de chaque chiffre d'ici. `saggio measure`
 exécute une tranche que vous avez choisie, et s'arrête.
 
+Il lit l'empreinte produit publiée par un constructeur, et ce n'est pas en
+contradiction avec la phrase ci-dessous : c'est la même règle qui aboutit à
+l'inverse. Un PCF énonce une valeur **et dit de quoi elle est l'empreinte** ;
+une facture énonce un total et laisse la répartition à qui en veut une. Donc
+`saggio catalog read-pcf <url>` lit le document, montre la phrase dont il tire
+la valeur et la ligne dont il tire le diviseur, imprime un brouillon de ligne —
+et s'arrête. Il n'écrit rien. Quand le document donne une valeur pour une carte
+de base sans jamais dire combien d'accélérateurs elle porte, il **refuse**
+plutôt que de diviser par un nombre que personne n'a écrit. Une ligne de
+catalogue est une affirmation que quelqu'un fait, et celui qui la fait est celui
+à qui l'on peut demander pourquoi.
+
 Il ne lit jamais votre facture cloud. Une facture énonce de l'argent pour un
 compte sur un mois ; la répartir entre des unités de travail demande une clé que
 personne ne publie, et un importateur devrait l'inventer. Ce que vous pouvez

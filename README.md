@@ -300,6 +300,17 @@ against 8% to 49% for the metered total. A number whose spread cannot be bounded
 cannot say how far it can be trusted, which is the one thing every number here
 is for. `saggio measure` runs a slice you chose, and stops.
 
+It reads a vendor's product carbon footprint, and that is not a contradiction
+with the sentence above: it is the same rule reaching opposite answers. A PCF
+states a figure *and says what the figure is of*; an invoice states a total and
+leaves the split to whoever wants one. So `saggio catalog read-pcf <url>` reads
+the document, shows the sentence it took the number from and the line it took
+the divisor from, prints a draft row — and stops. It writes nothing. Where the
+document gives a figure for a baseboard and never says how many accelerators
+the board holds, it **refuses** rather than dividing by a number nobody wrote
+down. A catalogue row is a claim somebody makes, and the person making it is
+the person who can be asked why.
+
 It never reads your cloud invoice. A bill states money for an account over a
 month; splitting it across units of work needs a key nobody publishes, and an
 importer would have to invent one. What you may do is read the figure yourself

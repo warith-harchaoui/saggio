@@ -9,6 +9,42 @@ release of that line.
 
 ## Unreleased
 
+### Reading a vendor's product carbon footprint, and refusing to guess
+
+- The previous release argued there should be **no** verb that reads a PCF,
+  because the figure a document states is for a baseboard while this
+  catalogue's unit is one accelerator, and the divisor is on another page. That
+  was a reason to build it carefully, not a reason to refuse — and the design
+  that makes it safe was already written down in the refusal itself.
+- `saggio catalog read-pcf <url>` fetches the document, extracts its text, and
+  **shows its working**: the sentence the figure came from, the line the divisor
+  came from, and the arithmetic between them. Then it prints a draft row and
+  stops.
+- **It lands on the committed numbers without being told them.** Run against
+  the two documents this package cites, it reads 1,312 and 2,274 kgCO2e for the
+  HGX H100 and HGX B200 baseboards, finds `Form Factor 8x …` on another page,
+  and produces 164.0 and 284.25 — the figures a human put in the catalogue a
+  month earlier, by hand.
+- **Three refusals make it safe.** A figure must come from a *sentence*: the
+  parser is an OCR engine, so a bar chart becomes text like everything else,
+  and a number lifted off a chart is the one thing this package will not carry.
+  A board figure with no form factor is **refused**, not divided by a guess.
+  And nothing is written — there is no `--into`, because a catalogue row is a
+  claim somebody makes and the person making it is the one who can be asked
+  why. The draft also carries no `key`: a document does not know what this
+  catalogue calls things.
+- The draft's `embodied_scope` is written for it, and satisfies the contract
+  added last release: it begins by naming one unit and states the division.
+- Five surfaces, as the rule requires: the library, the command line, `POST
+  /catalog/read-pcf`, the agent tool that derives from it, and both cookbooks.
+  The route is **off unless `SAGGIO_API_ALLOW_FETCH` is set** — fetching an
+  address the client chose is the hazard cloning is, gated separately because
+  an operator who will let the server read a PDF has not thereby agreed to let
+  it clone a repository.
+- The parser is an optional extra, `pip install 'saggio[pcf]'`. The three
+  runtime dependencies stay three, and the verb says what to install rather
+  than failing on an import three frames deep.
+
 ### Why there is no verb that reads a product carbon footprint
 
 - The working list has carried, since October, the idea of a verb that reads a

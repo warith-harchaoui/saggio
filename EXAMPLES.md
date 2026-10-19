@@ -909,6 +909,50 @@ Measure on a quiet machine if you want the power band tight enough to gate on.
 
 
 ## The catalogues
+### Reading a vendor's product carbon footprint
+
+```bash
+saggio catalog read-pcf https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf
+```
+
+```
+Read: https://images.nvidia.com/…/HGX-H100-PCF-Summary.pdf
+  the document says: carbon footprint from cradle-to-gate for one HGX H100 GPU
+                     baseboard is 1,312 kg CO2e
+  and, elsewhere in it: Form Factor 8x NVIDIA H100 SXM
+  so one of 8: 1312 / 8 = 164 kgCO2e
+
+A row you may accept, reject, or correct — nothing has been written:
+
+embodied_kgco2e: 164.0
+embodied_scope: 'One of the 8 on an HGX H100 GPU baseboard: 1312 kgCO2e
+  cradle-to-gate for the whole of it, divided by 8. …'
+embodied_source_url: https://images.nvidia.com/…/HGX-H100-PCF-Summary.pdf
+embodied_retrieved_date: '2026-10-19'
+
+The key is yours to supply: a document does not know what this catalogue calls things.
+```
+
+**The working is the output.** The figure is on page 3, the divisor is on page 1,
+and the knowledge that a division is needed at all comes from this catalogue's
+schema rather than from the document — so the verb shows both halves and the
+arithmetic between them instead of handing over a number.
+
+**Three things it will not do.** It will not take a figure that is not in a
+sentence: the parser is an OCR engine, so a bar chart becomes text like
+everything else, and a number lifted off a chart is the one thing this package
+will not carry. It will not divide by a number nobody wrote down — a document
+that gives a baseboard figure and never says how many chips the board holds is
+**refused**, not guessed at. And it will not write: there is no `--into`.
+
+It needs a document parser, which is not in the default install:
+`pip install 'saggio[pcf]'`. The three runtime dependencies are deliberate.
+
+Over HTTP the same reading is at `POST /catalog/read-pcf`, and it is **off
+unless `SAGGIO_API_ALLOW_FETCH` is set** — fetching an address the client chose
+is the same hazard cloning is, gated separately because an operator who will let
+the server read a PDF has not thereby agreed to let it clone a repository.
+
 
 ```bash
 saggio catalog list gpu

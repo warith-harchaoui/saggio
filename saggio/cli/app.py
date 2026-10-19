@@ -63,6 +63,7 @@ _HANDLERS: Final[dict[str, Callable[[argparse.Namespace], int]]] = {
     "catalog add": commands.catalog_add,
     "catalog freshness": commands.catalog_freshness,
     "catalog refresh": commands.catalog_refresh,
+    "catalog read-pcf": commands.catalog_read_pcf,
 }
 
 _EPILOG: Final[str] = "Exit codes: " + "; ".join(
@@ -663,6 +664,21 @@ def _add_catalog(verbs: argparse._SubParsersAction) -> None:
         metavar="NAME=VALUE",
         help="A field of the row, repeatable, for example --field tdp_w=700.",
     )
+    pcf = sub.add_parser(
+        "read-pcf",
+        help="Read a vendor's product carbon footprint and draft a row from it.",
+        epilog=(
+            "It reads, shows its working, and stops. Nothing is written: a "
+            "catalogue row is a claim somebody makes, and the person making it "
+            "is the person who can defend it."
+        ),
+    )
+    pcf.add_argument(
+        "document",
+        help="The https link to the vendor's summary, or a path to one already downloaded.",
+    )
+    pcf.add_argument("--json", action="store_true", help="Print the reading as JSON.")
+
     refresh = sub.add_parser(
         "refresh",
         help="Re-read a catalogue's numbers from the source it cites. Read-only "

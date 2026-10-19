@@ -939,6 +939,50 @@ calme si vous voulez un intervalle de puissance assez serré pour arbitrer dessu
 
 
 ## Les catalogues
+### Lire l'empreinte produit d'un constructeur
+
+```bash
+saggio catalog read-pcf https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf
+```
+
+```
+Read: https://images.nvidia.com/…/HGX-H100-PCF-Summary.pdf
+  the document says: carbon footprint from cradle-to-gate for one HGX H100 GPU
+                     baseboard is 1,312 kg CO2e
+  and, elsewhere in it: Form Factor 8x NVIDIA H100 SXM
+  so one of 8: 1312 / 8 = 164 kgCO2e
+
+A row you may accept, reject, or correct — nothing has been written:
+
+embodied_kgco2e: 164.0
+embodied_scope: 'One of the 8 on an HGX H100 GPU baseboard: 1312 kgCO2e
+  cradle-to-gate for the whole of it, divided by 8. …'
+embodied_source_url: https://images.nvidia.com/…/HGX-H100-PCF-Summary.pdf
+embodied_retrieved_date: '2026-10-19'
+```
+
+**Le raisonnement est la sortie.** La valeur est page 3, le diviseur page 1, et
+savoir qu'il faut diviser vient du schéma de ce catalogue et non du document —
+le verbe montre donc les deux moitiés et l'arithmétique entre elles au lieu de
+tendre un nombre.
+
+**Trois choses qu'il ne fera pas.** Il ne prendra pas une valeur qui n'est pas
+dans une phrase : l'analyseur fait de l'OCR, donc un diagramme en barres devient
+du texte comme le reste, et une valeur relevée sur un graphique est la seule
+chose que ce paquet refuse de porter. Il ne divisera pas par un nombre que
+personne n'a écrit — un document donnant une valeur de carte de base sans dire
+combien de puces elle porte est **refusé**, pas deviné. Et il n'écrit pas : il
+n'y a pas de `--into`.
+
+Il demande un analyseur de documents, absent de l'installation par défaut :
+`pip install 'saggio[pcf]'`. Les trois dépendances d'exécution sont délibérées.
+
+En HTTP, la même lecture est sur `POST /catalog/read-pcf`, et elle est
+**fermée sauf si `SAGGIO_API_ALLOW_FETCH` est positionné** — aller chercher une
+adresse choisie par le client est le même risque que cloner, barré à part parce
+qu'un exploitant qui laisse le serveur lire un PDF n'a pas pour autant accepté
+qu'il clone un dépôt.
+
 
 ```bash
 saggio catalog list gpu

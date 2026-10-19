@@ -64,6 +64,18 @@ dependencies = [
 # needed by nobody who is reading Markdown or HTML, so it stays out of the
 # default install.
 office = ["md2star>=1.0"]
+# Reading a vendor's product carbon footprint. One verb needs it, a handful of
+# times a year, and the runtime dependencies are deliberately three; a reader
+# who never adds a catalogue row should not carry a document parser. The verb
+# says what to install when it is missing, rather than failing on an import.
+#
+# Kreuzberg rather than a bare PDF text layer, because a vendor's summary is as
+# likely to be a scan as a born-digital file, and a reader who has to find out
+# which before asking has been given a worse tool. It brings OCR with it, and
+# that is precisely why the parsing below refuses anything that is not a
+# sentence: OCR turns a bar chart into text too, and a figure lifted off a
+# chart is the one thing this package will not put in a catalogue.
+pcf = ["kreuzberg>=4.0"]
 # The HTTP and agent surfaces. Nobody who wants a cost model in a pull request
 # should have to install a web framework to get one, so they stay out of the
 # default install and the library, the command line and the skill never import
@@ -168,6 +180,11 @@ ignore = [
 # the characters it exists to recognise, so a rule against them has it backwards.
 # S105 fires on `token == "("`, which is a parser cursor and not a password.
 "tests/contract/test_arithmetic_in_prose.py" = ["RUF001", "RUF002", "S105"]
+
+# The form-factor pattern has to match both `8x` and `8×`, because a vendor's
+# typography is not this package's to choose. A rule against the character the
+# document uses would be a rule against reading the document.
+"saggio/catalog/pcf.py" = ["RUF001"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"

@@ -40,6 +40,7 @@ from pathlib import Path
 from typing import Any
 
 import os_helper as osh
+import yaml
 
 from ..analyze.capability import measurable, paths_read, probe, summary
 from ..analyze.power import PowerMeter
@@ -707,6 +708,58 @@ def _fold_into(args: argparse.Namespace, result: Any, measurement: Any = None) -
     osh.info(f"Wrote {args.into}")
     for change in folded.changes:
         print(f"  {change}")
+    return OK
+
+
+def catalog_read_pcf(args: argparse.Namespace) -> int:
+    """Read a vendor's product carbon footprint and draft a row from it.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        With ``document`` and ``json``.
+
+    Returns
+    -------
+    int
+        An exit code. A document that states a footprint without saying how
+        many units it covers is :data:`~saggio.cli.exit_codes.INVALID` rather
+        than a row with a guessed divisor: the whole point of the verb is that
+        it does not invent the half the document does not give.
+
+    Examples
+    --------
+    >>> catalog_read_pcf(argparse.Namespace(document="/nope.pdf", json=False))
+    1
+    """
+    from ..catalog.pcf import read
+
+    reading = read(args.document)
+    if args.json:
+        _emit(reading.to_mapping(), as_json=True)
+        return INVALID if reading.refused else OK
+    if reading.refused:
+        osh.error(reading.refused)
+        return INVALID
+    # The working, before the answer. A draft whose arithmetic is hidden is a
+    # draft nobody can check, and checking it is the only job left for the
+    # person this is printed to.
+    print(f"Read: {reading.source_url}")
+    print(f"  the document says: {reading.sentence}")
+    if reading.form_factor:
+        print(f"  and, elsewhere in it: {reading.form_factor}")
+        print(
+            f"  so one of {reading.units}: {reading.stated:g} / "
+            f"{reading.units} = {reading.per_unit:g} kgCO2e"
+        )
+    else:
+        print(f"  which is already one unit: {reading.per_unit:g} kgCO2e")
+    print("\nA row you may accept, reject, or correct — nothing has been written:\n")
+    print(yaml.safe_dump(reading.draft_row(), sort_keys=False, allow_unicode=True).rstrip())
+    print(
+        "\nThe key is yours to supply: a document does not know what this "
+        "catalogue calls things."
+    )
     return OK
 
 

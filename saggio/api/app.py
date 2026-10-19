@@ -75,10 +75,43 @@ CLONE_REFUSED: Final[str] = (
     "cost model to /validate, /scopes and /render, which need no network at all."
 )
 
+#: Reading a vendor's document makes the server fetch an address the client
+#: chose, which is the same hazard cloning is, so it is gated the same way and
+#: for the same stated reason.
+FETCH_SWITCH: Final[str] = "SAGGIO_API_ALLOW_FETCH"
+
+#: What the footprint route answers when nobody turned fetching on.
+FETCH_REFUSED: Final[str] = (
+    "This deployment does not fetch documents. Reading a product carbon "
+    "footprint makes the server retrieve an address the client chose, so it is "
+    f"off unless {FETCH_SWITCH} is set. Read it where you are with "
+    "`saggio catalog read-pcf <url>`, which asks nobody's server but your own."
+)
+
 #: The formats a report can be returned in here. Word and PDF are deliberately
 #: absent: they shell out to Pandoc, which is a fat dependency to put behind a
 #: public port for an artefact the client can render from the Markdown itself.
 RENDERABLE: Final[tuple[str, ...]] = ("markdown", "html")
+
+
+class FootprintIn(BaseModel):
+    """The address of a vendor's product carbon footprint document.
+
+    Parameters
+    ----------
+    document : str
+        An ``https`` link to the summary. A link rather than an upload because
+        the link is what a catalogue row has to carry afterwards: a reader
+        checks the figure by following it, and a file that arrived in a request
+        body leaves nothing to follow.
+
+    Examples
+    --------
+    >>> FootprintIn(document="https://example.invalid/pcf.pdf").document
+    'https://example.invalid/pcf.pdf'
+    """
+
+    document: str
 
 
 class ModelIn(BaseModel):
@@ -217,11 +250,14 @@ class AuditIn(BaseModel):
     )
 
 
-def create_app(*, allow_clone: bool | None = None) -> FastAPI:
+def create_app(*, allow_clone: bool | None = None, allow_fetch: bool | None = None) -> FastAPI:
     """Build the application, with the one capability that is a deployment choice.
 
     Parameters
     ----------
+    allow_fetch : bool or None, optional
+        Whether the footprint route may retrieve a document from an address the
+        client chose. ``None`` reads ``SAGGIO_API_ALLOW_FETCH``.
     allow_clone : bool or None, optional
         Whether ``/audit`` may clone a git URL. ``None``, the default, reads
         :data:`CLONE_SWITCH` from the environment, so a container is configured
@@ -242,6 +278,14 @@ def create_app(*, allow_clone: bool | None = None) -> FastAPI:
         os.environ.get(CLONE_SWITCH, "").strip().lower() in {"1", "true", "yes"}
         if allow_clone is None
         else allow_clone
+    )
+    # Separate from cloning on purpose: an operator who will let the server read
+    # a vendor's PDF has not thereby agreed to let it clone a repository, and
+    # one switch for two hazards is a switch nobody can set honestly.
+    fetching = (
+        os.environ.get(FETCH_SWITCH, "").strip().lower() in {"1", "true", "yes"}
+        if allow_fetch is None
+        else allow_fetch
     )
 
     application = FastAPI(
@@ -481,6 +525,46 @@ def create_app(*, allow_clone: bool | None = None) -> FastAPI:
         True
         """
         return {"catalogues": list(BUNDLED_CATALOGS)}
+
+    @application.post(
+        "/catalog/read-pcf",
+        operation_id="read_product_carbon_footprint",
+        summary="Read a vendor's footprint document and draft a catalogue row from it",
+    )
+    def read_pcf_route(request: FootprintIn) -> dict[str, Any]:
+        """Return what a vendor's footprint document says, and a draft row.
+
+        It reads and stops. Nothing is written here and nothing could be: a
+        catalogue row is a claim somebody makes, and over a network there is
+        nobody to ask why. What comes back is the sentence the figure was taken
+        from, the line the divisor was taken from, and the arithmetic between
+        them, so the caller judges the reading rather than taking it.
+
+        Parameters
+        ----------
+        request : FootprintIn
+            The document's address.
+
+        Returns
+        -------
+        dict
+            The reading, or a refusal saying which half of it is missing.
+
+        Raises
+        ------
+        HTTPException
+            403 when this deployment does not fetch documents.
+
+        Examples
+        --------
+        >>> callable(read_pcf_route)
+        True
+        """
+        if not fetching:
+            raise HTTPException(403, FETCH_REFUSED)
+        from ..catalog.pcf import read
+
+        return read(request.document).to_mapping()
 
     @application.get(
         "/catalog/{name}",
