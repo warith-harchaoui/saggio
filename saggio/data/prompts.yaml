@@ -1,0 +1,39 @@
+# What the local model is asked, in the language of the person who asked.
+#
+# This file is the prompt half of this package's i18n; `report/i18n.yaml` is the
+# interface half. Both are loaded by `saggio/i18n.py`, and a language counts as
+# available only when **both** files have it — a contract test says so, because a
+# report a colleague reads in French whose one generated sentence is in English
+# is a single deliverable in two languages.
+#
+# Add a top-level language code to add a language. Nothing else changes: the CLI
+# option, the API field, the agent tool and the report's own language button are
+# all built from what these two files contain.
+#
+# Why one sentence per language rather than a whole prompt per language. Measured
+# on 2026-10-19 against two local models (qwen3-vl:8b, gemma3:12b), two seeds
+# each, on this repository's own summary:
+#
+#   english prompt + this sentence   french prose 4/4
+#   prompt translated, no sentence   french prose 0/4
+#   french prompt + this sentence    french prose 4/4
+#
+# A translated prompt on its own changes nothing: the model answers in English
+# unless it is *asked*. So the prompt body stays in one language in the code,
+# where it can be got right once, and what a translator adds here is the request.
+#
+# Two things the sentence must keep saying, and the reason is enforced in code:
+# the JSON field names are matched literally by `saggio.analyze.llm._coerce`, and
+# the value of `workload_kind` is matched against a closed set. A translated key
+# or a translated kind is thrown away as an unrecognised answer, so the sentence
+# has to tell the model that those two stay as given while the prose moves.
+
+en:
+  prompt.classify.language: >-
+    Write "dominant_operation" and "reasoning" in English. The field names and
+    the value of "workload_kind" stay exactly as given above.
+
+fr:
+  prompt.classify.language: >-
+    Écris "dominant_operation" et "reasoning" en français. Les noms de champs et
+    la valeur de "workload_kind" restent exactement tels qu'énoncés ci-dessus.

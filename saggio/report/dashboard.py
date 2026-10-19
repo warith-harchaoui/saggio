@@ -37,6 +37,7 @@ from __future__ import annotations
 import json
 from typing import Any, Final
 
+from ..i18n import languages as language_codes
 from ..model.cost_model import CostModel
 from ..model.quantity import Quantity, looks_like_quantity
 from ..model.validate import overall_status
@@ -247,10 +248,12 @@ def render_dashboard(models: list[CostModel | dict[str, Any]]) -> str:
         ]
     )
 
-    languages = "".join(
-        f'<option value="{_escape(code)}">{_escape(code.upper())}</option>'
-        for code in sorted(translations())
-    )
+    # The same comma-separated list the single-project report writes, because
+    # both pages are filled from the same shell and its language control reads
+    # this attribute. It was a list of <option> elements until the control
+    # became a button, and left that way it put markup inside an attribute:
+    # two renderers fill one template, and only one of them had been changed.
+    languages = ",".join(language_codes())
     # The script expects the page's data blob; the dashboard has no what-if
     # panel, so the machine energy is honestly absent and the catalogues empty.
     payload = {

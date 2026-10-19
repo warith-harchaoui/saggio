@@ -37,6 +37,7 @@ from ..estimate.energy import (
 )
 from ..estimate.ghg import OPERATED_BY_SELF, operated_by
 from ..estimate.machine import detect_machine
+from ..i18n import unknown_language_note
 from ..model.cost_model import CostModel
 from ..model.quantity import Quantity
 from ..model.schema import SCHEMA_VERSION
@@ -140,7 +141,10 @@ def audit(
 
     analysis = reading.to_mapping()
     if settings.use_llm:
-        classification = llm.classify(_repository_summary(reading))
+        language_note = unknown_language_note(settings.language)
+        if language_note is not None:
+            notes.append(language_note)
+        classification = llm.classify(_repository_summary(reading), language=settings.language)
         if classification is not None:
             # The model's answer is merged under the static reading, never over
             # it: a number read from a file outranks a sentence from a model.

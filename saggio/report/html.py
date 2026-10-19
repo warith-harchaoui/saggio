@@ -39,12 +39,12 @@ from functools import cache
 from importlib import resources
 from typing import Any, Final
 
-import yaml
-
 from ..analyze.power import measurement_rows
 from ..catalog.registry import Catalog
 from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE
 from ..estimate.ghg import GHG_EMISSIONS, market_based_figure_exists, placements
+from ..i18n import labels
+from ..i18n import languages as language_codes
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
 from ..model.quantity import Quantity, looks_like_quantity
@@ -175,27 +175,23 @@ def _logo_data_uri() -> str:
     return "data:image/png;base64," + base64.b64encode(raw).decode("ascii")
 
 
-@cache
 def translations() -> dict[str, dict[str, str]]:
     """Return the report's translation table.
 
     Returns
     -------
     dict
-        Language code to key-value mapping. Packaged with the wheel, so there is
-        exactly one copy and no fallback that can drift out of step with it.
+        Language code to key-value mapping, read by :mod:`saggio.i18n`, which
+        is the one loader for both halves of this package's translations: the
+        labels on this page and the instruction sent to a local model. Kept
+        here as the name the renderer has always used.
 
     Examples
     --------
     >>> sorted(translations())
     ['en', 'fr']
     """
-    loaded = yaml.safe_load(_asset("i18n.yaml")) or {}
-    return {
-        str(code): {str(key): str(value) for key, value in table.items()}
-        for code, table in loaded.items()
-        if isinstance(table, dict)
-    }
+    return labels()
 
 
 def _escape(text: object) -> str:
@@ -637,7 +633,7 @@ def _projection_caveats(block: object) -> str:
                     seen.append(str(sentence))
         if seen:
             bullets = "".join(f"<li>{_escape(sentence)}</li>" for sentence in seen)
-            parts.append(f"{_heading(4, heading)}<ul class=\"plain\">{bullets}</ul>")
+            parts.append(f'{_heading(4, heading)}<ul class="plain">{bullets}</ul>')
     return "".join(parts)
 
 
@@ -1301,7 +1297,12 @@ def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> st
     # two languages it is the FR/EN switch a reader expects, and with three it
     # cycles. The i18n file promises that adding a language is enough, and a
     # two-state toggle hard-coded to FR and EN would have broken that promise.
-    languages = ",".join(sorted(translations()))
+    #
+    # `languages()` and not this file's own table: a language the page has
+    # labels for but no prompt is a language this package only half speaks, and
+    # offering it here would hand a reader a French page with an English
+    # sentence generated inside it.
+    languages = ",".join(language_codes())
 
     updated = wrapped.data.get("date_updated")
     subtitle = (

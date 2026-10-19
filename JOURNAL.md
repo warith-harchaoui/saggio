@@ -10,6 +10,85 @@ cette ligne.
 
 ## Non publié
 
+### Demandé dans la langue du lecteur, après avoir mesuré ce qui marche vraiment
+
+`UTILISER.md` promet depuis toujours une surface d'agent pour « une collègue qui
+pose la question avec ses mots, dans sa langue », et les étiquettes du rapport
+viennent depuis toujours d'un fichier de traduction. Mais **une phrase du modèle
+de coût est écrite plutôt que lue** : on demande à un modèle local quelle forme
+de travail fait le dépôt, et il écrit sa réponse dans le bloc `analysis`. Le
+prompt ne parlait jamais de langue : cette phrase était donc toujours en
+anglais, à l'intérieur d'un rapport que quelqu'un lisait en français.
+
+- **Mesuré avant de construire quoi que ce soit.** Deux modèles locaux
+  (`qwen3-vl:8b`, `gemma3:12b`), deux graines chacun, le résumé de ce dépôt :
+
+  | façon de demander | prose revenue en français |
+  |---|---|
+  | prompt anglais + une phrase demandant le français | **4/4** |
+  | prompt traduit en français, sans rien demander | **0/4** |
+  | prompt français + la même phrase | **4/4** |
+
+  Le geste évident — traduire le prompt — ne fait absolument rien. Un modèle
+  répond en anglais tant qu'on ne lui *demande* pas, et demander marche quelle
+  que soit la langue dans laquelle on demande. Le corps du prompt reste donc dans
+  une seule langue, dans le code, là où on peut le réussir une fois pour toutes,
+  et ce qu'un traducteur ajoute, c'est la demande.
+- **La langue se passe maintenant de la même façon sur les cinq surfaces.**
+  `saggio audit --language fr`, `AuditOptions(language=...)`, un champ `language`
+  sur `POST /audit`, le même argument sur l'outil d'agent — engendré depuis la
+  route, donc impossible à oublier — et `saggio.languages()` pour tout ce qui
+  construit un sélecteur : une interface interroge la bibliothèque au lieu de
+  figer une liste qui se périme.
+- **L'ensemble fermé des formes de travail n'est jamais traduit.** Ces valeurs
+  sont comparées littéralement au retour : un `training` traduit serait jeté
+  comme réponse non reconnue, et le modèle se serait vu poser une question dont
+  ce paquet refuse la bonne réponse. Un test de contrat relit l'ensemble proposé
+  dans le prompt construit, pour chaque langue.
+- **`prose_language` est enregistré à côté de la phrase.** Sans cela, une phrase
+  anglaise dans un modèle français est indiscernable d'un bug, et une phrase
+  française dans un modèle anglais d'un modèle parti tout seul.
+- **Une étiquette dans laquelle rien n'est écrit retombe sur l'anglais et le dit
+  dans les notes**, à côté de toutes les autres lignes de catalogue manquantes.
+  Un audit ne doit pas échouer pour une histoire de langue, et il ne doit pas non
+  plus répondre en silence dans une langue que personne n'a demandée.
+- **Deux fichiers de traduction, un seul chargeur.** `saggio/i18n.py` lit les
+  deux et répond pour le paquet entier : une langue ne compte comme disponible
+  que si les étiquettes **et** le prompt la portent. Un test de contrat refuse
+  une langue que seul l'un des deux a. L'argument facile en faveur de deux
+  fichiers ne tient pas et n'est pas utilisé — la table de prompts fait 375
+  octets, 0,30 % d'une page produite. Ce qui les sépare, c'est qu'une étiquette
+  est du texte libre et que la phrase du prompt est porteuse.
+- **Une langue n'est pas un pays**, écrit dans le skill là où un agent le lira :
+  `--language fr` dit comment écrire une phrase et rien sur le réseau électrique
+  où le code tourne, et en déduire `--country FR` mettrait dans le modèle un
+  nombre que personne n'a établi.
+
+### Deux défauts trouvés en lançant la chose plutôt qu'en relisant le diff
+
+- **Le contrôle de langue du tableau de bord était cassé par le commit
+  précédent.** Celui du rapport est devenu un bouton qui lit un attribut
+  `data-languages` séparé par des virgules ; le tableau de bord, lui, continuait
+  de remplir le même gabarit avec du balisage `<option>`, produisant
+  `data-languages="<option value="`. Deux moteurs de rendu, un gabarit, un seul
+  mis à jour. Les deux interrogent la bibliothèque maintenant, et un test de
+  contrat produit les deux pages et compare l'attribut.
+- **`docs/sync_api.py` décrivait une fonction mise en cache par son `repr`**, qui
+  contient une adresse mémoire — la page de référence engendrée aurait donc
+  changé à chaque exécution, échouant à son propre `--check` pour une raison que
+  personne ne pouvait expliquer en lisant le diff. Il déballe `__wrapped__`
+  désormais et documente la vraie signature.
+
+### La porte du formateur était rouge sur master, et elle est dans la suite
+
+`ruff format --check .` sortait en 1 sur **neuf fichiers**, tous touchés le même
+jour par les itérations de ce projet. Ruff est épinglé exactement dans `[dev]` :
+la version qui échoue en local est donc celle qui échoue en intégration continue
+— le build était rouge et personne ne regardait, parce que la routine avant un
+commit ici, c'est la suite de tests, et que le formateur n'y était pas. Deux
+tests de contrat lancent maintenant `ruff format --check .` et `ruff check .`,
+pour que la porte échoue là où quelqu'un regarde déjà.
+
 ### Deux bascules et une étoile, là où la main du lecteur est déjà
 
 - **Le contrôle de thème est un bouton qui montre le thème qu'il donnerait**,

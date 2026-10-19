@@ -167,6 +167,47 @@ qui ne le doivent pas. Les évaluations à côté du skill fixent les deux moiti
 - **Ce qu'un déploiement autorise.** Le clonage est la décision de l'exploitant,
   prise dans l'environnement plutôt que dans le code.
 
+## La langue dans laquelle les cinq répondent
+
+La langue d'un lecteur n'est pas de la présentation, et ses deux moitiés ne sont
+pas le même problème.
+
+**L'interface.** Chaque étiquette du rapport HTML vient d'un seul fichier de
+traduction, et la page porte un bouton de langue construit depuis ce que ce
+fichier contient : un lecteur change de langue dans son navigateur, sans réseau
+et sans second fichier à livrer.
+
+**La prose.** Une phrase du modèle de coût n'est pas lue dans un fichier : on
+demande à un modèle local quelle forme de travail fait le dépôt, et il écrit sa
+réponse dans le bloc `analysis`. C'est la seule phrase qui peut arriver dans la
+mauvaise langue, et les surfaces prennent la langue de la même façon :
+
+```bash
+saggio audit . --country FR --language fr -o cost_of_running.yaml
+```
+
+```python
+saggio.audit(".", options=saggio.AuditOptions(country="FR", language="fr"))
+```
+
+`POST /audit` prend un champ `language`, l'outil d'agent prend un argument
+`language`, et `saggio.languages()` est ce depuis quoi tous sont construits —
+une interface qui propose un sélecteur interroge donc la bibliothèque au lieu de
+figer une liste qui se périme. Une étiquette dans laquelle rien n'est écrit
+retombe sur l'anglais et le dit dans les notes, car un audit ne doit pas échouer
+pour une histoire de langue.
+
+**Une langue n'est pas un pays.** `--language fr` dit comment écrire une phrase
+et rien sur l'endroit où le code tourne : le français s'écrit sur une douzaine
+de réseaux électriques différents, et en déduire `--country FR` mettrait dans le
+modèle un nombre que personne n'a établi.
+
+**Ajouter une langue**, c'est ajouter un code de premier niveau à deux fichiers
+— `reporting/i18n.yaml` pour les étiquettes et `saggio/data/prompts.yaml` pour
+l'instruction — et rien d'autre. Un test de contrat refuse une langue que seul
+l'un des deux porte : une page qu'une collègue lit dans sa langue avec, dedans,
+une phrase engendrée dans une autre, c'est une seule livraison en deux langues.
+
 ## Ajouter une sixième
 
 Écrire d'abord la fonction dans la bibliothèque, avec son exemple exécutable.

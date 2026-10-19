@@ -9,6 +9,80 @@ release of that line.
 
 ## Unreleased
 
+### Asked in the reader's language, after measuring what actually works
+
+`USING.md` has promised an agent surface for "a colleague who asks in their own
+words, in their own language" since the surface existed, and the report's labels
+have always come from a translation file. But **one sentence of a cost model is
+written rather than read**: a local model is asked what shape of work the
+repository does, and it writes the answer into the `analysis` block. The prompt
+never mentioned a language, so that sentence was always English, inside a report
+somebody was reading in French.
+
+- **Measured before building anything.** Two local models (`qwen3-vl:8b`,
+  `gemma3:12b`), two seeds each, this repository's own summary:
+
+  | how the model was asked | prose came back in French |
+  |---|---|
+  | English prompt + one sentence asking for French | **4/4** |
+  | the prompt translated to French, asking nothing | **0/4** |
+  | French prompt + the same sentence | **4/4** |
+
+  The obvious move — translate the prompt — does nothing at all. A model answers
+  in English unless it is *asked*, and asking works whichever language the
+  asking is written in. So the prompt body stays in one language in the code,
+  where it can be got right once, and what a translator adds is the request.
+- **The language is now taken the same way by all five surfaces.** `saggio audit
+  --language fr`, `AuditOptions(language=...)`, a `language` field on `POST
+  /audit`, the same argument on the agent tool — generated from the route, so it
+  could not have been forgotten — and `saggio.languages()` for anything building
+  a picker, so a GUI asks the library instead of hard-coding a list that goes
+  stale.
+- **The closed set of workload kinds is never translated.** Those values are
+  matched literally on the way back in, so a translated `training` would be
+  discarded as an unrecognised answer: the model would have been asked a question
+  whose right answer this package rejects. A contract test reads the offered set
+  out of the built prompt, in every language.
+- **`prose_language` is recorded beside the sentence.** An English sentence in a
+  French model file is otherwise indistinguishable from a bug, and a French one
+  in an English file from a model wandering off on its own.
+- **A tag nothing is written in falls back to English and says so in the notes**,
+  next to every other missing catalogue row. An audit must not fail over a
+  language, and it must not silently answer in one nobody asked for.
+- **Two translation files, one loader.** `saggio/i18n.py` reads both and answers
+  for the package as a whole: a language counts as available only when the
+  labels *and* the prompt have it. A contract test refuses a language only one of
+  them has. The easy argument for two files does not hold and is not used — the
+  prompt table is 375 bytes, 0.30% of a rendered page. What keeps them apart is
+  that a label is free text and the prompt sentence is load-bearing.
+- **A language is not a country**, stated in the skill where an agent will read
+  it: `--language fr` says how to write a sentence and nothing about which grid
+  the code runs on, and reading `--country FR` out of it would put a number in
+  the model that nobody established.
+
+### Two defects found by running the thing rather than reading the diff
+
+- **The dashboard's language control was broken by the commit before this one.**
+  The report's control became a button reading a comma-separated
+  `data-languages` attribute; the dashboard went on filling the same shell with
+  `<option>` markup, so it rendered `data-languages="<option value="`. Two
+  renderers, one template, one of them updated. Both ask the library now, and a
+  contract test renders both pages and compares the attribute.
+- **`docs/sync_api.py` described a cached function by its repr**, which carries a
+  memory address — so the generated reference page would have differed on every
+  run, failing its own `--check` for a reason nobody reading the diff could
+  explain. It unwraps `__wrapped__` now and documents the real signature.
+
+### The formatter's gate was red on master, and is in the suite now
+
+`ruff format --check .` exited 1 over **nine files**, every one of them last
+touched the same day by this project's own iterations. Ruff is pinned exactly in
+`[dev]`, so the version failing locally is the version failing in continuous
+integration: the build was red and nobody looked, because the routine before a
+commit here is the test suite and the formatter was not in it. Two contract tests
+run `ruff format --check .` and `ruff check .` now, so the gate fails where
+somebody is already looking.
+
 ### Two toggles and a star, where a reader's hand already is
 
 - **The theme control is a button showing the theme it would give you**, not a

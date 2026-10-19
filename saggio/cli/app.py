@@ -33,6 +33,8 @@ from ..analyze.run import DEFAULT_BASELINE_SECONDS, DEFAULT_TIMEOUT_SECONDS
 from ..catalog.registry import EXPIRING_WITHIN_DAYS, SECTION_OF_KIND
 from ..diff import DEFAULT_DRIFT_THRESHOLD_PERCENT
 from ..estimate.extrapolate import DEFAULT_PRECISION
+from ..i18n import DEFAULT_LANGUAGE
+from ..i18n import languages as LANGUAGES_FROM_FILES
 from ..model.taxonomy import STATUS_ORDER
 from ..report.office import DEFAULT_AUTHOR, OFFICE_FORMATS
 from ..templates import DEFAULT_TEMPLATE, TEMPLATES, template_names
@@ -353,6 +355,15 @@ def _add_audit(verbs: argparse._SubParsersAction) -> None:
         action="store_true",
         help=(
             "Do not ask a local model to classify the workload. Numbers never come from it anyway."
+        ),
+    )
+    parser.add_argument(
+        "--language",
+        default=DEFAULT_LANGUAGE,
+        choices=list(LANGUAGES_FROM_FILES()),
+        help=(
+            "Language for the one sentence a local model writes into the model, "
+            "so it matches the language the report is read in."
         ),
     )
     parser.add_argument(

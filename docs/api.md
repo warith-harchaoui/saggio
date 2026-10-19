@@ -111,6 +111,8 @@ which `help()` will show you.
 
 | Name | What it is for |
 |---|---|
+| `languages() -> 'tuple[str, ...]'` | Return the languages this package can answer in, in a stable order. |
+| `DEFAULT_LANGUAGE` | `'en'` |
 | `render_markdown(model: 'CostModel \| dict[str, Any]') -> 'str'` | Render a cost model as a Markdown report. |
 | `render_html(model: 'CostModel \| dict[str, Any]', *, overlay: 'Any' = None) -> 'str'` | Render a cost model as one self-contained HTML page. |
 | `render_office(model: 'CostModel \| dict[str, Any]', output: 'str \| Path', *, output_format: 'str' = 'docx', reference_document: 'str \| Path \| None' = None, author: 'str \| None' = 'saggio', generated: 'date \| str \| None' = None, offline: 'bool' = False) -> 'Path'` | Render a cost model to Word or PDF. |

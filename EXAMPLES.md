@@ -127,6 +127,47 @@ saggio audit . --country FR
 saggio audit . --country FR --no-llm
 ```
 
+### In the reader's language
+
+That sentence is the one piece of a cost model written rather than read, so it
+is the one piece that can arrive in a language nobody asked for:
+
+```bash
+saggio audit . --country FR --language fr -o cost_of_running.yaml
+```
+
+The same repository, the same local model, the two languages side by side:
+
+```yaml
+# --language en (the default)
+analysis:
+  evidence_source: static + llm:qwen3-vl:8b
+  workload_kind: command-line-tool
+  confidence: low
+  dominant_operation: media processing
+  reasoning: The repository primarily uses ffmpeg for media processing, which is
+    compute-bound.
+  prose_language: en
+
+# --language fr
+analysis:
+  evidence_source: static + llm:qwen3-vl:8b
+  workload_kind: command-line-tool
+  confidence: low
+  dominant_operation: traitement de médias
+  reasoning: L'outil utilise ffmpeg pour traiter des médias, ce qui est intensif
+    en calcul.
+  prose_language: fr
+```
+
+`workload_kind` does not move, and that is the point: it is matched against a
+closed set, so it is never translated, while `prose_language` records what the
+prose was asked for. The sentence is low-confidence prose from a model and never
+a number — `confidence: low` and `evidence_source` say so on the line itself.
+
+`saggio audit --help` lists the languages. Adding one is two translation files
+and no code; `saggio.languages()` is what every surface is built from.
+
 ### From the environment
 
 Two things can be set once instead of passed every time, which is what a container

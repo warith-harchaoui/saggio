@@ -29,6 +29,7 @@ from ..estimate.extrapolate import (
     DEFAULT_PRECISION,
 )
 from ..estimate.machine import MachineProfile
+from ..i18n import DEFAULT_LANGUAGE
 from ..model.cost_model import CostModel
 from ..model.results import Report
 
@@ -45,6 +46,13 @@ class AuditOptions:
     use_llm : bool
         Whether to ask a local model to classify the shape of the work. It never
         supplies a number, and its absence never stops an audit.
+    language : str
+        The language the prose generated during the audit is asked for. One
+        sentence of a cost model is written by a local model rather than read
+        from a file, and a colleague reading the rest of their report in French
+        should not find that sentence in English. A tag nothing is written in
+        falls back to English with a note saying so, rather than failing an
+        audit over a language.
     country : str or None
         ISO 3166-1 alpha-2 code where the code runs. Stating it is what turns the
         carbon and money figures from ``TODO`` into numbers.
@@ -96,6 +104,7 @@ class AuditOptions:
 
     run: bool = False
     use_llm: bool = True
+    language: str = DEFAULT_LANGUAGE
     country: str | None = None
     provider: str | None = None
     instance: str | None = None

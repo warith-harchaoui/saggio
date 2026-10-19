@@ -71,6 +71,7 @@ def test_only_the_allowed_fields_survive() -> None:
     assert set(result.to_mapping()) <= ALLOWED_FIELDS | {
         "evidence_source",
         "confidence",
+        "prose_language",
     }
 
 
@@ -92,3 +93,45 @@ def test_the_classification_names_the_model_that_gave_it() -> None:
     mapping = Classification("training", "matmul", True, "why", "qwen:7b").to_mapping()
     assert mapping["evidence_source"] == "llm:qwen:7b"
     assert mapping["confidence"] == "low"
+
+
+# --- The language the prose was asked in --------------------------------------
+
+
+def test_the_prompt_asks_for_the_language_rather_than_being_translated() -> None:
+    # Measured against two local models, two seeds each: a prompt translated to
+    # French and not asking for a language gets English prose back 4 times out
+    # of 4, and asking gets French 4 out of 4. So the body stays in one
+    # language and the request is one sentence from the translation file.
+    french = _build_prompt("a repository", language="fr")
+    assert "en français" in french
+    assert "You are reading a source repository" in french, "the body is not translated"
+
+
+def test_a_language_nothing_is_written_in_falls_back_rather_than_failing() -> None:
+    assert _build_prompt("a repository", language="klingon") == _build_prompt("a repository")
+
+
+def test_the_closed_set_is_offered_untranslated_in_every_language() -> None:
+    # `_coerce` matches these literally, so a translated `training` would be
+    # thrown away as an unrecognised answer: the model would have been asked a
+    # question whose right answer this package rejects.
+    for language in ("en", "fr"):
+        prompt = _build_prompt("a repository", language=language)
+        for kind in WORKLOAD_KINDS:
+            assert kind in prompt
+
+
+def test_a_classification_records_the_language_its_prose_was_asked_in() -> None:
+    # Without it, an English sentence in a French model file is indistinguishable
+    # from a bug, and a French one in an English file from a model wandering off.
+    mapping = _coerce({"workload_kind": "training", "reasoning": "pourquoi"}, "m", "fr")
+    assert mapping is not None
+    assert mapping.language == "fr"
+    assert mapping.to_mapping()["prose_language"] == "fr"
+
+
+def test_a_classification_with_no_prose_claims_no_language() -> None:
+    mapping = _coerce({"workload_kind": "training"}, "m", "fr")
+    assert mapping is not None
+    assert "prose_language" not in mapping.to_mapping()

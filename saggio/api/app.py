@@ -58,6 +58,7 @@ from ..catalog import Catalog, stale_report
 from ..catalog.registry import BUNDLED_CATALOGS
 from ..diff import compare
 from ..estimate.ghg import placed_model
+from ..i18n import DEFAULT_LANGUAGE
 from ..model import CostModel, overall_status, validate
 
 #: The environment variable an operator sets to allow the one route that reaches
@@ -246,6 +247,17 @@ class AuditIn(BaseModel):
             "Whether to ask a local model to classify the shape of the work. Off "
             "here, so that the same request gives the same answer on a server "
             "that has no model reachable."
+        ),
+    )
+    language: str = Field(
+        default=DEFAULT_LANGUAGE,
+        description=(
+            "Language for the one sentence a local model writes into the model. "
+            "Pass the language the person asking is writing in: an agent that "
+            "answers a question in French and files an English sentence inside "
+            "the answer has produced one deliverable in two languages. A tag "
+            "nothing is written in falls back to English and says so in the "
+            "notes rather than failing the request."
         ),
     )
 
@@ -670,6 +682,7 @@ def create_app(*, allow_clone: bool | None = None, allow_fetch: bool | None = No
         options = AuditOptions(
             run=False,
             use_llm=request.use_llm,
+            language=request.language,
             country=request.country,
             provider=request.provider,
             instance=request.instance,

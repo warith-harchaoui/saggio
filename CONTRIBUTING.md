@@ -3,9 +3,9 @@
 [🇫🇷 CONTRIBUER.md](CONTRIBUER.md) · 🇬🇧 English
 
 Thank you for looking. The most useful contributions to this project are small and
-specific, and two of them need no Python at all.
+specific, and three of them need no Python at all.
 
-## The two easiest, and most valuable, contributions
+## The three easiest, and most valuable, contributions
 
 ### A catalogue row
 
@@ -63,6 +63,25 @@ kgCO2e… divided by eight"*. A contract test refuses a footprint without it.
 If a figure in `saggio/data/` is wrong or has gone stale, say so,
 and say what it should be and where you read that. Corrections are the highest
 value thing here, and they are welcome even without a patch.
+
+### A language
+
+The third contribution that needs no Python. Two files, one top-level code in
+each:
+
+- `reporting/i18n.yaml` — every label on the HTML report. Word them however
+  reads best; they are read by people.
+- `saggio/data/prompts.yaml` — the sentence asking a local model to write its
+  one sentence of prose in your language. This one is not free text: it has to
+  go on naming `dominant_operation`, `reasoning` and `workload_kind` exactly as
+  they are, because the answer is matched against those names literally and a
+  translated key is an answer this package throws away.
+
+Then `python3 reporting/sync.py`, so the packaged copy of the report assets
+matches the authored one, and the tests. Contract tests refuse a language only
+one of the two files has, and a language missing any key the English table has.
+Nothing else changes: the report's language button, `saggio audit --language`,
+the HTTP field and the agent tool are all built from what those files contain.
 
 ## Changing the code
 

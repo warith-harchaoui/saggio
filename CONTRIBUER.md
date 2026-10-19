@@ -3,9 +3,9 @@
 🇫🇷 Français · [🇬🇧 CONTRIBUTING.md](CONTRIBUTING.md)
 
 Merci de regarder. Les contributions les plus utiles à ce projet sont petites et
-précises, et deux d'entre elles ne demandent pas une ligne de Python.
+précises, et trois d'entre elles ne demandent pas une ligne de Python.
 
-## Les deux contributions les plus faciles, et les plus précieuses
+## Les trois contributions les plus faciles, et les plus précieuses
 
 ### Une ligne de catalogue
 
@@ -66,6 +66,26 @@ n'en a pas.
 Si une valeur de `saggio/data/` est fausse ou a vieilli, dites-le, et dites ce
 qu'elle devrait être et où vous l'avez lu. Les corrections sont ce qu'il y a de
 plus précieux ici, et elles sont les bienvenues même sans correctif.
+
+### Une langue
+
+La troisième contribution qui ne demande pas de Python. Deux fichiers, un code
+de premier niveau dans chacun :
+
+- `reporting/i18n.yaml` — toutes les étiquettes du rapport HTML. Formulez-les
+  comme elles se lisent le mieux ; ce sont des humains qui les lisent.
+- `saggio/data/prompts.yaml` — la phrase qui demande à un modèle local d'écrire
+  dans votre langue son unique phrase de prose. Celle-ci n'est pas du texte
+  libre : elle doit continuer de nommer `dominant_operation`, `reasoning` et
+  `workload_kind` exactement tels quels, car la réponse est comparée à ces noms
+  littéralement et une clé traduite est une réponse que ce paquet jette.
+
+Puis `python3 reporting/sync.py`, pour que la copie empaquetée des ressources du
+rapport corresponde à celle d'origine, et les tests. Des tests de contrat
+refusent une langue que seul l'un des deux fichiers porte, et une langue à qui
+manque une clé que la table anglaise possède. Rien d'autre ne change : le bouton
+de langue du rapport, `saggio audit --language`, le champ HTTP et l'outil
+d'agent sont tous construits depuis ce que ces fichiers contiennent.
 
 ## Modifier le code
 

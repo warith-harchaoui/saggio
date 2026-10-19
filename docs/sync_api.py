@@ -191,6 +191,14 @@ def _entry(name: str) -> tuple[str, str]:
     ('`MEASURED`', "`'measured'`")
     """
     obj = getattr(saggio, name)
+    # A cached function is not a function. `functools.cache` returns a wrapper
+    # object, so `inspect.isfunction` says no and the constant branch below
+    # describes it by its repr — which carries a memory address, and a page
+    # generated with an address in it differs on every run, failing `--check`
+    # for a reason nobody reading the diff could explain. `inspect.unwrap`
+    # follows the `__wrapped__` attribute functools sets, back to the function
+    # whose signature and docstring are the ones to document.
+    obj = inspect.unwrap(obj)
     if inspect.isclass(obj):
         return f"`{name}`", _summary(obj)
     if inspect.isfunction(obj):

@@ -1,0 +1,261 @@
+"""The languages this package speaks, and the one place a phrase comes from.
+
+Module summary
+--------------
+Two kinds of text here are written for a reader rather than for a machine: the
+labels of the HTML report, and the instruction sent to a local model. Both have
+to exist in every language the package offers, because a report a colleague can
+read in French and a sentence written into their model file in English is one
+deliverable in two languages, which is worse than either.
+
+So there is one loader and two tables, and :func:`languages` answers for the
+package as a whole: a language appears there only when **both** tables have it.
+A contract test refuses a table that speaks a language the other does not, so a
+half-added language is a failing test rather than a page with English holes.
+
+They are two files rather than two sections of one file, and the easy argument
+for that is wrong: the prompt table is **375 bytes, 0.30% of a rendered page**,
+so what keeps them apart is not size. It is that the two texts are edited by
+different people against different rules. A label is free text; a translator
+may word ``bar.print`` however reads best in their language. The prompt
+sentence is load-bearing — it has to go on naming the JSON fields literally and
+must not translate the closed set of workload kinds, or the model's answer is
+discarded on the way back in — and sitting it among the interface strings
+invites exactly the edit that breaks it. The report's table is also *published*:
+it is embedded in every page the renderer writes, so that a report opens with no
+network, and an instruction to a model has no business inside a document someone
+reads.
+
+What is *not* translated, deliberately: the closed set of workload kinds the
+model chooses from. Those values are matched against
+:data:`saggio.analyze.llm.WORKLOAD_KINDS` on the way back in, so a translated
+``training`` would be thrown away as an unrecognised answer, and the model
+would have been asked a question whose right answer this package rejects.
+
+Usage example
+-------------
+>>> languages()
+('en', 'fr')
+>>> resolve("FR-fr")
+'fr'
+>>> phrase("prompt.classify.language", language="fr").startswith("Écris")
+True
+
+Author
+------
+Warith Harchaoui
+"""
+
+from __future__ import annotations
+
+from functools import cache
+from importlib import resources
+from typing import Final
+
+import yaml
+
+#: The language everything falls back to, and the one the package is authored in.
+DEFAULT_LANGUAGE: Final[str] = "en"
+
+#: Where the two tables live. The report's one is packaged beside the stylesheet
+#: and the script it goes with, because ``reporting/sync.py`` keeps that whole
+#: folder in step with the authored copies; the prompt's one is a catalogue like
+#: any other and is never sent to a browser.
+_LABEL_PACKAGE: Final[str] = "saggio.data.report"
+_LABEL_FILE: Final[str] = "i18n.yaml"
+_PROMPT_PACKAGE: Final[str] = "saggio.data"
+_PROMPT_FILE: Final[str] = "prompts.yaml"
+
+#: What to say when a caller asks for a language nothing here is written in.
+#: Named here so the CLI, the API and the audit notes word it identically.
+UNKNOWN_LANGUAGE: Final[str] = (
+    "Nothing in this package is written in {asked!r}, so {used!r} was used "
+    "instead. Languages available: {offered}. Adding one means adding a "
+    "top-level code to both translation files, and nothing else."
+)
+
+
+def _load(package: str, name: str) -> dict[str, dict[str, str]]:
+    """Return a translation file as language code to key-value mapping.
+
+    Parameters
+    ----------
+    package : str
+        The package the file ships inside.
+    name : str
+        The filename.
+
+    Returns
+    -------
+    dict
+        Every top-level mapping, coerced to strings. A top-level entry that is
+        not a mapping is dropped rather than raised on: a file is read at
+        render time and a broken one should cost a missing phrase, not a
+        traceback in the middle of somebody's audit.
+
+    Examples
+    --------
+    >>> sorted(_load(_LABEL_PACKAGE, _LABEL_FILE))
+    ['en', 'fr']
+    """
+    loaded = yaml.safe_load(resources.files(package).joinpath(name).read_text("utf-8")) or {}
+    return {
+        str(code): {str(key): str(value) for key, value in table.items()}
+        for code, table in loaded.items()
+        if isinstance(table, dict)
+    }
+
+
+@cache
+def labels() -> dict[str, dict[str, str]]:
+    """Return the report's translation table.
+
+    Returns
+    -------
+    dict
+        Language code to key-value mapping, for the keys the renderer writes as
+        ``data-i18n`` attributes.
+
+    Examples
+    --------
+    >>> labels()["fr"]["bar.print"]
+    'Enregistrer en PDF'
+    """
+    return _load(_LABEL_PACKAGE, _LABEL_FILE)
+
+
+@cache
+def prompts() -> dict[str, dict[str, str]]:
+    """Return the table of instructions sent to a local model.
+
+    Returns
+    -------
+    dict
+        Language code to key-value mapping. Never embedded in a page.
+
+    Examples
+    --------
+    >>> sorted(prompts())
+    ['en', 'fr']
+    """
+    return _load(_PROMPT_PACKAGE, _PROMPT_FILE)
+
+
+@cache
+def languages() -> tuple[str, ...]:
+    """Return the languages this package can answer in, in a stable order.
+
+    Returns
+    -------
+    tuple of str
+        Codes present in **both** tables. A language only one table has is left
+        out here and reported by a contract test: offering a reader a language
+        the package can only half write is the defect this guards against, and
+        silently serving them English for the other half is how it would show.
+
+    Examples
+    --------
+    >>> languages()
+    ('en', 'fr')
+    """
+    return tuple(sorted(set(labels()) & set(prompts())))
+
+
+def resolve(language: str | None) -> str:
+    """Return the code this package will answer in for what a caller asked.
+
+    An agent passes what the person in front of it typed: ``fr``, ``FR``,
+    ``fr-FR``, ``fr_CA``. All four mean the same table here, and anything with
+    no table falls back to English — loudly, through
+    :data:`UNKNOWN_LANGUAGE`, rather than by quietly answering in a language
+    nobody asked for.
+
+    Parameters
+    ----------
+    language : str or None
+        A language tag, or ``None`` for the default.
+
+    Returns
+    -------
+    str
+        A code :func:`languages` contains.
+
+    Examples
+    --------
+    >>> resolve(None), resolve("fr_CA"), resolve("klingon")
+    ('en', 'fr', 'en')
+    """
+    if not language:
+        return DEFAULT_LANGUAGE
+    code = str(language).strip().lower().replace("_", "-").split("-")[0]
+    return code if code in languages() else DEFAULT_LANGUAGE
+
+
+def unknown_language_note(language: str | None) -> str | None:
+    """Return what to tell a caller who asked for a language nothing is written in.
+
+    Falling back to English is the right behaviour — an audit must not fail over
+    a language tag — but doing it silently would leave somebody holding a report
+    in a language they did not ask for with nothing saying why. So the fallback
+    is a note, in the same place every other missing catalogue row goes.
+
+    Parameters
+    ----------
+    language : str or None
+        What the caller asked for.
+
+    Returns
+    -------
+    str or None
+        The note, or ``None`` when the language is one this package speaks.
+
+    Examples
+    --------
+    >>> unknown_language_note("fr_CA") is None
+    True
+    >>> "klingon" in unknown_language_note("klingon")
+    True
+    """
+    if not language:
+        return None
+    asked = str(language).strip().lower().replace("_", "-").split("-")[0]
+    used = resolve(language)
+    if asked == used:
+        return None
+    return UNKNOWN_LANGUAGE.format(asked=language, used=used, offered=", ".join(languages()))
+
+
+def phrase(key: str, *, language: str = DEFAULT_LANGUAGE, table: str = "prompt") -> str:
+    """Return one translated phrase.
+
+    Parameters
+    ----------
+    key : str
+        The phrase's key.
+    language : str, optional
+        A language tag, resolved by :func:`resolve`.
+    table : {'prompt', 'label'}, optional
+        Which table to read.
+
+    Returns
+    -------
+    str
+        The phrase, or its English wording when the language has no entry for
+        that key, or an empty string when nothing does. An empty string is the
+        right answer for a missing key in a prompt: a sentence of English
+        inserted into a French instruction is worse than a sentence less.
+
+    Examples
+    --------
+    >>> phrase("prompt.classify.language", language="en").startswith("Write")
+    True
+    >>> phrase("nothing.has.this.key")
+    ''
+    """
+    tables = prompts() if table == "prompt" else labels()
+    code = resolve(language)
+    for candidate in (code, DEFAULT_LANGUAGE):
+        found = tables.get(candidate, {}).get(key)
+        if found:
+            return found
+    return ""

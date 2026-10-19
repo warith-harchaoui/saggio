@@ -495,6 +495,7 @@ def audit_command(args: argparse.Namespace) -> int:
     options = AuditOptions(
         run=args.run,
         use_llm=not args.no_llm,
+        language=args.language,
         country=args.country,
         provider=args.provider,
         instance=args.instance,
@@ -757,8 +758,7 @@ def catalog_read_pcf(args: argparse.Namespace) -> int:
     print("\nA row you may accept, reject, or correct — nothing has been written:\n")
     print(yaml.safe_dump(reading.draft_row(), sort_keys=False, allow_unicode=True).rstrip())
     print(
-        "\nThe key is yours to supply: a document does not know what this "
-        "catalogue calls things."
+        "\nThe key is yours to supply: a document does not know what this catalogue calls things."
     )
     return OK
 

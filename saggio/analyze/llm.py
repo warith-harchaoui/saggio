@@ -40,6 +40,8 @@ from typing import Any, Final
 
 import os_helper as osh
 
+from ..i18n import DEFAULT_LANGUAGE, phrase, resolve
+
 #: Where Ollama listens by default.
 DEFAULT_HOST: Final[str] = "http://127.0.0.1:11434"
 
@@ -231,6 +233,11 @@ class Classification:
     model : str
         The model tag, recorded as the evidence source so a reader knows a model
         said this and which one.
+    language : str, optional
+        The language the two prose fields were asked for. Recorded, because a
+        French sentence in a model file is otherwise indistinguishable from a
+        model that wandered off on its own, and an English one in a French file
+        indistinguishable from a bug.
 
     Examples
     --------
@@ -243,6 +250,7 @@ class Classification:
     compute_bound: bool | None
     reasoning: str
     model: str
+    language: str = DEFAULT_LANGUAGE
 
     def to_mapping(self) -> dict[str, Any]:
         """Serialise the classification for the model's analysis block.
@@ -269,16 +277,30 @@ class Classification:
             mapping["compute_bound"] = self.compute_bound
         if self.reasoning:
             mapping["reasoning"] = self.reasoning
+        if self.dominant_operation or self.reasoning:
+            mapping["prose_language"] = self.language
         return mapping
 
 
-def _build_prompt(summary: str) -> str:
+def _build_prompt(summary: str, *, language: str = DEFAULT_LANGUAGE) -> str:
     """Build the classification request.
+
+    The body stays in one language and the request for another is one sentence
+    read from ``prompts.yaml``, which is what the measurement said to do:
+    translating the whole prompt and not asking for a language gets English
+    prose back every time, and asking gets the language every time, whichever
+    language the asking is done in. So there is one prompt to get right rather
+    than one per language, and a translator adds a sentence rather than a
+    contract.
 
     Parameters
     ----------
     summary : str
         A description of the repository: its files, its imports, its entry points.
+    language : str, optional
+        A language tag for the two free-text fields. The field names and the
+        closed set of workload kinds are never translated — they are matched
+        literally on the way back in.
 
     Returns
     -------
@@ -289,8 +311,11 @@ def _build_prompt(summary: str) -> str:
     --------
     >>> "JSON" in _build_prompt("a repository")
     True
+    >>> "en français" in _build_prompt("a repository", language="fr")
+    True
     """
     kinds = ", ".join(WORKLOAD_KINDS)
+    asked = phrase("prompt.classify.language", language=language)
     return (
         "You are reading a source repository to classify the shape of the work it "
         "does. Answer with a single JSON object and nothing else.\n\n"
@@ -299,6 +324,7 @@ def _build_prompt(summary: str) -> str:
         '  "dominant_operation": a short phrase naming the main cost driver\n'
         '  "compute_bound": true, false, or null if you cannot tell\n'
         '  "reasoning": one sentence saying why\n\n'
+        f"{asked}\n\n"
         "Do not include any number, estimate, duration, cost, or measurement in "
         "any field. Numbers come from measurement elsewhere and any you supply "
         "will be discarded.\n\n"
@@ -306,7 +332,9 @@ def _build_prompt(summary: str) -> str:
     )
 
 
-def _coerce(payload: dict[str, Any], model: str) -> Classification | None:
+def _coerce(
+    payload: dict[str, Any], model: str, language: str = DEFAULT_LANGUAGE
+) -> Classification | None:
     """Turn a model response into a classification, dropping anything else.
 
     Parameters
@@ -315,12 +343,17 @@ def _coerce(payload: dict[str, Any], model: str) -> Classification | None:
         What the model returned, already decoded.
     model : str
         The model tag.
+    language : str, optional
+        The language the prose was asked for, recorded as given.
 
     Returns
     -------
     Classification or None
         The classification, or ``None`` when the workload kind is not one of the
-        closed set, which means the model did not answer the question asked.
+        closed set, which means the model did not answer the question asked. The
+        closed set is never translated, so a model that answered the categorical
+        field in the language of the prose fails here, loudly, rather than
+        entering a file as an unrecognised archetype.
 
     Examples
     --------
@@ -340,10 +373,13 @@ def _coerce(payload: dict[str, Any], model: str) -> Classification | None:
         compute_bound=compute_bound if isinstance(compute_bound, bool) else None,
         reasoning=str(kept.get("reasoning") or "")[:400],
         model=model,
+        language=language,
     )
 
 
-def classify(summary: str, *, model: str | None = None) -> Classification | None:
+def classify(
+    summary: str, *, model: str | None = None, language: str = DEFAULT_LANGUAGE
+) -> Classification | None:
     """Ask a local model what shape of work a repository does.
 
     Parameters
@@ -352,6 +388,10 @@ def classify(summary: str, *, model: str | None = None) -> Classification | None
         A description of the repository built by the static pass.
     model : str or None, optional
         A model tag to use; resolved by :func:`pick_model` when not given.
+    language : str, optional
+        A language tag for the prose. What a person asked their agent in, so
+        that the sentence written into their model file is in the language the
+        rest of their report is read in.
 
     Returns
     -------
@@ -368,13 +408,14 @@ def classify(summary: str, *, model: str | None = None) -> Classification | None
     chosen = model or pick_model()
     if not chosen:
         return None
+    spoken = resolve(language)
 
     request = urllib.request.Request(  # noqa: S310 - a fixed local endpoint.
         f"{host()}/api/generate",
         data=json.dumps(
             {
                 "model": chosen,
-                "prompt": _build_prompt(summary),
+                "prompt": _build_prompt(summary, language=spoken),
                 "stream": False,
                 "format": "json",
                 # A classification should not vary between two runs over the same
@@ -393,4 +434,4 @@ def classify(summary: str, *, model: str | None = None) -> Classification | None
         return None
     if not isinstance(payload, dict):
         return None
-    return _coerce(payload, chosen)
+    return _coerce(payload, chosen, spoken)

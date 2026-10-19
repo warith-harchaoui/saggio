@@ -117,6 +117,27 @@ something the repository states. Never infer it from their locale, their languag
 or where you think they are. Without it the carbon and money figures stay open, and
 that is the correct outcome.
 
+**Pass `--language` when the user is not writing to you in English.** One sentence
+of the model is not read from a file: a local model is asked what shape of work the
+repository does, and it writes the answer into the `analysis` block. Everything
+else in a report can be read in the reader's language — the HTML page has a
+language button — so that one sentence arriving in English is the single thing
+that makes the deliverable bilingual by accident rather than on purpose.
+
+```bash
+saggio audit . --country FR --language fr -o cost_of_running.yaml
+```
+
+`saggio audit --help` lists the languages; adding one is a translation file, not a
+code change. A tag nothing is written in falls back to English and says so in the
+notes.
+
+**A language is not a country.** `--language fr` says how to write a sentence. It
+says nothing about where the code runs: French is written in Belgium, Switzerland,
+Canada, Senegal and a dozen other grids, and reading `--country FR` out of it
+would put a number in the model that nobody established — the one rule above all
+others. Ask for the country; infer the language.
+
 Read the notes the audit prints to standard error. They name every catalogue row
 that is missing and every projection that was refused, each with what would resolve
 it.

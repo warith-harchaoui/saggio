@@ -127,6 +127,50 @@ saggio audit . --country FR
 saggio audit . --country FR --no-llm
 ```
 
+### Dans la langue du lecteur
+
+Cette phrase est le seul morceau d'un modèle de coût qui soit écrit plutôt que
+lu : c'est donc le seul qui puisse arriver dans une langue que personne n'a
+demandée.
+
+```bash
+saggio audit . --country FR --language fr -o cost_of_running.yaml
+```
+
+Le même dépôt, le même modèle local, les deux langues côte à côte :
+
+```yaml
+# --language en (par défaut)
+analysis:
+  evidence_source: static + llm:qwen3-vl:8b
+  workload_kind: command-line-tool
+  confidence: low
+  dominant_operation: media processing
+  reasoning: The repository primarily uses ffmpeg for media processing, which is
+    compute-bound.
+  prose_language: en
+
+# --language fr
+analysis:
+  evidence_source: static + llm:qwen3-vl:8b
+  workload_kind: command-line-tool
+  confidence: low
+  dominant_operation: traitement de médias
+  reasoning: L'outil utilise ffmpeg pour traiter des médias, ce qui est intensif
+    en calcul.
+  prose_language: fr
+```
+
+`workload_kind` ne bouge pas, et c'est le but : il est comparé à un ensemble
+fermé, donc jamais traduit, tandis que `prose_language` enregistre la langue
+demandée. La phrase reste de la prose à faible confiance produite par un modèle,
+jamais un chiffre — `confidence: low` et `evidence_source` le disent sur la
+ligne elle-même.
+
+`saggio audit --help` liste les langues. En ajouter une, c'est deux fichiers de
+traduction et pas une ligne de code ; `saggio.languages()` est ce depuis quoi
+chaque surface est construite.
+
 ### Depuis l'environnement
 
 Deux choses peuvent être réglées une fois pour toutes au lieu d'être passées à

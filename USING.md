@@ -164,6 +164,46 @@ pin both halves.
 - **What a deployment allows.** Cloning is the operator's decision, taken in the
   environment rather than in the code.
 
+## The language all five answer in
+
+A reader's language is not presentation, and the two halves of it are not the
+same problem.
+
+**The interface.** Every label on the HTML report comes from one translation
+file, and the page carries a language button built from whatever that file
+contains, so a reader switches language in their browser with no network and no
+second file to ship.
+
+**The prose.** One sentence of a cost model is not read from a file: a local
+model is asked what shape of work the repository does, and it writes the answer
+into the `analysis` block. That sentence is the one thing that can arrive in the
+wrong language, and the surfaces take the language the same way:
+
+```bash
+saggio audit . --country FR --language fr -o cost_of_running.yaml
+```
+
+```python
+saggio.audit(".", options=saggio.AuditOptions(country="FR", language="fr"))
+```
+
+`POST /audit` takes a `language` field, the agent tool takes a `language`
+argument, and `saggio.languages()` is what all of them are built from — so a
+GUI offering a picker asks the library rather than hard-coding a list that goes
+stale. A tag nothing is written in falls back to English and says so in the
+notes, because an audit must not fail over a language.
+
+**A language is not a country.** `--language fr` says how to write a sentence
+and nothing about where the code runs: French is written on a dozen different
+grids, and reading `--country FR` out of it would put a number in the model that
+nobody established.
+
+**Adding a language** means adding a top-level code to two files —
+`reporting/i18n.yaml` for the labels and `saggio/data/prompts.yaml` for the
+instruction — and nothing else. A contract test refuses a language that only
+one of them has: a page a colleague reads in their language with a sentence
+generated inside it in another is one deliverable in two languages.
+
 ## Adding a sixth
 
 Write the function in the library first, with its docstring example. Then the

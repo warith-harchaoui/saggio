@@ -107,6 +107,7 @@ from .estimate import (
     water_from_energy,
 )
 from .fold import Fold, fold_measurement
+from .i18n import DEFAULT_LANGUAGE, languages
 from .model import (
     CANONICAL_DIMENSIONS,
     ESTIMATED,
@@ -202,6 +203,8 @@ __all__ = [
     "Comparison",
     "Change",
     # Reports.
+    "languages",
+    "DEFAULT_LANGUAGE",
     "render_markdown",
     "render_html",
     "render_office",

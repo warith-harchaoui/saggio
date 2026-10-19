@@ -286,6 +286,15 @@ dépôt, et rien d'autre. Sa réponse est étiquetée du nom du modèle et marqu
 confiance faible. Chaque chiffre vient d'un fichier qu'on peut ouvrir ou d'un
 compteur qu'on peut lire.
 
+Cette réponse est aussi la seule phrase du modèle qui soit écrite plutôt que
+lue : c'est donc la seule qui puisse arriver dans une langue que personne n'a
+demandée. `saggio audit --language fr` la demande dans la vôtre, enregistre à
+côté d'elle la langue demandée, et laisse l'ensemble fermé des catégories non
+traduit. Les étiquettes du rapport, elles, viennent depuis toujours d'un fichier
+de traduction ; la page porte un bouton de langue construit depuis ce que ce
+fichier contient. Ajouter une langue, c'est deux fichiers et pas une ligne de
+code.
+
 Et il ne compte jamais ce qu'il ne peut pas compter. La fabrication du matériel,
 les gens, les bureaux : tout cela est listé comme exclu dans le rapport, parce
 qu'une empreinte qui laisse discrètement de côté le plus gros terme est pire

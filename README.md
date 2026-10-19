@@ -280,6 +280,14 @@ running, is asked what shape of work your repository does and nothing else. Its
 answer is labelled with the model's name and marked low confidence. Every number
 comes from a file you can open or a counter you can read.
 
+That answer is also the only sentence in the model that is written rather than
+read, so it is the only one that can arrive in a language nobody asked for.
+`saggio audit --language fr` asks for it in yours, records which language was
+asked for beside it, and leaves the closed set of categories untranslated. The
+report's own labels have always come from a translation file; the page carries a
+language button built from whatever that file contains. Adding a language is two
+files and no code.
+
 And it never counts what it cannot count. Making the hardware, the people, the
 office: all of it is listed in the report as excluded, because a footprint that
 quietly leaves out the largest term is worse than no footprint.
