@@ -556,3 +556,67 @@ def test_a_projection_keeps_whichever_scope_2_methods_the_scenario_carries(
     held = result.model.get("projections.on_other_hardware")["held_constant"]
     assert "contracted emission factor" in held
     assert validate(result.model).ok
+
+
+# --- What the machine says it can do, against what it did ---------------------
+
+
+@pytest.mark.slow
+def test_a_machine_that_says_it_can_measure_actually_measures() -> None:
+    """The capability report and a real run are two claims about one machine.
+
+    Nothing compared them. `saggio power` prints which counters answer, the
+    suite runs a real slice on every platform, and if IOReport stopped
+    answering tomorrow both would carry on: the report would say `absent`, the
+    slice would come back unmeasured, and every test would still pass. This is
+    the sonde that notices, and it is the only one whose verdict depends on the
+    machine it runs on.
+    """
+    import sys
+
+    from saggio.analyze import capability
+    from saggio.analyze.power import unavailable_reason
+    from saggio.analyze.run import run_slice
+
+    result = run_slice(
+        [sys.executable, "-c", "sum(i * i for i in range(2_000_000))"],
+        profile=False,
+        baseline_seconds=0.0,
+    )
+    assert result.exit_code == 0
+    assert result.wall_seconds > 0.0
+
+    if capability.measurable():
+        assert result.power.measured(), (
+            "this machine's capability report says a counter answers, and the "
+            f"run came back with none: {result.power.scope}"
+        )
+        assert result.power.watts is not None and result.power.watts > 0.0
+        assert result.power.sources, "a measured figure that names no counter"
+    else:
+        # The refusal is the promise on a machine that cannot measure, and it
+        # has to say why rather than return a plausible zero.
+        assert not result.power.measured()
+        assert result.power.watts is None
+        assert unavailable_reason().strip(), "no counter and no reason given"
+
+
+@pytest.mark.slow
+def test_the_counters_the_report_names_are_the_counters_that_answered() -> None:
+    """A report that promises an interface and a reading that used none disagree."""
+    import sys
+
+    from saggio.analyze import capability
+    from saggio.analyze.run import run_slice
+
+    reading = capability.READS
+    promised = [interface for interface in capability.probe() if interface.state == reading]
+    result = run_slice(
+        [sys.executable, "-c", "sum(i * i for i in range(2_000_000))"],
+        profile=False,
+        baseline_seconds=0.0,
+    )
+    assert bool(promised) == bool(result.power.sources), (
+        f"the report promises {[i.name for i in promised]} and the run used "
+        f"{list(result.power.sources)}"
+    )

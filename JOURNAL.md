@@ -10,6 +10,33 @@ cette ligne.
 
 ## Non publié
 
+### Ce qu'une machine dit pouvoir mesurer, face à ce qu'elle a mesuré
+
+- `saggio power` rapporte quels compteurs répondent. La suite prend une vraie
+  tranche sur chaque plateforme. **Rien ne comparait les deux.** Si IOReport
+  cessait de répondre demain, le rapport dirait `absent`, la tranche reviendrait
+  sans mesure, tous les tests passeraient encore, et chaque valeur deviendrait
+  une estimation en silence. Deux tests échouent désormais dans ce cas, et ce
+  sont les seuls d'ici dont le verdict dépend de la machine en dessous.
+- Ils prennent des branches opposées par construction, et les deux ont été
+  exercées : sur cette machine Apple Silicon les compteurs répondent et une
+  lecture sans mesure échoue ; dans un conteneur Linux sans powercap la lecture
+  doit être *absente* **et** porter une raison, et une valeur produite quand
+  même échoue. Saboté en faisant taire `PowerMeter.stop` sur une machine qui
+  sait mesurer : le rapport dit oui, l'exécution dit non, la sonde tombe.
+- **Une correction sur ce que ce dépôt croyait de lui-même.** Les notes de
+  travail affirmaient depuis octobre que « le chemin de mesure n'est exercé que
+  sur ce portable ; la CI ne mesure rien ». C'était faux. La CI exécute toute la
+  suite, y compris les trois tests `slow` qui lancent un vrai sous-processus,
+  sur Linux et sur macOS à chaque push, et imprime `saggio power` avant eux. Ce
+  qui manquait n'était pas l'exécution — c'était ce qui *vérifie* le résultat
+  contre ce que la machine prétendait.
+- Confirmé à part en exécutant tout le chemin mesuré — `audit --run`,
+  `validate`, `render`, `next` — dans un conteneur Linux : les refus se lisent
+  correctement, le modèle valide, la puissance est `estimated` depuis la plaque
+  signalétique avec la raison ARM/conteneur énoncée, et le consentement est
+  refusé net quand il n'y a pas de terminal pour le demander.
+
 ### Suivre chaque lien que le dépôt demande à un lecteur de suivre
 
 - L'argument de ce paquet est qu'une valeur dit d'où elle vient, et une source

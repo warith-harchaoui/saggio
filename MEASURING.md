@@ -420,6 +420,17 @@ again, divide. On macOS, `sudo powermetrics --samplers cpu_power -n 1` is the
 comparison Apple ships; this package will not run it for you, and the numbers
 should agree.
 
+**And the package checks this about itself, on every machine it runs on.** Two
+tests take a real slice and compare the capability report with what the run
+came back with. On a machine whose counters answer, an unmeasured reading fails
+the suite; on a machine with none, a reading that produced a figure anyway
+fails it too, and so does one that offers no reason. They are the only tests
+here whose verdict depends on the machine underneath them, and they run on
+Linux and on macOS on every push. Without them, a counter that stopped
+answering would be reported as `absent` and estimated around, quietly, for as
+long as nobody looked.
+
+
 If a machine's counters are not recognised — a new Apple chip renaming a channel,
 a driver publishing an unfamiliar unit — it measures nothing and says so. Sending
 the channel names is enough to add the part; see

@@ -443,6 +443,17 @@ pour qu'un chiffre puisse être refait à la main — `cat` le compteur, attendr
 fournit ; ce paquet ne la lancera pas pour vous, et les chiffres doivent
 s'accorder.
 
+**Et le paquet vérifie cela sur lui-même, sur chaque machine où il tourne.**
+Deux tests prennent une vraie tranche et comparent le rapport de capacités à ce
+que l'exécution a rendu. Sur une machine dont les compteurs répondent, une
+lecture sans mesure fait échouer la suite ; sur une machine qui n'en a aucun,
+une lecture qui produirait quand même une valeur la fait échouer aussi, et une
+qui n'offrirait aucune raison également. Ce sont les seuls tests d'ici dont le
+verdict dépend de la machine en dessous, et ils tournent sur Linux et sur macOS
+à chaque push. Sans eux, un compteur qui cesserait de répondre serait rapporté
+`absent` et contourné par une estimation, en silence, aussi longtemps que
+personne ne regarderait.
+
 Si les compteurs d'une machine ne sont pas reconnus — une nouvelle puce Apple qui
 renomme un canal, un pilote qui publie une unité inconnue — elle ne mesure rien et
 le dit. Envoyer les noms de canaux suffit à ajouter la pièce ; voir

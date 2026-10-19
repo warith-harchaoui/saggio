@@ -9,6 +9,33 @@ release of that line.
 
 ## Unreleased
 
+### What a machine says it can measure, against what it measured
+
+- `saggio power` reports which counters answer. The suite takes a real slice on
+  every platform. **Nothing compared the two.** If IOReport stopped answering
+  tomorrow, the report would say `absent`, the slice would come back unmeasured,
+  every test would still pass, and every figure would quietly become an
+  estimate. Two tests now fail in that case, and they are the only ones here
+  whose verdict depends on the machine underneath them.
+- They take opposite branches by design, and both were run that way: on this
+  Apple Silicon machine the counters answer and an unmeasured reading fails; in
+  a Linux container with no powercap the reading must be *absent* **and** carry
+  a reason, and a figure produced anyway fails. Sabotaged by silencing
+  `PowerMeter.stop` on a machine that can measure: report says yes, run says no,
+  the sonde fails.
+- **A correction to something this repository believed about itself.** The
+  working notes have said since October that "the measurement path is exercised
+  only on this laptop; CI measures nothing". That was wrong. CI runs the whole
+  suite, including the three `slow` tests that spawn a real subprocess, on
+  Linux and macOS on every push, and prints `saggio power` before them. What
+  was missing was not the running — it was anything that *checked* the result
+  against what the machine claimed.
+- Confirmed separately by running the full measured path — `audit --run`,
+  `validate`, `render`, `next` — inside a Linux container: the refusals read
+  correctly, the model validates, the power is `estimated` from the nameplate
+  with the ARM/container reason stated, and consent is refused outright when
+  there is no terminal to ask on.
+
 ### Following every link the repository asks a reader to follow
 
 - The argument of this package is that a figure says where it came from, and a
