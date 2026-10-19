@@ -239,7 +239,13 @@ def test_a_precision_the_catalogue_cannot_speak_to_is_refused_out_loud(
 def test_running_a_slice_replaces_the_guess_with_a_measurement(
     training_repository: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     result = audit(
         training_repository,
         options=static_options(run=True, country="FR", timeout_seconds=120.0),
@@ -254,7 +260,13 @@ def test_running_a_slice_replaces_the_guess_with_a_measurement(
 def test_a_measured_slice_projects_to_the_whole_run(
     training_repository: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     result = audit(
         training_repository,
         options=static_options(run=True, country="FR", timeout_seconds=120.0),
@@ -267,7 +279,7 @@ def test_a_measured_slice_projects_to_the_whole_run(
 def test_declining_to_run_says_so_and_carries_on(
     training_repository: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: False)
+    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda **_: False)
     result = audit(training_repository, options=static_options(run=True, country="FR"))
     assert result.slice_result is None
     assert any("declined" in note.lower() for note in result.notes)
@@ -276,7 +288,13 @@ def test_declining_to_run_says_so_and_carries_on(
 
 def test_nothing_safe_to_run_is_reported(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     (tmp_path / "library.py").write_text("VALUE = 1\n", encoding="utf-8")
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     result = audit(tmp_path, options=static_options(run=True))
     assert result.slice_result is None
     assert any("nothing safe to run" in note.lower() for note in result.notes)
@@ -324,7 +342,13 @@ def _synthetic_series(exponent: float, sizes=(25.0, 100.0, 400.0)):
 def test_a_scaling_series_puts_a_measured_exponent_in_the_model(
     training_repository: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     monkeypatch.setattr(
         "saggio.auditor.measuring.run_scaling_series", lambda *a, **k: _synthetic_series(2.0)
     )
@@ -343,7 +367,13 @@ def test_a_scaling_series_puts_a_measured_exponent_in_the_model(
 def test_the_exponent_changes_the_whole_run_projection_it_feeds(
     training_repository: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     monkeypatch.setattr(
         "saggio.auditor.measuring.run_scaling_series", lambda *a, **k: _synthetic_series(2.0)
     )
@@ -362,7 +392,13 @@ def test_a_linear_series_leaves_the_projection_where_it_was(
 ) -> None:
     # The generalisation has to reduce to the special case end to end, not just
     # in the arithmetic.
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     monkeypatch.setattr(
         "saggio.auditor.measuring.run_scaling_series", lambda *a, **k: _synthetic_series(1.0)
     )
@@ -392,7 +428,13 @@ def test_a_series_that_cannot_be_fitted_refuses_to_project_and_says_why(
         )
         for size, seconds in ((25.0, 5.0), (100.0, 0.5), (400.0, 40.0))
     )
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     monkeypatch.setattr("saggio.auditor.measuring.run_scaling_series", lambda *a, **k: scattered)
     result = audit(
         training_repository, options=static_options(run=True, country="FR", scaling_steps=3)
@@ -407,7 +449,13 @@ def test_a_series_that_cannot_be_fitted_refuses_to_project_and_says_why(
 def test_too_few_rungs_completing_keeps_the_linear_assumption(
     training_repository: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     monkeypatch.setattr(
         "saggio.auditor.measuring.run_scaling_series",
         lambda *a, **k: _synthetic_series(2.0, sizes=(400.0,)),
@@ -423,7 +471,13 @@ def test_too_few_rungs_completing_keeps_the_linear_assumption(
 def test_every_rung_failing_leaves_no_measurement_at_all(
     training_repository: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     monkeypatch.setattr("saggio.auditor.measuring.run_scaling_series", lambda *a, **k: ())
     result = audit(
         training_repository, options=static_options(run=True, country="FR", scaling_steps=3)
@@ -446,7 +500,13 @@ def test_a_stated_size_too_small_to_cut_falls_back_to_one_slice(
         "parser.parse_args()\n",
         encoding="utf-8",
     )
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     result = audit(root, options=static_options(run=True, country="FR", scaling_steps=3))
     assert any("distinct size" in note for note in result.notes)
 
@@ -459,7 +519,13 @@ def test_a_real_repository_really_runs_the_whole_ladder(
     # is a real part of every rung and the fit says so. What is asserted is that
     # three rungs ran, that whatever came out is honest about itself, and that
     # the model still passes its own rules either way.
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     result = audit(
         training_repository,
         options=static_options(run=True, country="FR", timeout_seconds=120.0, scaling_steps=3),
@@ -493,7 +559,13 @@ def test_an_audit_can_be_told_to_skip_the_baseline(
             fraction_completed=0.001,
         )
 
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     monkeypatch.setattr("saggio.auditor.measuring.run_slice", remember)
     audit(training_repository, options=static_options(run=True, country="FR", baseline_seconds=0.0))
 
@@ -509,7 +581,13 @@ def test_a_scaling_series_is_given_the_audit_baseline(
         seen.append(kwargs["baseline_seconds"])
         return _synthetic_series(1.0)
 
-    monkeypatch.setattr("saggio.auditor.measuring.require_consent", lambda: True)
+    monkeypatch.setattr(
+        "saggio.auditor.measuring.require_consent",
+        # Takes whatever the caller passes: the audit tells it which
+        # language to ask in, and a stub with a fixed signature turns a
+        # new argument into six failing tests rather than one.
+        lambda **_: True,
+    )
     monkeypatch.setattr("saggio.auditor.measuring.run_scaling_series", remember)
     audit(
         training_repository,

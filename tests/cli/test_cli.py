@@ -319,6 +319,39 @@ def test_consent_records_a_decision_where_it_is_told_to(tmp_path: Path, capsys) 
     assert json.loads(target.read_text(encoding="utf-8"))["granted"] is False
 
 
+def test_granting_shows_the_terms_before_recording_them(tmp_path: Path, capsys) -> None:
+    # The defect: this verb wrote `granted: true` without ever displaying what
+    # was being agreed to, and the cookbook recommends it as the first step of
+    # measuring somebody else's repository. The confirmation was an info log,
+    # invisible at the default verbosity, so the whole command printed nothing.
+    target = tmp_path / "decision.json"
+    code, out, _ = run(["consent", "grant", "--path", str(target)], capsys)
+    assert code == OK
+    assert "no sandbox" in out.lower(), "the terms were not shown"
+    assert "permissions" in out
+    assert str(target) in out, "nobody was told where the decision went"
+
+
+def test_granting_shows_the_terms_in_the_language_asked_for(tmp_path: Path, capsys) -> None:
+    target = tmp_path / "decision.json"
+    code, out, _ = run(["consent", "grant", "--path", str(target), "--language", "fr"], capsys)
+    assert code == OK
+    assert "bac à sable" in out
+    assert json.loads(target.read_text(encoding="utf-8"))["language"] == "fr"
+
+
+def test_revoking_says_where_the_decision_went_without_restating_the_terms(
+    tmp_path: Path, capsys
+) -> None:
+    # Nobody needs to read the terms to say no to them, and deleting the record
+    # is how consent is revoked, so the path is the one thing that must appear.
+    target = tmp_path / "decision.json"
+    code, out, _ = run(["consent", "revoke", "--path", str(target)], capsys)
+    assert code == DECLINED
+    assert str(target) in out
+    assert "no sandbox" not in out.lower()
+
+
 # --- measure --into ----------------------------------------------------------
 
 

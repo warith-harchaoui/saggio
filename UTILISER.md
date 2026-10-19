@@ -190,6 +190,12 @@ saggio audit . --country FR --language fr -o cost_of_running.yaml
 saggio.audit(".", options=saggio.AuditOptions(country="FR", language="fr"))
 ```
 
+**La question.** Avant qu'un audit exécute une ligne du code de quelqu'un, il
+demande — et il demande dans la même langue : une personne qui ne peut pas lire
+les conditions n'a pas été interrogée. `saggio consent grant --language fr` les
+affiche aussi, et la décision enregistrée dit à quelles conditions on a consenti
+et dans quelle langue elles ont été lues.
+
 `POST /audit` prend un champ `language`, l'outil d'agent prend un argument
 `language`, et `saggio.languages()` est ce depuis quoi tous sont construits —
 une interface qui propose un sélecteur interroge donc la bibliothèque au lieu de

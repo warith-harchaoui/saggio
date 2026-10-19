@@ -9,6 +9,52 @@ release of that line.
 
 ## Unreleased
 
+### Consent asked in a language the reader has, and two defects in the asking
+
+The one place in this package where a translation is not a convenience: before
+an audit runs a line of somebody else's code, it asks, and somebody who cannot
+read what they are agreeing to has not been asked. The terms now live in the
+translation file with the rest of what this package says, and
+`saggio audit --language fr` and `saggio consent grant --language fr` show them
+in French.
+
+- **`saggio consent grant` recorded consent without ever showing the terms.**
+  Eleven lines of wording — *"There is no sandbox. Anything the program can do,
+  it will be able to do."* — displayed by the interactive question and by
+  nothing else. The verb wrote `granted: true` and printed, at the default
+  verbosity, **absolutely nothing**: its only output was an info log, invisible
+  unless `-v`. And the cookbook recommends it as the first step of measuring
+  somebody else's repository. It prints the terms first now, then says where the
+  decision went, both at normal verbosity.
+- **The record did not say what had been agreed to.** `granted: true`,
+  `decided_on`, `tool`. Nothing about which wording answered. That is latent
+  rather than live — the terms have not changed since the first commit, which is
+  checkable with `git log -S` — but a `true` that outlives the text it answered
+  is consent to whatever the text says next. The record now carries
+  `terms_version`, a digest of the **English** terms, and `language`, the one
+  they were read in.
+- **A digest of the authored wording, deliberately.** Rewording a translation
+  for fluency says the same thing and must revoke nobody; editing the English
+  says something else and must revoke everybody. So the version follows the
+  English whatever language was shown, and a record whose digest no longer
+  matches is asked again *with a line saying the terms changed* — otherwise it
+  reads as a tool that forgot the answer. A record from before the field existed
+  counts as no, which costs one extra question, once, on a terminal where there
+  is somebody to ask.
+- **The word that grants it is the word of the language shown** — `oui` under
+  the French terms — and the English `yes` is accepted too. The deliberateness
+  comes from typing a whole word, not from which language it is in: somebody who
+  reads the French terms and types the English yes has not pressed a key by
+  accident, and refusing them would be a usability bug dressed as a safety
+  feature.
+- Contract tests on the wording itself, because it is the most load-bearing
+  prose here: every language states the terms in **the same number of
+  paragraphs** as the English (a hurried translation truncates, and every other
+  check would pass), the word is one lowercase word, the question names
+  `{word}` rather than spelling it out a second time, and every sentence about
+  the record names `{path}` — because deleting that file is how consent is
+  revoked.
+
 ### Asked in the reader's language, after measuring what actually works
 
 `USING.md` has promised an agent surface for "a colleague who asks in their own

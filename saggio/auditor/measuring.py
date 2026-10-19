@@ -114,7 +114,7 @@ def _run_a_slice(
             )
             ladder = ()
 
-    if not require_consent():
+    if not require_consent(language=options.language):
         notes.append(
             "Running the code was declined, so every number below comes from "
             "reading it and from the catalogues, never from a measurement."

@@ -630,6 +630,12 @@ def _add_consent(verbs: argparse._SubParsersAction) -> None:
         default=None,
         help="Record the decision in this file instead of the per-user one.",
     )
+    parser.add_argument(
+        "--language",
+        default=DEFAULT_LANGUAGE,
+        choices=list(LANGUAGES_FROM_FILES()),
+        help="Language to show the terms in. Somebody who cannot read them has not been asked.",
+    )
 
 
 def _add_catalog(verbs: argparse._SubParsersAction) -> None:

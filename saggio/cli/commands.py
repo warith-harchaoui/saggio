@@ -45,7 +45,7 @@ import yaml
 from ..analyze.capability import measurable, paths_read, probe, summary
 from ..analyze.power import PowerMeter
 from ..analyze.repeat import run_slices
-from ..analyze.run import record_consent
+from ..analyze.run import consent_terms, record_consent
 from ..auditor import AuditOptions, audit, audit_git_url
 from ..catalog.refresh import (
     EMBER_KEY_VARIABLE,
@@ -77,6 +77,7 @@ from ..estimate.ghg import (
 )
 from ..estimate.machine import detect_machine
 from ..fold import fold_measurement
+from ..i18n import DEFAULT_LANGUAGE, phrase
 from ..model.cost_model import CostModel
 from ..model.questions import questions_payload
 from ..model.validate import overall_status, validate
@@ -1432,12 +1433,25 @@ def consent(args: argparse.Namespace) -> int:
 
     Examples
     --------
-    >>> import tempfile
-    >>> with tempfile.TemporaryDirectory() as folder:
-    ...     consent(argparse.Namespace(decision="revoke", path=f"{folder}/d.json"))
+    >>> import contextlib, io, tempfile
+    >>> with tempfile.TemporaryDirectory() as folder, contextlib.redirect_stdout(io.StringIO()):
+    ...     code = consent(argparse.Namespace(decision="revoke", path=f"{folder}/d.json"))
+    >>> code
     3
     """
     granted = args.decision == "grant"
-    path = record_consent(granted, getattr(args, "path", None))
-    osh.info(("Granted" if granted else "Revoked") + f", recorded in {path}.")
+    language = getattr(args, "language", DEFAULT_LANGUAGE)
+    # Printed, not logged, and printed *before* anything is written. This verb
+    # recorded `granted: true` without ever showing what was being agreed to —
+    # and the cookbook recommends it as the first step of measuring somebody
+    # else's repository. A yes to terms nobody displayed is not a yes.
+    if granted:
+        print(consent_terms(language))
+    path = record_consent(granted, getattr(args, "path", None), language=language)
+    print(
+        phrase(
+            "prompt.consent.granted" if granted else "prompt.consent.revoked",
+            language=language,
+        ).format(path=path)
+    )
     return OK if granted else DECLINED

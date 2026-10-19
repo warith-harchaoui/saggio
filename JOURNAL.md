@@ -10,6 +10,54 @@ cette ligne.
 
 ## Non publié
 
+### Le consentement demandé dans une langue que le lecteur a, et deux défauts dans la demande
+
+Le seul endroit de ce paquet où une traduction n'est pas un confort : avant qu'un
+audit exécute une ligne du code de quelqu'un d'autre, il demande — et quelqu'un
+qui ne peut pas lire ce à quoi il consent n'a pas été interrogé. Les conditions
+vivent maintenant dans le fichier de traduction avec le reste de ce que ce paquet
+dit, et `saggio audit --language fr` comme `saggio consent grant --language fr`
+les affichent en français.
+
+- **`saggio consent grant` enregistrait un consentement sans jamais montrer les
+  conditions.** Onze lignes de texte — *« Il n'y a aucun bac à sable. Tout ce que
+  ce programme peut faire, il pourra le faire. »* — affichées par la question
+  interactive et par rien d'autre. Le verbe écrivait `granted: true` et
+  n'affichait, à la verbosité par défaut, **absolument rien** : sa seule sortie
+  était un log d'information, invisible sans `-v`. Et le livre de recettes le
+  recommande comme première étape pour mesurer le dépôt de quelqu'un d'autre. Il
+  affiche désormais les conditions d'abord, puis dit où est allée la décision,
+  les deux à la verbosité normale.
+- **L'enregistrement ne disait pas à quoi on avait consenti.** `granted: true`,
+  `decided_on`, `tool`. Rien sur la formulation à laquelle on répondait. C'est
+  latent plutôt qu'actif — les conditions n'ont pas changé depuis le premier
+  commit, ce qui se vérifie avec `git log -S` — mais un `true` qui survit au
+  texte auquel il répondait est un consentement à ce que ce texte dira ensuite.
+  L'enregistrement porte maintenant `terms_version`, une empreinte des
+  conditions **anglaises**, et `language`, celle dans laquelle elles ont été
+  lues.
+- **Une empreinte de la formulation d'origine, volontairement.** Reformuler une
+  traduction pour la fluidité dit la même chose et ne doit révoquer personne ;
+  modifier l'anglais dit autre chose et doit révoquer tout le monde. La version
+  suit donc l'anglais quelle que soit la langue affichée, et un enregistrement
+  dont l'empreinte ne correspond plus est redemandé *avec une ligne disant que
+  les conditions ont changé* — sans quoi cela se lit comme un outil qui a oublié
+  la réponse. Un enregistrement d'avant l'existence du champ compte pour non :
+  cela coûte une question de plus, une fois, sur un terminal où il y a quelqu'un
+  à qui demander.
+- **Le mot qui l'accorde est celui de la langue affichée** — `oui` sous les
+  conditions françaises — et l'anglais `yes` est accepté aussi. Le caractère
+  délibéré vient de taper un mot entier, pas de la langue dans laquelle il est :
+  quelqu'un qui lit les conditions françaises et tape le `yes` anglais n'a pas
+  appuyé sur une touche par accident, et le refuser serait un défaut
+  d'ergonomie déguisé en mesure de sûreté.
+- Des tests de contrat sur la formulation elle-même, parce que c'est la prose la
+  plus porteuse d'ici : chaque langue énonce les conditions en **autant de
+  paragraphes** que l'anglais (une traduction pressée tronque, et tout le reste
+  passerait), le mot est un seul mot en minuscules, la question nomme `{word}`
+  au lieu de l'épeler une seconde fois, et chaque phrase sur l'enregistrement
+  nomme `{path}` — puisque supprimer ce fichier est la façon de révoquer.
+
 ### Demandé dans la langue du lecteur, après avoir mesuré ce qui marche vraiment
 
 `UTILISER.md` promet depuis toujours une surface d'agent pour « une collègue qui

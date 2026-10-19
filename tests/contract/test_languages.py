@@ -109,6 +109,56 @@ def test_a_prompt_carries_its_own_language_and_only_its_own(code: str) -> None:
         assert prompts()[other]["prompt.classify.language"] not in prompt
 
 
+# --- The consent wording, which is the most load-bearing prose here ----------
+
+
+@pytest.mark.parametrize("code", sorted(prompts()))
+def test_the_terms_keep_every_paragraph_in_every_language(code: str) -> None:
+    # A translation that quietly drops the paragraph about there being no
+    # sandbox would pass every other check in this file. Counting paragraphs is
+    # not reading them, but it catches a truncation, which is the failure a
+    # hurried translation actually has.
+    english = prompts()[DEFAULT_LANGUAGE]["prompt.consent.terms"].strip().split("\n\n")
+    translated = prompts()[code]["prompt.consent.terms"].strip().split("\n\n")
+    assert len(translated) == len(english), (
+        f"{code} states the terms in {len(translated)} paragraphs, English in {len(english)}"
+    )
+
+
+@pytest.mark.parametrize("code", sorted(prompts()))
+def test_the_word_that_grants_consent_is_one_word(code: str) -> None:
+    word = prompts()[code]["prompt.consent.word"]
+    assert word == word.strip().lower(), f"{code}: {word!r} is not already lowercase and trimmed"
+    assert " " not in word, f"{code}: {word!r} is more than one word"
+
+
+@pytest.mark.parametrize("code", sorted(prompts()))
+def test_the_question_names_the_word_rather_than_spelling_it_twice(code: str) -> None:
+    # The word lives in one key. A translation that wrote it into the question
+    # as well would have two copies of it, free to drift, and the one a reader
+    # is told to type is the one that would be wrong.
+    asked = prompts()[code]["prompt.consent.ask"]
+    assert "{word}" in asked, f"{code} does not name {{word}}"
+    assert asked.format(word=repr(prompts()[code]["prompt.consent.word"]))
+
+
+@pytest.mark.parametrize("code", sorted(prompts()))
+@pytest.mark.parametrize(
+    "key",
+    [
+        "prompt.consent.granted",
+        "prompt.consent.revoked",
+        "prompt.consent.changed",
+        "prompt.consent.unversioned",
+    ],
+)
+def test_every_sentence_about_the_record_names_the_file(code: str, key: str) -> None:
+    # A confirmation that does not say where the decision went leaves nobody
+    # able to delete it, and deleting it is how consent is revoked.
+    assert "{path}" in prompts()[code][key], f"{code}/{key} does not name {{path}}"
+    assert prompts()[code][key].format(path="a-recorded-decision.json")
+
+
 # --- The surfaces offer what the files hold ----------------------------------
 
 
@@ -187,14 +237,17 @@ def test_every_label_on_a_page_has_something_to_switch_to(page) -> None:
 )
 def test_no_page_ships_the_model_instructions_to_a_browser(page) -> None:
     rendered = page()
-    assert "prompt.classify" not in rendered, "a prompt key reached the page"
     for code in languages():
-        for value in prompts()[code].values():
-            # The longest run of the sentence with no double quote in it. The
-            # whole sentence would never match: it quotes the JSON field names,
-            # and a page embeds its data as JSON, where those quotes come out
-            # backslashed. A sabotage probe put the table in the blob and this
-            # test passed, which is how that is known rather than supposed.
+        for key, value in prompts()[code].items():
+            assert key not in rendered, f"the key {key} reached the page"
+            # The longest run of the text with no double quote in it. A whole
+            # sentence would not match even when the table was embedded: the
+            # text quotes JSON field names, and a page embeds its data as JSON,
+            # where those quotes come out backslashed. A sabotage probe put the
+            # table in the blob and an earlier version of this test passed,
+            # which is how that is known rather than supposed. Values too short
+            # to be distinctive — the word that grants consent is three letters
+            # — are left to the key check above.
             longest = max(value.split('"'), key=len)
-            assert len(longest) > 20, "the fragment is too short to mean anything"
-            assert longest not in rendered
+            if len(longest) >= 25:
+                assert longest not in rendered, f"{key} reached the page"

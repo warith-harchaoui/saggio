@@ -260,6 +260,14 @@ Without it, `--run` does nothing and the audit proceeds on reading alone. A
 session with no terminal is refused rather than defaulted, so a build server can
 never agree on your behalf.
 
+Three things that make that a decision rather than a formality. The terms are
+**printed before anything is recorded**, by `consent grant` as well as by the
+audit's own question — a yes to terms nobody displayed is not a yes. They are
+printed **in your language**, because somebody who cannot read them has not been
+asked. And the record says **which terms** were agreed to and in which language
+they were read, so if the wording is ever edited you are asked again, with a line
+saying why.
+
 ## What it never does
 
 It never puts a number in a file that nobody chose. The country is stated by a

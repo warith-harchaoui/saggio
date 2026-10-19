@@ -265,6 +265,15 @@ Sans lui, `--run` ne fait rien et l'audit se poursuit sur la seule lecture. Une
 session sans terminal est refusée plutôt que traitée par défaut : un serveur
 d'intégration ne peut jamais accepter à votre place.
 
+Trois choses qui en font une décision plutôt qu'une formalité. Les conditions
+sont **affichées avant tout enregistrement**, par `consent grant` autant que par
+la question de l'audit — un oui à des conditions que personne n'a montrées n'est
+pas un oui. Elles sont affichées **dans votre langue**, parce que quelqu'un qui
+ne peut pas les lire n'a pas été interrogé. Et l'enregistrement dit **à quelles
+conditions** on a consenti et dans quelle langue elles ont été lues : si la
+formulation est un jour modifiée, la question est posée à nouveau, avec une ligne
+qui dit pourquoi.
+
 ## Ce que l'outil ne fait jamais
 
 Il ne met jamais dans un fichier un chiffre que personne n'a choisi. Le pays est

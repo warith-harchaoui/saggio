@@ -55,14 +55,19 @@ from .repeat import (
 )
 from .run import (
     CONSENT_PROMPT,
+    CONSENT_WORD,
     DEFAULT_TIMEOUT_SECONDS,
     ProfileEntry,
     SliceResult,
     consent_path,
+    consent_record,
+    consent_terms,
+    consent_word,
     has_consent,
     record_consent,
     require_consent,
     run_slice,
+    terms_version,
 )
 from .static import (
     DEFAULT_CAP_FRACTION,
@@ -130,6 +135,11 @@ __all__ = [
     "require_consent",
     "consent_path",
     "CONSENT_PROMPT",
+    "CONSENT_WORD",
+    "consent_record",
+    "consent_terms",
+    "consent_word",
+    "terms_version",
     "DEFAULT_TIMEOUT_SECONDS",
     # Local model.
     "Classification",

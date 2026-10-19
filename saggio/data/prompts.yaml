@@ -1,10 +1,20 @@
-# What the local model is asked, in the language of the person who asked.
+# What this package asks — of a local model, and of the person at the terminal.
 #
-# This file is the prompt half of this package's i18n; `report/i18n.yaml` is the
-# interface half. Both are loaded by `saggio/i18n.py`, and a language counts as
-# available only when **both** files have it — a contract test says so, because a
-# report a colleague reads in French whose one generated sentence is in English
-# is a single deliverable in two languages.
+# Two kinds of asking live here, and they have one thing in common: neither is
+# ever sent to a browser. `report/i18n.yaml` holds the interface half, which is
+# embedded in every page the renderer writes. Both are loaded by
+# `saggio/i18n.py`, and a language counts as available only when **both** files
+# have it — a contract test says so, because a report a colleague reads in
+# French whose one generated sentence is in English is a single deliverable in
+# two languages.
+#
+# The consent text is the most load-bearing prose in the package: it is what a
+# person agrees to before this tool runs a third party's program on their
+# machine with their permissions. Translate it faithfully and completely. It is
+# shown verbatim, because a consent prompt that paraphrases what it asks for is
+# not consent, and the English wording is the authored one — the version a
+# decision is recorded against is a digest of the English, so rewording a
+# translation does not revoke anybody's consent and rewording the English does.
 #
 # Add a top-level language code to add a language. Nothing else changes: the CLI
 # option, the API field, the agent tool and the report's own language button are
@@ -32,8 +42,65 @@ en:
   prompt.classify.language: >-
     Write "dominant_operation" and "reasoning" in English. The field names and
     the value of "workload_kind" stay exactly as given above.
+  prompt.consent.terms: |
+    To measure what this code costs to run, it has to be run.
+
+    That means executing a third party's program on this machine, with your
+    permissions and your network access. There is no sandbox. Anything the
+    program can do, it will be able to do.
+
+    This tool will run a short, capped slice, and will stop it at the time
+    limit. It will not run anything else without asking again.
+
+    Read the code first if you have not. This decision is recorded so you are
+    not asked every time; delete the record to revoke it.
+  prompt.consent.word: "yes"
+  prompt.consent.ask: "Type {word} to allow it, anything else to decline: "
+  prompt.consent.declined: "Declined. The audit will continue without running anything."
+  prompt.consent.granted: "Granted, recorded in {path}."
+  prompt.consent.revoked: "Revoked, recorded in {path}."
+  prompt.consent.changed: >-
+    These terms have changed since the decision recorded in {path}. The
+    recorded answer does not carry over to wording nobody has read, so here
+    they are again.
+  prompt.consent.unversioned: >-
+    The decision recorded in {path} does not say which terms it answered — it
+    was taken before that was written down — so here they are again.
+  prompt.consent.no_terminal: >-
+    Running downloaded code needs explicit consent and there is no terminal to
+    ask on. Run the command once interactively, or read the terms and decide
+    with `saggio consent grant`.
 
 fr:
   prompt.classify.language: >-
     Écris "dominant_operation" et "reasoning" en français. Les noms de champs et
     la valeur de "workload_kind" restent exactement tels qu'énoncés ci-dessus.
+  prompt.consent.terms: |
+    Pour mesurer ce que ce code coûte à l'exécution, il faut l'exécuter.
+
+    Cela veut dire lancer sur cette machine le programme d'un tiers, avec vos
+    droits et votre accès réseau. Il n'y a aucun bac à sable. Tout ce que ce
+    programme peut faire, il pourra le faire.
+
+    Cet outil exécutera une tranche courte et plafonnée, et l'arrêtera à la
+    limite de temps. Il n'exécutera rien d'autre sans redemander.
+
+    Lisez le code d'abord si ce n'est pas déjà fait. Cette décision est
+    enregistrée pour ne pas vous la redemander chaque fois ; supprimez
+    l'enregistrement pour la révoquer.
+  prompt.consent.word: "oui"
+  prompt.consent.ask: "Tapez {word} pour autoriser, n'importe quoi d'autre pour refuser : "
+  prompt.consent.declined: "Refusé. L'audit continuera sans rien exécuter."
+  prompt.consent.granted: "Autorisé, enregistré dans {path}."
+  prompt.consent.revoked: "Révoqué, enregistré dans {path}."
+  prompt.consent.changed: >-
+    Ces conditions ont changé depuis la décision enregistrée dans {path}. La
+    réponse enregistrée ne vaut pas pour un texte que personne n'a lu : les
+    voici donc à nouveau.
+  prompt.consent.unversioned: >-
+    La décision enregistrée dans {path} ne dit pas à quelles conditions elle
+    répondait — elle est antérieure à cette mention — les voici donc à nouveau.
+  prompt.consent.no_terminal: >-
+    Exécuter du code téléchargé demande un consentement explicite, et il n'y a
+    aucun terminal pour le demander. Lancez la commande une fois de façon
+    interactive, ou lisez les conditions et décidez avec `saggio consent grant`.

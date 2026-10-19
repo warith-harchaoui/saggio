@@ -500,6 +500,36 @@ saggio consent grant
 saggio audit . --country FR --run -o cost_of_running.yaml
 ```
 
+`consent grant` prints the terms in full before it records anything — four
+paragraphs beginning *"To measure what this code costs to run, it has to be
+run."* — and then says where the decision went, so you can delete that file to
+revoke it. It takes `--language` like the audit does:
+
+```bash
+saggio consent grant --language fr
+```
+
+The recorded decision says which terms were agreed to and which language they
+were read in:
+
+```json
+{
+  "granted": true,
+  "decided_on": "2026-10-19",
+  "tool": "saggio",
+  "language": "fr",
+  "terms_version": "38ba4eeae6ee"
+}
+```
+
+If the terms are ever reworded, that digest stops matching and you are asked
+again, with a line saying why — a yes to one text is not a yes to another.
+Rewording a *translation* changes nothing, because the digest is taken over the
+English wording, which is the authored one.
+
+On a terminal, the audit asks the same question itself and in the same language,
+so `consent grant` is only needed where there is nobody to ask.
+
 The audit runs a capped slice of your real entry point. The cap comes from your own
 configuration, so the slice covers a known share:
 

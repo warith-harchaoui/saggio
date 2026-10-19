@@ -38,6 +38,7 @@ Warith Harchaoui
 from __future__ import annotations
 
 import cProfile  # noqa: F401 - imported for the -m form used in the child command.
+import hashlib
 import json
 import os
 import pstats
@@ -55,6 +56,7 @@ from typing import Any, Final
 import os_helper as osh
 import platformdirs
 
+from ..i18n import DEFAULT_LANGUAGE, phrase, resolve
 from .cpu import CpuShare, CpuShareMeter
 from .power import PowerMeter, PowerReading, measure_for
 
@@ -64,25 +66,26 @@ _APP_NAME: Final[str] = "saggio"
 #: File the consent decision is written to, so the user can find and delete it.
 CONSENT_FILENAME: Final[str] = "run-consent.json"
 
-#: What the user is agreeing to. Shown verbatim, because a consent prompt that
-#: paraphrases what it is asking for is not consent.
-CONSENT_PROMPT: Final[str] = (
-    "To measure what this code costs to run, it has to be run.\n"
-    "\n"
-    "That means executing a third party's program on this machine, with your\n"
-    "permissions and your network access. There is no sandbox. Anything the\n"
-    "program can do, it will be able to do.\n"
-    "\n"
-    "This tool will run a short, capped slice, and will stop it at the time\n"
-    "limit. It will not run anything else without asking again.\n"
-    "\n"
-    "Read the code first if you have not. This decision is recorded so you are\n"
-    "not asked every time; delete the record to revoke it.\n"
-)
+#: Keys of the consent wording in ``saggio/data/prompts.yaml``. The text lives
+#: there, with its translations, because a person asked to let a third party's
+#: program run on their machine has to be able to read what they are agreeing
+#: to. It is shown verbatim, because a consent prompt that paraphrases what it
+#: is asking for is not consent.
+_TERMS_KEY: Final[str] = "prompt.consent.terms"
+_WORD_KEY: Final[str] = "prompt.consent.word"
 
-#: The exact word required to grant consent. Anything else is a refusal, so a
-#: stray keypress cannot become a yes.
-CONSENT_WORD: Final[str] = "yes"
+#: What the user is agreeing to, in English. English is the **authored** wording
+#: here: a decision is recorded against a digest of it, so rewording a
+#: translation revokes nobody's consent and rewording this revokes everybody's.
+#: Kept under the name it has had since the first commit.
+CONSENT_PROMPT: Final[str] = phrase(_TERMS_KEY, language=DEFAULT_LANGUAGE)
+
+#: The word that grants consent in English, which is accepted whatever language
+#: the terms were shown in. Anything else is a refusal, so a stray keypress
+#: cannot become a yes — and the deliberateness comes from typing a whole word,
+#: not from which language it happens to be in, so somebody who reads the French
+#: terms and types the English yes has not pressed a key by accident.
+CONSENT_WORD: Final[str] = phrase(_WORD_KEY, language=DEFAULT_LANGUAGE)
 
 #: Default ceiling on a slice, in seconds. Long enough to get past import and
 #: warm-up, short enough that nobody's afternoon is spent on it.
@@ -91,6 +94,77 @@ DEFAULT_TIMEOUT_SECONDS: Final[float] = 300.0
 #: How many functions of the profile to keep. Enough to see where the time goes,
 #: few enough to read.
 PROFILE_TOP_N: Final[int] = 8
+
+
+def consent_terms(language: str = DEFAULT_LANGUAGE) -> str:
+    """Return what the user is being asked to agree to, in their language.
+
+    Parameters
+    ----------
+    language : str, optional
+        A language tag. One nothing is written in falls back to English, which
+        is the one place in this package where falling back matters most: terms
+        in a language the reader does not have are better than no terms.
+
+    Returns
+    -------
+    str
+        The wording, verbatim from the translation file.
+
+    Examples
+    --------
+    >>> consent_terms("fr").startswith("Pour mesurer")
+    True
+    >>> consent_terms() == CONSENT_PROMPT
+    True
+    """
+    return phrase(_TERMS_KEY, language=language)
+
+
+def consent_word(language: str = DEFAULT_LANGUAGE) -> str:
+    """Return the word that grants consent in a language.
+
+    Parameters
+    ----------
+    language : str, optional
+        A language tag.
+
+    Returns
+    -------
+    str
+        The word, lowercase. :data:`CONSENT_WORD` is accepted as well whatever
+        this returns, so a reader of the French terms who types the English yes
+        is understood rather than refused.
+
+    Examples
+    --------
+    >>> consent_word("fr"), consent_word("en")
+    ('oui', 'yes')
+    """
+    return phrase(_WORD_KEY, language=language).strip().lower()
+
+
+def terms_version() -> str:
+    """Return a short digest of the terms a decision is recorded against.
+
+    The digest is taken over the **English** wording whatever language was
+    shown, and that is the whole point: a translation reworded for fluency says
+    the same thing, so it must not revoke anybody's consent, while an edit to
+    the authored terms says something else and must.
+
+    Returns
+    -------
+    str
+        Twelve hexadecimal characters.
+
+    Examples
+    --------
+    >>> len(terms_version())
+    12
+    >>> terms_version() == terms_version()
+    True
+    """
+    return hashlib.sha256(CONSENT_PROMPT.encode("utf-8")).hexdigest()[:12]
 
 
 def consent_path(path: str | Path | None = None) -> Path:
@@ -138,9 +212,13 @@ def has_consent(path: str | Path | None = None) -> bool:
     Returns
     -------
     bool
-        ``True`` only when a record exists and says yes. An unreadable or
-        malformed record counts as no: consent has to be positively established,
-        never inferred from a file nobody could parse.
+        ``True`` only when a record exists, says yes, **and** says yes to the
+        terms as they are worded now. An unreadable or malformed record counts
+        as no: consent has to be positively established, never inferred from a
+        file nobody could parse. A record from before this field existed counts
+        as no for the same reason — it does not say what was agreed to, and
+        agreement to an unknown text is not agreement to this one. The cost is
+        one extra question, once, on a terminal where there is somebody to ask.
 
     Examples
     --------
@@ -148,18 +226,52 @@ def has_consent(path: str | Path | None = None) -> bool:
     >>> with tempfile.TemporaryDirectory() as folder:
     ...     has_consent(Path(folder) / "decision.json")
     False
+    >>> with tempfile.TemporaryDirectory() as folder:
+    ...     written = record_consent(True, Path(folder) / "d.json")
+    ...     stale = written.write_text('{"granted": true}', encoding="utf-8")
+    ...     has_consent(Path(folder) / "d.json")
+    False
+    """
+    record = consent_record(path)
+    return bool(record.get("granted")) and record.get("terms_version") == terms_version()
+
+
+def consent_record(path: str | Path | None = None) -> dict[str, object]:
+    """Return the recorded decision, or an empty mapping.
+
+    Parameters
+    ----------
+    path : str or pathlib.Path or None, optional
+        Where the decision is recorded.
+
+    Returns
+    -------
+    dict
+        What was written, or ``{}`` when there is nothing readable there. Read
+        by :func:`has_consent` for the answer and by :func:`require_consent`,
+        which also needs to know whether a stale record exists in order to say
+        why it is asking again.
+
+    Examples
+    --------
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as folder:
+    ...     consent_record(Path(folder) / "nothing.json")
+    {}
     """
     target = consent_path(path)
     if not osh.file_exists(str(target), check_empty=True):
-        return False
+        return {}
     try:
         record = json.loads(target.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return False
-    return bool(record.get("granted"))
+        return {}
+    return record if isinstance(record, dict) else {}
 
 
-def record_consent(granted: bool, path: str | Path | None = None) -> Path:
+def record_consent(
+    granted: bool, path: str | Path | None = None, *, language: str = DEFAULT_LANGUAGE
+) -> Path:
     """Write a consent decision so the question is not asked again.
 
     Parameters
@@ -168,6 +280,9 @@ def record_consent(granted: bool, path: str | Path | None = None) -> Path:
         What was decided.
     path : str or pathlib.Path or None, optional
         Where to record it.
+    language : str, optional
+        The language the terms were read in. Recorded so the file says what the
+        person actually saw, beside the digest saying which terms those were.
 
     Returns
     -------
@@ -176,16 +291,26 @@ def record_consent(granted: bool, path: str | Path | None = None) -> Path:
 
     Examples
     --------
-    >>> import tempfile
+    >>> import json, tempfile
     >>> with tempfile.TemporaryDirectory() as folder:
-    ...     written = record_consent(True, Path(folder) / "decision.json")
-    ...     has_consent(written)
-    True
+    ...     written = record_consent(True, Path(folder) / "decision.json", language="fr")
+    ...     granted = has_consent(written)
+    ...     record = json.loads(written.read_text(encoding="utf-8"))
+    >>> granted, record["language"], record["terms_version"] == terms_version()
+    (True, 'fr', True)
     """
     target = consent_path(path)
     target.write_text(
         json.dumps(
-            {"granted": granted, "decided_on": date.today().isoformat(), "tool": _APP_NAME},
+            {
+                "granted": granted,
+                "decided_on": date.today().isoformat(),
+                "tool": _APP_NAME,
+                # What was agreed to, and in what language it was read. Without
+                # these, `granted: true` outlives the wording it answered.
+                "language": resolve(language),
+                "terms_version": terms_version(),
+            },
             indent=2,
         )
         + "\n",
@@ -199,6 +324,7 @@ def require_consent(
     *,
     path: str | Path | None = None,
     interactive: bool | None = None,
+    language: str = DEFAULT_LANGUAGE,
 ) -> bool:
     """Ask for consent once, record the answer, and return it.
 
@@ -210,6 +336,10 @@ def require_consent(
         Where the decision is recorded.
     interactive : bool or None, optional
         Whether there is a terminal to ask on. Detected when not given.
+    language : str, optional
+        The language to show the terms in. Somebody who cannot read the terms
+        has not been asked, so this is the one translation in the package that
+        is not a convenience.
 
     Returns
     -------
@@ -227,6 +357,12 @@ def require_consent(
     ...     granted = require_consent(lambda _: "yes", path=decision, interactive=True)
     >>> refused, granted
     (False, True)
+    >>> with tempfile.TemporaryDirectory() as folder, contextlib.redirect_stdout(io.StringIO()):
+    ...     french = require_consent(
+    ...         lambda _: "oui", path=Path(folder) / "d.json", interactive=True, language="fr"
+    ...     )
+    >>> french
+    True
     >>> with tempfile.TemporaryDirectory() as folder:
     ...     silent = require_consent(path=Path(folder) / "d.json", interactive=False)
     >>> silent
@@ -238,20 +374,26 @@ def require_consent(
         interactive if interactive is not None else bool(sys.stdin and sys.stdin.isatty())
     )
     if not at_a_terminal:
-        osh.error(
-            "Running downloaded code needs explicit consent and there is no terminal "
-            "to ask on. Run the command once interactively, or grant it with "
-            "`saggio consent grant`."
-        )
+        osh.error(phrase("prompt.consent.no_terminal", language=language))
         return False
-    print(CONSENT_PROMPT)
-    answer = (
-        prompt(f"Type {CONSENT_WORD!r} to allow it, anything else to decline: ").strip().lower()
-    )
-    granted = answer == CONSENT_WORD
-    record_consent(granted, path)
+    recorded = consent_record(path)
+    if recorded.get("granted"):
+        # Granted, but not to these words — either because the terms were edited
+        # since, or because the record predates saying which terms it answered.
+        # Saying which of the two it is matters: announcing a change that did not
+        # happen is a sentence nobody established, and saying nothing at all
+        # reads as a tool that forgot the answer.
+        changed = "changed" if recorded.get("terms_version") else "unversioned"
+        print(
+            phrase(f"prompt.consent.{changed}", language=language).format(path=consent_path(path))
+        )
+    print(consent_terms(language))
+    word = consent_word(language)
+    answer = prompt(phrase("prompt.consent.ask", language=language).format(word=repr(word)))
+    granted = answer.strip().lower() in {word, CONSENT_WORD}
+    record_consent(granted, path, language=language)
     if not granted:
-        osh.info("Declined. The audit will continue without running anything.")
+        osh.info(phrase("prompt.consent.declined", language=language))
     return granted
 
 

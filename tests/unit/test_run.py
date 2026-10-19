@@ -9,16 +9,21 @@ import pytest
 
 from saggio.analyze.power import PowerReading
 from saggio.analyze.run import (
+    CONSENT_PROMPT,
     CONSENT_WORD,
     SliceResult,
     _can_profile,
     _is_python_command,
     _read_profile,
     consent_path,
+    consent_record,
+    consent_terms,
+    consent_word,
     has_consent,
     record_consent,
     require_consent,
     run_slice,
+    terms_version,
 )
 
 # --- Consent -----------------------------------------------------------------
@@ -68,6 +73,136 @@ def test_the_prompt_says_what_is_being_agreed_to(consent_file: Path, capsys) -> 
     shown = capsys.readouterr().out
     assert "no sandbox" in shown.lower()
     assert "permissions" in shown
+
+
+# --- Consent in a language the reader has ------------------------------------
+
+
+def test_the_terms_are_shown_in_the_language_asked_for(consent_file: Path, capsys) -> None:
+    # Somebody who cannot read the terms has not been asked. This is the one
+    # translation in the package that is not a convenience.
+    require_consent(lambda _: "non", path=consent_file, interactive=True, language="fr")
+    shown = capsys.readouterr().out
+    assert "bac à sable" in shown
+    assert "no sandbox" not in shown.lower()
+
+
+def test_the_question_names_the_word_of_the_language_it_asks_in(consent_file: Path) -> None:
+    asked: list[str] = []
+    require_consent(
+        lambda question: asked.append(question) or "non",
+        path=consent_file,
+        interactive=True,
+        language="fr",
+    )
+    assert "'oui'" in asked[0]
+
+
+def test_the_word_of_the_language_shown_grants_it(consent_file: Path, capsys) -> None:
+    assert consent_word("fr") == "oui"
+    assert require_consent(lambda _: "oui", path=consent_file, interactive=True, language="fr")
+
+
+def test_so_does_the_english_word_at_a_french_prompt(consent_file: Path, capsys) -> None:
+    # The deliberateness comes from typing a whole word, not from which language
+    # it is in: somebody who reads the French terms and types the English yes
+    # has not pressed a key by accident, and refusing them would be a usability
+    # bug dressed as a safety feature.
+    assert require_consent(lambda _: "yes", path=consent_file, interactive=True, language="fr")
+
+
+@pytest.mark.parametrize("answer", ["non", "no", "o", "d'accord", ""])
+def test_anything_else_still_declines_in_french(answer: str, consent_file: Path, capsys) -> None:
+    assert not require_consent(lambda _: answer, path=consent_file, interactive=True, language="fr")
+
+
+def test_a_language_nothing_is_written_in_shows_the_terms_anyway(
+    consent_file: Path, capsys
+) -> None:
+    # Terms in a language the reader may not have are better than no terms.
+    require_consent(lambda _: "no", path=consent_file, interactive=True, language="klingon")
+    assert "no sandbox" in capsys.readouterr().out.lower()
+
+
+# --- What the record says, and what it is good for ---------------------------
+
+
+def test_the_record_says_what_was_agreed_to_and_in_which_language(
+    consent_file: Path, capsys
+) -> None:
+    require_consent(lambda _: "oui", path=consent_file, interactive=True, language="fr")
+    record = consent_record(consent_file)
+    assert record["language"] == "fr"
+    assert record["terms_version"] == terms_version()
+
+
+def test_a_record_that_does_not_say_what_it_agreed_to_is_not_consent(
+    consent_file: Path,
+) -> None:
+    # The shape every record had before this field existed. `granted: true`
+    # outliving the wording it answered is the defect; one extra question on a
+    # terminal is the price.
+    consent_path(consent_file).write_text('{"granted": true}', encoding="utf-8")
+    assert not has_consent(consent_file)
+
+
+def test_consent_to_other_terms_is_not_consent_to_these(consent_file: Path) -> None:
+    consent_path(consent_file).write_text(
+        '{"granted": true, "terms_version": "0123456789ab"}', encoding="utf-8"
+    )
+    assert not has_consent(consent_file)
+
+
+def test_being_asked_again_says_that_the_terms_changed(consent_file: Path, capsys) -> None:
+    # Otherwise it looks like the tool forgot the answer.
+    consent_path(consent_file).write_text(
+        '{"granted": true, "terms_version": "0123456789ab"}', encoding="utf-8"
+    )
+    require_consent(lambda _: "no", path=consent_file, interactive=True)
+    assert "have changed" in capsys.readouterr().out
+
+
+def test_a_record_from_before_the_field_is_not_announced_as_a_change(
+    consent_file: Path, capsys
+) -> None:
+    # Two reasons to ask again, and only one of them is "the terms changed".
+    # Saying that about a record that simply never said what it answered would
+    # be a sentence nobody established.
+    consent_path(consent_file).write_text('{"granted": true}', encoding="utf-8")
+    require_consent(lambda _: "no", path=consent_file, interactive=True)
+    shown = capsys.readouterr().out
+    assert "does not say which terms" in shown
+    assert "have changed" not in shown
+
+
+def test_a_declined_record_is_not_announced_as_a_change(consent_file: Path, capsys) -> None:
+    record_consent(False, consent_file)
+    require_consent(lambda _: "no", path=consent_file, interactive=True)
+    shown = capsys.readouterr().out
+    assert "have changed" not in shown
+    assert "does not say which terms" not in shown
+
+
+def test_the_version_follows_the_authored_terms(monkeypatch) -> None:
+    from saggio.analyze import run as module
+
+    before = terms_version()
+    monkeypatch.setattr(module, "CONSENT_PROMPT", CONSENT_PROMPT + " And one more thing.")
+    assert terms_version() != before
+
+
+def test_rewording_a_translation_revokes_nobody(monkeypatch) -> None:
+    # The claim the digest is there to make good on: a translation reworded for
+    # fluency says the same thing, so it must not invalidate a decision, while
+    # an edit to the authored English must.
+    from saggio import i18n
+
+    before = terms_version()
+    table = {code: dict(entries) for code, entries in i18n.prompts().items()}
+    table["fr"]["prompt.consent.terms"] = "Des conditions reformulées, en français."
+    monkeypatch.setattr(i18n, "prompts", lambda: table)
+    assert consent_terms("fr") == "Des conditions reformulées, en français."
+    assert terms_version() == before
 
 
 # --- What can be profiled ----------------------------------------------------

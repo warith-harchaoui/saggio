@@ -520,6 +520,38 @@ saggio consent grant
 saggio audit . --country FR --run -o cost_of_running.yaml
 ```
 
+`consent grant` affiche les conditions en entier avant d'enregistrer quoi que ce
+soit — quatre paragraphes commençant par *« Pour mesurer ce que ce code coûte à
+l'exécution, il faut l'exécuter. »* — puis dit où la décision est allée, pour que
+vous puissiez supprimer ce fichier et la révoquer. Il prend `--language` comme
+l'audit :
+
+```bash
+saggio consent grant --language fr
+```
+
+La décision enregistrée dit à quelles conditions on a consenti, et dans quelle
+langue elles ont été lues :
+
+```json
+{
+  "granted": true,
+  "decided_on": "2026-10-19",
+  "tool": "saggio",
+  "language": "fr",
+  "terms_version": "38ba4eeae6ee"
+}
+```
+
+Si les conditions sont un jour reformulées, cette empreinte cesse de
+correspondre et la question est posée à nouveau, avec une ligne disant pourquoi
+— un oui à un texte n'est pas un oui à un autre. Reformuler une *traduction* ne
+change rien : l'empreinte est prise sur la formulation anglaise, qui est celle
+d'origine.
+
+Sur un terminal, l'audit pose lui-même la même question, dans la même langue :
+`consent grant` ne sert donc que là où il n'y a personne à qui demander.
+
 L'audit exécute une tranche plafonnée de votre vrai point d'entrée. Le plafond
 vient de votre propre configuration, donc la tranche couvre une part connue :
 

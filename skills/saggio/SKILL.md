@@ -152,6 +152,12 @@ This executes a capped slice of the repository on their machine, with their
 permissions, with no sandbox. **Tell the user that before suggesting it**, and let
 them grant consent themselves. Never run `consent grant` on their behalf.
 
+Both the audit's own question and `saggio consent grant` print the terms in full
+before anything is recorded, and print them in the language `--language` names.
+Pass the user's language so that what they are agreeing to is in it, and leave
+the answer to them: the recorded decision says which terms were agreed to, so a
+yes you typed would be a yes attributed to them.
+
 A measured runtime turns the whole chain from `TODO` into real numbers, so it is
 worth asking for.
 
