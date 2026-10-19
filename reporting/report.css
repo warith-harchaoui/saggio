@@ -17,7 +17,12 @@
   --surface-sunken: #f4f4f2;
   --ink: #1a1a18;
   --ink-soft: #55554e;
-  --ink-faint: #86867c;
+  /* 4.5:1 against the sunken surface, which is the darkest of the three this
+     colour ever sits on. It was #86867c and failed at 3.55:1 — on `th`,
+     `td.unknown`, `.muted` and the what-if labels, which is to say on exactly
+     the places the report says a figure is uncertain. The colour that marks a
+     weaker number was the hardest one to read. */
+  --ink-faint: #707068;
   --line: #e2e2dc;
   --line-strong: #c9c9c0;
   --accent: #1f6f5c;
@@ -25,7 +30,7 @@
 
   --measured: #1f6f5c;
   --measured-soft: #e6f1ed;
-  --estimated: #9a6a12;
+  --estimated: #936511;
   --estimated-soft: #fbf1dd;
   --placeholder: #5b5f97;
   --placeholder-soft: #ecedf7;
@@ -45,7 +50,7 @@
     --surface-sunken: #232419;
     --ink: #eceadf;
     --ink-soft: #b4b2a4;
-    --ink-faint: #82806f;
+    --ink-faint: #8c8a78;
     --line: #32332a;
     --line-strong: #494a3d;
     --accent: #6bc4a8;
@@ -68,7 +73,7 @@
   --surface-sunken: #232419;
   --ink: #eceadf;
   --ink-soft: #b4b2a4;
-  --ink-faint: #82806f;
+  --ink-faint: #8c8a78;
   --line: #32332a;
   --line-strong: #494a3d;
   --accent: #6bc4a8;

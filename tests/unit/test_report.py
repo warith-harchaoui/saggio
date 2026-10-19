@@ -589,3 +589,51 @@ def test_both_reports_spell_a_projected_duration_the_same_way() -> None:
     model = CostModel.from_mapping(data)
     for page in (render_markdown(model), render_html(model)):
         assert "3 h 1 min" in page, "a projected whole run is hours, and should say so"
+
+
+# --- Contrast, measured rather than eyeballed --------------------------------
+
+
+def _contrast(foreground: str, background: str) -> float:
+    """Return the WCAG 2.x contrast ratio between two hex colours."""
+
+    def channel(value: float) -> float:
+        value /= 255
+        return value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4
+
+    def luminance(colour: str) -> float:
+        colour = colour.lstrip("#")
+        red, green, blue = (int(colour[i : i + 2], 16) for i in (0, 2, 4))
+        return 0.2126 * channel(red) + 0.7152 * channel(green) + 0.0722 * channel(blue)
+
+    first, second = luminance(foreground), luminance(background)
+    return (max(first, second) + 0.05) / (min(first, second) + 0.05)
+
+
+def test_the_muted_text_a_reader_most_needs_is_readable() -> None:
+    """`--ink-faint` carries the uncertainty, and used to be the least legible.
+
+    It colours `th`, `td.unknown`, `.muted` and the what-if labels — every
+    place the report says a figure is weak or missing. At #86867c it was
+    3.55:1 against the page, below the 4.5:1 WCAG AA needs for text that size.
+    The colour marking a number you should trust less was the hardest to read.
+    """
+    import importlib.resources
+
+    css = importlib.resources.files("saggio.data.report").joinpath("report.css").read_text("utf-8")
+    faint = re.findall(r"--ink-faint:\s*(#[0-9a-f]{6})", css)
+    assert len(faint) == 3, "one light value and two dark declarations"
+    light, dark = faint[0], faint[1]
+    # The darkest surface each one ever sits on, which is what decides it.
+    assert _contrast(light, "#f4f4f2") >= 4.5, f"{light} is unreadable on the sunken surface"
+    assert _contrast(dark, "#232419") >= 4.5, f"{dark} is unreadable on the sunken surface"
+
+
+def test_the_estimated_badge_is_readable_on_its_own_background() -> None:
+    import importlib.resources
+
+    css = importlib.resources.files("saggio.data.report").joinpath("report.css").read_text("utf-8")
+    ink = re.search(r"--estimated:\s*(#[0-9a-f]{6})", css)
+    soft = re.search(r"--estimated-soft:\s*(#[0-9a-f]{6})", css)
+    assert ink and soft
+    assert _contrast(ink.group(1), soft.group(1)) >= 4.5

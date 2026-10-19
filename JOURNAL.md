@@ -10,6 +10,35 @@ cette ligne.
 
 ## Non publié
 
+### Mesuré ce que sprezzature apporterait au rapport web, avant de refondre quoi que ce soit
+
+- **Le gate structurel d'accessibilité ne trouve rien.**
+  `sprezzature-accessibility-lint` applique vingt règles statiques au HTML
+  produit : le rapport obtient **0 constat**, et le tableau de bord aussi. Quoi
+  qu'une refonte apporterait, ce n'est pas cela.
+- **L'audit de contraste a trouvé quatre échecs réels, et ce sont les quatre
+  pires que cette palette pouvait avoir.** `--ink-faint` était à 3,55:1 contre
+  la page, sous les 4,5:1 qu'exige WCAG AA à cette taille — et il colore `th`,
+  `td.unknown`, `.muted` et les étiquettes du panneau what-if. Autrement dit :
+  **la couleur qui signale qu'une valeur est incertaine était la plus difficile
+  à lire de la page.** Le badge `estimated` était à 4,21:1 sur son propre fond,
+  même faute au même endroit.
+- Corrigé en déplaçant quatre valeurs, teinte et saturation conservées :
+  `#86867c` → `#707068` (clair), `#82806f` → `#8c8a78` (sombre), `#9a6a12` →
+  `#936511`. Résolu contre la surface **sunken** et non contre la page, parce
+  que c'est le plus sombre des trois fonds que cette couleur rencontre — un
+  premier calcul calé sur la page passait là et échouait encore à 4,28:1 sur
+  une carte sunken.
+- Un test fixe le plancher à 4,5:1 et lit la feuille de style livrée plutôt
+  qu'une copie des valeurs ; remettre `#86867c` le fait échouer.
+- **Et un constat sur le linter plutôt que sur ce paquet.** Le site publié
+  obtient 260 constats `aria-hidden-interactive`, tous le motif d'ancre de titre
+  `<a href="#id" aria-hidden="true" tabindex="-1">#</a>`. Ce motif est correct :
+  c'est `tabindex="-1"` qui rend l'ancre non focalisable, ce que la règle existe
+  précisément pour exiger. Sondé avec un fichier de deux lignes — la règle tire
+  avec et sans le `tabindex`, elle ne le regarde donc pas. Les 260 sont un seul
+  faux positif.
+
 ### Un curseur machine sur le rapport web, et des durées qu'un lecteur peut tenir
 
 - Le rapport HTML recalculait déjà un modèle ailleurs : deux curseurs, le pays

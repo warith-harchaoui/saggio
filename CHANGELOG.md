@@ -9,6 +9,34 @@ release of that line.
 
 ## Unreleased
 
+### Measured what sprezzature would bring to the web report, before rebuilding anything
+
+- **The structural a11y gate finds nothing.** `sprezzature-accessibility-lint`
+  runs twenty static rules over the generated HTML: the report scores **0
+  findings**, and so does the dashboard. Whatever a rewrite would be for, it is
+  not that.
+- **The contrast audit found four real failures, and they are the worst four
+  the palette could have had.** `--ink-faint` was 3.55:1 against the page,
+  below the 4.5:1 WCAG AA asks for text at that size — and it colours `th`,
+  `td.unknown`, `.muted` and the what-if labels. That is to say: **the colour
+  marking a figure as uncertain was the hardest one on the page to read.** The
+  `estimated` badge was 4.21:1 against its own background, the same fault in
+  the same place.
+- Fixed by moving four values, hue and saturation held: `#86867c` → `#707068`
+  (light), `#82806f` → `#8c8a78` (dark), `#9a6a12` → `#936511`. Solved against
+  the **sunken** surface rather than the page, because that is the darkest of
+  the three backgrounds the colour sits on — a first attempt calibrated on the
+  page passed there and still failed at 4.28:1 on a sunken card.
+- A test pins the floor at 4.5:1 and reads the shipped stylesheet rather than a
+  copy of the values; putting `#86867c` back fails it.
+- **And a finding about the linter rather than this package.** The published
+  site scores 260 `aria-hidden-interactive` findings, every one of them the
+  heading-permalink pattern `<a href="#id" aria-hidden="true" tabindex="-1">#</a>`.
+  That pattern is correct: `tabindex="-1"` is what makes the anchor
+  unfocusable, which is the condition the rule exists to enforce. Probed with a
+  two-line file — the rule fires with and without the `tabindex`, so it does
+  not look at it. All 260 are one false positive.
+
 ### A machine cursor on the web report, and durations a reader can hold
 
 - The HTML report already recomputed a model somewhere else: two cursors,
