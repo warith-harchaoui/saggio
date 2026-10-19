@@ -10,6 +10,35 @@ cette ligne.
 
 ## Non publié
 
+### L'ossature du rapport statique dans la langue du lecteur — et 29 chaînes en double
+
+`render_markdown` portait **quatorze titres et tous les en-têtes de tableau
+écrits en anglais**, alors que le fichier de traduction du rapport HTML tenait
+déjà les mêmes mots pour les mêmes sections. Vingt-neuf chaînes étaient une
+seconde copie, libre de diverger, et personne ne l'avait vu parce que les deux
+copies étaient anglaises.
+
+- Le rapport markdown lit **la même table** que la page HTML embarque : les deux
+  rapports ne peuvent donc plus formuler une section différemment. Chaque titre
+  et chaque en-tête de tableau d'un rapport statique sort maintenant dans la
+  langue demandée : `saggio render model.yaml --language fr`.
+- Les deux moteurs de rendu écrivaient aussi les mêmes en-têtes chacun de son
+  côté — `Assumption`, `Value`, `Status`, `Provenance`, `Notes` dans l'un, les
+  cinq mêmes dans l'autre, aucun traduit. Ils partagent désormais sept clés
+  nouvelles.
+- **Un défaut trouvé par cette unification.** Le tableau des projections portait
+  `i18n_keys=["column.dimension", "column.value", …]` alors que le serveur
+  écrivait `["", "Value", …]` : appuyer sur le bouton de langue écrivait
+  **« Dimension » dans un en-tête volontairement vide** et requalifiait un
+  chiffre pour la course entière en **« Par unité »**, ce qu'un en-tête de
+  colonne ne doit surtout pas faire. La page avait l'air juste jusqu'à ce qu'on
+  appuie, et rien ne testait cela. Un test de contrat relit maintenant chaque
+  nœud `data-i18n` des deux pages et échoue quand la formulation anglaise de sa
+  clé n'est pas le texte que le serveur a écrit.
+- La part que le bouton échange passe de 4,8 % à **4,9 %** — trois tableaux de
+  plus — et un rapport statique est **14 %** français, grâce au module
+  d'inventaire et à celui-ci.
+
 ### Un catalogue de messages, pour que le moteur dise ce qu'il dit dans une autre langue
 
 La décision est celle de Warith, après la mesure de l'entrée précédente : un

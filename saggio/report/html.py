@@ -61,6 +61,7 @@ from .figures import (
 from .markdown import (
     NOT_KNOWN,
     ROUTE_LABEL,
+    _label,
     both_scope_two_methods,
     felt_size,
     format_number,
@@ -580,9 +581,14 @@ def _projections_section(model: CostModel) -> str:
                 rows += _projection_rows(key, value)
         blocks.append(
             _table(
-                ["", "Value", "Status", "How it was obtained"],
+                ["", _label("column.amount"), _label("column.status"), _label("column.method")],
                 rows,
-                i18n_keys=["column.dimension", "column.value", "column.status", "column.method"],
+                # No key for the first column: it is deliberately blank, and a
+                # key there made the language button write "Dimension" into it.
+                # And `column.amount` rather than `column.value`, because this
+                # table is per run and `column.value` says "Per unit" — pressing
+                # the button relabelled a whole-run figure as a per-unit one.
+                i18n_keys=["", "column.amount", "column.status", "column.method"],
                 widths=[18, 20, 11, 51],
             )
         )
@@ -735,8 +741,21 @@ def _assumptions_section(model: CostModel) -> str:
     if not rows:
         return ""
     return _heading(2, "What the numbers rest on", "section.assumptions") + _table(
-        ["Assumption", "Value", "Status", "Provenance", "Notes"],
+        [
+            _label("column.assumption"),
+            _label("column.amount"),
+            _label("column.status"),
+            _label("column.provenance"),
+            _label("column.notes"),
+        ],
         rows,
+        i18n_keys=[
+            "column.assumption",
+            "column.amount",
+            "column.status",
+            "column.provenance",
+            "column.notes",
+        ],
         widths=[20, 14, 11, 18, 37],
     )
 
@@ -942,8 +961,21 @@ def _models_section(model: CostModel) -> str:
                 )
         blocks.append(
             _table(
-                ["Rate", "Value", "Status", "Provenance", "Source"],
+                [
+                    _label("column.rate"),
+                    _label("column.amount"),
+                    _label("column.status"),
+                    _label("column.provenance"),
+                    _label("column.source"),
+                ],
                 rows,
+                i18n_keys=[
+                    "column.rate",
+                    "column.amount",
+                    "column.status",
+                    "column.provenance",
+                    "column.source",
+                ],
                 widths=[28, 18, 12, 16, 26],
             )
             or '<p class="muted">No published rate was found for this model.</p>'

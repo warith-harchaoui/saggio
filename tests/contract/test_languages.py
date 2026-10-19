@@ -147,7 +147,7 @@ def test_the_share_of_a_report_the_button_switches_is_the_share_the_docs_quote()
     # break teaches a contributor to distrust it.
     written = re.sub(r"\s+", " ", (ROOT / "USING.md").read_text(encoding="utf-8"))
     quoted = re.search(
-        r"\*\*929 of the ([\d,]+) characters\*\* of visible text on a rendered "
+        r"\*\*953 of the ([\d,]+) characters\*\* of visible text on a rendered "
         r"report — \*\*([\d.]+)%\*\*",
         written,
     )
@@ -158,7 +158,7 @@ def test_the_share_of_a_report_the_button_switches_is_the_share_the_docs_quote()
     assert round(share, 1) == float(quoted.group(2)), (
         f"USING.md says {quoted.group(2)}% of a report switches language, it is {share:.1f}%"
     )
-    assert swapped == 929, f"USING.md says 929 characters switch, it is {swapped}"
+    assert swapped == 953, f"USING.md says 953 characters switch, it is {swapped}"
 
 
 # --- The consent wording, which is the most load-bearing prose here ----------
@@ -388,3 +388,29 @@ def test_every_sentence_formats_with_the_arguments_it_names(code: str) -> None:
     for key, wording in messages()[code].items():
         named = re.findall(r"\{(\w+)\}", wording)
         assert wording.format(**dict.fromkeys(named, "x")), key
+
+
+def test_every_label_the_button_swaps_says_what_the_server_wrote() -> None:
+    """A key on a node must mean the words that are in that node.
+
+    The defect this found: the projections table carried
+    ``i18n_keys=["column.dimension", "column.value", ...]`` while the server
+    wrote ``["", "Value", ...]``. Pressing the language button wrote
+    "Dimension" into a deliberately blank header and relabelled a whole-run
+    figure "Per unit", which is the one thing a column header must not do. The
+    page looked right until somebody pressed the button, which nothing tested.
+    """
+    import yaml
+
+    model = CostModel.from_mapping(
+        yaml.safe_load((ROOT / "examples" / "render.yaml").read_text(encoding="utf-8"))
+    )
+    table = labels()[DEFAULT_LANGUAGE]
+    wrong = []
+    for page in (render_html(model), render_dashboard([model])):
+        for found in re.finditer(r'data-i18n="([^"]+)"[^>]*>(.*?)<', page, re.S):
+            key = found.group(1)
+            shown = re.sub(r"<[^>]+>", "", found.group(2)).strip()
+            if table.get(key) != shown:
+                wrong.append((key, table.get(key), shown))
+    assert not wrong, f"keys that would change the words: {wrong}"

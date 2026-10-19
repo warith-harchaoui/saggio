@@ -213,8 +213,8 @@ que rien n'atteint, et une traduction qui renomme un argument. Au 2026-10-19, le
 premier module passé — les placements d'inventaire — faisait sortir **11 % d'un
 rapport statique** en français.
 
-**Ce que le bouton seul ne change pas, mesuré.** Il échange **929 des 19 337
-caractères** de texte visible d'un rapport produit — **4,8 %**. L'ossature
+**Ce que le bouton seul ne change pas, mesuré.** Il échange **953 des 19 337
+caractères** de texte visible d'un rapport produit — **4,9 %**. L'ossature
 bouge : titres, noms de colonnes, étiquettes du panneau what-if, phrases
 d'équivalence. La substance, non : les notes, les méthodes, les mises en garde
 et les refus sont écrits là où la mesure se fait, soit **709 littéraux de prose

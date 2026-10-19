@@ -9,6 +9,31 @@ release of that line.
 
 ## Unreleased
 
+### The static report's structure, in the reader's language — and 29 duplicated strings
+
+`render_markdown` had **fourteen headings and every table header written out in
+English**, while the HTML report's translation file already held the same words
+for the same sections. Twenty-nine strings were a second copy, free to drift,
+and nobody had noticed because both copies were English.
+
+- The markdown report reads the **same table** the HTML page embeds, so the two
+  reports cannot word one section differently again. Every heading and every
+  table header of a static report now comes out in the language asked for:
+  `saggio render model.yaml --language fr`.
+- Both renderers were also writing the same table headers independently —
+  `Assumption`, `Value`, `Status`, `Provenance`, `Notes` in one, the same five in
+  the other, neither translated. They share seven new keys now.
+- **A defect the unification found.** The projections table carried
+  `i18n_keys=["column.dimension", "column.value", …]` while the server wrote
+  `["", "Value", …]`: pressing the language button wrote **"Dimension" into a
+  deliberately blank header** and relabelled a whole-run figure **"Per unit"**,
+  which is the one thing a column header must not do. The page looked right
+  until somebody pressed the button, and nothing tested that. A contract test
+  now reads every `data-i18n` node on both pages and fails when its key's
+  English wording is not the text the server wrote.
+- The share the button switches went from 4.8% to **4.9%** — three more tables —
+  and a static report is **14%** French, from the inventory module and this one.
+
 ### A message catalogue, so the engine can say what it says in another language
 
 The decision was Warith's, after the measurement in the entry above: a full

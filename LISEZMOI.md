@@ -303,7 +303,7 @@ traduit. Les étiquettes du rapport, elles, viennent depuis toujours d'un fichie
 de traduction ; la page porte un bouton de langue construit depuis ce que ce
 fichier contient. Ajouter une langue, c'est deux fichiers et pas une ligne de
 code — et cela change l'ossature de la page, pas les phrases qu'un audit compose
-en mesurant : 4,8 % d'un rapport produit, mesuré, pas la totalité.
+en mesurant : 4,9 % d'un rapport produit, mesuré, pas la totalité.
 
 Et il ne compte jamais ce qu'il ne peut pas compter. La fabrication du matériel,
 les gens, les bureaux : tout cela est listé comme exclu dans le rapport, parce

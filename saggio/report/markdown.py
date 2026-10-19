@@ -41,6 +41,7 @@ from ..estimate.ghg import (
     market_based_figure_exists,
     placements,
 )
+from ..i18n import current_language, phrase
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
 from ..model.quantity import Quantity, looks_like_quantity
@@ -261,8 +262,8 @@ def _equivalence_phrase(named: dict[str, Quantity]) -> str | None:
     if not (named["tree_months"].is_known() and named["car_km"].is_known()):
         return None
     parts = [
-        f"{format_number(named['tree_months'].value)} tree-months",
-        f"{format_number(named['car_km'].value)} km by car (EU average)",
+        f"{format_number(named['tree_months'].value)} {_label('equivalence.trees')}",
+        f"{format_number(named['car_km'].value)} {_label('equivalence.car')}",
     ]
     flight = named["flight"]
     if flight.is_known():
@@ -413,6 +414,31 @@ def _felt_size_lines(costs: object, *, per: str = "unit") -> list[str]:
         f"*{lead} {phrase} — {note}, [Green Algorithms]({GREEN_ALGORITHMS_SOURCE}) coefficients.*",
         "",
     ]
+
+
+def _label(key: str) -> str:
+    """Return a piece of report furniture, in the language in force.
+
+    Parameters
+    ----------
+    key : str
+        A key in the report's translation table — the same table the HTML page
+        embeds, read here so that the two reports cannot word one section
+        differently. Twenty-nine strings in this file were a second copy of
+        words already in that table, which nobody had noticed because both
+        copies were English.
+
+    Returns
+    -------
+    str
+        The wording.
+
+    Examples
+    --------
+    >>> _label("section.honesty")
+    'Honesty'
+    """
+    return phrase(key, language=current_language(), table="label")
 
 
 def _escape(text: object) -> str:
@@ -604,7 +630,8 @@ def _honesty_section(model: CostModel) -> list[str]:
 
     Examples
     --------
-    >>> "## Honesty" in "\\n".join(_honesty_section(CostModel.from_mapping({})))
+    >>> rendered = "\\n".join(_honesty_section(CostModel.from_mapping({})))
+    >>> f"## {_label('section.honesty')}" in rendered
     True
     """
     counts = _status_counts(model)
@@ -615,7 +642,15 @@ def _honesty_section(model: CostModel) -> list[str]:
     ]
     if not rows:
         rows = [["—", "0", "This model states no numbers yet."]]
-    return ["## Honesty", "", _table(["Status", "Count", "Meaning"], rows), ""]
+    return [
+        f"## {_label('section.honesty')}",
+        "",
+        _table(
+            [_label("column.status"), _label("column.count"), _label("column.meaning")],
+            rows,
+        ),
+        "",
+    ]
 
 
 def _unit_section(model: CostModel) -> list[str]:
@@ -639,7 +674,7 @@ def _unit_section(model: CostModel) -> list[str]:
     unit = model.data.get("unit_of_work")
     if not isinstance(unit, dict):
         return []
-    lines = ["## One unit of work", "", f"**{_escape(unit.get('name'))}**", ""]
+    lines = [f"## {_label('section.unit')}", "", f"**{_escape(unit.get('name'))}**", ""]
     if unit.get("description"):
         lines += [str(unit["description"]).strip(), ""]
     excluded = unit.get("out_of_scope")
@@ -672,7 +707,7 @@ def _deployment_section(model: CostModel) -> list[str]:
     if not isinstance(deployment, dict) or not deployment:
         return []
     rows = [[_escape(key.replace("_", " ")), _escape(value)] for key, value in deployment.items()]
-    return ["## Where it runs", "", _table(["", ""], rows), ""]
+    return [f"## {_label('section.deployment')}", "", _table(["", ""], rows), ""]
 
 
 def _scenario_section(
@@ -728,7 +763,16 @@ def _scenario_section(
             ]
         )
     lines += [
-        _table(["Dimension", "Per unit", "Status", "Derived from", "Notes"], rows)
+        _table(
+            [
+                _label("column.dimension"),
+                _label("column.value"),
+                _label("column.status"),
+                _label("column.derived"),
+                _label("column.notes"),
+            ],
+            rows,
+        )
         or "_This scenario states no costs yet._",
         "",
     ]
@@ -774,9 +818,18 @@ def _assumptions_section(model: CostModel) -> list[str]:
     if not rows:
         return []
     return [
-        "## What the numbers rest on",
+        f"## {_label('section.assumptions')}",
         "",
-        _table(["Assumption", "Value", "Status", "Provenance", "Notes"], rows),
+        _table(
+            [
+                _label("column.assumption"),
+                _label("column.amount"),
+                _label("column.status"),
+                _label("column.provenance"),
+                _label("column.notes"),
+            ],
+            rows,
+        ),
         "",
     ]
 
@@ -842,9 +895,17 @@ def _inventory_section(model: CostModel) -> list[str]:
         )
 
     lines = [
-        "## Where this goes in a GHG inventory",
+        f"## {_label('section.inventory')}",
         "",
-        _table(["Cost", "Per unit", "Status", "GHG Protocol"], rows),
+        _table(
+            [
+                _label("column.cost"),
+                _label("column.value"),
+                _label("column.status"),
+                _label("column.protocol"),
+            ],
+            rows,
+        ),
         "",
         "The scope turns on who operates the machine, which is why the same code "
         "lands on a different line of a different company's inventory depending "
@@ -861,9 +922,9 @@ def _inventory_section(model: CostModel) -> list[str]:
     located = placed.get("carbon")
     if located is not None and located.scope == "2":
         lead = (
-            "**Scope 2 is reported both ways, as the standard requires.** "
+            f"**{_label('inventory.pair')}** "
             if market_based_figure_exists(costs)
-            else "**Only half of what scope 2 requires is here.** "
+            else f"**{_label('inventory.dual')}** "
         )
         lines += [lead + _escape(located.dual_reporting), ""]
     # The disclosure a filer is asked for, answered by counting words the model
@@ -923,13 +984,22 @@ def _services_section(model: CostModel) -> list[str]:
             ]
         )
     return [
-        "## Services this code pays for",
+        f"## {_label('section.services')}",
         "",
         "Prices are not copied into this model. An API price copied today is wrong "
         "by next quarter, so the report says where the current one lives and leaves "
         "the figure open until somebody reads it.",
         "",
-        _table(["Service", "Found at", "Evidence", "Per unit", "Where to price it"], rows),
+        _table(
+            [
+                _label("column.service"),
+                _label("column.found_at"),
+                _label("column.evidence"),
+                _label("column.value"),
+                _label("column.where_to_price"),
+            ],
+            rows,
+        ),
         "",
     ]
 
@@ -956,7 +1026,7 @@ def _models_section(model: CostModel) -> list[str]:
     if not isinstance(called, list) or not called:
         return []
     lines = [
-        "## Models this code calls",
+        f"## {_label('section.models')}",
         "",
         "A rate is not a cost. These are what the vendor charges per unit; how many "
         "of those units one unit of work spends is the open half, and reading the "
@@ -989,7 +1059,16 @@ def _models_section(model: CostModel) -> list[str]:
                     ]
                 )
         lines += [
-            _table(["Rate", "Value", "Status", "Provenance", "Source"], rows)
+            _table(
+                [
+                    _label("column.rate"),
+                    _label("column.amount"),
+                    _label("column.status"),
+                    _label("column.provenance"),
+                    _label("column.source"),
+                ],
+                rows,
+            )
             or "_No published rate was found for this model._",
             "",
         ]
@@ -1020,7 +1099,7 @@ def _projections_section(model: CostModel) -> list[str]:
     if not isinstance(projections, dict) or not projections:
         return []
     lines = [
-        "## Projections",
+        f"## {_label('section.projections')}",
         "",
         "A projection is not a measurement of the thing it projects to.",
         "",
@@ -1040,7 +1119,13 @@ def _projections_section(model: CostModel) -> list[str]:
         if isinstance(costs, dict):
             for key, value in costs.items():
                 rows += _projection_rows(key, value)
-        lines += [_table(["", "Value", "Status", "Method"], rows), ""]
+        lines += [
+            _table(
+                ["", _label("column.amount"), _label("column.status"), _label("column.method")],
+                rows,
+            ),
+            "",
+        ]
         lines += _projection_caveats(block)
         lines += _felt_size_lines(block.get("costs"), per="run")
         held = block.get("held_constant")
@@ -1186,7 +1271,7 @@ def _measurement_section(model: CostModel) -> list[str]:
     measurement = model.data.get("measurement")
     if not isinstance(measurement, dict) or not measurement:
         return []
-    lines = ["## How it was measured", ""]
+    lines = [f"## {_label('section.measurement')}", ""]
     command = measurement.get("command")
     if isinstance(command, list):
         lines += ["```", " ".join(str(part) for part in command), "```", ""]
@@ -1277,7 +1362,7 @@ def render_markdown(model: CostModel | dict[str, Any]) -> str:
 
     scenarios = wrapped.scenarios()
     if scenarios:
-        lines += ["## What one unit costs", ""]
+        lines += [f"## {_label('section.costs')}", ""]
         for scenario in scenarios:
             lines += _scenario_section(wrapped, scenario, registry)
 
@@ -1287,8 +1372,8 @@ def render_markdown(model: CostModel | dict[str, Any]) -> str:
     lines += _models_section(wrapped)
     lines += _measurement_section(wrapped)
     lines += _projections_section(wrapped)
-    lines += _list_section("Not counted", wrapped.data.get("exclusions"))
-    lines += _list_section("Rules this model follows", wrapped.data.get("provenance_rules"))
+    lines += _list_section(_label("section.exclusions"), wrapped.data.get("exclusions"))
+    lines += _list_section(_label("section.rules"), wrapped.data.get("provenance_rules"))
     lines += [
         "---",
         "",
