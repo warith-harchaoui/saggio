@@ -9,6 +9,26 @@ release of that line.
 
 ## Unreleased
 
+### Two toggles and a star, where a reader's hand already is
+
+- **The theme control is a button showing the theme it would give you**, not a
+  `<select>` listing three words: 🌛 while the page is light, 🌞 while it is
+  dark. One press, no menu, and the glyph says which way it goes.
+- **A flag button switches language** — 🇬🇧 / 🇫🇷 — beside it. A flag is not a
+  language, so the accessible name says it in words, and a language code with
+  no flag in the table falls back to its own letters rather than borrowing a
+  country that does not speak it.
+- **Built from whatever `i18n.yaml` contains**, not hard-coded to two. The
+  translation file promises that adding a top-level language code is enough;
+  a two-state toggle wired to `en`/`fr` would have quietly broken that promise,
+  so the button cycles through the languages the file actually has.
+- **`⭐ on GitHub`** beside them, linking to the project, translated like
+  everything else in the bar.
+- Both emoji buttons carry an `aria-label` **in the static HTML** as well as
+  from the script: a button whose only content is an emoji has no accessible
+  name at all, and the page is readable before the script runs.
+  `sprezzature-accessibility-lint` on the rendered report: **0 findings**.
+
 ### Measured what sprezzature would bring to the web report, before rebuilding anything
 
 - **The structural a11y gate finds nothing.** `sprezzature-accessibility-lint`

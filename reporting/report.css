@@ -122,7 +122,7 @@ body {
 .bar .brand img { width: 24px; height: 24px; border-radius: 5px; }
 .bar .spacer { flex: 1; }
 
-.bar button, .bar select {
+.bar button, .bar select, .bar .star {
   font: inherit;
   font-size: 0.85rem;
   color: var(--ink-soft);
@@ -131,6 +131,25 @@ body {
   border-radius: 999px;
   padding: 0.25rem 0.8rem;
   cursor: pointer;
+}
+
+/* The two emoji controls are square and a little larger: an emoji at 0.85rem
+   is a smudge, and these are the only controls in the bar with no words in
+   them. The accessible name carries the meaning; the glyph carries the aim. */
+#theme-toggle, #language-toggle {
+  font-size: 1.05rem;
+  line-height: 1;
+  padding: 0.3rem 0.55rem;
+}
+
+.bar .star {
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.bar .star:hover, .bar .star:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .bar button:hover, .bar select:hover { color: var(--ink); border-color: var(--accent); }

@@ -10,6 +10,27 @@ cette ligne.
 
 ## Non publié
 
+### Deux bascules et une étoile, là où la main du lecteur est déjà
+
+- **Le contrôle de thème est un bouton qui montre le thème qu'il donnerait**,
+  plus un `<select>` qui énumère trois mots : 🌛 quand la page est claire, 🌞
+  quand elle est sombre. Une pression, pas de menu, et le glyphe dit le sens.
+- **Un bouton drapeau change de langue** — 🇬🇧 / 🇫🇷 — juste à côté. Un drapeau
+  n'est pas une langue : le nom accessible le dit en mots, et un code de langue
+  sans drapeau dans la table retombe sur ses propres lettres plutôt que
+  d'emprunter un pays qui ne la parle pas.
+- **Construit depuis ce que `i18n.yaml` contient**, pas figé à deux. Le fichier
+  de traduction promet qu'ajouter un code de langue au premier niveau suffit ;
+  une bascule à deux états câblée sur `en`/`fr` aurait rompu cette promesse en
+  silence, donc le bouton fait le tour des langues que le fichier porte
+  vraiment.
+- **`⭐ sur GitHub`** à côté, vers le projet, traduit comme le reste de la
+  barre.
+- Les deux boutons emoji portent un `aria-label` **dans le HTML statique** en
+  plus de celui que pose le script : un bouton dont le seul contenu est un
+  emoji n'a aucun nom accessible, et la page se lit avant que le script tourne.
+  `sprezzature-accessibility-lint` sur le rapport produit : **0 constat**.
+
 ### Mesuré ce que sprezzature apporterait au rapport web, avant de refondre quoi que ce soit
 
 - **Le gate structurel d'accessibilité ne trouve rien.**

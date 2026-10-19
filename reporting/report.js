@@ -28,7 +28,9 @@
     }
     var button = document.getElementById("theme-toggle");
     if (button) {
-      button.textContent = theme === "dark" ? "☀" : "☾";
+      /* The button shows what pressing it would give you, not where you are:
+         a sun while the page is dark, a moon while it is light. */
+      button.textContent = theme === "dark" ? "\ud83c\udf1e" : "\ud83c\udf1b";
       /* Translated here rather than in applyLanguage, because this label
          changes with the theme as well as with the language. */
       button.setAttribute(
@@ -60,6 +62,25 @@
 
   /* --- Language -------------------------------------------------------- */
 
+  /* A flag is not a language — English is spoken in rather more places than
+     one — but it is the signifier a reader recognises at a glance, and the
+     accessible name beside it says the language in words. A code with no flag
+     here falls back to its own letters rather than borrowing a wrong country. */
+  var FLAGS = { fr: "\ud83c\uddeb\ud83c\uddf7", en: "\ud83c\uddec\ud83c\udde7" };
+
+  function languageCodes() {
+    var node = document.getElementById("language-toggle");
+    var listed = node ? (node.getAttribute("data-languages") || "") : "";
+    var codes = listed.split(",").filter(function (code) { return code; });
+    return codes.length ? codes : ["en"];
+  }
+
+  function nextLanguage(from) {
+    var codes = languageCodes();
+    var at = codes.indexOf(from);
+    return codes[(at + 1) % codes.length];
+  }
+
   function applyLanguage(code) {
     var table = DATA.i18n[code] || DATA.i18n.en || {};
     var nodes = document.querySelectorAll("[data-i18n]");
@@ -70,15 +91,20 @@
       }
     }
     document.documentElement.setAttribute("lang", code);
-    var picker = document.getElementById("language-picker");
-    if (picker) { picker.value = code; }
-    /* The bar controls carry no visible text, only aria-labels, which the
-       textContent loop above never touches; without this, assistive tech
-       stays in English whatever the picker says. The theme button's label is
-       refreshed via applyTheme, whose label depends on the theme too. */
-    if (picker && table["bar.language"]) {
-      picker.setAttribute("aria-label", table["bar.language"]);
+    var toggle = document.getElementById("language-toggle");
+    if (toggle) {
+      /* Like the theme button: the control shows the language you would get,
+         not the one you are reading. */
+      var target = nextLanguage(code);
+      toggle.textContent = FLAGS[target] || target.toUpperCase();
+      toggle.setAttribute(
+        "aria-label",
+        translated("bar.language." + target, "Switch to " + target.toUpperCase())
+      );
     }
+    /* The bar controls carry an emoji and no words, so the textContent loop
+       above never reaches their accessible names; both are set here and in
+       applyTheme, whose label depends on the theme as well as the language. */
     applyTheme(currentTheme());
   }
 
@@ -185,10 +211,10 @@
   var themeButton = document.getElementById("theme-toggle");
   if (themeButton) { themeButton.addEventListener("click", toggleTheme); }
 
-  var languagePicker = document.getElementById("language-picker");
-  if (languagePicker) {
-    languagePicker.addEventListener("change", function (event) {
-      var code = event.target.value;
+  var languageToggle = document.getElementById("language-toggle");
+  if (languageToggle) {
+    languageToggle.addEventListener("click", function () {
+      var code = nextLanguage(currentLanguage());
       try { localStorage.setItem(LANGUAGE_KEY, code); } catch (error) { /* private mode */ }
       applyLanguage(code);
     });

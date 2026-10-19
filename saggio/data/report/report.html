@@ -19,8 +19,11 @@
 <nav class="bar">
   <span class="brand"><img src="{{LOGO}}" alt="">saggio</span>
   <span class="spacer"></span>
-  <select id="language-picker" aria-label="Language">{{LANGUAGES}}</select>
-  <button id="theme-toggle" type="button" aria-label="Switch theme">☾</button>
+  <button id="language-toggle" type="button" data-languages="{{LANGUAGES}}"
+          aria-label="Language">🇬🇧</button>
+  <button id="theme-toggle" type="button" aria-label="Switch theme">🌛</button>
+  <a class="star" href="{{PROJECT_URL}}" rel="noopener" data-i18n="bar.star"
+     aria-label="Star this project on GitHub">⭐ on GitHub</a>
   <button type="button" onclick="window.print()" data-i18n="bar.print">Save as PDF</button>
 </nav>
 <main class="wrap">

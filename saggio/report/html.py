@@ -1296,10 +1296,12 @@ def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> st
     name = project.get("name") if isinstance(project, dict) else None
     title = f"Cost of running {name}" if name else "Cost of running this code"
 
-    languages = "".join(
-        f'<option value="{_escape(code)}">{_escape(code.upper())}</option>'
-        for code in sorted(translations())
-    )
+    # The codes the page can switch between, in a stable order. A list rather
+    # than a set of <option> elements because the control is a toggle now: with
+    # two languages it is the FR/EN switch a reader expects, and with three it
+    # cycles. The i18n file promises that adding a language is enough, and a
+    # two-state toggle hard-coded to FR and EN would have broken that promise.
+    languages = ",".join(sorted(translations()))
 
     updated = wrapped.data.get("date_updated")
     subtitle = (
