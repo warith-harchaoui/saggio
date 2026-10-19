@@ -9,6 +9,27 @@ release of that line.
 
 ## Unreleased
 
+### The measurement block, the honesty statuses, and the static report's own prose
+
+Three more modules into the catalogue, in the order of how much of a report they
+write. A static report renders **26.9%** French now, up from 11% when the
+catalogue held one module.
+
+- **What a power figure covers** (`analyze/power/boundary.py`): the whole-machine
+  sentence, the floor, the attributable share, the twelve row labels of a
+  measurement block, the counters, the spread. And the two **recognisers** that
+  read prose back — the fold has to know whether an exclusion line is about idle
+  capacity, and whether it says idle is in or out — now check **every language**
+  rather than English. A line written during a French audit was invisible to
+  them, which is the defect the fold exists to prevent, one translation away.
+- **What each honesty status means** (`model/taxonomy.py`): `STATUS_MEANING` was
+  a mapping, and a mapping holds one language. It is `status_meaning(status)`
+  now, and the markdown report's private copy of it is gone — there were two.
+- **The static report's own prose** (`report/markdown.py`): the title, the
+  weakest-link sentence, the date line, the three section ledes, the projection
+  headings, the profile table, the warning heading, the footer. Twenty
+  sentences.
+
 ### The static report's structure, in the reader's language — and 29 duplicated strings
 
 `render_markdown` had **fourteen headings and every table header written out in

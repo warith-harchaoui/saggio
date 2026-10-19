@@ -10,6 +10,29 @@ cette ligne.
 
 ## Non publié
 
+### Le bloc de mesure, les statuts d'honnêteté, et la prose propre au rapport statique
+
+Trois modules de plus dans le catalogue, dans l'ordre de ce qu'ils écrivent d'un
+rapport. Un rapport statique sort maintenant à **26,9 %** en français, contre
+11 % quand le catalogue ne portait qu'un module.
+
+- **Ce que couvre une mesure de puissance** (`analyze/power/boundary.py`) : la
+  phrase sur la machine entière, le plancher, la part attribuable, les douze
+  étiquettes de lignes d'un bloc de mesure, les compteurs, l'étendue. Et les deux
+  **reconnaisseurs** qui relisent de la prose — le pliage doit savoir si une
+  ligne d'exclusion parle de la capacité au repos, et si elle la dit dedans ou
+  dehors — vérifient désormais **toutes les langues** et non l'anglais. Une ligne
+  écrite pendant un audit en français leur était invisible : c'est le défaut même
+  que le pliage existe pour éviter, à une traduction près.
+- **Ce que signifie chaque statut d'honnêteté** (`model/taxonomy.py`) :
+  `STATUS_MEANING` était une table, et une table porte une seule langue. C'est
+  `status_meaning(status)` maintenant, et la copie privée qu'en gardait le
+  rapport markdown a disparu — il y en avait deux.
+- **La prose propre au rapport statique** (`report/markdown.py`) : le titre, la
+  phrase du maillon faible, la ligne de date, les trois chapeaux de section, les
+  titres de projection, la table de profil, le titre des avertissements, le pied
+  de page. Vingt phrases.
+
 ### L'ossature du rapport statique dans la langue du lecteur — et 29 chaînes en double
 
 `render_markdown` portait **quatorze titres et tous les en-têtes de tableau

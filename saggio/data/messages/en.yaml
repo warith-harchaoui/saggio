@@ -116,3 +116,127 @@ ghg.market_based_present: >-
   delivered. Check that what you recorded meets the Scope 2 Guidance's quality
   criteria for a contractual instrument — this package cannot, and does not
   pretend to.
+
+# --- What a power figure covers, and what it leaves out (analyze/power/boundary.py)
+#
+# Numbers arrive already formatted, as strings: a format spec in a translated
+# sentence is a crash a translator cannot see coming, and the figures in a
+# report have to be comparable between languages anyway.
+
+boundary.idle_prefix: "Idle capacity"
+boundary.included_marker: "inside these figures"
+boundary.idle_excluded: >-
+  Idle capacity. This is the cost of one unit of work, not of being ready.
+boundary.idle_included: >-
+  {prefix} is {marker}, not outside them. The power was read from the machine's
+  own counters, which meter hardware and not processes
+boundary.idle_included.floor_within: >-
+  , and {idle} of the {watts} was being drawn before the slice started
+boundary.idle_included.floor_above: >-
+  , and the machine was drawing {idle} before the slice against {watts} during it
+boundary.idle_included.floor_only: >-
+  , and {idle} was being drawn before the slice started
+boundary.idle_included.attributable: >-
+  The measurement block carries {attributed} as the run's attributable share,
+  from its {share} of the machine's processor work; the costs below do not use it.
+boundary.whole_machine: >-
+  This is the whole machine's draw, not this run's alone: these counters meter
+  hardware and not processes, so whatever else the machine was doing while the
+  command ran is inside the figure.
+boundary.grew_quieter: >-
+  The machine was drawing {idle} before the slice and {watts} during it, so it
+  grew quieter while the slice ran: whatever else was busy stopped, and the
+  baseline bounds nothing about this figure.
+boundary.floor_under: >-
+  The machine was already drawing {idle} before the slice started, which is a
+  floor under how much of the figure was not this run.
+boundary.already_drawing: >-
+  The machine was already drawing {idle} before the slice started.
+boundary.attributable: >-
+  By the run's {share} share of the machine's processor work, {attributed}{against}
+  is attributable to it.
+boundary.attributable.against: " of the {watts}"
+boundary.nothing_established: >-
+  Nothing here established how much of it was, so treat the figure as an upper
+  bound on what the run cost and not as what it cost.
+boundary.prices_the_machine: >-
+  Every cost derived from it therefore prices the machine, not the process.
+
+boundary.field.exit_code: "exit code"
+boundary.field.measured_on: "measured on"
+boundary.field.power_scope: "what the counters cover"
+boundary.field.cpu_seconds: "processor-seconds used by the run"
+boundary.field.fraction_completed: "share of the whole run this slice covered"
+boundary.field.idle_watts: "machine at rest before the slice"
+boundary.field.marginal_watts: "added by the slice over that floor"
+boundary.field.power_note: "subtracting that floor"
+boundary.field.attributed_watts: "attributable to the run"
+boundary.field.attributed_scope: "what the attributable figure covers"
+boundary.field.truncated: "cut short by the timeout"
+boundary.field.repeats: "times the command was run"
+
+boundary.row.share: "the run's share of the machine's processor work"
+boundary.row.share_detail: " ({run} of the machine's {machine})"
+boundary.row.domains: "where the power went, by counter"
+boundary.row.spread: "how far the figures moved across those runs"
+boundary.row.sources: "counters that answered"
+
+boundary.spread.runtime_s: "runtime"
+boundary.spread.power_w: "power"
+boundary.spread.idle_w: "the floor beneath it"
+boundary.spread.attributed_w: "the share attributed by processor work"
+
+boundary.domain.cpu: "processor cores"
+boundary.domain.gpu: "graphics cores"
+boundary.domain.ane: "neural engine"
+boundary.domain.memory: "memory"
+
+# --- What each honesty status means (saggio/model/taxonomy.py)
+
+status.meaning.measured: "Recorded from an actual run on the target system."
+status.meaning.estimated: "Computed from a sourced assumption or a published formula."
+status.meaning.placeholder: "A structural stand-in kept visible; not a real number."
+status.meaning.TODO: "A human must supply this before the model can be trusted."
+
+# --- The static report's own prose (saggio/report/markdown.py)
+
+report.title: "Cost of running {name}"
+report.title.default: "Cost of running this code"
+report.weakest: >-
+  **This model is only as good as its weakest number, which is `{status}`.**
+  {meaning}
+report.updated: "Last updated {date}. Schema {schema}."
+report.schema_only: "Schema {schema}."
+report.not_known: "not known"
+report.no_numbers: "This model states no numbers yet."
+report.unit.excluded: "Not part of a unit:"
+report.scenario.no_costs: "_This scenario states no costs yet._"
+report.not_placed: "**not placed**"
+report.inventory.lede: >-
+  The scope turns on who operates the machine, which is why the same code lands
+  on a different line of a different company's inventory depending on where it
+  runs.
+report.inventory.founded: >-
+  How well founded these are: {summary}. A sustainability disclosure is asked to
+  state how much of an inventory rests on estimates rather than readings; every
+  number in this report already says so.
+report.services.lede: >-
+  Prices are not copied into this model. An API price copied today is wrong by
+  next quarter, so the report says where the current one lives and leaves the
+  figure open until somebody reads it.
+report.models.lede: >-
+  A rate is not a cost. These are what the vendor charges per unit; how many of
+  those units one unit of work spends is the open half, and reading the code
+  cannot establish it.
+report.no_rate: "_No published rate was found for this model._"
+report.projections.lede: "A projection is not a measurement of the thing it projects to."
+report.projection.assumes: "What it assumes"
+report.projection.limits: "Where it breaks"
+report.projection.bracketed: "{dimension}, bracketed"
+report.projection.bracket_note: "Fastest and slowest the evidence supports."
+report.measurement.hot_path: "Where the time went:"
+report.measurement.function: "Function"
+report.measurement.cumulative: "Cumulative seconds"
+report.measurement.calls: "Calls"
+report.measurement.warnings: "Read these before trusting the numbers above:"
+report.generated: "Generated by [saggio](https://github.com/warith-harchaoui/saggio)."

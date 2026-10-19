@@ -8,8 +8,8 @@ be wrong on the second claim by a factor its own measurement block records.
 from __future__ import annotations
 
 from saggio.analyze.power import (
-    IDLE_IS_EXCLUDED,
     idle_exclusion,
+    idle_is_excluded,
     states_idle_is_excluded,
     workload_scope,
 )
@@ -46,8 +46,8 @@ def test_a_measurement_that_established_neither_says_so() -> None:
 def test_an_estimated_figure_keeps_the_old_exclusion() -> None:
     # A nameplate rating describes a part under load, so a model built on one
     # really does price work being done rather than a machine waiting.
-    assert idle_exclusion(BUSY, measured=False) == IDLE_IS_EXCLUDED
-    assert states_idle_is_excluded(IDLE_IS_EXCLUDED)
+    assert idle_exclusion(BUSY, measured=False) == idle_is_excluded()
+    assert states_idle_is_excluded(idle_is_excluded())
 
 
 def test_a_measured_figure_says_idle_is_in_not_out() -> None:

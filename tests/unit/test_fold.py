@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from saggio.analyze.power import IDLE_IS_EXCLUDED, PowerReading, states_idle_is_excluded
+from saggio.analyze.power import PowerReading, idle_is_excluded, states_idle_is_excluded
 from saggio.fold import fold_measurement
 from saggio.model import CostModel
 
@@ -332,7 +332,7 @@ def test_folding_a_measurement_repairs_the_exclusion_it_falsifies() -> None:
     model = model_with(
         exclusions=[
             "The people. Salaries, offices, and travel are out of scope.",
-            IDLE_IS_EXCLUDED,
+            idle_is_excluded(),
         ]
     )
     folded = fold_measurement(
@@ -353,7 +353,7 @@ def test_folding_a_measurement_repairs_the_exclusion_it_falsifies() -> None:
 
 def test_a_second_fold_refreshes_the_line_rather_than_leaving_stale_watts() -> None:
     once = fold_measurement(
-        model_with(exclusions=[IDLE_IS_EXCLUDED]),
+        model_with(exclusions=[idle_is_excluded()]),
         seconds=1.0,
         power=PowerReading(21.3, 21.3, "soc"),
         measurement={"idle_watts": 9.9},

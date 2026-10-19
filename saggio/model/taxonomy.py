@@ -32,6 +32,8 @@ from __future__ import annotations
 
 from typing import Final
 
+from ..i18n import say
+
 # The canonical status labels. Spelled out as constants so a typo in calling
 # code fails at import time rather than silently creating a fifth status.
 MEASURED: Final[str] = "measured"
@@ -59,13 +61,30 @@ _STRENGTH: Final[dict[str, int]] = {
 #: can never accidentally *raise* a derived value's claimed trust.
 _UNKNOWN_STRENGTH: Final[int] = -1
 
+
 #: One-line meaning of each status, for report legends and error messages.
-STATUS_MEANING: Final[dict[str, str]] = {
-    MEASURED: "Recorded from an actual run on the target system.",
-    ESTIMATED: "Computed from a sourced assumption or a published formula.",
-    PLACEHOLDER: "A structural stand-in kept visible; not a real number.",
-    TODO: "A human must supply this before the model can be trusted.",
-}
+def status_meaning(status: str) -> str:
+    """Return what a status means, in the language in force.
+
+    Parameters
+    ----------
+    status : str
+        One of the four labels.
+
+    Returns
+    -------
+    str
+        The sentence a report prints beside the label, or an empty string for a
+        status that is not one of the four.
+
+    Examples
+    --------
+    >>> status_meaning(MEASURED)
+    'Recorded from an actual run on the target system.'
+    >>> status_meaning("invented")
+    ''
+    """
+    return say(f"status.meaning.{status}") if status in STATUS_ORDER else ""
 
 
 def is_valid_status(status: object) -> bool:

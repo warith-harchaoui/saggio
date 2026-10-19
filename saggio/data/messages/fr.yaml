@@ -123,3 +123,132 @@ ghg.market_based_present: >-
   livrés. Vérifiez que ce que vous avez enregistré satisfait les critères de
   qualité de la Scope 2 Guidance pour un instrument contractuel — ce paquet ne
   peut pas le faire, et ne prétend pas le faire.
+
+# --- Ce que couvre une mesure de puissance, et ce qu'elle laisse dehors
+#     (analyze/power/boundary.py)
+#
+# Les nombres arrivent déjà formatés, sous forme de chaînes : une spécification
+# de format dans une phrase traduite est un plantage qu'un traducteur ne peut
+# pas voir venir, et les chiffres d'un rapport doivent de toute façon rester
+# comparables d'une langue à l'autre.
+
+boundary.idle_prefix: "La capacité au repos"
+boundary.included_marker: "dans ces chiffres"
+boundary.idle_excluded: >-
+  La capacité au repos. Ceci est le coût d'une unité de travail, pas celui
+  d'être prêt.
+boundary.idle_included: >-
+  {prefix} est {marker}, et non en dehors. La puissance a été lue sur les
+  compteurs de la machine, qui mesurent du matériel et non des processus
+boundary.idle_included.floor_within: >-
+  , et {idle} sur les {watts} étaient déjà tirés avant le début de la tranche
+boundary.idle_included.floor_above: >-
+  , et la machine tirait {idle} avant la tranche contre {watts} pendant
+boundary.idle_included.floor_only: >-
+  , et {idle} étaient déjà tirés avant le début de la tranche
+boundary.idle_included.attributable: >-
+  Le bloc de mesure porte {attributed} comme part attribuable à l'exécution,
+  d'après ses {share} du travail processeur de la machine ; les coûts ci-dessous
+  ne l'utilisent pas.
+boundary.whole_machine: >-
+  C'est la consommation de la machine entière, pas celle de cette exécution
+  seule : ces compteurs mesurent du matériel et non des processus, donc tout ce
+  que la machine faisait par ailleurs pendant la commande est dans le chiffre.
+boundary.grew_quieter: >-
+  La machine tirait {idle} avant la tranche et {watts} pendant : elle est donc
+  devenue plus silencieuse pendant son exécution — ce qui était occupé par
+  ailleurs s'est arrêté, et le plancher ne borne rien de ce chiffre.
+boundary.floor_under: >-
+  La machine tirait déjà {idle} avant le début de la tranche, ce qui est un
+  plancher sur la part du chiffre qui n'était pas cette exécution.
+boundary.already_drawing: >-
+  La machine tirait déjà {idle} avant le début de la tranche.
+boundary.attributable: >-
+  D'après la part de {share} du travail processeur de la machine revenant à
+  l'exécution, {attributed}{against} lui sont attribuables.
+boundary.attributable.against: " sur les {watts}"
+boundary.nothing_established: >-
+  Rien ici n'a établi quelle part l'était : traitez donc le chiffre comme une
+  borne supérieure de ce que l'exécution a coûté, et non comme ce qu'elle a
+  coûté.
+boundary.prices_the_machine: >-
+  Tout coût qui en dérive tarife donc la machine, pas le processus.
+
+boundary.field.exit_code: "code de sortie"
+boundary.field.measured_on: "mesuré le"
+boundary.field.power_scope: "ce que couvrent les compteurs"
+boundary.field.cpu_seconds: "secondes-processeur utilisées par l'exécution"
+boundary.field.fraction_completed: "part de la course entière couverte par la tranche"
+boundary.field.idle_watts: "machine au repos avant la tranche"
+boundary.field.marginal_watts: "ajouté par la tranche au-dessus de ce plancher"
+boundary.field.power_note: "soustraction de ce plancher"
+boundary.field.attributed_watts: "attribuable à l'exécution"
+boundary.field.attributed_scope: "ce que couvre le chiffre attribuable"
+boundary.field.truncated: "interrompu par le délai"
+boundary.field.repeats: "nombre d'exécutions de la commande"
+
+boundary.row.share: "part du travail processeur de la machine revenant à l'exécution"
+boundary.row.share_detail: " ({run} sur les {machine} de la machine)"
+boundary.row.domains: "où est allée la puissance, par compteur"
+boundary.row.spread: "de combien les chiffres ont bougé sur ces exécutions"
+boundary.row.sources: "compteurs qui ont répondu"
+
+boundary.spread.runtime_s: "temps"
+boundary.spread.power_w: "puissance"
+boundary.spread.idle_w: "le plancher en dessous"
+boundary.spread.attributed_w: "la part attribuée par le travail processeur"
+
+boundary.domain.cpu: "cœurs processeur"
+boundary.domain.gpu: "cœurs graphiques"
+boundary.domain.ane: "moteur neuronal"
+boundary.domain.memory: "mémoire"
+
+# --- Ce que signifie chaque statut d'honnêteté (saggio/model/taxonomy.py)
+
+status.meaning.measured: "Relevé lors d'une exécution réelle sur le système visé."
+status.meaning.estimated: "Calculé depuis une hypothèse sourcée ou une formule publiée."
+status.meaning.placeholder: "Un substitut structurel laissé visible ; pas un vrai nombre."
+status.meaning.TODO: "Un humain doit le fournir avant qu'on puisse se fier au modèle."
+
+# --- La prose propre au rapport statique (saggio/report/markdown.py)
+
+report.title: "Coût d'exécution de {name}"
+report.title.default: "Coût d'exécution de ce code"
+report.weakest: >-
+  **Ce modèle ne vaut que son chiffre le plus faible, qui est `{status}`.**
+  {meaning}
+report.updated: "Dernière mise à jour {date}. Schéma {schema}."
+report.schema_only: "Schéma {schema}."
+report.not_known: "non connu"
+report.no_numbers: "Ce modèle n'énonce encore aucun chiffre."
+report.unit.excluded: "Ne fait pas partie d'une unité :"
+report.scenario.no_costs: "_Ce scénario n'énonce encore aucun coût._"
+report.not_placed: "**non rangé**"
+report.inventory.lede: >-
+  Le scope dépend de qui exploite la machine : c'est pourquoi le même code se
+  range sur une ligne différente, dans le bilan d'une entreprise différente,
+  selon l'endroit où il tourne.
+report.inventory.founded: >-
+  Solidité de ces chiffres : {summary}. Une déclaration de durabilité doit dire
+  quelle part d'un bilan repose sur des estimations plutôt que sur des relevés ;
+  chaque nombre de ce rapport le dit déjà.
+report.services.lede: >-
+  Les tarifs ne sont pas recopiés dans ce modèle. Un prix d'API recopié
+  aujourd'hui sera faux dans trois mois : le rapport dit donc où vit le prix du
+  jour et laisse le chiffre ouvert jusqu'à ce que quelqu'un le lise.
+report.models.lede: >-
+  Un tarif n'est pas un coût. Voici ce que le fournisseur facture par unité ;
+  combien de ces unités une unité de travail dépense est la moitié ouverte, et
+  lire le code ne permet pas de l'établir.
+report.no_rate: "_Aucun tarif publié n'a été trouvé pour ce modèle._"
+report.projections.lede: "Une projection n'est pas une mesure de ce vers quoi elle projette."
+report.projection.assumes: "Ce qu'elle suppose"
+report.projection.limits: "Où elle casse"
+report.projection.bracketed: "{dimension}, encadré"
+report.projection.bracket_note: "Le plus rapide et le plus lent que les preuves admettent."
+report.measurement.hot_path: "Où est passé le temps :"
+report.measurement.function: "Fonction"
+report.measurement.cumulative: "Secondes cumulées"
+report.measurement.calls: "Appels"
+report.measurement.warnings: "À lire avant de se fier aux chiffres ci-dessus :"
+report.generated: "Produit par [saggio](https://github.com/warith-harchaoui/saggio)."

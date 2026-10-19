@@ -41,21 +41,35 @@ from ..estimate.ghg import (
     market_based_figure_exists,
     placements,
 )
-from ..i18n import current_language, phrase
+from ..i18n import current_language, phrase, say
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
 from ..model.quantity import Quantity, looks_like_quantity
-from ..model.taxonomy import STATUS_MEANING, STATUS_ORDER
+from ..model.taxonomy import STATUS_ORDER, status_meaning
 from ..model.validate import overall_status
 
-#: Shown in place of a number that does not exist, so a reader never mistakes an
-#: open field for a zero.
-NOT_KNOWN: Final[str] = "not known"
 
-#: What each status means for the reader of a report, rather than for the
-#: validator. Slightly shorter than the canonical definitions, because a legend is
-#: read in passing.
-_LEGEND: Final[dict[str, str]] = dict(STATUS_MEANING)
+def not_known() -> str:
+    """Return what stands in place of a number that does not exist.
+
+    So that a reader never mistakes an open field for a zero.
+
+    Returns
+    -------
+    str
+        The words, in the language in force.
+
+    Examples
+    --------
+    >>> not_known()
+    'not known'
+    """
+    return say("report.not_known")
+
+
+#: The same words in the authored language, for the callers that have always
+#: imported them as a constant.
+NOT_KNOWN: Final[str] = "not known"
 
 #: How many significant figures a number is shown to. Beyond this the digits are
 #: noise: nothing in this chain is known to seven places.
@@ -88,7 +102,7 @@ def format_number(value: float | int | None) -> str:
     'not known'
     """
     if value is None:
-        return NOT_KNOWN
+        return not_known()
     number = float(value)
     if number == 0.0:
         return "0"
@@ -122,7 +136,7 @@ def format_quantity(quantity: Quantity) -> str:
     'not known'
     """
     if not quantity.is_known():
-        return NOT_KNOWN
+        return not_known()
     # A duration is the one unit a reader already thinks in, and the general
     # number format turns three hours into `1.087e+04 s`.
     if (quantity.unit or "") == "s" and not quantity.currency:
@@ -187,7 +201,7 @@ def format_duration(seconds: float | int | None) -> str:
     'not known'
     """
     if seconds is None:
-        return NOT_KNOWN
+        return not_known()
     total = float(seconds)
     if total == 0.0:
         return "0 s"
@@ -600,18 +614,20 @@ def _header(model: CostModel) -> list[str]:
     name = project.get("name") if isinstance(project, dict) else None
     # The name is model content: escaped so a newline in it cannot inject a
     # second heading, and a pipe cannot leak into the tables below.
-    lines = [f"# Cost of running {_escape(name)}" if name else "# Cost of running this code", ""]
+    titled = say("report.title", name=_escape(name)) if name else say("report.title.default")
+    lines = [f"# {titled}", ""]
 
     weakest = overall_status(model)
     if weakest:
         lines += [
-            f"**This model is only as good as its weakest number, which is `{weakest}`.** "
-            f"{_LEGEND.get(weakest, '')}",
+            say("report.weakest", status=weakest, meaning=status_meaning(weakest)),
             "",
         ]
     updated = model.data.get("date_updated")
     if updated:
-        lines += [f"Last updated {updated}. Schema {model.schema_version}.", ""]
+        lines += [say("report.updated", date=updated, schema=model.schema_version), ""]
+    else:
+        lines += [say("report.schema_only", schema=model.schema_version), ""]
     return lines
 
 
@@ -636,12 +652,12 @@ def _honesty_section(model: CostModel) -> list[str]:
     """
     counts = _status_counts(model)
     rows = [
-        [f"`{status}`", str(counts[status]), _LEGEND.get(status, "")]
+        [f"`{status}`", str(counts[status]), status_meaning(status)]
         for status in STATUS_ORDER
         if counts[status]
     ]
     if not rows:
-        rows = [["—", "0", "This model states no numbers yet."]]
+        rows = [["—", "0", say("report.no_numbers")]]
     return [
         f"## {_label('section.honesty')}",
         "",
@@ -679,7 +695,7 @@ def _unit_section(model: CostModel) -> list[str]:
         lines += [str(unit["description"]).strip(), ""]
     excluded = unit.get("out_of_scope")
     if isinstance(excluded, list) and excluded:
-        lines += ["Not part of a unit:", ""]
+        lines += [say("report.unit.excluded"), ""]
         lines += [f"- {_escape(item)}" for item in excluded]
         lines += [""]
     return lines
@@ -773,7 +789,7 @@ def _scenario_section(
             ],
             rows,
         )
-        or "_This scenario states no costs yet._",
+        or say("report.scenario.no_costs"),
         "",
     ]
     lines += _felt_size_lines(costs, per="unit")
@@ -883,7 +899,7 @@ def _inventory_section(model: CostModel) -> list[str]:
         where = placed[key]
         raw = costs.get(key)
         quantity = Quantity.from_mapping(raw) if looks_like_quantity(raw) else None
-        heading = where.label if not where.is_open else "**not placed**"
+        heading = where.label if not where.is_open else say("report.not_placed")
         link = f"[{heading}]({where.source_url})" if where.source_url else heading
         rows.append(
             [
@@ -907,9 +923,7 @@ def _inventory_section(model: CostModel) -> list[str]:
             rows,
         ),
         "",
-        "The scope turns on who operates the machine, which is why the same code "
-        "lands on a different line of a different company's inventory depending "
-        "on where it runs.",
+        say("report.inventory.lede"),
         "",
     ]
     for key in emissions:
@@ -938,9 +952,7 @@ def _inventory_section(model: CostModel) -> list[str]:
     if counted:
         summary = ", ".join(f"{count} `{status}`" for status, count in sorted(counted.items()))
         lines += [
-            f"How well founded these are: {summary}. A sustainability disclosure "
-            "is asked to state how much of an inventory rests on estimates rather "
-            "than readings; every number in this report already says so.",
+            say("report.inventory.founded", summary=summary),
             "",
         ]
     return lines
@@ -986,9 +998,7 @@ def _services_section(model: CostModel) -> list[str]:
     return [
         f"## {_label('section.services')}",
         "",
-        "Prices are not copied into this model. An API price copied today is wrong "
-        "by next quarter, so the report says where the current one lives and leaves "
-        "the figure open until somebody reads it.",
+        say("report.services.lede"),
         "",
         _table(
             [
@@ -1028,9 +1038,7 @@ def _models_section(model: CostModel) -> list[str]:
     lines = [
         f"## {_label('section.models')}",
         "",
-        "A rate is not a cost. These are what the vendor charges per unit; how many "
-        "of those units one unit of work spends is the open half, and reading the "
-        "code cannot establish it.",
+        say("report.models.lede"),
         "",
     ]
     for entry in called:
@@ -1069,7 +1077,7 @@ def _models_section(model: CostModel) -> list[str]:
                 ],
                 rows,
             )
-            or "_No published rate was found for this model._",
+            or say("report.no_rate"),
             "",
         ]
         if entry.get("rates_provenance"):
@@ -1101,7 +1109,7 @@ def _projections_section(model: CostModel) -> list[str]:
     lines = [
         f"## {_label('section.projections')}",
         "",
-        "A projection is not a measurement of the thing it projects to.",
+        say("report.projections.lede"),
         "",
     ]
     for name, block in projections.items():
@@ -1168,7 +1176,10 @@ def _projection_caveats(block: object) -> list[str]:
     if not isinstance(costs, dict):
         return []
     lines: list[str] = []
-    for field, heading in (("assumptions", "What it assumes"), ("limits", "Where it breaks")):
+    for field, heading in (
+        ("assumptions", say("report.projection.assumes")),
+        ("limits", say("report.projection.limits")),
+    ):
         seen: list[str] = []
         for projection in costs.values():
             for sentence in (projection or {}).get(field) or []:
@@ -1227,11 +1238,11 @@ def _projection_rows(key: str, value: object) -> list[list[str]]:
                 # only the point estimate has been told less than is known.
                 rows.append(
                     [
-                        f"{_escape(key)}, bracketed",
+                        say("report.projection.bracketed", dimension=_escape(key)),
                         f"{format_quantity(Quantity.from_mapping(fastest))} to "
                         f"{format_quantity(Quantity.from_mapping(slowest))}",
                         f"`{Quantity.from_mapping(slowest).status}`",
-                        "Fastest and slowest the evidence supports.",
+                        say("report.projection.bracket_note"),
                     ]
                 )
         return rows
@@ -1282,10 +1293,14 @@ def _measurement_section(model: CostModel) -> list[str]:
     hot_path = measurement.get("hot_path")
     if isinstance(hot_path, list) and hot_path:
         lines += [
-            "Where the time went:",
+            say("report.measurement.hot_path"),
             "",
             _table(
-                ["Function", "Cumulative seconds", "Calls"],
+                [
+                    say("report.measurement.function"),
+                    say("report.measurement.cumulative"),
+                    say("report.measurement.calls"),
+                ],
                 [
                     [
                         f"`{_escape(entry.get('function'))}`",
@@ -1300,7 +1315,7 @@ def _measurement_section(model: CostModel) -> list[str]:
         ]
     warnings = measurement.get("warnings")
     if isinstance(warnings, list) and warnings:
-        lines += ["Read these before trusting the numbers above:", ""]
+        lines += [say("report.measurement.warnings"), ""]
         lines += [f"- {_escape(item)}" for item in warnings]
         lines += [""]
     return lines
@@ -1377,7 +1392,7 @@ def render_markdown(model: CostModel | dict[str, Any]) -> str:
     lines += [
         "---",
         "",
-        "Generated by [saggio](https://github.com/warith-harchaoui/saggio).",
+        say("report.generated"),
         "",
     ]
     # Collapse the runs of blank lines that section joining leaves behind, so the

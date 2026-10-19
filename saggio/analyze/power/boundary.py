@@ -39,40 +39,83 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any, Final
 
+from ...i18n import DEFAULT_LANGUAGE, current_language, languages, phrase, say
+
 #: The phrase that marks an exclusion line as saying idle capacity is *in* the
-#: figures. It is declared here, beside the function that writes it, so that a
-#: new phrasing which forgets to say so is caught rather than quietly accepted.
-#: A list of known-bad strings would have the opposite failure mode: it goes
-#: stale in the direction that hides the fault.
-INCLUDED_MARKER: Final[str] = "inside these figures"
+#: figures, and the words such a line starts with. Both are catalogue keys now:
+#: a line written during a French audit has to be recognised by the fold just
+#: as an English one is, so the recognisers below check every language rather
+#: than one. A list of known-bad strings would have the opposite failure mode —
+#: it goes stale in the direction that hides the fault.
+_MARKER_KEY: Final[str] = "boundary.included_marker"
+_PREFIX_KEY: Final[str] = "boundary.idle_prefix"
 
-_WHOLE_MACHINE: Final[str] = (
-    "This is the whole machine's draw, not this run's alone: these counters "
-    "meter hardware and not processes, so whatever else the machine was doing "
-    "while the command ran is inside the figure."
+
+def included_marker(code: str = DEFAULT_LANGUAGE) -> str:
+    """Return the phrase that says idle capacity is inside the figures.
+
+    Parameters
+    ----------
+    code : str, optional
+        A language tag.
+
+    Returns
+    -------
+    str
+        The phrase, lowercase, as the recognisers compare it.
+
+    Examples
+    --------
+    >>> included_marker()
+    'inside these figures'
+    """
+    return phrase(_MARKER_KEY, language=code, table="message").strip().lower()
+
+
+def idle_prefix(code: str = DEFAULT_LANGUAGE) -> str:
+    """Return the words an exclusion line about idle capacity starts with.
+
+    Parameters
+    ----------
+    code : str, optional
+        A language tag.
+
+    Returns
+    -------
+    str
+        The prefix, lowercase.
+
+    Examples
+    --------
+    >>> idle_prefix()
+    'idle capacity'
+    """
+    return phrase(_PREFIX_KEY, language=code, table="message").strip().lower()
+
+
+#: Kept for the callers that have always imported it, in the authored language.
+INCLUDED_MARKER: Final[str] = (
+    phrase(_MARKER_KEY, language=DEFAULT_LANGUAGE, table="message").strip().lower()
 )
 
-_GREW_QUIETER: Final[str] = (
-    " The machine was drawing {idle:.1f} W before the slice and {watts:.1f} W "
-    "during it, so it grew quieter while the slice ran: whatever else was busy "
-    "stopped, and the baseline bounds nothing about this figure."
-)
 
-_NOTHING_ESTABLISHED: Final[str] = (
-    " Nothing here established how much of it was, so treat the figure as an "
-    "upper bound on what the run cost and not as what it cost."
-)
+def idle_is_excluded() -> str:
+    """Return what the exclusions list says when the power was not measured here.
 
-_PRICES_THE_MACHINE: Final[str] = (
-    " Every cost derived from it therefore prices the machine, not the process."
-)
+    A nameplate rating describes a part under load, so a model built on one
+    really does price work being done rather than a machine waiting to do it.
 
-#: What the exclusions list says when the power figure was not read off this
-#: machine. A nameplate rating describes a part under load, so a model built on
-#: one really does price work being done rather than a machine waiting to do it.
-IDLE_IS_EXCLUDED: Final[str] = (
-    "Idle capacity. This is the cost of one unit of work, not of being ready."
-)
+    Returns
+    -------
+    str
+        The line, in the language in force.
+
+    Examples
+    --------
+    >>> idle_is_excluded().startswith("Idle capacity.")
+    True
+    """
+    return say("boundary.idle_excluded")
 
 
 def _number(value: Any) -> float | None:
@@ -170,7 +213,7 @@ def workload_scope(
     """
     idle = _number(measurement.get("idle_watts")) if isinstance(measurement, Mapping) else None
     attributed, share = _attribution(measurement)
-    parts = [_WHOLE_MACHINE]
+    parts = [say("boundary.whole_machine")]
     if idle is not None:
         # A baseline above the figure it is a baseline for is not a floor under
         # anything: the machine grew quieter, so whatever else was busy stopped.
@@ -178,26 +221,31 @@ def workload_scope(
         # the subtraction in that case, and a sentence that went on calling the
         # baseline a floor would contradict the field beside it.
         if watts is not None and idle >= watts:
-            parts.append(_GREW_QUIETER.format(idle=idle, watts=watts))
+            parts.append(say("boundary.grew_quieter", idle=f"{idle:.1f} W", watts=f"{watts:.1f} W"))
         elif watts is not None:
-            parts.append(
-                f" The machine was already drawing {idle:.1f} W before the slice "
-                f"started, which is a floor under how much of the figure was not "
-                f"this run."
-            )
+            parts.append(say("boundary.floor_under", idle=f"{idle:.1f} W"))
         else:
-            parts.append(f" The machine was already drawing {idle:.1f} W before the slice started.")
+            parts.append(say("boundary.already_drawing", idle=f"{idle:.1f} W"))
     if attributed is not None and share is not None:
-        against = f" of the {watts:.1f} W" if watts is not None else ""
-        parts.append(
-            f" By the run's {share:.0%} share of the machine's processor work, "
-            f"{attributed:.1f} W{against} is attributable to it."
+        against = (
+            say("boundary.attributable.against", watts=f"{watts:.1f} W")
+            if watts is not None
+            else ""
         )
-    if idle is None and attributed is None:
-        parts.append(_NOTHING_ESTABLISHED)
-    else:
-        parts.append(_PRICES_THE_MACHINE)
-    return "".join(parts)
+        parts.append(
+            say(
+                "boundary.attributable",
+                share=f"{share:.0%}",
+                attributed=f"{attributed:.1f} W",
+                against=against,
+            )
+        )
+    parts.append(
+        say("boundary.prices_the_machine")
+        if idle is not None or attributed is not None
+        else say("boundary.nothing_established")
+    )
+    return " ".join(parts)
 
 
 def idle_exclusion(
@@ -226,35 +274,42 @@ def idle_exclusion(
 
     Examples
     --------
-    >>> idle_exclusion(measured=False) == IDLE_IS_EXCLUDED
+    >>> idle_exclusion(measured=False) == idle_is_excluded()
     True
     >>> states_idle_is_excluded(idle_exclusion({"idle_watts": 16.0}, measured=True))
     False
     """
     if not measured:
-        return IDLE_IS_EXCLUDED
+        return idle_is_excluded()
     idle = _number(measurement.get("idle_watts")) if isinstance(measurement, Mapping) else None
     attributed, share = _attribution(measurement)
-    line = (
-        f"Idle capacity is {INCLUDED_MARKER}, not outside them. The power was "
-        "read from the machine's own counters, which meter hardware and not "
-        "processes"
+    # The marker is passed in rather than written into the sentence, so the
+    # phrase the fold recognises and the phrase a reader sees cannot drift apart.
+    line = say(
+        "boundary.idle_included",
+        prefix=phrase(_PREFIX_KEY, language=current_language(), table="message"),
+        marker=phrase(_MARKER_KEY, language=current_language(), table="message"),
     )
     if idle is not None and watts is not None and idle < watts:
-        line += f", and {idle:.1f} W of the {watts:.1f} W was being drawn before the slice started"
+        line += say(
+            "boundary.idle_included.floor_within",
+            idle=f"{idle:.1f} W",
+            watts=f"{watts:.1f} W",
+        )
     elif idle is not None and watts is not None:
-        line += (
-            f", and the machine was drawing {idle:.1f} W before the slice against "
-            f"{watts:.1f} W during it"
+        line += say(
+            "boundary.idle_included.floor_above",
+            idle=f"{idle:.1f} W",
+            watts=f"{watts:.1f} W",
         )
     elif idle is not None:
-        line += f", and {idle:.1f} W was being drawn before the slice started"
+        line += say("boundary.idle_included.floor_only", idle=f"{idle:.1f} W")
     line += "."
     if attributed is not None and share is not None:
-        line += (
-            f" The measurement block carries {attributed:.1f} W as the run's "
-            f"attributable share, from its {share:.0%} of the machine's "
-            f"processor work; the costs below do not use it."
+        line += " " + say(
+            "boundary.idle_included.attributable",
+            attributed=f"{attributed:.1f} W",
+            share=f"{share:.0%}",
         )
     return line
 
@@ -280,14 +335,19 @@ def is_idle_claim(line: str) -> bool:
 
     Examples
     --------
-    >>> is_idle_claim(IDLE_IS_EXCLUDED)
+    >>> is_idle_claim(idle_is_excluded())
     True
     >>> is_idle_claim(idle_exclusion({"idle_watts": 9.0}, measured=True, watts=12.0))
     True
     >>> is_idle_claim("The people. Salaries are out of scope.")
     False
     """
-    return line.strip().lower().startswith("idle capacity")
+    # Every language, not the one in force: a model written during a French
+    # audit is rendered and folded by whatever language the next command runs
+    # in, and a line it no longer recognises is a line it silently leaves stale
+    # — which is the defect the fold was taught to avoid in the first place.
+    start = line.strip().lower()
+    return any(start.startswith(idle_prefix(code)) for code in languages())
 
 
 def states_idle_is_excluded(line: str) -> bool:
@@ -305,45 +365,47 @@ def states_idle_is_excluded(line: str) -> bool:
 
     Examples
     --------
-    >>> states_idle_is_excluded(IDLE_IS_EXCLUDED)
+    >>> states_idle_is_excluded(idle_is_excluded())
     True
     >>> states_idle_is_excluded("The people. Salaries are out of scope.")
     False
     """
     if not is_idle_claim(line):
         return False
-    return INCLUDED_MARKER not in line.strip().lower()
+    lowered = line.strip().lower()
+    return not any(included_marker(code) in lowered for code in languages())
 
 
 #: How each field of a measurement block is labelled and what unit it carries.
 #: A block is written once and read on four surfaces; a bare ``2.65`` under the
 #: heading "attributed watts" is a number a reader has to guess the meaning of,
 #: and the guess they make is that it is the figure the costs used.
-_FIELD_LABELS: Final[dict[str, tuple[str, str]]] = {
-    "exit_code": ("exit code", ""),
-    "measured_on": ("measured on", ""),
-    "power_scope": ("what the counters cover", ""),
-    "cpu_seconds": ("processor-seconds used by the run", " s"),
-    "fraction_completed": ("share of the whole run this slice covered", ""),
-    "idle_watts": ("machine at rest before the slice", " W"),
-    "marginal_watts": ("added by the slice over that floor", " W"),
-    "power_note": ("subtracting that floor", ""),
-    "attributed_watts": ("attributable to the run", " W"),
-    "attributed_scope": ("what the attributable figure covers", ""),
-    "truncated": ("cut short by the timeout", ""),
-    "repeats": ("times the command was run", ""),
+#: Field to the unit it carries. The label itself is a catalogue key built from
+#: the field's own name, so adding a field means adding one sentence and not
+#: touching this.
+_FIELD_UNITS: Final[dict[str, str]] = {
+    "exit_code": "",
+    "measured_on": "",
+    "power_scope": "",
+    "cpu_seconds": " s",
+    "fraction_completed": "",
+    "idle_watts": " W",
+    "marginal_watts": " W",
+    "power_note": "",
+    "attributed_watts": " W",
+    "attributed_scope": "",
+    "truncated": "",
+    "repeats": "",
 }
 
 #: Rendered separately by both reports: the command as a code block, the profile
 #: as its own table, the warnings as a list.
 _RENDERED_ELSEWHERE: Final[frozenset[str]] = frozenset({"command", "hot_path", "warnings"})
 
-_DOMAIN_LABELS: Final[dict[str, str]] = {
-    "cpu": "processor cores",
-    "gpu": "graphics cores",
-    "ane": "neural engine",
-    "memory": "memory",
-}
+#: Counters whose name has a wording of its own in the catalogue. A counter not
+#: listed here is shown under its own key, which is better than a label somebody
+#: invented for it.
+_NAMED_DOMAINS: Final[tuple[str, ...]] = ("cpu", "gpu", "ane", "memory")
 
 
 def measurement_rows(
@@ -400,7 +462,10 @@ def measurement_rows(
             # because the alternative is what this function exists to undo.
             row = (str(key).replace("_", " "), str(value))
         else:
-            label, unit = _FIELD_LABELS.get(key, (str(key).replace("_", " "), ""))
+            unit = _FIELD_UNITS.get(key, "")
+            label = (
+                say(f"boundary.field.{key}") if key in _FIELD_UNITS else str(key).replace("_", " ")
+            )
             row = (label, f"{value}{unit}")
         if row is not None:
             rows.append(row)
@@ -416,8 +481,12 @@ def _share_row(value: Any) -> tuple[str, str] | None:
         return None
     run = _number(value.get("run_cpu_seconds"))
     machine = _number(value.get("machine_cpu_seconds"))
-    detail = f" ({run:g} s of the machine's {machine:g} s)" if run and machine else ""
-    return ("the run's share of the machine's processor work", f"{share:.1%}{detail}")
+    detail = (
+        say("boundary.row.share_detail", run=f"{run:g} s", machine=f"{machine:g} s")
+        if run and machine
+        else ""
+    )
+    return (say("boundary.row.share"), f"{share:.1%}{detail}")
 
 
 def _domain_row(value: Any) -> tuple[str, str] | None:
@@ -425,11 +494,11 @@ def _domain_row(value: Any) -> tuple[str, str] | None:
     if not isinstance(value, Mapping) or not value:
         return None
     parts = [
-        f"{_DOMAIN_LABELS.get(str(key), str(key))} {number:g} W"
+        f"{say(f'boundary.domain.{key}') if str(key) in _NAMED_DOMAINS else key} {number:g} W"
         for key, raw in value.items()
         if (number := _number(raw)) is not None
     ]
-    return ("where the power went, by counter", ", ".join(parts)) if parts else None
+    return (say("boundary.row.domains"), ", ".join(parts)) if parts else None
 
 
 def _spread_row(value: Any) -> tuple[str, str] | None:
@@ -459,12 +528,7 @@ def _spread_row(value: Any) -> tuple[str, str] | None:
     """
     if not isinstance(value, Mapping) or not value:
         return None
-    labels = {
-        "runtime_s": ("runtime", "s"),
-        "power_w": ("power", "W"),
-        "idle_w": ("the floor beneath it", "W"),
-        "attributed_w": ("the share attributed by processor work", "W"),
-    }
+    units = {"runtime_s": "s", "power_w": "W", "idle_w": "W", "attributed_w": "W"}
     parts: list[str] = []
     for key, block in value.items():
         if not isinstance(block, Mapping):
@@ -472,15 +536,16 @@ def _spread_row(value: Any) -> tuple[str, str] | None:
         low, high = _number(block.get("low")), _number(block.get("high"))
         if low is None or high is None:
             continue
-        name, unit = labels.get(str(key), (str(key), ""))
+        unit = units.get(str(key), "")
+        name = say(f"boundary.spread.{key}") if str(key) in units else str(key)
         relative = _number(block.get("relative"))
         width = f" ({relative:.0%})" if relative is not None else ""
         parts.append(f"{name} {low:.4g} {unit} to {high:.4g} {unit}{width}".replace("  ", " "))
-    return ("how far the figures moved across those runs", ", ".join(parts)) if parts else None
+    return (say("boundary.row.spread"), ", ".join(parts)) if parts else None
 
 
 def _sources_row(value: Any) -> tuple[str, str] | None:
     """Return which counters answered as one labelled row, or ``None``."""
     if not isinstance(value, (list, tuple)) or not value:
         return None
-    return ("counters that answered", ", ".join(str(item) for item in value))
+    return (say("boundary.row.sources"), ", ".join(str(item) for item in value))

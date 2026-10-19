@@ -367,7 +367,18 @@ def test_no_language_invents_a_sentence(code: str) -> None:
 
 
 def test_no_sentence_is_dead() -> None:
-    orphans = sorted(set(messages()[DEFAULT_LANGUAGE]) - literals_in_the_package())
+    # Reachable means spelled somewhere, or inside a family some module builds
+    # keys for: `say(f"boundary.field.{key}")` leaves the literal
+    # "boundary.field." in the source, which is how a family of twelve row
+    # labels is reached without any of them being written out. A key that is
+    # neither spelled nor inside such a family is wording nobody can see.
+    spelled = literals_in_the_package()
+    families = {text for text in spelled if text.endswith(".") and text.count(".") >= 2}
+    orphans = sorted(
+        key
+        for key in messages()[DEFAULT_LANGUAGE]
+        if key not in spelled and not any(key.startswith(family) for family in families)
+    )
     assert not orphans, f"wording nothing reaches: {orphans}"
 
 

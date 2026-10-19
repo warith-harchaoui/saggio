@@ -43,12 +43,12 @@ from ..analyze.power import measurement_rows
 from ..catalog.registry import Catalog
 from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE
 from ..estimate.ghg import GHG_EMISSIONS, market_based_figure_exists, placements
-from ..i18n import labels
+from ..i18n import labels, say
 from ..i18n import languages as language_codes
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
 from ..model.quantity import Quantity, looks_like_quantity
-from ..model.taxonomy import STATUS_MEANING, STATUS_ORDER
+from ..model.taxonomy import STATUS_ORDER, status_meaning
 from ..model.validate import overall_status
 from .figures import (
     count_statuses,
@@ -59,13 +59,13 @@ from .figures import (
     scenario_energy,
 )
 from .markdown import (
-    NOT_KNOWN,
     ROUTE_LABEL,
     _label,
     both_scope_two_methods,
     felt_size,
     format_number,
     format_quantity,
+    not_known,
 )
 
 #: Where the report's own assets live inside the package.
@@ -243,7 +243,7 @@ def _badge(status: object) -> str:
         return ""
     label = str(status)
     known = label if label in STATUS_ORDER else ""
-    meaning = STATUS_MEANING.get(label, "")
+    meaning = status_meaning(label)
     classes = f"badge badge-{known}" if known else "badge"
     title = f' title="{_escape(meaning)}"' if meaning else ""
     return f'<span class="{classes}"{title}>{_escape(label)}</span>'
@@ -269,7 +269,7 @@ def _quantity_cell(quantity: Quantity) -> str:
     '<td class="number unknown">not known</td>'
     """
     if not quantity.is_known():
-        return f'<td class="number unknown">{NOT_KNOWN}</td>'
+        return f'<td class="number unknown">{not_known()}</td>'
     return f'<td class="number">{_escape(format_quantity(quantity))}</td>'
 
 
@@ -385,7 +385,7 @@ def _verdict(model: CostModel) -> str:
     return (
         f'<div class="verdict" data-status="{_escape(weakest)}">{_badge(weakest)}'
         f"<p>This model is only as good as its weakest number, which is "
-        f"<code>{_escape(weakest)}</code>. {_escape(STATUS_MEANING.get(weakest, ''))}</p></div>"
+        f"<code>{_escape(weakest)}</code>. {_escape(status_meaning(weakest))}</p></div>"
     )
 
 
@@ -1338,9 +1338,9 @@ def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> st
 
     updated = wrapped.data.get("date_updated")
     subtitle = (
-        f"Last updated {_escape(updated)}. Schema {_escape(wrapped.schema_version)}."
+        say("report.updated", date=_escape(updated), schema=_escape(wrapped.schema_version))
         if updated
-        else f"Schema {_escape(wrapped.schema_version)}."
+        else say("report.schema_only", schema=_escape(wrapped.schema_version))
     )
 
     unit = wrapped.data.get("unit_of_work")

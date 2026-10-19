@@ -9,11 +9,11 @@ from saggio.model.taxonomy import (
     ESTIMATED,
     MEASURED,
     PLACEHOLDER,
-    STATUS_MEANING,
     STATUS_ORDER,
     TODO,
     is_valid_status,
     overclaims,
+    status_meaning,
     status_strength,
     weakest,
 )
@@ -22,7 +22,22 @@ from saggio.model.taxonomy import (
 @pytest.mark.parametrize("status", sorted(ALLOWED_STATUSES))
 def test_every_allowed_status_is_valid_and_described(status: str) -> None:
     assert is_valid_status(status)
-    assert STATUS_MEANING[status]
+    assert status_meaning(status)
+
+
+@pytest.mark.parametrize("status", sorted(ALLOWED_STATUSES))
+def test_every_status_is_described_in_every_language(status: str) -> None:
+    # The four statuses are the vocabulary the whole package rests on, so a
+    # reader who cannot read what one means has been handed a label and no
+    # explanation of it.
+    from saggio.i18n import language, languages
+
+    said = {}
+    for code in languages():
+        with language(code):
+            said[code] = status_meaning(status)
+    assert all(said.values()), f"{status} is undescribed in {[c for c, t in said.items() if not t]}"
+    assert len(set(said.values())) == len(said), f"{status} reads the same in every language"
 
 
 @pytest.mark.parametrize("value", ["guessed", "", None, 3, ["measured"]])

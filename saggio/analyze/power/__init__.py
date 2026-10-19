@@ -84,9 +84,11 @@ from .accelerator import (
     read_accelerator_energy_millijoules,
 )
 from .boundary import (
-    IDLE_IS_EXCLUDED,
     INCLUDED_MARKER,
     idle_exclusion,
+    idle_is_excluded,
+    idle_prefix,
+    included_marker,
     is_idle_claim,
     measurement_rows,
     states_idle_is_excluded,
@@ -119,8 +121,10 @@ from .tables import (
 
 __all__ = [
     "AcceleratorSampler",
-    "IDLE_IS_EXCLUDED",
     "INCLUDED_MARKER",
+    "idle_is_excluded",
+    "idle_prefix",
+    "included_marker",
     "GRAPHICS_ENERGY_FILE",
     "GRAPHICS_HWMON_GLOB",
     "GRAPHICS_POWER_FILE",

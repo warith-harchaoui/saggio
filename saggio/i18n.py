@@ -383,8 +383,11 @@ def phrase(key: str, *, language: str = DEFAULT_LANGUAGE, table: str = "prompt")
         The phrase's key.
     language : str, optional
         A language tag, resolved by :func:`resolve`.
-    table : {'prompt', 'label'}, optional
-        Which table to read.
+    table : {'prompt', 'label', 'message'}, optional
+        Which table to read: what the package asks, what a page labels, or what
+        the engine says. ``say`` is the way to read the last of these in the
+        language in force; this is the way to read one language in particular,
+        which the recognisers of already-written prose need.
 
     Returns
     -------
@@ -398,10 +401,12 @@ def phrase(key: str, *, language: str = DEFAULT_LANGUAGE, table: str = "prompt")
     --------
     >>> phrase("prompt.classify.language", language="en").startswith("Write")
     True
+    >>> phrase("boundary.idle_prefix", language="fr", table="message")
+    'La capacité au repos'
     >>> phrase("nothing.has.this.key")
     ''
     """
-    tables = prompts() if table == "prompt" else labels()
+    tables = {"prompt": prompts, "label": labels, "message": messages}[table]()
     code = resolve(language)
     for candidate in (code, DEFAULT_LANGUAGE):
         found = tables.get(candidate, {}).get(key)
