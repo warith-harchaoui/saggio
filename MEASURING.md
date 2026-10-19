@@ -266,12 +266,12 @@ same machine, one minute apart:
 
 | | Range over five runs | Spread |
 |---|---|---|
-| Runtime | 1.326 s to 1.538 s | **15%** |
-| Measured power | 16.13 W to 37.36 W | **109%** |
+| Runtime | 1.31 s to 1.371 s | **4.5%** |
+| Measured power | 15.25 W to 23.16 W | **49%** |
 
 The runtime is a property of the work. The wattage is a property of the room:
-a counter meters the machine, so one of those five caught something else waking
-up and had no way to tell that apart from the work. Both figures nonetheless
+a counter meters the machine, so whatever else woke up during those five runs
+is in the figure and nothing could tell it apart from the work. Both figures nonetheless
 carried the same word, `measured`, in a four-state vocabulary whose entire
 proposition is saying how far a number can be trusted.
 
@@ -305,27 +305,52 @@ subtraction, and which is why the attributed value may only price processor
 energy.
 
 The two are not interchangeable, and `examples/render.yaml` says by how much.
-Its measurement block carries a **19.8%** share, a **17.44 W** total, a
-**13.83 W** floor and a **15.18 W** processor domain:
+Its measurement block carries a **21.9%** share, a **17.87 W** total, a
+**13.56 W** floor and a **15.718 W** processor domain:
 
 | | | |
 |---|---|---|
-| This package | 0.198 × 15.18 W | **3.01 W** |
-| Kepler's formula | 0.198 × (17.44 − 13.83) W | 0.72 W |
+| This package | 0.219 × 15.718 W | **3.44 W** |
+| Kepler's formula | 0.219 × (17.87 − 13.56) W | 0.94 W |
 
-**A factor of four on the same run, from the same numbers.** The gap is the idle
-share of the processor's own draw, which a domain counter cannot separate and a
-subtraction can. Neither figure is wrong; they answer different questions, and a
-model that quoted one while citing the other as its method would be claiming a
-corroboration it has not got. Which of the two belongs in a cost model is not
-settled here.
+**A factor of nearly four on the same run, from the same numbers.** The gap is
+the idle share of the processor's own draw, which a domain counter cannot
+separate and a subtraction can. Neither figure is wrong; they answer different
+questions. And the factor is not a constant: an earlier measurement of this same
+model — a third as idle — gave 2.65 W against 1.68 W, a factor of 1.58.
 
-**And the factor is not a constant.** The earlier measurement of this same
-model — one third as idle — gave 2.65 W against 1.68 W, a factor of 1.58. The
-busier the machine, the more the subtraction removes and the less the domain
-counter does, so the two methods diverge further exactly when a reader most
-needs them to agree. One run bounds the gap no better than it bounds anything
-else.
+### Which one this package uses, and why
+
+**It attributes by hardware domain, and refuses the subtraction.** Not as a
+preference: the three answers were measured side by side over five runs of one
+command, three times, and the refusal is what the numbers say.
+
+| | Range over five runs | Spread |
+|---|---|---|
+| The metered total | 15.25 W to 23.16 W | 49% |
+| Attributed by processor work | 3.209 W to 3.646 W | **13%** |
+| Active power, total minus floor | 1.64 W to 9.83 W | **190%** |
+
+The subtraction is a small difference between two readings that each move, so
+it inherits both and keeps almost none of the signal. Across three independent
+series it came out **five to fifteen times less reproducible** than either
+input, while the domain attribution was the *steadiest figure of the three* —
+steadier than the metered total it is derived from, because a domain counter
+does not move when something else on the machine wakes up.
+
+Every number above is in the model: `measurement.spread` records what the
+runtime, the total, the floor and the attributed share each did across the
+runs, so this comparison can be redone from the file rather than taken here.
+
+**What the costs still use is the metered total.** Not because it is better —
+it is the second-least stable of the three — but because it is the only one a
+meter produced. Substituting a modelled figure would put an estimate under a
+field that says `measured`, and the model would stop saying what it knows.
+
+**What would change that**, stated so it can be argued with: the domain
+attribution prices *processor* energy alone. On a workload that keeps an
+accelerator busy it would understate the cost badly, and that is the single
+reason it is recorded beside the total rather than in place of it.
 
 ## Where the power actually went
 

@@ -195,24 +195,24 @@ sur une machine, avec le pays énoncé.
 
 | Modèle | Unité de travail | Temps | Carbone | Ce qui reste ouvert |
 |---|---|---|---|---|
-| [`render`](examples/render.yaml) · [rapport](examples/render.md) | un rapport HTML produit | 0,0276 s, mesuré | 8,27e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
+| [`render`](examples/render.yaml) · [rapport](examples/render.md) | un rapport HTML produit | 0,0272 s, mesuré | 8,34e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
 | [`request`](examples/request.yaml) · [rapport](examples/request.md) | une requête `/scopes` traitée de bout en bout | 0,00385 s, mesuré | 1,19e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
 
 Les deux ont été mesurés sur un Apple M2 Max, douze cœurs, en France, en
 exécutant le travail de nombreuses fois dans un seul interpréteur — cinquante
 rendus, deux cents requêtes — pour que le démarrage de Python, qui n'est pas le
 travail, ne lui soit pas facturé. La puissance est une lecture de compteur et
-non une fiche technique : **17,4 W** pendant les rendus et **18,0 W** pendant
+non une fiche technique : **17,9 W** pendant les rendus et **18,0 W** pendant
 les requêtes. La plaque signalétique que ce paquet aurait supposée sinon annonce
 83,76 W.
 
 **Et ces watts sont ceux de la machine, pas ceux de l'exécution.** Un compteur
 mesure du matériel, pas des processus : une valeur lue pendant qu'une tranche
 tourne contient tout ce que la machine faisait par ailleurs. Le modèle `render`
-enregistre ce que c'était : la machine tirait déjà **13,8 W** avant le démarrage
-de la tranche, et selon la **part de 19,8 %** du travail processeur de la
-machine, **3,0 W** des 17,4 W lui sont attribuables. Les coûts du tableau
-n'utilisent ni l'un ni l'autre : ils utilisent les 17,4 W entiers, la seule
+enregistre ce que c'était : la machine tirait déjà **13,6 W** avant le démarrage
+de la tranche, et selon la **part de 21,9 %** du travail processeur de la
+machine, **3,44 W** des 17,9 W lui sont attribuables. Les coûts du tableau
+n'utilisent ni l'un ni l'autre : ils utilisent les 17,9 W entiers, la seule
 valeur qu'un compteur puisse réellement voir. Chacun de ces nombres est dans le
 modèle, dans la phrase attachée à la figure de puissance et dans la liste des
 exclusions à côté.
@@ -223,12 +223,15 @@ ne partagent pas :
 
 | | Étendue sur cinq exécutions | Écart |
 |---|---|---|
-| Temps | 1,326 s à 1,538 s | **15 %** |
-| Puissance mesurée | 16,13 W à 37,36 W | **109 %** |
+| Temps | 1,31 s à 1,371 s | **4,5 %** |
+| Puissance mesurée | 15,25 W à 23,16 W | **49 %** |
+| Attribuée par le travail processeur | 3,209 W à 3,646 W | **13 %** |
 
 Le temps est une propriété du travail. La puissance est une propriété de la
-pièce — l'une des cinq a attrapé autre chose qui se réveillait sur le portable,
-et un compteur ne sait pas distinguer cela du travail. Le modèle porte
+pièce — un compteur ne sait pas distinguer du travail ce que la machine fait
+par ailleurs. La troisième ligne est celle qui mérite le regard :
+**l'attribution par le travail processeur est la plus stable des trois**, et la
+page sur la mesure dit ce qui en découle. Le modèle porte
 l'exécution dont le temps était médian et énonce l'étendue à côté ; une sixième
 mesure est libre de tomber n'importe où à l'intérieur. **Rien n'a été écarté
 pour que ce soit plus flatteur.**

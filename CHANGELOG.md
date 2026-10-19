@@ -9,6 +9,44 @@ release of that line.
 
 ## Unreleased
 
+### Which attribution this package uses, decided on measurements rather than taste
+
+- A measured power figure has three readings and the package carried all three
+  without saying which it stood behind: the metered total, the share of the
+  processor domain, and the total minus the idle floor. `MEASURING.md` ended
+  that section with *"which of the two belongs in a cost model is not settled
+  here"* for nine releases.
+- **It is settled now, and the numbers settled it.** The three were measured
+  side by side over five runs of one command, three separate times:
+
+  | | Range over five runs | Spread |
+  |---|---|---|
+  | The metered total | 15.25 W to 23.16 W | 49% |
+  | Attributed by processor work | 3.209 W to 3.646 W | **13%** |
+  | Active power, total minus floor | 1.64 W to 9.83 W | **190%** |
+
+- **The subtraction is refused by name.** It is a small difference between two
+  readings that each move, so it inherits both and keeps almost none of the
+  signal — five to fifteen times less reproducible than either input across the
+  three series. **The domain attribution turned out to be the steadiest figure
+  of the three**, steadier than the metered total it derives from, because a
+  domain counter does not move when something else on the machine wakes up.
+  That was not the expected result.
+- **The costs still use the metered total**, and the page says why: it is the
+  only one a meter produced, and substituting a modelled figure would put an
+  estimate under a field that says `measured`. What would change that is
+  stated so it can be argued with — the domain share prices *processor* energy
+  alone and would understate any accelerator workload.
+- The claim is checkable from the file. `measurement.spread` now records what
+  the **floor** and the **attributed share** did across the runs, beside the
+  runtime and the total it already kept. Without those two the comparison the
+  decision rests on could not be redone from a committed model — the same
+  defect as the four before it: a figure the run produced and the file never
+  got.
+- `examples/render.yaml` re-measured to carry them; the four pages quoting its
+  figures went stale the moment it was, and the contract from two iterations
+  ago said so before anything was committed.
+
 ### The fit a model records can now be checked against the evidence beside it
 
 - A scaling block keeps the sizes and seconds it was fitted over, *"so a reader

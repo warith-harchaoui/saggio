@@ -279,12 +279,12 @@ même machine, à une minute d'intervalle :
 
 | | Étendue sur cinq exécutions | Écart |
 |---|---|---|
-| Temps | 1,326 s à 1,538 s | **15 %** |
-| Puissance mesurée | 16,13 W à 37,36 W | **109 %** |
+| Temps | 1,31 s à 1,371 s | **4,5 %** |
+| Puissance mesurée | 15,25 W à 23,16 W | **49 %** |
 
 Le temps est une propriété du travail. La puissance est une propriété de la
-pièce : un compteur mesure la machine, donc l'une de ces cinq a attrapé autre
-chose qui se réveillait et n'avait aucun moyen de le distinguer du travail. Les
+pièce : un compteur mesure la machine, donc tout ce qui s'est réveillé pendant
+ces cinq exécutions est dans la valeur, et rien ne pouvait l'en distinguer. Les
 deux figures portaient pourtant le même mot, `measured`, dans un système de
 quatre états dont toute la proposition est de dire jusqu'où un nombre est
 fiable.
@@ -322,28 +322,59 @@ produite plutôt qu'une soustraction, et c'est pourquoi la valeur attribuée ne
 peut tarifer que de l'énergie processeur.
 
 Les deux ne sont pas interchangeables, et `examples/render.yaml` dit de combien.
-Son bloc de mesure porte une part de **19,8 %**, un total de **17,44 W**, un
-plancher de **13,83 W** et un domaine processeur de **15,18 W** :
+Son bloc de mesure porte une part de **21,9 %**, un total de **17,87 W**, un
+plancher de **13,56 W** et un domaine processeur de **15,718 W** :
 
 | | | |
 |---|---|---|
-| Ce paquet | 0,198 × 15,18 W | **3,01 W** |
-| Formule de Kepler | 0,198 × (17,44 − 13,83) W | 0,72 W |
+| Ce paquet | 0,219 × 15,718 W | **3,44 W** |
+| Formule de Kepler | 0,219 × (17,87 − 13,56) W | 0,94 W |
 
-**Un facteur quatre sur la même exécution, à partir des mêmes nombres.** L'écart
-est la part au repos de la consommation du processeur lui-même, qu'un compteur
-de domaine ne sait pas séparer et qu'une soustraction sait isoler. Aucune des
-deux valeurs n'est fausse ; elles répondent à des questions différentes, et un
-modèle qui citerait l'une en invoquant l'autre comme méthode revendiquerait une
-corroboration qu'il n'a pas. Laquelle des deux a sa place dans un modèle de
-coût n'est pas tranché ici.
+**Près d'un facteur quatre sur la même exécution, à partir des mêmes nombres.**
+L'écart est la part au repos de la consommation du processeur lui-même, qu'un
+compteur de domaine ne sait pas séparer et qu'une soustraction sait isoler.
+Aucune des deux valeurs n'est fausse ; elles répondent à des questions
+différentes. Et le facteur n'est pas une constante : une mesure antérieure du
+même modèle — trois fois moins au repos — donnait 2,65 W contre 1,68 W, un
+facteur 1,58.
 
-**Et le facteur n'est pas une constante.** La mesure précédente de ce même
-modèle — trois fois moins au repos — donnait 2,65 W contre 1,68 W, un facteur
-1,58. Plus la machine est occupée, plus la soustraction retire et moins le
-compteur de domaine retire : les deux méthodes divergent donc davantage
-précisément quand un lecteur a le plus besoin qu'elles s'accordent. Une seule
-exécution ne borne pas mieux cet écart que le reste.
+### Laquelle ce paquet emploie, et pourquoi
+
+**Il attribue par domaine matériel et refuse la soustraction.** Pas par
+préférence : les trois réponses ont été mesurées côte à côte sur cinq
+exécutions d'une même commande, trois fois, et le refus est ce que disent les
+chiffres.
+
+| | Étendue sur cinq exécutions | Écart |
+|---|---|---|
+| Le total au compteur | 15,25 W à 23,16 W | 49 % |
+| Attribué par le travail processeur | 3,209 W à 3,646 W | **13 %** |
+| Puissance active, total moins plancher | 1,64 W à 9,83 W | **190 %** |
+
+La soustraction est une petite différence entre deux lectures qui bougent
+chacune : elle hérite des deux et ne garde presque rien du signal. Sur trois
+séries indépendantes elle est ressortie **cinq à quinze fois moins
+reproductible** que l'une ou l'autre de ses entrées, tandis que l'attribution
+par domaine était la *valeur la plus stable des trois* — plus stable que le
+total dont elle dérive, parce qu'un compteur de domaine ne bouge pas quand
+autre chose se réveille sur la machine.
+
+Tous les nombres ci-dessus sont dans le modèle : `measurement.spread`
+enregistre ce que le temps, le total, le plancher et la part attribuée ont fait
+chacun sur les exécutions, pour que cette comparaison se refasse depuis le
+fichier plutôt que de se croire ici.
+
+**Ce que les coûts utilisent reste le total au compteur.** Non parce qu'il est
+meilleur — c'est l'avant-dernier en stabilité — mais parce que c'est le seul
+qu'un compteur ait produit. Substituer une valeur modélisée mettrait une
+estimation sous un champ qui dit `measured`, et le modèle cesserait de dire ce
+qu'il sait.
+
+**Ce qui changerait cela**, énoncé pour qu'on puisse le contester :
+l'attribution par domaine ne tarife que l'énergie *processeur*. Sur une charge
+qui occupe un accélérateur, elle sous-estimerait gravement le coût, et c'est
+l'unique raison pour laquelle elle est enregistrée à côté du total plutôt qu'à
+sa place.
 
 ## Où la puissance est réellement passée
 

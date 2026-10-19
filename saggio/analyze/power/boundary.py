@@ -459,7 +459,12 @@ def _spread_row(value: Any) -> tuple[str, str] | None:
     """
     if not isinstance(value, Mapping) or not value:
         return None
-    labels = {"runtime_s": ("runtime", "s"), "power_w": ("power", "W")}
+    labels = {
+        "runtime_s": ("runtime", "s"),
+        "power_w": ("power", "W"),
+        "idle_w": ("the floor beneath it", "W"),
+        "attributed_w": ("the share attributed by processor work", "W"),
+    }
     parts: list[str] = []
     for key, block in value.items():
         if not isinstance(block, Mapping):

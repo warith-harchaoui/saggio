@@ -285,6 +285,57 @@ class SliceSeries:
             return None
         return Spread(tuple(float(value) for value in watts if value is not None))
 
+    def idle_spread(self) -> Spread | None:
+        """Return what the machine's floor did across the runs, or ``None``.
+
+        Each run in a series takes its own baseline, so the floors are five
+        separate readings of a thing that moves. Only the representative run's
+        was written down, which meant the one comparison this package most
+        needs to make — is subtracting the floor more or less stable than
+        attributing by domain? — could not be made from a committed model.
+
+        Returns
+        -------
+        Spread or None
+            ``None`` unless every run measured a floor, for the same reason
+            :meth:`power_spread` withholds a partial one.
+
+        Examples
+        --------
+        >>> from saggio.analyze.power import PowerReading
+        >>> runs = (SliceResult(("x",), 0, 1.0, PowerReading(9.0, 9.0, "soc")),)
+        >>> SliceSeries(runs).idle_spread() is None
+        True
+        """
+        floors = [run.baseline.watts if run.baseline else None for run in self.runs]
+        if any(value is None for value in floors):
+            return None
+        return Spread(tuple(float(value) for value in floors if value is not None))
+
+    def attributed_spread(self) -> Spread | None:
+        """Return what the domain attribution did across the runs, or ``None``.
+
+        The third of the three answers, and the reason all three are recorded:
+        a model that names one of them as its method should let a reader see
+        how the other two behaved on the same five runs.
+
+        Returns
+        -------
+        Spread or None
+            ``None`` unless every run produced an attributable figure.
+
+        Examples
+        --------
+        >>> from saggio.analyze.power import PowerReading
+        >>> runs = (SliceResult(("x",), 0, 1.0, PowerReading(9.0, 9.0, "soc")),)
+        >>> SliceSeries(runs).attributed_spread() is None
+        True
+        """
+        shares = [run.attributed_watts() for run in self.runs]
+        if any(value is None for value in shares):
+            return None
+        return Spread(tuple(float(value) for value in shares if value is not None))
+
     def warnings(self) -> list[str]:
         """Return what a reader must know before trusting the figures.
 
@@ -367,6 +418,15 @@ class SliceSeries:
         power = self.power_spread()
         if power is not None:
             spreads["power_w"] = power.to_mapping()
+        attributed = self.attributed_spread()
+        if attributed is not None:
+            spreads["attributed_w"] = attributed.to_mapping()
+        floors = self.idle_spread()
+        if floors is not None:
+            # The floors the runs were measured above, which move as much as
+            # the totals do. Without them a reader cannot tell whether
+            # subtracting one is a steadier answer than attributing by domain.
+            spreads["idle_w"] = floors.to_mapping()
         mapping["repeats"] = len(self.runs)
         mapping["spread"] = spreads
         mapping["warnings"] = [*mapping.get("warnings", []), *self.warnings()]

@@ -10,6 +10,45 @@ cette ligne.
 
 ## Non publié
 
+### Quelle attribution ce paquet emploie, décidé sur des mesures et non par goût
+
+- Une puissance mesurée a trois lectures, et le paquet portait les trois sans
+  dire laquelle il assumait : le total au compteur, la part du domaine
+  processeur, et le total moins le plancher au repos. `MESURER.md` terminait
+  cette section par *« laquelle des deux a sa place dans un modèle de coût
+  n'est pas tranché ici »* depuis neuf versions.
+- **C'est tranché, et ce sont les chiffres qui ont tranché.** Les trois ont été
+  mesurées côte à côte sur cinq exécutions d'une même commande, trois fois :
+
+  | | Étendue sur cinq exécutions | Écart |
+  |---|---|---|
+  | Le total au compteur | 15,25 W à 23,16 W | 49 % |
+  | Attribué par le travail processeur | 3,209 W à 3,646 W | **13 %** |
+  | Puissance active, total moins plancher | 1,64 W à 9,83 W | **190 %** |
+
+- **La soustraction est refusée nommément.** C'est une petite différence entre
+  deux lectures qui bougent chacune : elle hérite des deux et ne garde presque
+  rien du signal — cinq à quinze fois moins reproductible que l'une ou l'autre
+  de ses entrées sur les trois séries. **L'attribution par domaine s'est
+  révélée la valeur la plus stable des trois**, plus stable que le total dont
+  elle dérive, parce qu'un compteur de domaine ne bouge pas quand autre chose
+  se réveille sur la machine. Ce n'était pas le résultat attendu.
+- **Les coûts utilisent toujours le total au compteur**, et la page dit
+  pourquoi : c'est le seul qu'un compteur ait produit, et substituer une valeur
+  modélisée mettrait une estimation sous un champ qui dit `measured`. Ce qui
+  changerait cela est énoncé pour qu'on puisse le contester — la part de
+  domaine ne tarife que l'énergie *processeur* et sous-estimerait toute charge
+  avec accélérateur.
+- L'affirmation est vérifiable depuis le fichier. `measurement.spread`
+  enregistre désormais ce que le **plancher** et la **part attribuée** ont fait
+  sur les exécutions, à côté du temps et du total qu'il gardait déjà. Sans ces
+  deux-là, la comparaison sur laquelle repose la décision n'était pas
+  re-dérivable d'un modèle commité — le même défaut que les quatre précédents :
+  une valeur que l'exécution produit et que le fichier n'obtient pas.
+- `examples/render.yaml` remesuré pour les porter ; les quatre pages qui citent
+  ses chiffres ont péri à l'instant même, et le contrat écrit il y a deux
+  itérations l'a dit avant tout commit.
+
 ### L'ajustement qu'un modèle enregistre peut être vérifié contre les preuves posées à côté
 
 - Un bloc de mise à l'échelle conserve les tailles et les secondes sur

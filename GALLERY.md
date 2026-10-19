@@ -184,23 +184,23 @@ machine, with the country stated.
 
 | Model | Unit of work | Time | Carbon | What stayed open |
 |---|---|---|---|---|
-| [`render`](examples/render.yaml) · [report](examples/render.md) | one HTML report rendered | 0.0276 s, measured | 8.27e-06 gCO2e, estimated | water, market-based scope 2, embodied |
+| [`render`](examples/render.yaml) · [report](examples/render.md) | one HTML report rendered | 0.0272 s, measured | 8.34e-06 gCO2e, estimated | water, market-based scope 2, embodied |
 | [`request`](examples/request.yaml) · [report](examples/request.md) | one `/scopes` request handled end to end | 0.00385 s, measured | 1.19e-06 gCO2e, estimated | water, market-based scope 2, embodied |
 
 Both were measured on an Apple M2 Max, twelve cores, in France, by running the
 work many times inside one interpreter — fifty renders, two hundred requests —
 so that Python's start-up, which is not the work, is not charged to it. The
-power is a counter reading rather than a datasheet: **17.4 W** during the
+power is a counter reading rather than a datasheet: **17.9 W** during the
 renders and **18.0 W** during the requests. The nameplate this package would
 otherwise have assumed is 83.76 W.
 
 **And those watts are the machine's, not the run's.** A counter meters
 hardware, not processes, so a figure read while a slice runs includes whatever
 else the machine was doing. The `render` model records what that was: the
-machine was already drawing **13.8 W** before the slice started, and by the
-run's **19.8% share** of the machine's processor work, **3.0 W** of the 17.4 W
+machine was already drawing **13.6 W** before the slice started, and by the
+run's **21.9% share** of the machine's processor work, **3.44 W** of the 17.9 W
 is attributable to it. The costs in the table use neither — they use the whole
-17.4 W, which is the only figure a meter can actually see. Each of those
+17.9 W, which is the only figure a meter can actually see. Each of those
 numbers is in the model, in the sentence attached to the power figure and in
 the exclusions list beside it.
 
@@ -209,12 +209,15 @@ the exclusions list beside it.
 
 | | Range over five runs | Spread |
 |---|---|---|
-| Runtime | 1.326 s to 1.538 s | **15%** |
-| Measured power | 16.13 W to 37.36 W | **109%** |
+| Runtime | 1.31 s to 1.371 s | **4.5%** |
+| Measured power | 15.25 W to 23.16 W | **49%** |
+| Attributed by processor work | 3.209 W to 3.646 W | **13%** |
 
 The runtime is a property of the work. The wattage is a property of the room —
-one of the five caught something else waking up on the laptop, and a counter
-cannot tell that apart from the work. The model carries the run whose runtime
+a counter cannot tell what else the machine is doing apart from the work. The
+third row is the one worth noticing: **attributing by processor work is the
+steadiest of the three**, and the page on measuring says what follows from
+that. The model carries the run whose runtime
 was the median and states the range beside it; a sixth measurement is free to
 land anywhere inside. **Nothing was discarded to make this look better.**
 
