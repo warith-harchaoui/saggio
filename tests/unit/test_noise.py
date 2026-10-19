@@ -19,10 +19,18 @@ MEASURED = {
     "measurement": {
         "repeats": 5,
         "spread": {
-            "runtime_s": {"low": 1.0, "median": 2.0, "high": 4.0,
-                          "runs": [1.0, 2.0, 2.0, 3.0, 4.0]},
-            "power_w": {"low": 5.0, "median": 30.0, "high": 20.0,
-                        "runs": [5.0, 10.0, 30.0, 15.0, 20.0]},
+            "runtime_s": {
+                "low": 1.0,
+                "median": 2.0,
+                "high": 4.0,
+                "runs": [1.0, 2.0, 2.0, 3.0, 4.0],
+            },
+            "power_w": {
+                "low": 5.0,
+                "median": 30.0,
+                "high": 20.0,
+                "runs": [5.0, 10.0, 30.0, 15.0, 20.0],
+            },
         },
     },
     "assumptions": {
@@ -137,8 +145,10 @@ def test_a_malformed_spread_block_yields_no_band_rather_than_a_wrong_one() -> No
 def test_a_derivation_cycle_terminates() -> None:
     looped = {
         "schema_version": "2.1",
-        "measurement": {"repeats": 2, "spread": {"runtime_s": {"low": 1.0, "median": 2.0,
-                                                               "high": 3.0}}},
+        "measurement": {
+            "repeats": 2,
+            "spread": {"runtime_s": {"low": 1.0, "median": 2.0, "high": 3.0}},
+        },
         "assumptions": {
             "a": {"value": 1.0, "status": "estimated", "derived_from": ["assumptions.b"]},
             "b": {"value": 1.0, "status": "estimated", "derived_from": ["assumptions.a"]},

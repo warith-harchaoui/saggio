@@ -417,8 +417,7 @@ def test_a_recorded_fit_reproduces_the_observations_recorded_beside_it(model: st
             f"field says {coefficient}"
         )
         assert _close(float(spelled.group("exponent")), float(exponent)), (
-            f"{model}: the method says b={spelled.group('exponent')} and the "
-            f"field says {exponent}"
+            f"{model}: the method says b={spelled.group('exponent')} and the field says {exponent}"
         )
 
     offenders: list[str] = []

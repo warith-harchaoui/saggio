@@ -55,9 +55,7 @@ PAGES = [
 #: A bold figure: ``**21.3 W**``, ``**19.8% share**``, ``**1,01e-05 gCO2e**``.
 #: The number must open the bold run, so ``**A factor of 1.58**`` is prose about
 #: a figure rather than the figure itself and is left alone.
-BOLD_FIGURE = re.compile(
-    r"\*\*(?P<number>[0-9][0-9\s.,]*(?:e[-+]?\d+)?)\s*(?P<unit>%|[A-Za-z/]*)"
-)
+BOLD_FIGURE = re.compile(r"\*\*(?P<number>[0-9][0-9\s.,]*(?:e[-+]?\d+)?)\s*(?P<unit>%|[A-Za-z/]*)")
 
 #: Which model a section is about.
 MODEL_LINK = re.compile(r"examples/[\w/-]+\.yaml")

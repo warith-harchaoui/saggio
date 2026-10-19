@@ -95,8 +95,7 @@ def _odds(*bands: Band | None) -> str:
     if odds is None:
         return ""
     return (
-        f" — a {thinnest.runs}-run range, exceeded by unchanged work "
-        f"one time in {round(1 / odds)}"
+        f" — a {thinnest.runs}-run range, exceeded by unchanged work one time in {round(1 / odds)}"
     )
 
 
@@ -416,8 +415,7 @@ class Change:
         if self.provenance_weakened() and before is not None and after is not None:
             parts.append(f"{before.source_kind or 'no source kind'} -> {after.source_kind}")
         decisive = threshold_percent is None or (
-            self.percent_change is not None
-            and abs(self.percent_change) > threshold_percent
+            self.percent_change is not None and abs(self.percent_change) > threshold_percent
         )
         if self.worse and decisive and self.within_noise():
             parts.append(self.noise_phrase())

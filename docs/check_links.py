@@ -75,8 +75,15 @@ GONE = {404, 410}
 #: rule is the point: an invented source on a real vendor's domain is
 #: indistinguishable from a stale one, which is the worst a citation can be.
 #: `nvidia.com/en-us/data-center/h300/` was exactly that, in four pages.
-ILLUSTRATIVE = ("example.com", "example.net", "example.org", "example.edu",
-                "localhost", "127.0.0.1", "::1")
+ILLUSTRATIVE = (
+    "example.com",
+    "example.net",
+    "example.org",
+    "example.edu",
+    "localhost",
+    "127.0.0.1",
+    "::1",
+)
 
 
 def sources() -> dict[str, list[str]]:

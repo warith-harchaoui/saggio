@@ -205,6 +205,7 @@ def test_a_unit_switch_is_named_not_compared_numerically() -> None:
 
 # --- The gate reads the noise the models measured ----------------------------
 
+
 #: Two models of the same work, each measured five times. The power moved by a
 #: factor of two between them — and each one's own measurement says it moves
 #: that much between runs.

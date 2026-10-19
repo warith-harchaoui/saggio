@@ -832,6 +832,7 @@ _DISAGREEMENT_NOTE: Final[str] = (
     "second is usually the better of the two. Treat them as the ends of a bracket."
 )
 
+
 def baseline_note(idle: float, marginal: float) -> str:
     """Return the sentence a baseline and a slice put beside each other.
 
