@@ -192,8 +192,14 @@ asks in the same language: a person who cannot read the terms has not been asked
 `saggio consent grant --language fr` prints them too, and the recorded decision
 says which terms were agreed to and in which language they were read.
 
-`POST /audit` takes a `language` field, the agent tool takes a `language`
-argument, and `saggio.languages()` is what all of them are built from — so a
+**Every route that answers with prose takes a `language` field**, from one
+definition, for the same reason the command line attaches `--language` to every
+verb from one place: a surface that offers a language on some of its routes and
+not others is a surface a caller has to remember the shape of. The agent tools
+are generated from those routes, so seven of them take the argument without
+anybody having written it twice. The four that do not — health, the two
+catalogue readers, the freshness report — answer with data rather than prose.
+`saggio.languages()` is what all of them are built from — so a
 GUI offering a picker asks the library rather than hard-coding a list that goes
 stale. A tag nothing is written in falls back to English and says so in the
 notes, because an audit must not fail over a language.

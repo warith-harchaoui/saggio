@@ -614,3 +614,16 @@ results.warning.one: "warning"
 results.warning.many: "warnings"
 results.severity.error: "ERROR"
 results.severity.warning: "WARNING"
+
+# --- What the HTTP surface refuses, and what would resolve it (saggio/api/app.py)
+
+api.clone_refused: >-
+  This deployment does not clone repositories. Auditing a git URL makes the
+  server fetch an address the client chose, so it is off unless {switch} is set.
+  Audit the repository where it lives with `saggio audit .`, or send a cost model
+  to /validate, /scopes and /render, which need no network at all.
+api.fetch_refused: >-
+  This deployment does not fetch documents. Reading a product carbon footprint
+  makes the server retrieve an address the client chose, so it is off unless
+  {switch} is set. Read it where you are with `saggio catalog read-pcf <url>`,
+  which asks nobody's server but your own.

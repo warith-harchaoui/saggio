@@ -10,6 +10,27 @@ cette ligne.
 
 ## Non publié
 
+### Une langue sur chaque route qui répond par de la prose
+
+La ligne de commande a `--language` sur chaque verbe depuis que le catalogue
+existe. La surface HTTP ne l'avait que sur **une route**, `/audit`, pour la
+phrase du modèle local — alors que `/validate`, `/scopes`, `/next`, `/render`,
+`/diff` et `/catalog/read-pcf` répondent toutes par de la prose qui suit
+désormais la langue en vigueur, sans aucun moyen d'en demander une.
+
+- Une définition de champ, quatre modèles de requête, six routes, chaque
+  gestionnaire tournant dans la langue que sa requête a nommée.
+- **Les outils d'agent suivent** : ils sont engendrés depuis les routes, donc
+  sept des onze prennent maintenant un argument `language` sans que personne
+  l'ait écrit deux fois. Les quatre autres répondent par des données et non par
+  de la prose — la version, les deux lecteurs de catalogue, le rapport de
+  fraîcheur.
+- **Les deux refus répondent aussi dans la langue de l'appelant.** « Ce
+  déploiement ne clone pas de dépôts… c'est désactivé sauf si
+  SAGGIO_API_ALLOW_CLONE est défini » est la phrase qu'un appelant lit le plus
+  souvent de cette surface, et c'était la seule qu'on ne pouvait pas lire en
+  français.
+
 ### Ce que les verbes impriment, et le zéro tel que chaque langue le compte
 
 - **Chaque ligne que les verbes du quotidien impriment** (`cli/commands.py`) :

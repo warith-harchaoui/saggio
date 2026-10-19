@@ -9,6 +9,25 @@ release of that line.
 
 ## Unreleased
 
+### A language on every route that answers with prose
+
+The command line has had `--language` on every verb since the catalogue existed.
+The HTTP surface had it on **one route**, `/audit`, for the local model's
+sentence — while `/validate`, `/scopes`, `/next`, `/render`, `/diff` and
+`/catalog/read-pcf` all answer with prose that now follows the language in
+force, and had no way to ask for one.
+
+- One field definition, four request models, six routes, each handler running
+  inside the language its request named.
+- **The agent tools come with it**: they are generated from the routes, so seven
+  of the eleven now take a `language` argument without anybody writing it twice.
+  The four that do not answer with data rather than prose — the version, the two
+  catalogue readers, the freshness report.
+- **The two refusals answer in the caller's language too.** "This deployment
+  does not clone repositories… it is off unless SAGGIO_API_ALLOW_CLONE is set"
+  is the sentence a caller reads most often from this surface, and it was the
+  one sentence in it that could not be read in French.
+
 ### What the verbs print, and zero as each language counts it
 
 - **Every line the daily verbs print** (`cli/commands.py`): `init`'s next step,

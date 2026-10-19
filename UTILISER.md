@@ -196,8 +196,15 @@ les conditions n'a pas été interrogée. `saggio consent grant --language fr` l
 affiche aussi, et la décision enregistrée dit à quelles conditions on a consenti
 et dans quelle langue elles ont été lues.
 
-`POST /audit` prend un champ `language`, l'outil d'agent prend un argument
-`language`, et `saggio.languages()` est ce depuis quoi tous sont construits —
+**Chaque route qui répond par de la prose prend un champ `language`**, depuis
+une seule définition, pour la même raison que la ligne de commande attache
+`--language` à chaque verbe depuis un seul endroit : une surface qui propose une
+langue sur certaines routes et pas sur d'autres est une surface dont il faut se
+rappeler la forme. Les outils d'agent sont engendrés depuis ces routes : sept
+d'entre eux prennent donc l'argument sans que personne l'ait écrit deux fois.
+Les quatre autres — la santé, les deux lecteurs de catalogue, le rapport de
+fraîcheur — répondent par des données, pas par de la prose.
+`saggio.languages()` est ce depuis quoi tous sont construits —
 une interface qui propose un sélecteur interroge donc la bibliothèque au lieu de
 figer une liste qui se périme. Une étiquette dans laquelle rien n'est écrit
 retombe sur l'anglais et le dit dans les notes, car un audit ne doit pas échouer

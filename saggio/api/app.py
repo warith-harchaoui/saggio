@@ -58,7 +58,7 @@ from ..catalog import Catalog, stale_report
 from ..catalog.registry import BUNDLED_CATALOGS
 from ..diff import compare
 from ..estimate.ghg import placed_model
-from ..i18n import DEFAULT_LANGUAGE
+from ..i18n import DEFAULT_LANGUAGE, language, say
 from ..model import CostModel, overall_status, validate
 
 #: The environment variable an operator sets to allow the one route that reaches
@@ -69,12 +69,7 @@ CLONE_SWITCH: Final[str] = "SAGGIO_API_ALLOW_CLONE"
 #: What the audit route answers when nobody turned cloning on. A sentence saying
 #: what would resolve it, which is the same thing every refusal in this package
 #: owes its reader.
-CLONE_REFUSED: Final[str] = (
-    "This deployment does not clone repositories. Auditing a git URL makes the "
-    f"server fetch an address the client chose, so it is off unless {CLONE_SWITCH} "
-    "is set. Audit the repository where it lives with `saggio audit .`, or send a "
-    "cost model to /validate, /scopes and /render, which need no network at all."
-)
+CLONE_REFUSED: Final[str] = say("api.clone_refused", switch=CLONE_SWITCH)
 
 #: Reading a vendor's document makes the server fetch an address the client
 #: chose, which is the same hazard cloning is, so it is gated the same way and
@@ -82,17 +77,42 @@ CLONE_REFUSED: Final[str] = (
 FETCH_SWITCH: Final[str] = "SAGGIO_API_ALLOW_FETCH"
 
 #: What the footprint route answers when nobody turned fetching on.
-FETCH_REFUSED: Final[str] = (
-    "This deployment does not fetch documents. Reading a product carbon "
-    "footprint makes the server retrieve an address the client chose, so it is "
-    f"off unless {FETCH_SWITCH} is set. Read it where you are with "
-    "`saggio catalog read-pcf <url>`, which asks nobody's server but your own."
-)
+FETCH_REFUSED: Final[str] = say("api.fetch_refused", switch=FETCH_SWITCH)
 
 #: The formats a report can be returned in here. Word and PDF are deliberately
 #: absent: they shell out to Pandoc, which is a fat dependency to put behind a
 #: public port for an artefact the client can render from the Markdown itself.
 RENDERABLE: Final[tuple[str, ...]] = ("markdown", "html")
+
+
+def _language_field() -> Any:
+    """Return the ``language`` field every request that carries prose takes.
+
+    One definition for four request models, for the reason the command line
+    attaches ``--language`` to every verb from one place: a surface that offers
+    a language on some of its routes and not others is a surface a caller has
+    to remember the shape of.
+
+    Returns
+    -------
+    pydantic.fields.FieldInfo
+        The field.
+
+    Examples
+    --------
+    >>> ModelIn(cost_model={"a": 1}).language
+    'en'
+    """
+    return Field(
+        default=DEFAULT_LANGUAGE,
+        description=(
+            "Language for the prose in the answer — the validator's findings, "
+            "an inventory placement's reasoning, a report's headings, the notes "
+            "an audit writes. Sentences already recorded in the model come back "
+            "as they were written. A tag nothing is written in falls back to "
+            "English."
+        ),
+    )
 
 
 class FootprintIn(BaseModel):
@@ -113,6 +133,7 @@ class FootprintIn(BaseModel):
     """
 
     document: str
+    language: str = _language_field()
 
 
 class ModelIn(BaseModel):
@@ -137,6 +158,7 @@ class ModelIn(BaseModel):
     yaml_text: str | None = Field(
         default=None, description="The cost model as the text of a cost_of_running.yaml file."
     )
+    language: str = _language_field()
 
     @model_validator(mode="after")
     def exactly_one_was_given(self) -> ModelIn:
@@ -217,6 +239,7 @@ class DiffIn(BaseModel):
     threshold_percent: float = Field(
         default=10.0, description="How far a figure may move before the comparison fails."
     )
+    language: str = _language_field()
 
 
 class AuditIn(BaseModel):
@@ -370,9 +393,10 @@ def create_app(*, allow_clone: bool | None = None, allow_fetch: bool | None = No
         >>> validate_route(ModelIn(cost_model={"project": {"name": "x"}}))["ok"]
         False
         """
-        document = request.document()
-        report = validate(document)
-        return report.to_mapping() | {"overall_status": overall_status(document)}
+        with language(request.language):
+            document = request.document()
+            report = validate(document)
+            return report.to_mapping() | {"overall_status": overall_status(document)}
 
     @application.post(
         "/next",
@@ -412,7 +436,8 @@ def create_app(*, allow_clone: bool | None = None, allow_fetch: bool | None = No
         """
         from ..model.questions import questions_payload
 
-        return questions_payload(request.document())
+        with language(request.language):
+            return questions_payload(request.document())
 
     @application.post(
         "/scopes",
@@ -455,7 +480,8 @@ def create_app(*, allow_clone: bool | None = None, allow_fetch: bool | None = No
         '3'
         """
         try:
-            return placed_model(request.document(), scenario=scenario)
+            with language(request.language):
+                return placed_model(request.document(), scenario=scenario)
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
 
@@ -485,10 +511,11 @@ def create_app(*, allow_clone: bool | None = None, allow_fetch: bool | None = No
         """
         from ..report import render_html, render_markdown
 
-        document = request.document()
-        rendered = (
-            render_markdown(document) if request.format == "markdown" else render_html(document)
-        )
+        with language(request.language):
+            document = request.document()
+            rendered = (
+                render_markdown(document) if request.format == "markdown" else render_html(document)
+            )
         return {"format": request.format, "report": rendered}
 
     @application.post(
@@ -514,9 +541,10 @@ def create_app(*, allow_clone: bool | None = None, allow_fetch: bool | None = No
         >>> diff_route(DiffIn(before={"scenarios": []}, after={"scenarios": []}))["passes"]
         True
         """
-        return compare(
-            request.before, request.after, threshold_percent=request.threshold_percent
-        ).to_mapping()
+        with language(request.language):
+            return compare(
+                request.before, request.after, threshold_percent=request.threshold_percent
+            ).to_mapping()
 
     @application.get(
         "/catalog",
@@ -573,10 +601,12 @@ def create_app(*, allow_clone: bool | None = None, allow_fetch: bool | None = No
         True
         """
         if not fetching:
-            raise HTTPException(403, FETCH_REFUSED)
+            with language(request.language):
+                raise HTTPException(403, say("api.fetch_refused", switch=FETCH_SWITCH))
         from ..catalog.pcf import read
 
-        return read(request.document).to_mapping()
+        with language(request.language):
+            return read(request.document).to_mapping()
 
     @application.get(
         "/catalog/{name}",
@@ -675,7 +705,8 @@ def create_app(*, allow_clone: bool | None = None, allow_fetch: bool | None = No
         True
         """
         if not permitted:
-            raise HTTPException(403, CLONE_REFUSED)
+            with language(request.language):
+                raise HTTPException(403, say("api.clone_refused", switch=CLONE_SWITCH))
 
         from ..auditor import AuditOptions, audit_git_url
 
@@ -688,19 +719,23 @@ def create_app(*, allow_clone: bool | None = None, allow_fetch: bool | None = No
             instance=request.instance,
         )
         try:
-            result = audit_git_url(request.git_url, options=options)
+            # The whole audit, not only the local model's own prose: the notes
+            # and the verdict are composed inside it, and an answer half in one
+            # language is the thing this surface exists not to produce.
+            with language(request.language):
+                result = audit_git_url(request.git_url, options=options)
+                model = (
+                    result.model
+                    if isinstance(result.model, CostModel)
+                    else CostModel.from_mapping(result.model)
+                )
+                return {
+                    "model": model.data,
+                    "report": result.report.to_mapping(),
+                    "notes": list(result.notes),
+                }
         except RuntimeError as exc:
             raise HTTPException(400, str(exc)) from exc
-        model = (
-            result.model
-            if isinstance(result.model, CostModel)
-            else CostModel.from_mapping(result.model)
-        )
-        return {
-            "model": model.data,
-            "report": result.report.to_mapping(),
-            "notes": list(result.notes),
-        }
 
     return application
 

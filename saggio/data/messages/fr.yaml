@@ -672,3 +672,17 @@ results.warning.one: "avertissement"
 results.warning.many: "avertissements"
 results.severity.error: "ERREUR"
 results.severity.warning: "AVERTISSEMENT"
+
+# --- Ce que la surface HTTP refuse, et ce qui le lèverait (saggio/api/app.py)
+
+api.clone_refused: >-
+  Ce déploiement ne clone pas de dépôts. Auditer une URL git fait récupérer au
+  serveur une adresse choisie par le client : c'est donc désactivé sauf si
+  {switch} est défini. Auditez le dépôt là où il vit avec `saggio audit .`, ou
+  envoyez un modèle de coût à /validate, /scopes et /render, qui n'ont besoin
+  d'aucun réseau.
+api.fetch_refused: >-
+  Ce déploiement ne récupère pas de documents. Lire une empreinte carbone produit
+  fait récupérer au serveur une adresse choisie par le client : c'est donc
+  désactivé sauf si {switch} est défini. Lisez-la depuis chez vous avec
+  `saggio catalog read-pcf <url>`, qui ne sollicite aucun serveur que le vôtre.
