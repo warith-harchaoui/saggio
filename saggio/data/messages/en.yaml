@@ -210,7 +210,7 @@ report.schema_only: "Schema {schema}."
 report.not_known: "not known"
 report.no_numbers: "This model states no numbers yet."
 report.unit.excluded: "Not part of a unit:"
-report.scenario.no_costs: "_This scenario states no costs yet._"
+report.scenario.no_costs: "This scenario states no costs yet."
 report.not_placed: "**not placed**"
 report.inventory.lede: >-
   The scope turns on who operates the machine, which is why the same code lands
@@ -228,12 +228,12 @@ report.models.lede: >-
   A rate is not a cost. These are what the vendor charges per unit; how many of
   those units one unit of work spends is the open half, and reading the code
   cannot establish it.
-report.no_rate: "_No published rate was found for this model._"
+report.no_rate: "No published rate was found for this model."
 report.projections.lede: "A projection is not a measurement of the thing it projects to."
 report.projection.assumes: "What it assumes"
 report.projection.limits: "Where it breaks"
 report.projection.bracketed: "{dimension}, bracketed"
-report.projection.bracket_note: "Fastest and slowest the evidence supports."
+report.projection.bracket_note: "The fastest and the slowest the evidence supports."
 report.measurement.hot_path: "Where the time went:"
 report.measurement.function: "Function"
 report.measurement.cumulative: "Cumulative seconds"
@@ -1157,3 +1157,9 @@ apple.unknown_layout: >-
 soc.figure_covers: "The figure covers {scope}, read from the {channels} counters."
 soc.figure_covers_both: >-
   The figure covers {scope} and {memory}, read from the {channels} counters.
+report.whatif.here_measured: "this machine, as measured"
+report.whatif.here_estimated: "this machine, as the catalogue estimates it"
+report.chain_caption: >-
+  Each box is coloured by how well founded that number is. A weak colour
+  upstream caps everything downstream of it: that is the weakest-link rule,
+  drawn.

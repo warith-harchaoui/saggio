@@ -241,9 +241,9 @@ def render_dashboard(models: list[CostModel | dict[str, Any]]) -> str:
             # The dashboard's own keys, not the single-report ones: reusing
             # section.honesty would let the language script rewrite this page's
             # wording — including the "per project" caveat — even in English.
-            _heading(2, "How well founded each model is", "dashboard.honesty"),
+            _heading(2, "", "dashboard.honesty"),
             f"<figure>{overview}</figure>" if overview else "",
-            _heading(2, "What one unit costs, per project", "dashboard.costs"),
+            _heading(2, "", "dashboard.costs"),
             table,
         ]
     )

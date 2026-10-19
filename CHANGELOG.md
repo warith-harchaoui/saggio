@@ -9,6 +9,34 @@ release of that line.
 
 ## Unreleased
 
+### The HTML page reads the table too, and eleven headings stop carrying their own copy
+
+`_heading(level, text, key)` took both the words and the key, so eleven headings
+held a second copy of wording the translation table already had — the same fault
+as the twenty-nine in the markdown report, one layer in. The helper ignores the
+text when a key is given now, and the two section helpers that passed a title
+beside a key no longer take one.
+
+With them, every sentence the page kept to itself while the markdown report read
+it from the catalogue: the services and models ledes, the scenario with no
+costs, the projection headings and the bracket note, the profile table, the
+rate nobody published, the what-if machine's own two labels, the derivation
+figure's caption, and the page title.
+
+- **An emphasis moved out of a sentence.** `_This scenario states no costs yet._`
+  carried markdown's underscores *inside the translated string*, which the HTML
+  page could not use. The catalogue holds the sentence; the markdown renderer
+  adds its own emphasis.
+- **A key in the wrong table, caught by a test.** `column.why` went into the
+  message catalogue and onto a `<th data-i18n>`, where the page's script
+  resolves against the *label* table — so the button would have blanked the
+  column. The contract test that compares a key's wording to the text beneath it
+  found it immediately.
+- The button now switches **5.4%** of a report, and the docs say the share and
+  **nothing else**: they used to pin the two character counts as well, which
+  churn on every edit anywhere in the report and had me chasing a figure my own
+  changes kept moving. Three numbers to keep true where one says the thing.
+
 ### What this machine will let you read, and what each counter covers
 
 Two modules whose sentences a reader meets before any figure: the probe behind

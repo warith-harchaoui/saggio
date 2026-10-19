@@ -222,7 +222,7 @@ report.schema_only: "Schéma {schema}."
 report.not_known: "non connu"
 report.no_numbers: "Ce modèle n'énonce encore aucun chiffre."
 report.unit.excluded: "Ne fait pas partie d'une unité :"
-report.scenario.no_costs: "_Ce scénario n'énonce encore aucun coût._"
+report.scenario.no_costs: "Ce scénario n'énonce encore aucun coût."
 report.not_placed: "**non rangé**"
 report.inventory.lede: >-
   Le scope dépend de qui exploite la machine : c'est pourquoi le même code se
@@ -240,7 +240,7 @@ report.models.lede: >-
   Un tarif n'est pas un coût. Voici ce que le fournisseur facture par unité ;
   combien de ces unités une unité de travail dépense est la moitié ouverte, et
   lire le code ne permet pas de l'établir.
-report.no_rate: "_Aucun tarif publié n'a été trouvé pour ce modèle._"
+report.no_rate: "Aucun tarif publié n'a été trouvé pour ce modèle."
 report.projections.lede: "Une projection n'est pas une mesure de ce vers quoi elle projette."
 report.projection.assumes: "Ce qu'elle suppose"
 report.projection.limits: "Où elle casse"
@@ -1267,3 +1267,9 @@ apple.unknown_layout: >-
 soc.figure_covers: "Le chiffre couvre {scope}, lu sur les compteurs {channels}."
 soc.figure_covers_both: >-
   Le chiffre couvre {scope} et {memory}, lus sur les compteurs {channels}.
+report.whatif.here_measured: "cette machine, telle qu'elle a été mesurée"
+report.whatif.here_estimated: "cette machine, telle que le catalogue l'estime"
+report.chain_caption: >-
+  Chaque case est colorée selon la solidité de son chiffre. Une couleur faible en
+  amont plafonne tout ce qui est en aval : c'est la règle du maillon faible,
+  dessinée.

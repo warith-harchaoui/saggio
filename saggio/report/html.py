@@ -343,9 +343,13 @@ def _heading(level: int, text: str, key: str | None = None) -> str:
     level : int
         Heading level.
     text : str
-        The English text, which is what a reader sees before the script runs.
+        What a reader sees. **Ignored when a key is given**: the wording then
+        comes from the translation table, so the text the server writes and the
+        text the language button writes cannot be two different sentences. They
+        were, in eleven headings, until this took the choice away.
     key : str or None, optional
-        Translation key.
+        Translation key. A heading naming a scenario or a model has none —
+        those are the model's own words, not this package's.
 
     Returns
     -------
@@ -354,11 +358,12 @@ def _heading(level: int, text: str, key: str | None = None) -> str:
 
     Examples
     --------
-    >>> _heading(2, "Honesty", "section.honesty")
+    >>> _heading(2, "ignored", "section.honesty")
     '<h2 data-i18n="section.honesty">Honesty</h2>'
     """
     attribute = f' data-i18n="{key}"' if key else ""
-    return f"<h{level}{attribute}>{_escape(text)}</h{level}>"
+    written = _label(key) if key else text
+    return f"<h{level}{attribute}>{_escape(written)}</h{level}>"
 
 
 def _verdict(model: CostModel) -> str:
@@ -493,7 +498,7 @@ def _costs_section(model: CostModel, registry: DimensionRegistry) -> str:
     scenarios = model.scenarios()
     if not scenarios:
         return ""
-    blocks = [_heading(2, "What one unit costs", "section.costs")]
+    blocks = [_heading(2, "", "section.costs")]
     for scenario in scenarios:
         blocks.append(_heading(3, str(scenario.get("name") or "scenario")))
         if scenario.get("description"):
@@ -520,7 +525,13 @@ def _costs_section(model: CostModel, registry: DimensionRegistry) -> str:
             )
         blocks.append(
             _table(
-                ["Dimension", "Per unit", "Status", "Derived from", "Notes"],
+                [
+                    _label("column.dimension"),
+                    _label("column.value"),
+                    _label("column.status"),
+                    _label("column.derived"),
+                    _label("column.notes"),
+                ],
                 rows,
                 i18n_keys=[
                     "column.dimension",
@@ -531,7 +542,7 @@ def _costs_section(model: CostModel, registry: DimensionRegistry) -> str:
                 ],
                 widths=[13, 16, 11, 30, 30],
             )
-            or '<p class="muted">This scenario states no costs yet.</p>'
+            or f'<p class="muted">{_escape(say("report.scenario.no_costs"))}</p>'
         )
         blocks.append(_felt_size_paragraph(costs, per="unit"))
     return "".join(blocks)
@@ -563,7 +574,7 @@ def _projections_section(model: CostModel) -> str:
     projections = model.data.get("projections")
     if not isinstance(projections, dict) or not projections:
         return ""
-    blocks = [_heading(2, "Projections", "section.projections")]
+    blocks = [_heading(2, "", "section.projections")]
     for name, block in projections.items():
         if not isinstance(block, dict):
             continue
@@ -629,7 +640,10 @@ def _projection_caveats(block: object) -> str:
     if not isinstance(costs, dict):
         return ""
     parts: list[str] = []
-    for field, heading in (("assumptions", "What it assumes"), ("limits", "Where it breaks")):
+    for field, heading in (
+        ("assumptions", say("report.projection.assumes")),
+        ("limits", say("report.projection.limits")),
+    ):
         seen: list[str] = []
         for projection in costs.values():
             if not isinstance(projection, dict):
@@ -676,12 +690,12 @@ def _projection_rows(key: str, value: object) -> list[str]:
             if looks_like_quantity(fastest) and looks_like_quantity(slowest):
                 low, high = Quantity.from_mapping(fastest), Quantity.from_mapping(slowest)
                 rows.append(
-                    f"<tr><td>{_escape(key)} &mdash; range</td>"
+                    f"<tr><td>{_escape(say('report.projection.bracketed', dimension=key))}</td>"
                     f'<td class="number">{_escape(format_quantity(low))} to '
                     f"{_escape(format_quantity(high))}</td>"
                     f"<td>{_badge(high.status)}</td>"
-                    '<td class="muted">The fastest and the slowest the evidence '
-                    "supports.</td></tr>"
+                    f'<td class="muted">{_escape(say("report.projection.bracket_note"))}'
+                    "</td></tr>"
                 )
         return rows
     if looks_like_quantity(value):
@@ -740,7 +754,7 @@ def _assumptions_section(model: CostModel) -> str:
         )
     if not rows:
         return ""
-    return _heading(2, "What the numbers rest on", "section.assumptions") + _table(
+    return _heading(2, "", "section.assumptions") + _table(
         [
             _label("column.assumption"),
             _label("column.amount"),
@@ -826,21 +840,30 @@ def _inventory_section(model: CostModel) -> str:
     caveat = ""
     if scope_two is not None:
         whole = market_based_figure_exists(costs)
-        lead = (
-            ("inventory.pair", "Scope 2 is reported both ways, as the standard requires.")
-            if whole
-            else ("inventory.dual", "Only half of what scope 2 requires is here.")
-        )
+        key = "inventory.pair" if whole else "inventory.dual"
         caveat = (
-            f'<p class="muted"><strong data-i18n="{lead[0]}">{lead[1]}</strong> '
+            f'<p class="muted"><strong data-i18n="{key}">{_escape(_label(key))}</strong> '
             + _escape(scope_two.dual_reporting)
             + "</p>"
         )
     return (
-        _heading(2, "Where this goes in a GHG inventory", "section.inventory")
+        _heading(2, "", "section.inventory")
         + _table(
-            ["Cost", "Per unit", "Status", "GHG Protocol", "Why"],
+            [
+                _label("column.cost"),
+                _label("column.value"),
+                _label("column.status"),
+                _label("column.protocol"),
+                _label("column.why"),
+            ],
             rows,
+            i18n_keys=[
+                "column.cost",
+                "column.value",
+                "column.status",
+                "column.protocol",
+                "column.why",
+            ],
             widths=[14, 14, 11, 25, 36],
         )
         + caveat
@@ -888,13 +911,24 @@ def _services_section(model: CostModel) -> str:
             + "</tr>"
         )
     return (
-        _heading(2, "Services this code pays for", "section.services")
-        + '<p class="lede">Prices are not copied into this model. An API price copied today '
-        "is wrong by next quarter, so the report says where the current one lives and "
-        "leaves the figure open until somebody reads it.</p>"
+        _heading(2, "", "section.services")
+        + f'<p class="lede">{_escape(say("report.services.lede"))}</p>'
         + _table(
-            ["Service", "Found at", "Evidence", "Per unit", "Where to price it"],
+            [
+                _label("column.service"),
+                _label("column.found_at"),
+                _label("column.evidence"),
+                _label("column.value"),
+                _label("column.where_to_price"),
+            ],
             rows,
+            i18n_keys=[
+                "column.service",
+                "column.found_at",
+                "column.evidence",
+                "column.value",
+                "column.where_to_price",
+            ],
             widths=[16, 20, 32, 17, 15],
         )
     )
@@ -922,10 +956,8 @@ def _models_section(model: CostModel) -> str:
     if not isinstance(called, list) or not called:
         return ""
     blocks = [
-        _heading(2, "Models this code calls", "section.models"),
-        '<p class="lede">A rate is not a cost. These are what the vendor charges per '
-        "unit; how many of those units one unit of work spends is the open half, and "
-        "reading the code cannot establish it.</p>",
+        _heading(2, "", "section.models"),
+        f'<p class="lede">{_escape(say("report.models.lede"))}</p>',
     ]
     for entry in called:
         if not isinstance(entry, dict):
@@ -978,7 +1010,7 @@ def _models_section(model: CostModel) -> str:
                 ],
                 widths=[28, 18, 12, 16, 26],
             )
-            or '<p class="muted">No published rate was found for this model.</p>'
+            or f'<p class="muted">{_escape(say("report.no_rate"))}</p>'
         )
         if entry.get("rates_provenance"):
             blocks.append(f'<p class="muted">{_escape(entry["rates_provenance"])}</p>')
@@ -1016,7 +1048,7 @@ def _measurement_section(model: CostModel) -> str:
     measurement = model.data.get("measurement")
     if not isinstance(measurement, dict) or not measurement:
         return ""
-    blocks = [_heading(2, "How it was measured", "section.measurement")]
+    blocks = [_heading(2, "", "section.measurement")]
     command = measurement.get("command")
     if isinstance(command, list):
         blocks.append(
@@ -1047,7 +1079,16 @@ def _measurement_section(model: CostModel) -> str:
             for entry in hot_path
             if isinstance(entry, dict)
         ]
-        blocks.append(_table(["Function", "Cumulative seconds", "Calls"], entries))
+        blocks.append(
+            _table(
+                [
+                    say("report.measurement.function"),
+                    say("report.measurement.cumulative"),
+                    say("report.measurement.calls"),
+                ],
+                entries,
+            )
+        )
     warnings = measurement.get("warnings")
     if isinstance(warnings, list) and warnings:
         bullets = "".join(f"<li>{_escape(item)}</li>" for item in warnings)
@@ -1117,16 +1158,12 @@ def _whatif_section(model: CostModel, *, overlay: Any = None) -> str:
     )
     stated = model.get("assumptions.power_draw") or {}
     measured_here = str(stated.get("status") or "") == "measured"
-    here = (
-        "this machine, as measured"
-        if measured_here
-        else "this machine, as the catalogue estimates it"
-    )
+    here = say("report.whatif.here_measured" if measured_here else "report.whatif.here_estimated")
 
     return (
         # S608 reads the words "What if" as the start of a SQL clause. There is no
         # database anywhere in this package.
-        _heading(2, "What if it ran somewhere else", "section.whatif")  # noqa: S608
+        _heading(2, "", "section.whatif")  # noqa: S608
         + '<div class="card whatif-card"><div class="whatif">'
         + '<div><label for="whatif-country" data-i18n="whatif.country">Country</label>'
         f'<select id="whatif-country">{country_options}</select></div>'
@@ -1149,15 +1186,13 @@ def _whatif_section(model: CostModel, *, overlay: Any = None) -> str:
     )
 
 
-def _mapping_section(title: str, key: str, mapping: object) -> str:
+def _mapping_section(key: str, mapping: object) -> str:
     """Render a flat mapping as a two-column table.
 
     Parameters
     ----------
-    title : str
-        The heading.
     key : str
-        Translation key for the heading.
+        Translation key for the heading, which is where its wording comes from.
     mapping : object
         Expected to be a mapping of label to scalar.
 
@@ -1168,7 +1203,7 @@ def _mapping_section(title: str, key: str, mapping: object) -> str:
 
     Examples
     --------
-    >>> _mapping_section("Where it runs", "section.deployment", {})
+    >>> _mapping_section("section.deployment", {})
     ''
     """
     if not isinstance(mapping, dict) or not mapping:
@@ -1180,18 +1215,16 @@ def _mapping_section(title: str, key: str, mapping: object) -> str:
     ]
     if not rows:
         return ""
-    return _heading(2, title, key) + _table(["", ""], rows)
+    return _heading(2, "", key) + _table(["", ""], rows)
 
 
-def _list_section(title: str, key: str, items: object) -> str:
+def _list_section(key: str, items: object) -> str:
     """Render a titled bullet list.
 
     Parameters
     ----------
-    title : str
-        The heading.
     key : str
-        Translation key for the heading.
+        Translation key for the heading, which is where its wording comes from.
     items : object
         Expected to be a list of strings.
 
@@ -1202,13 +1235,13 @@ def _list_section(title: str, key: str, items: object) -> str:
 
     Examples
     --------
-    >>> _list_section("Not counted", "section.exclusions", [])
+    >>> _list_section("section.exclusions", [])
     ''
     """
     if not isinstance(items, list) or not items:
         return ""
     bullets = "".join(f"<li>{_escape(item)}</li>" for item in items)
-    return _heading(2, title, key) + f'<ul class="plain">{bullets}</ul>'
+    return _heading(2, "", key) + f'<ul class="plain">{bullets}</ul>'
 
 
 def _page_data(model: CostModel, *, overlay: Any = None) -> str:
@@ -1322,7 +1355,7 @@ def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> st
     registry = wrapped.registry
     project = wrapped.data.get("project")
     name = project.get("name") if isinstance(project, dict) else None
-    title = f"Cost of running {name}" if name else "Cost of running this code"
+    title = say("report.title", name=name) if name else say("report.title.default")
 
     # The codes the page can switch between, in a stable order. A list rather
     # than a set of <option> elements because the control is a toggle now: with
@@ -1347,7 +1380,7 @@ def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> st
     unit_block = ""
     if isinstance(unit, dict):
         unit_block = (
-            _heading(2, "One unit of work", "section.unit")
+            _heading(2, "", "section.unit")
             + f'<div class="card"><p><strong>{_escape(unit.get("name"))}</strong> '
             f"{_badge(unit.get('status'))}</p>"
             + (f"<p>{_escape(unit.get('description'))}</p>" if unit.get("description") else "")
@@ -1363,9 +1396,7 @@ def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> st
 
     chain = derivation_chain(wrapped)
     chain_block = (
-        f"<figure>{chain}<figcaption>Each box is coloured by how well founded that "
-        "number is. A weak colour upstream caps everything downstream of it: that is "
-        "the weakest-link rule, drawn.</figcaption></figure>"
+        f"<figure>{chain}<figcaption>{_escape(say('report.chain_caption'))}</figcaption></figure>"
         if chain
         else ""
     )
@@ -1375,11 +1406,11 @@ def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> st
             f"<h1>{_escape(title)}</h1>",
             f'<p class="muted">{subtitle}</p>',
             _verdict(wrapped),
-            _heading(2, "Honesty", "section.honesty"),
+            _heading(2, "", "section.honesty"),
             f"<figure>{honesty_bar(count_statuses(wrapped))}</figure>",
             chain_block,
             unit_block,
-            _mapping_section("Where it runs", "section.deployment", wrapped.data.get("deployment")),
+            _mapping_section("section.deployment", wrapped.data.get("deployment")),
             _costs_section(wrapped, registry),
             _projections_section(wrapped),
             _whatif_section(wrapped, overlay=overlay),
@@ -1388,10 +1419,8 @@ def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> st
             _services_section(wrapped),
             _models_section(wrapped),
             _measurement_section(wrapped),
-            _list_section("Not counted", "section.exclusions", wrapped.data.get("exclusions")),
-            _list_section(
-                "Rules this model follows", "section.rules", wrapped.data.get("provenance_rules")
-            ),
+            _list_section("section.exclusions", wrapped.data.get("exclusions")),
+            _list_section("section.rules", wrapped.data.get("provenance_rules")),
         ]
     )
 

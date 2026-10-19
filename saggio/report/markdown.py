@@ -798,7 +798,7 @@ def _scenario_section(
             ],
             rows,
         )
-        or say("report.scenario.no_costs"),
+        or f"_{say('report.scenario.no_costs')}_",
         "",
     ]
     lines += _felt_size_lines(costs, per="unit")
@@ -1086,7 +1086,7 @@ def _models_section(model: CostModel) -> list[str]:
                 ],
                 rows,
             )
-            or say("report.no_rate"),
+            or f"_{say('report.no_rate')}_",
             "",
         ]
         if entry.get("rates_provenance"):

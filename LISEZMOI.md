@@ -308,7 +308,7 @@ Deux limites, mesurées plutôt que sous-entendues. Un modèle porte les phrases
 avec lesquelles il a été écrit : un modèle audité en anglais se rend en anglais
 quoi que vous demandiez — **48 % du texte d'un rapport statique** vient du
 fichier lui-même. Et le bouton de langue d'une page HTML change l'ossature de la
-page, **4,9 %**, parce que le reste est de la prose que le moteur a composée côté
+page, **5,4 %**, parce que le reste est de la prose que le moteur a composée côté
 serveur ; demandez plutôt le rapport dans une langue et **29,4 %** en sortaient en
 français au 2026-10-19, une part qui grandit avec le catalogue.
 

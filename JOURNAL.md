@@ -10,6 +10,35 @@ cette ligne.
 
 ## Non publié
 
+### La page HTML lit la table aussi, et onze titres cessent d'en porter une copie
+
+`_heading(level, text, key)` prenait à la fois les mots et la clé : onze titres
+gardaient donc une seconde copie d'une formulation que la table de traduction
+avait déjà — la même faute que les vingt-neuf du rapport markdown, une couche
+plus loin. L'assistant ignore le texte dès qu'une clé est donnée, et les deux
+aides de section qui passaient un titre à côté d'une clé n'en prennent plus.
+
+Avec eux, toutes les phrases que la page gardait pour elle alors que le rapport
+markdown les lisait déjà dans le catalogue : les chapeaux services et modèles, le
+scénario sans coûts, les titres de projection et la note d'encadrement, la table
+de profil, le tarif que personne ne publie, les deux étiquettes propres au
+curseur machine, la légende de la figure de dérivation, et le titre de la page.
+
+- **Une emphase est sortie d'une phrase.** `_Ce scénario n'énonce encore aucun
+  coût._` portait les tirets bas de markdown **à l'intérieur de la chaîne
+  traduite**, ce que la page HTML ne pouvait pas utiliser. Le catalogue porte la
+  phrase ; le moteur markdown ajoute son emphase.
+- **Une clé dans la mauvaise table, attrapée par un test.** `column.why` était
+  allée dans le catalogue de messages et sur un `<th data-i18n>`, où le script de
+  la page résout contre la table des **étiquettes** : le bouton aurait donc vidé
+  la colonne. Le test de contrat qui compare la formulation d'une clé au texte
+  sous elle l'a trouvée tout de suite.
+- Le bouton change maintenant **5,4 %** d'un rapport, et les docs n'énoncent plus
+  que la part : elles épinglaient aussi les deux comptes de caractères, qui
+  bougent à chaque modification n'importe où dans le rapport et m'ont fait
+  courir après un chiffre que mes propres changements déplaçaient. Trois nombres
+  à tenir vrais là où un seul dit la chose.
+
 ### Ce que cette machine laisse lire, et ce que chaque compteur couvre
 
 Deux modules dont les phrases précèdent tout chiffre pour un lecteur : la sonde

@@ -299,7 +299,7 @@ language is those files and no code.
 Two limits, measured rather than implied. A model carries the sentences it was
 written with, so a model audited in English renders in English however you ask
 for it — **48% of a static report's text** comes from the file itself. And the
-language button on an HTML page switches the page's furniture, **4.9%** of it,
+language button on an HTML page switches the page's furniture, **5.4%** of it,
 because the rest is prose the renderer composed server-side; ask for the report
 in a language instead and **29.4%** of it was French on 2026-10-19, a share that
 grows as the catalogue does.
