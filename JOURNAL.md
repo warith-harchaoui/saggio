@@ -64,6 +64,15 @@ anglais, à l'intérieur d'un rapport que quelqu'un lisait en français.
   où le code tourne, et en déduire `--country FR` mettrait dans le modèle un
   nombre que personne n'a établi.
 
+- **La moitié statique d'un appui sur le bouton de langue.** Le script remplace
+  le texte de chaque nœud `data-i18n` depuis la table ; une clé sans entrée
+  n'est une erreur nulle part — le nœud garde l'anglais avec lequel il a été
+  produit, la page change à moitié et a l'air d'avoir marché. Un test de contrat
+  produit les deux pages et vérifie que chaque clé qui y figure a une
+  formulation dans chaque langue : **37 clés sur un rapport, 14 sur le tableau
+  de bord, aucune manquante**. Enlever une formulation française le fait
+  échouer.
+
 ### Deux défauts trouvés en lançant la chose plutôt qu'en relisant le diff
 
 - **Le contrôle de langue du tableau de bord était cassé par le commit

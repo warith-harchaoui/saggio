@@ -164,6 +164,27 @@ def test_every_page_lists_the_languages_the_same_way(page) -> None:
         pytest.param(lambda: render_dashboard([MODEL]), id="dashboard"),
     ],
 )
+def test_every_label_on_a_page_has_something_to_switch_to(page) -> None:
+    # What clicking the language button actually does: the script walks every
+    # `data-i18n` node and replaces its text from the table. A key with no entry
+    # is not an error anywhere — the node simply keeps the English it was
+    # rendered with, so the page half-switches and looks like it worked. This is
+    # the static half of pressing the button, and it is the half a test can hold.
+    rendered = page()
+    used = sorted(set(re.findall(r'data-i18n="([^"]+)"', rendered)))
+    assert used, "the page writes no translatable labels at all"
+    for code in languages():
+        missing = [key for key in used if key not in labels()[code]]
+        assert not missing, f"{code} has no wording for {missing}"
+
+
+@pytest.mark.parametrize(
+    "page",
+    [
+        pytest.param(lambda: render_html(MODEL), id="report"),
+        pytest.param(lambda: render_dashboard([MODEL]), id="dashboard"),
+    ],
+)
 def test_no_page_ships_the_model_instructions_to_a_browser(page) -> None:
     rendered = page()
     assert "prompt.classify" not in rendered, "a prompt key reached the page"

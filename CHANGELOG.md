@@ -60,6 +60,14 @@ somebody was reading in French.
   the code runs on, and reading `--country FR` out of it would put a number in
   the model that nobody established.
 
+- **The static half of pressing the language button.** The script replaces the
+  text of every `data-i18n` node from the table; a key with no entry is not an
+  error anywhere — the node keeps the English it was rendered with, so the page
+  half-switches and looks like it worked. A contract test renders both pages and
+  checks every key on them has a wording in every language: **37 keys on a
+  report, 14 on the dashboard, none missing**. Removing one French wording fails
+  it.
+
 ### Two defects found by running the thing rather than reading the diff
 
 - **The dashboard's language control was broken by the commit before this one.**
