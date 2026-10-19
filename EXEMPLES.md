@@ -114,7 +114,7 @@ semblant de le connaître.
 Auditer un dépôt que vous n'avez pas cloné :
 
 ```bash
-saggio audit https://github.com/quelquun/leur-projet --country FR
+saggio audit https://github.com/karpathy/nanoGPT --country FR
 ```
 
 Demander à un modèle local quelle forme a le travail, si Ollama tourne :
@@ -939,7 +939,7 @@ Read before trusting this model:
 
 ```bash
 saggio catalog add gpu H300 \
-    --source-url "https://www.nvidia.com/en-us/data-center/h300/" \
+    --source-url "https://example.invalid/nvidia-h300-datasheet" \
     --retrieved-date 2026-09-12 \
     --field tdp_w=800 \
     --field peak_bf16_tflops=2400

@@ -85,7 +85,7 @@ Prices are not copied into this model. An API price copied today is wrong by nex
 | AWS (boto3) | `dev/breeze/src/airflow_breeze/utils/publish_docs_to_s3.py:26` | `import boto3` | not known | [prices](https://aws.amazon.com/pricing/) |
 | Cohere API | `providers/cohere/src/airflow/providers/cohere/operators/rerank.py:28` | `from cohere.core.request_options import RequestOptions` | not known | [prices](https://cohere.com/pricing) |
 | Google Cloud | `providers/google/src/airflow/providers/google/cloud/sensors/pubsub.py:27` | `from google.cloud import pubsub_v1` | not known | [prices](https://cloud.google.com/pricing) |
-| Google Gemini API | `providers/google/src/airflow/providers/google/cloud/hooks/gen_ai.py:26` | `from google import genai` | not known | [prices](https://ai.google.dev/pricing) |
+| Google Gemini API | `providers/google/src/airflow/providers/google/cloud/hooks/gen_ai.py:26` | `from google import genai` | not known | [prices](https://ai.google.dev/gemini-api/docs/pricing) |
 | OpenAI API | `providers/openai/src/airflow/providers/openai/hooks/openai.py:26` | `from openai import OpenAI` | not known | [prices](https://openai.com/api/pricing/) |
 | SendGrid API | `providers/sendgrid/src/airflow/providers/sendgrid/utils/emailer.py:28` | `import sendgrid` | not known | [prices](https://sendgrid.com/en-us/pricing) |
 

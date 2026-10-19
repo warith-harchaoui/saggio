@@ -114,7 +114,7 @@ so the audit records where the current one lives instead of pretending to know i
 Audit a repository you have not cloned:
 
 ```bash
-saggio audit https://github.com/someone/their-project --country FR
+saggio audit https://github.com/karpathy/nanoGPT --country FR
 ```
 
 Ask a local model what shape the work is, if you have Ollama running:
@@ -909,7 +909,7 @@ Read before trusting this model:
 
 ```bash
 saggio catalog add gpu H300 \
-    --source-url "https://www.nvidia.com/en-us/data-center/h300/" \
+    --source-url "https://example.invalid/nvidia-h300-datasheet" \
     --retrieved-date 2026-09-12 \
     --field tdp_w=800 \
     --field peak_bf16_tflops=2400

@@ -81,7 +81,7 @@ Prices are not copied into this model. An API price copied today is wrong by nex
 
 | Service | Found at | Evidence | Per unit | Where to price it |
 |---|---|---|---|---|
-| Google Gemini API | `tools/benchmark-harness/scripts/generate_markdown_gt.py:33` | `from google import genai` | not known | [prices](https://ai.google.dev/pricing) |
+| Google Gemini API | `tools/benchmark-harness/scripts/generate_markdown_gt.py:33` | `from google import genai` | not known | [prices](https://ai.google.dev/gemini-api/docs/pricing) |
 
 ## Models this code calls
 

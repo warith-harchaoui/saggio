@@ -21,7 +21,7 @@ Adding it is one command and one pull request:
 
 ```bash
 saggio catalog add gpu H300 \
-    --source-url "https://www.nvidia.com/en-us/data-center/h300/" \
+    --source-url "https://example.invalid/nvidia-h300-datasheet" \
     --retrieved-date 2026-09-13 \
     --field tdp_w=800 \
     --field peak_bf16_tflops=2400
@@ -122,6 +122,31 @@ python docs/sync_api.py
 
 A contract test runs `python docs/sync_api.py --check`, so a reference that has
 drifted away from the package fails the build rather than misleading a reader.
+
+`docs/check_links.py` is the third of these, and the only one that reaches the
+network. Run it before a release:
+
+```bash
+python docs/check_links.py
+```
+
+It follows every link the repository asks a reader to follow — in the pages and
+in the catalogue rows beside the numbers they vouch for — and sorts the answers
+rather than reducing them to pass or fail. A 403 from Legifrance or ResearchGate
+is a robot filter, not a dead document, and calling it dead would be the worse
+lie. Only a server stating that it holds no such document fails the run.
+
+Two of its categories are worth reading even when the exit code is zero:
+**redirected** means the document moved and the citation did not follow — that
+is how the Gemini pricing row was found pointing at a page Google had retired —
+and **no reply at all** means a host that may simply be slow today.
+
+A link that *illustrates a command* rather than vouching for a number belongs on
+a domain reserved for documentation (`example.invalid` and the rest of RFC
+2606), and the checker skips those by rule. This is not a convenience: an
+invented source on a real vendor's domain is indistinguishable from a stale one,
+which is the worst a citation can be. Four pages carried
+`nvidia.com/en-us/data-center/h300/` for a graphics card that does not exist.
 
 ## Changing the schema
 

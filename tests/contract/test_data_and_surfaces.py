@@ -678,3 +678,29 @@ def test_no_row_cites_an_endpoint_that_would_show_a_reader_a_wrong_number() -> N
                             f"{name}:{row.get('key')} cites {value} in {field}; that "
                             "endpoint shows a reader a default figure, not this row's"
                         )
+
+
+def test_the_link_checker_finds_the_links_the_repository_asks_you_to_follow() -> None:
+    # The checker itself reaches the network and is therefore a maintenance
+    # script, not a test. What *is* testable without the network is that its
+    # collector still sees the two places a citation lives — the pages and the
+    # catalogue rows — because a collector that silently stopped finding them
+    # would report "nothing broken" forever.
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "check_links", Path(__file__).resolve().parents[2] / "docs" / "check_links.py"
+    )
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    cited = module.sources()
+    assert len(cited) > 100, "the collector stopped seeing most of the links"
+    assert any(place.startswith("catalogue:") for places in cited.values() for place in places), (
+        "no catalogue row's source URL is being checked, which is the half that matters"
+    )
+    assert any(place.endswith(".md") for places in cited.values() for place in places)
+    # An illustrative link is skipped by rule rather than by a list: a made-up
+    # source on a real vendor's domain is indistinguishable from a stale one.
+    assert not any("example.invalid" in url for url in cited)

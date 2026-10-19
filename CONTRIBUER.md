@@ -22,7 +22,7 @@ L'ajouter, c'est une commande et une pull request :
 
 ```bash
 saggio catalog add gpu H300 \
-    --source-url "https://www.nvidia.com/en-us/data-center/h300/" \
+    --source-url "https://example.invalid/nvidia-h300-datasheet" \
     --retrieved-date 2026-09-13 \
     --field tdp_w=800 \
     --field peak_bf16_tflops=2400
@@ -127,6 +127,34 @@ python docs/sync_api.py
 
 Un test de contrat lance `python docs/sync_api.py --check` : une référence qui a
 dérivé du paquet fait échouer le build au lieu d'induire un lecteur en erreur.
+
+`docs/check_links.py` est le troisième, et le seul qui touche le réseau. À
+lancer avant une publication :
+
+```bash
+python docs/check_links.py
+```
+
+Il suit chaque lien que le dépôt demande à un lecteur de suivre — dans les pages
+et dans les lignes de catalogue, à côté des nombres dont elles répondent — et
+trie les réponses au lieu de les réduire à un succès ou un échec. Un 403 de
+Legifrance ou de ResearchGate est un filtre anti-robot, pas un document mort, et
+le dire mort serait le pire mensonge. Seul un serveur affirmant qu'il n'a aucun
+document de ce nom fait échouer la vérification.
+
+Deux de ses catégories méritent d'être lues même quand le code de sortie est
+zéro : **redirigé** veut dire que le document a bougé et que la citation ne l'a
+pas suivi — c'est ainsi que la ligne de tarification Gemini a été trouvée
+pointant vers une page que Google avait retirée — et **aucune réponse** désigne
+un hôte peut-être simplement lent aujourd'hui.
+
+Un lien qui *illustre une commande* plutôt que de répondre d'un nombre doit
+vivre sur un domaine réservé à la documentation (`example.invalid` et le reste
+de la RFC 2606), et le vérificateur les saute par règle. Ce n'est pas un
+confort : une source inventée sur le domaine d'un vrai constructeur est
+indiscernable d'une source périmée, ce qui est le pire qu'une citation puisse
+être. Quatre pages portaient `nvidia.com/en-us/data-center/h300/` pour une carte
+graphique qui n'existe pas.
 
 ## Modifier le schéma
 

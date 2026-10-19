@@ -10,6 +10,40 @@ cette ligne.
 
 ## Non publié
 
+### Suivre chaque lien que le dépôt demande à un lecteur de suivre
+
+- L'argument de ce paquet est qu'une valeur dit d'où elle vient, et une source
+  qu'un lecteur ne peut pas atteindre est une valeur qui ne le dit plus. **Rien
+  ne vérifiait les liens.** `docs/check_links.py` suit les 208 — les pages, et
+  les lignes de catalogue à côté des nombres dont elles répondent — et trie les
+  réponses au lieu de les réduire à un succès ou un échec.
+- **Il a trouvé une citation qui avait déménagé.** La ligne de tarification
+  Gemini du catalogue de services pointait vers `ai.google.dev/pricing`, que
+  Google redirige désormais vers `ai.google.dev/gemini-api/docs/pricing`. Mise à
+  jour dans le catalogue et dans les deux modèles d'exemple qui l'avaient
+  recopiée. Une redirection est rapportée à part d'un refus pour exactement
+  cette raison : le document est toujours là et la citation ne pointe plus
+  dessus.
+- **Et quatre pages portaient une source inventée sur le domaine d'un vrai
+  constructeur.** La recette d'ajout d'une ligne de catalogue utilisait
+  `nvidia.com/en-us/data-center/h300/` pour une carte graphique qui n'existe
+  pas. Une citation inventée sur un vrai domaine est indiscernable d'une
+  citation périmée, ce qui est le pire qu'une citation puisse être. Les liens
+  d'illustration vivent désormais sur un domaine réservé à la documentation, et
+  le vérificateur les saute **par règle** plutôt que par une liste.
+- Le dépôt d'exemple de la recette d'audit est maintenant un dépôt qu'un lecteur
+  peut réellement auditer (`github.com/karpathy/nanoGPT`, que la galerie mesure
+  déjà) au lieu d'un espace réservé qui renvoie 404.
+- Un 403 de Legifrance, de ResearchGate ou d'Intel est un filtre anti-robot, pas
+  un document mort, et seul un serveur affirmant n'avoir aucun document de ce
+  nom fait échouer la vérification. Dix-neuf liens répondent ainsi aujourd'hui
+  et aucun n'est cassé.
+- C'est un script de maintenance et non un test, pour la raison qui vaut pour
+  `docs/sync_api.py` : une suite qui échoue parce que le serveur de quelqu'un
+  est lent apprend aux gens à ignorer la suite. Un test de contrat vérifie
+  seulement que son collecteur voit toujours les pages **et** les lignes de
+  catalogue.
+
 ### Une arithmétique écrite en prose doit être une arithmétique qui tombe juste
 
 - Trois endroits détaillent un calcul et posent la réponse à côté, et rien ne

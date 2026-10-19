@@ -9,6 +9,37 @@ release of that line.
 
 ## Unreleased
 
+### Following every link the repository asks a reader to follow
+
+- The argument of this package is that a figure says where it came from, and a
+  source a reader cannot reach is a figure that no longer does. **Nothing
+  checked the links.** `docs/check_links.py` follows all 208 of them — the
+  pages, and the catalogue rows beside the numbers they vouch for — and sorts
+  the answers instead of reducing them to pass or fail.
+- **It found a citation that had moved.** The service catalogue's Gemini
+  pricing row pointed at `ai.google.dev/pricing`, which Google now redirects to
+  `ai.google.dev/gemini-api/docs/pricing`. Updated in the catalogue and in the
+  two example models that had copied it. A redirect is reported apart from a
+  refusal for exactly this reason: the document is still there and the citation
+  is no longer pointing at it.
+- **And four pages carried an invented source on a real vendor's domain.** The
+  recipe for adding a catalogue row used
+  `nvidia.com/en-us/data-center/h300/` for a graphics card that does not exist.
+  A made-up citation on a real domain is indistinguishable from a stale one,
+  which is the worst a citation can be. Illustrative links now live on a domain
+  reserved for documentation, and the checker skips those **by rule** rather
+  than by a list.
+- The audit recipe's example repository is now one a reader can actually audit
+  (`github.com/karpathy/nanoGPT`, which the gallery already measures) instead of
+  a placeholder that 404s.
+- A 403 from Legifrance, ResearchGate or Intel is a robot filter, not a dead
+  document, and only a server stating it holds no such document fails the run.
+  Nineteen links answer that way today and none of them is broken.
+- It is a maintenance script and not a test, for the reason `docs/sync_api.py`
+  is: a suite that fails because somebody's server is slow teaches people to
+  ignore the suite. A contract test checks only that its collector still sees
+  both the pages and the catalogue rows.
+
 ### An arithmetic written in prose must be an arithmetic that works
 
 - Three places spell out a calculation and put the answer beside it, and nothing
