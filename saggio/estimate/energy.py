@@ -43,6 +43,7 @@ from __future__ import annotations
 from typing import Final
 
 from ..catalog.registry import Catalog
+from ..i18n import number as localised
 from ..i18n import say
 from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, TODO, weakest
@@ -580,7 +581,7 @@ def total_money(*amounts: Quantity) -> Quantity:
                 "energy.total.partial",
                 open_count=missing,
                 total_count=len(amounts),
-                amount=f"{running:g} {currency or 'in the shared currency'}",
+                amount=localised(f"{running:g} {currency or 'in the shared currency'}"),
             ),
             currency=currency,
         )

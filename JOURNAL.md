@@ -10,6 +10,36 @@ cette ligne.
 
 ## Non publié
 
+### Les nombres écrits comme la langue les écrit, et les 55 refus du validateur
+
+- **`17.4 W` en anglais, `17,4 W` en français.** Décision de Warith, contre ma
+  propre première réponse qui gardait le point partout ; l'argument que j'avais
+  donné — deux rapports restent comparables — n'en était pas un, parce qu'une
+  machine qui lit un chiffre lit le fichier de modèle, où il est un flottant dans
+  les deux cas. Un rapport est fait pour des gens.
+
+  Une seule fonction s'en charge : `saggio.i18n.number()` prend un chiffre
+  **déjà formaté** et déplace le séparateur **entre deux chiffres et nulle part
+  ailleurs**. Cette étroitesse est le fond de l'affaire : une passe sur une page
+  produite aurait réécrit `2026-10-18`, `schema 2.1`, `example.invalid` et tous
+  les chemins de champs pointés. La clé vit avec les étiquettes de la page plutôt
+  qu'avec les phrases du moteur, parce que les deux moitiés en ont besoin : le
+  moteur écrit un chiffre côté serveur, et le panneau what-if recalcule dans le
+  navigateur. Un test de contrat fixe que le script lit la même clé que le
+  moteur, pour que les deux formateurs ne puissent pas divercer.
+- **Tous les refus du validateur** (`model/validate.py`), 55 : les versions de
+  schéma, les blocs obligatoires, toutes les règles sur une quantité, les règles
+  de dérivation — le cercle, l'unité qui ne peut pas venir de ses entrées,
+  l'arithmétique qui ne découle pas — les déclarations de dimension, les
+  scénarios, le couple market-based. Chacun suit le chemin du champ et commence
+  donc en cours de phrase ; le français garde cette forme, parce que le chemin est
+  le sujet et qu'une traduction qui le répéterait se lirait deux fois.
+- Converti en appariant les **segments source de l'AST** plutôt que des copies
+  tapées à la main : les littéraux sont à quatre indentations différentes, et un
+  correctif qui en devine une échoue au milieu d'un fichier. Cinq d'entre eux
+  avaient une fin que j'avais paraphrasée de mémoire ; le catalogue porte
+  maintenant la formulation d'origine, celle qu'un test peut vérifier.
+
 ### L'étendue, la moitié incorporée, et une probabilité qu'un lecteur peut tenir
 
 - **Ce que répéter une mesure en dit** (`analyze/repeat.py`) : la phrase qui

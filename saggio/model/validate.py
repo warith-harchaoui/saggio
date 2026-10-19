@@ -57,6 +57,7 @@ import re
 from datetime import date
 from typing import Any, Final
 
+from ..i18n import say
 from .cost_model import CostModel, walk_bare_numbers
 from .derivation import candidates, disagrees, parse_unit
 from .dimensions import CANONICAL_DIMENSIONS, CARBON_MARKET_BASED
@@ -203,24 +204,22 @@ def _check_schema_version(model: CostModel, report: Report) -> None:
     if "schema_version" not in model.data:
         report.warning(
             "schema_version",
-            f'is missing; assuming "{SCHEMA_VERSION}". Add it at the top of the model.',
+            say("validate.schema.missing", version=SCHEMA_VERSION),
         )
         return
     declared = schema_major(model.data["schema_version"])
     current = schema_major(SCHEMA_VERSION)
     if declared is None:
-        report.error("schema_version", f'must be a MAJOR.MINOR string such as "{SCHEMA_VERSION}"')
+        report.error("schema_version", say("validate.schema.malformed", version=SCHEMA_VERSION))
     elif current is not None and declared > current:
         report.error(
             "schema_version",
-            f"declares major {declared}, newer than this build understands "
-            f"({SCHEMA_VERSION}); upgrade saggio",
+            say("validate.schema.newer", declared=declared, version=SCHEMA_VERSION),
         )
     elif current is not None and declared < current:
         report.warning(
             "schema_version",
-            f"declares major {declared}, older than the current {SCHEMA_VERSION}; "
-            "re-audit the model or bump it once you have checked the numbers",
+            say("validate.schema.older", declared=declared, version=SCHEMA_VERSION),
         )
 
 
@@ -247,35 +246,37 @@ def _check_required_blocks(model: CostModel, report: Report) -> None:
         if block in {"schema_version", "scenarios"}:
             continue
         if block not in model.data:
-            report.error(block, "is required and missing")
+            report.error(block, say("validate.required_missing"))
 
     updated = model.data.get("date_updated")
     if updated is not None:
         text = str(updated)
         if text == _TEMPLATE_DATE:
-            report.warning("date_updated", "is still the template placeholder")
+            report.warning("date_updated", say("validate.date.placeholder"))
         elif not _is_calendar_date(text):
-            report.error("date_updated", f"must be a {_TEMPLATE_DATE} calendar date, got {text!r}")
+            report.error(
+                "date_updated",
+                say("validate.date.not_calendar", shape=_TEMPLATE_DATE, given=repr(text)),
+            )
 
     unit = model.data.get("unit_of_work")
     if unit is not None and not isinstance(unit, dict):
-        report.error("unit_of_work", "must be a mapping")
+        report.error("unit_of_work", say("validate.unit_of_work.not_mapping"))
     elif isinstance(unit, dict) and not str(unit.get("name") or "").strip():
         report.error(
             "unit_of_work.name",
-            "is required: state the one thing whose cost this model reports, "
-            "such as 'one inference on a median request'",
+            say("validate.unit_of_work.name_required"),
         )
 
     deployment = model.data.get("deployment")
     if deployment is not None and not isinstance(deployment, dict):
-        report.error("deployment", "must be a mapping")
+        report.error("deployment", say("validate.deployment.not_mapping"))
 
     if not model.scenarios():
-        report.error("scenarios", "a model must define at least one scenario")
+        report.error("scenarios", say("validate.scenarios.none"))
 
     for block in model.unknown_blocks():
-        report.warning(block, "is not a block this build knows; it is carried through untouched")
+        report.warning(block, say("validate.unknown_block"))
 
 
 def _check_quantity(path: str, raw: dict[str, Any], model: CostModel, report: Report) -> None:
@@ -310,14 +311,12 @@ def _check_quantity(path: str, raw: dict[str, Any], model: CostModel, report: Re
         if _contains_number(raw[key]):
             report.error(
                 path,
-                f"hides numbers under {key!r}, which a quantity does not define; "
-                "a number the walker cannot see is a number outside the rules",
+                say("validate.quantity.hidden_numbers", key=repr(key)),
             )
         else:
             report.warning(
                 path,
-                f"carries {key!r}, which a quantity does not define; "
-                "move it to notes or to its own block",
+                say("validate.quantity.unknown_key", key=repr(key)),
             )
 
     for key in (
@@ -333,15 +332,13 @@ def _check_quantity(path: str, raw: dict[str, Any], model: CostModel, report: Re
         if isinstance(entry, (dict, list)):
             report.error(
                 path,
-                f"has a block where {key!r} should be text; "
-                "a number hidden inside it would escape the rules",
+                say("validate.quantity.block_where_text", key=repr(key)),
             )
 
     if not quantity.has_valid_status():
         report.error(
             path,
-            f"has status {quantity.status!r}; it must be one of "
-            "measured, estimated, placeholder, TODO",
+            say("validate.quantity.bad_status", status=repr(quantity.status)),
         )
         return
 
@@ -349,63 +346,63 @@ def _check_quantity(path: str, raw: dict[str, Any], model: CostModel, report: Re
     if value is not None and not quantity.carries_number():
         report.error(
             path,
-            f"has value {value!r}, which is not a number; write numbers unquoted, "
-            "or move prose to notes",
+            say("validate.quantity.value_not_number", value=repr(value)),
         )
     elif quantity.carries_number():
         if not math.isfinite(value):
             report.error(
                 path,
-                f"is {value!r}, which is not a finite number; NaN and infinity "
-                "state nothing a reader can check",
+                say("validate.quantity.value_not_finite", value=repr(value)),
             )
         elif value < 0:
             report.error(
                 path,
-                f"is {value!r}; a cost of running code cannot be negative",
+                say("validate.quantity.negative", value=repr(value)),
             )
         if not quantity.expects_a_value():
             report.warning(
                 path,
-                f"is status {quantity.status!r} but carries the number {value!r}; "
-                "a placeholder or a TODO should have no value",
+                say(
+                    "validate.quantity.placeholder_with_value",
+                    status=repr(quantity.status),
+                    value=repr(value),
+                ),
             )
     elif quantity.expects_a_value():
         report.error(
             path,
-            f"claims {quantity.status!r} but has no number; "
-            "either supply one or lower the status to TODO",
+            say("validate.quantity.claims_without_number", status=repr(quantity.status)),
         )
 
     if quantity.source_kind is not None and not is_valid_source_kind(quantity.source_kind):
         listed = ", ".join(SOURCE_KINDS)
         report.error(
             path,
-            f"has source_kind {quantity.source_kind!r}; it must be one of {listed}",
+            say(
+                "validate.quantity.bad_source_kind", kind=repr(quantity.source_kind), allowed=listed
+            ),
         )
 
     if quantity.currency is not None and not _CURRENCY_PATTERN.fullmatch(str(quantity.currency)):
         report.error(
             path,
-            f"has currency {quantity.currency!r}; it must be a three-letter ISO 4217 code",
+            say("validate.quantity.bad_currency", currency=repr(quantity.currency)),
         )
 
     retrieved = quantity.retrieved_date
     if retrieved == _TEMPLATE_DATE:
         report.warning(
             path,
-            f"has retrieved_date {_TEMPLATE_DATE!r}, still the template's literal; "
-            "write the date the source was actually read",
+            say("validate.quantity.template_date", date=repr(_TEMPLATE_DATE)),
         )
     elif retrieved is not None:
         age = _days_since(str(retrieved))
         if age is None:
-            report.error(path, f"has retrieved_date {retrieved!r}, which is not a calendar date")
+            report.error(path, say("validate.quantity.date_not_calendar", date=repr(retrieved)))
         elif age > FRESHNESS_WARN_DAYS:
             report.warning(
                 path,
-                f"was sourced {age} days ago, past the {FRESHNESS_WARN_DAYS}-day mark; "
-                "re-read the source and refresh the number",
+                say("validate.quantity.stale", age=age, limit=FRESHNESS_WARN_DAYS),
             )
 
     _check_derivation(path, quantity, model, report)
@@ -448,20 +445,19 @@ def _check_derivation(path: str, quantity: Quantity, model: CostModel, report: R
     inputs: list[dict[str, Any]] = []
     for reference in quantity.derived_from:
         if reference == path:
-            report.error(path, "lists itself in derived_from")
+            report.error(path, say("validate.derivation.self"))
             continue
         node = model.get(reference)
         if node is None:
             report.error(
                 path,
-                f"derives from {reference!r}, which names nothing in this model",
+                say("validate.derivation.unknown_reference", reference=repr(reference)),
             )
             continue
         if not looks_like_quantity(node):
             report.error(
                 path,
-                f"derives from {reference!r}, which is not a quantity; "
-                "a derivation must name something that carries a status",
+                say("validate.derivation.not_a_quantity", reference=repr(reference)),
             )
             continue
         input_statuses.append(str(node.get("status")) if node.get("status") is not None else None)
@@ -471,8 +467,9 @@ def _check_derivation(path: str, quantity: Quantity, model: CostModel, report: R
     if overclaims(quantity.status, ceiling):
         report.error(
             path,
-            f"claims {quantity.status!r} but its weakest input is {ceiling!r}; "
-            "a derived value cannot outrank the numbers it came from",
+            say(
+                "validate.derivation.outranks", status=repr(quantity.status), ceiling=repr(ceiling)
+            ),
         )
 
     _check_arithmetic(path, quantity, inputs, report)
@@ -575,17 +572,12 @@ def _check_measured_is_attributable(
             return
         report.warning(
             path,
-            f"is measured in {quantity.unit!r}, which a timed run does not observe. "
-            "The measurement block in this model attests durations, energy, power "
-            "and bytes; it cannot attest this one. Say in notes what measured it, "
-            "or derive it from something that was measured",
+            say("validate.measured.unit_not_observed", unit=repr(quantity.unit)),
         )
         return
     report.warning(
         path,
-        "is measured but nothing says what measured it: no note, no derivation, "
-        "and no measurement block in this model. `estimated` has to name a source; "
-        "the stronger status should not ask for less",
+        say("validate.measured.without_how"),
     )
 
 
@@ -641,9 +633,7 @@ def _check_arithmetic(
     if not possible:
         report.error(
             path,
-            f"is written in {quantity.unit!r}, which cannot come from the inputs it "
-            f"names: no way of multiplying and dividing them gives that unit. The "
-            "derivation and the unit disagree",
+            say("validate.derivation.unit_mismatch", unit=repr(quantity.unit)),
         )
         return
 
@@ -658,10 +648,11 @@ def _check_arithmetic(
     gives = " or ".join(f"{value:.6g}" for value in sorted(possible))
     report.error(
         path,
-        f"states {quantity.value!r} but does not follow from the inputs it names, "
-        f"which give {gives} {quantity.unit}. Either the number or the derivation "
-        "is wrong; naming inputs a value did not come from is the one mistake this "
-        "field exists to make impossible",
+        say(
+            "validate.derivation.does_not_follow",
+            value=repr(quantity.value),
+            expected=f"{gives} {quantity.unit}",
+        ),
     )
 
 
@@ -729,9 +720,7 @@ def _check_derivation_cycles(model: CostModel, report: Report) -> None:
                     reported.add(mark)
                     report.error(
                         node,
-                        f"derives in a circle: {' -> '.join(circle)}. Every value in "
-                        "it is founded on another value in it, so none of them rests "
-                        "on anything measured or sourced",
+                        say("validate.derivation.circle", circle=" -> ".join(circle)),
                     )
             elif colour[other] == unvisited:
                 walk(other, trail)
@@ -765,7 +754,7 @@ def _check_bare_numbers(model: CostModel, report: Report) -> None:
             continue
         report.error(
             path,
-            "is a bare number; wrap it in a quantity so it carries an honesty status",
+            say("validate.bare_number"),
         )
 
 
@@ -790,7 +779,7 @@ def _check_dimensions(model: CostModel, report: Report) -> None:
     registry = model.registry
     declared = model.data.get("dimensions")
     if declared is not None and not isinstance(declared, list):
-        report.error("dimensions", "must be a list of dimension declarations")
+        report.error("dimensions", say("validate.dimensions.not_list"))
     elif isinstance(declared, list):
         # The registry drops a colliding declaration rather than failing to build,
         # which leaves the model saying one thing and the tool reading another. The
@@ -800,30 +789,26 @@ def _check_dimensions(model: CostModel, report: Report) -> None:
         for index, entry in enumerate(declared):
             entry_path = f"dimensions[{index}]"
             if not isinstance(entry, dict):
-                report.error(entry_path, "must be a mapping with at least a key")
+                report.error(entry_path, say("validate.dimensions.entry_not_mapping"))
                 continue
             key = str(entry.get("key") or "").strip()
             if not key:
-                report.error(f"{entry_path}.key", "is required")
+                report.error(f"{entry_path}.key", say("validate.dimensions.key_required"))
                 continue
             if key in seen:
                 report.error(
                     f"{entry_path}.key",
-                    f"declares {key!r} a second time; the later declaration is ignored, "
-                    "so remove it or give this dimension its own key",
+                    say("validate.dimensions.duplicate", key=repr(key)),
                 )
                 continue
             seen.add(key)
             if key in canonical:
                 report.warning(
                     f"{entry_path}.key",
-                    f"redeclares the built-in dimension {key!r}; the built-in label and "
-                    "unit are what reports use, so this declaration changes nothing",
+                    say("validate.dimensions.redeclares_builtin", key=repr(key)),
                 )
             if not str(entry.get("unit") or "").strip():
-                report.warning(
-                    f"{entry_path}.unit", "is empty; say what the numbers are counted in"
-                )
+                report.warning(f"{entry_path}.unit", say("validate.dimensions.empty_unit"))
 
     raw_scenarios = model.data.get("scenarios")
     if isinstance(raw_scenarios, list):
@@ -831,7 +816,7 @@ def _check_dimensions(model: CostModel, report: Report) -> None:
             if not isinstance(entry, dict):
                 report.error(
                     f"scenarios[{index}]",
-                    "is not a mapping; a scenario is a block with a name and costs",
+                    say("validate.scenario.not_mapping"),
                 )
 
     # indexed_scenarios keeps the document's own positions: a stray non-mapping
@@ -839,41 +824,39 @@ def _check_dimensions(model: CostModel, report: Report) -> None:
     for index, scenario in model.indexed_scenarios():
         base = model.scenario_path(index)
         if not str(scenario.get("name") or "").strip():
-            report.error(f"{base}.name", "is required so reports and diffs can name the scenario")
+            report.error(f"{base}.name", say("validate.scenario.name_required"))
         costs = scenario.get("costs")
         if costs is None:
             report.error(
                 f"{base}.costs",
-                "is required: a scenario states what one unit of work costs, keyed by dimension",
+                say("validate.scenario.costs_required"),
             )
             continue
         if not isinstance(costs, dict):
-            report.error(f"{base}.costs", "must be a mapping of dimension key to quantity")
+            report.error(f"{base}.costs", say("validate.scenario.costs_not_mapping"))
             continue
         for key, value in costs.items():
             key_path = f"{base}.costs.{key}"
             if key not in registry:
                 report.error(
                     key_path,
-                    f"{key!r} is not a registered dimension; register it under the model's "
-                    "top-level dimensions block or correct the spelling",
+                    say("validate.scenario.unknown_dimension", key=repr(key)),
                 )
                 continue
             if not looks_like_quantity(value):
-                report.error(key_path, "must be a quantity with a value and a status")
+                report.error(key_path, say("validate.scenario.not_a_quantity"))
                 continue
             dimension = registry.get(key)
             currency = value.get("currency")
             if dimension.is_money and not currency:
                 report.error(
                     key_path,
-                    f"is on the money dimension {key!r} but names no currency; "
-                    "add an ISO 4217 code so nobody adds dollars to euros",
+                    say("validate.scenario.money_no_currency", key=repr(key)),
                 )
             if not dimension.is_money and currency:
                 report.warning(
                     key_path,
-                    f"names a currency but {key!r} is not a money dimension",
+                    say("validate.scenario.currency_on_non_money", key=repr(key)),
                 )
 
 
@@ -905,7 +888,7 @@ def _check_assumption_provenance(model: CostModel, report: Report) -> None:
     assumptions = model.data.get("assumptions")
     if not isinstance(assumptions, dict):
         if assumptions is not None:
-            report.error("assumptions", "must be a mapping of name to quantity")
+            report.error("assumptions", say("validate.assumptions.not_mapping"))
         return
     for key, value in assumptions.items():
         if not looks_like_quantity(value):
@@ -923,13 +906,12 @@ def _check_assumption_provenance(model: CostModel, report: Report) -> None:
                 continue
             report.warning(
                 f"assumptions.{key}",
-                "is estimated with no source_url; add the page the number came from "
-                "so a reader can verify and refresh it",
+                say("validate.assumptions.estimated_without_source"),
             )
         if value.get("status") == MEASURED and not value.get("notes"):
             report.warning(
                 f"assumptions.{key}",
-                "is measured but says nothing about how; note the instrument in notes",
+                say("validate.assumptions.measured_without_note"),
             )
 
 
@@ -974,16 +956,12 @@ def _check_scope_two_pair(model: CostModel, report: Report) -> None:
             if not factor.get("source_url"):
                 report.error(
                     f"assumptions.{MARKET_FACTOR_KEY}",
-                    "states a market-based emission factor with no source_url. This is "
-                    "the one number in the model nobody else can check and nothing here "
-                    "can refresh, so it needs the supplier document, certificate or "
-                    "residual-mix publication that states it",
+                    say("validate.market.no_source"),
                 )
             if not factor.get("retrieved_date"):
                 report.warning(
                     f"assumptions.{MARKET_FACTOR_KEY}",
-                    "has no retrieved_date; a contract factor is restated every year, "
-                    "so say which reading this is",
+                    say("validate.market.no_date"),
                 )
 
     for index, scenario in model.indexed_scenarios():
@@ -997,9 +975,7 @@ def _check_scope_two_pair(model: CostModel, report: Report) -> None:
         if not (looks_like_quantity(located) and located.get("value") is not None):
             report.warning(
                 f"{model.scenario_path(index)}.costs.{CARBON_MARKET_BASED.key}",
-                "is the market-based half of scope 2 with no location-based figure "
-                "beside it. The guidance requires both, and this is the half a "
-                "contract can improve, so alone it reads better than the disclosure is",
+                say("validate.market.alone"),
             )
 
 

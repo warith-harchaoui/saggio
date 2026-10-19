@@ -57,6 +57,7 @@ Warith Harchaoui
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -264,6 +265,67 @@ def language(code: str | None) -> Iterator[str]:
         yield chosen
     finally:
         _CURRENT.reset(token)
+
+
+def decimal_separator(code: str | None = None) -> str:
+    """Return the character this language writes between units and tenths.
+
+    Parameters
+    ----------
+    code : str or None, optional
+        A language tag; the one in force when omitted.
+
+    Returns
+    -------
+    str
+        ``"."`` or ``","``. It is kept with the page's labels rather than with
+        the engine's sentences because both halves need it: the renderer writes
+        a figure server-side, and the what-if panel recomputes in the browser
+        from the table the page carries.
+
+    Examples
+    --------
+    >>> decimal_separator("en"), decimal_separator("fr")
+    ('.', ',')
+    """
+    return phrase("number.decimal", language=code or current_language(), table="label") or "."
+
+
+def number(text: str) -> str:
+    """Return a formatted number written the way the language in force writes it.
+
+    Takes the output of a format specification rather than a value, so that
+    every caller keeps the precision it chose — significant figures, a fixed
+    number of decimals, scientific notation — and only the separator moves.
+
+    Nothing else is touched. A blanket substitution over a report would have
+    rewritten dates, schema versions, dotted field paths and URLs; this is
+    called on the digits and on nothing else.
+
+    Parameters
+    ----------
+    text : str
+        An already-formatted number, in the authored notation.
+
+    Returns
+    -------
+    str
+        The same figure, with this language's decimal separator.
+
+    Examples
+    --------
+    >>> number("17.4")
+    '17.4'
+    >>> with language("fr"):
+    ...     number("17.4"), number("1.087e+04"), number("not known")
+    ('17,4', '1,087e+04', 'not known')
+    """
+    separator = decimal_separator()
+    if separator == "." or not text:
+        return text
+    # Only between digits: `2.5e-05` has one, `example.invalid` has none, and a
+    # thousands group would be a different decision in a different sentence.
+    return re.sub(r"(?<=\d)\.(?=\d)", separator, text)
 
 
 def say(key: str, /, **arguments: object) -> str:

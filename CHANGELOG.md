@@ -9,6 +9,35 @@ release of that line.
 
 ## Unreleased
 
+### Numbers written the way the language writes them, and the validator's 55 refusals
+
+- **`17.4 W` in English, `17,4 W` in French.** Warith's call, against my own
+  first answer, which was to keep the point everywhere; the argument I gave for
+  it — that two reports stay comparable — was not one, because a machine reading
+  a figure reads the model file, where it is a float either way. A report is for
+  people.
+
+  One function does it: `saggio.i18n.number()` takes an **already formatted**
+  figure and moves the separator **between two digits and nowhere else**. That
+  narrowness is the point — a pass over a rendered page would have rewritten
+  `2026-10-18`, `schema 2.1`, `example.invalid` and every dotted field path. The
+  key lives with the page's labels rather than with the engine's sentences,
+  because both halves need it: the renderer writes a figure server-side, and the
+  what-if panel recomputes in the browser. A contract test pins that the script
+  reads the same key the renderer reads, so the two formatters cannot disagree.
+- **Every refusal the validator makes** (`model/validate.py`), 55 of them:
+  the schema versions, the required blocks, every quantity rule, the derivation
+  rules — the circle, the unit that cannot come from its inputs, the arithmetic
+  that does not follow — the dimension declarations, the scenarios, the
+  market-based pair. Each one follows the field's own path, so it begins
+  mid-phrase; the French keeps that shape, because the path is the subject and a
+  translation that repeated it would read twice.
+- Converted by matching **AST source segments** rather than hand-typed copies:
+  the literals sit at four different indentations, and a patch that guesses one
+  of them fails halfway through a file. Five of them turned out to have tails I
+  had paraphrased from memory; the catalogue now carries the authored wording,
+  which is the one a test can check.
+
 ### The spread, the embodied half, and the odds a reader can hold
 
 - **What repeating a measurement says** (`analyze/repeat.py`): the sentence that

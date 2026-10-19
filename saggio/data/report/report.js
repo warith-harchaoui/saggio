@@ -122,8 +122,18 @@
     if (value === null || value === undefined || !isFinite(value)) { return "—"; }
     if (value === 0) { return "0"; }
     var magnitude = Math.abs(value);
-    if (magnitude < 1e-3 || magnitude >= 1e7) { return value.toExponential(2); }
-    return value.toPrecision(digits || 4).replace(/\.?0+$/, "");
+    var written;
+    if (magnitude < 1e-3 || magnitude >= 1e7) {
+      written = value.toExponential(2);
+    } else {
+      written = value.toPrecision(digits || 4).replace(/\.?0+$/, "");
+    }
+    /* The same rule the renderer follows: a figure is written the way the
+       language in force writes it, and the separator moves between digits and
+       nowhere else. These panels recompute in the browser, so the server's
+       formatter cannot do it for them. */
+    var point = translated("number.decimal", ".");
+    return point === "." ? written : written.replace(/(\d)\.(\d)/g, "$1" + point + "$2");
   }
 
   function recompute() {

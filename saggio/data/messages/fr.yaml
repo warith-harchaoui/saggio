@@ -468,3 +468,146 @@ repeat.odds.one_in: "une fois sur {count}"
 repeat.figure.runtime_s: "le temps d'exécution"
 repeat.figure.power_w: "la puissance mesurée"
 repeat.cannot_run: "Une commande ne peut pas être exécutée {repeats} fois."
+
+# --- Ce que le validateur refuse, et pourquoi (saggio/model/validate.py)
+#
+# Chacune de ces phrases suit le chemin du champ : elle commence donc en cours
+# de phrase — « `scenarios` un modèle doit définir au moins un scénario ».
+# Gardez cette forme : le chemin est le sujet, et une traduction qui le
+# répéterait se lirait deux fois.
+
+validate.schema.missing: >-
+  est absent ; « {version} » est supposé. Ajoutez-le en tête du modèle.
+validate.schema.malformed: 'doit être une chaîne MAJEUR.MINEUR, par exemple « {version} »'
+validate.schema.newer: >-
+  déclare le majeur {declared}, plus récent que ce que cette version comprend
+  ({version}) ; mettez saggio à jour
+validate.schema.older: >-
+  déclare le majeur {declared}, plus ancien que l'actuel {version} ; réauditez le
+  modèle ou relevez-le une fois les chiffres vérifiés
+validate.required_missing: "est obligatoire et absent"
+validate.date.placeholder: "est encore la valeur du gabarit"
+validate.date.not_calendar: "doit être une date calendaire {shape}, reçu {given}"
+validate.unit_of_work.not_mapping: "doit être une table"
+validate.unit_of_work.name_required: >-
+  est obligatoire : énoncez la chose unique dont ce modèle rapporte le coût, par
+  exemple « une inférence sur une requête médiane »
+validate.deployment.not_mapping: "doit être une table"
+validate.scenarios.none: "un modèle doit définir au moins un scénario"
+validate.unknown_block: >-
+  n'est pas un bloc que cette version connaît ; il est transporté tel quel
+validate.quantity.hidden_numbers: >-
+  cache des nombres sous {key}, que la notion de quantité ne définit pas ; un
+  nombre que le parcours ne voit pas est un nombre hors des règles
+validate.quantity.unknown_key: >-
+  porte {key}, que la notion de quantité ne définit pas ; déplacez-le dans notes
+  ou dans un bloc à lui
+validate.quantity.block_where_text: >-
+  a un bloc là où {key} devrait être du texte ; un nombre caché dedans
+  échapperait aux règles
+validate.quantity.bad_status: >-
+  a le statut {status} ; il doit valoir measured, estimated, placeholder ou TODO
+validate.quantity.value_not_number: >-
+  a la valeur {value}, qui n'est pas un nombre ; écrivez les nombres sans
+  guillemets, ou déplacez la prose dans notes
+validate.quantity.value_not_finite: >-
+  vaut {value}, qui n'est pas un nombre fini ; NaN et l'infini n'énoncent rien
+  qu'un lecteur puisse vérifier
+validate.quantity.negative: "vaut {value} ; le coût d'exécution d'un code ne peut pas être négatif"
+validate.quantity.placeholder_with_value: >-
+  a le statut {status} mais porte le nombre {value} ; un placeholder ou un TODO
+  ne devrait porter aucune valeur
+validate.quantity.claims_without_number: >-
+  revendique {status} sans porter de nombre ; fournissez-en un ou abaissez le
+  statut à TODO
+validate.quantity.bad_source_kind: "a le source_kind {kind} ; il doit valoir {allowed}"
+validate.quantity.bad_currency: >-
+  a la devise {currency} ; il faut un code ISO 4217 de trois lettres
+validate.quantity.template_date: >-
+  a le retrieved_date {date}, encore celui du gabarit ; écrivez la date à
+  laquelle la source a réellement été lue
+validate.quantity.date_not_calendar: >-
+  a le retrieved_date {date}, qui n'est pas une date calendaire
+validate.quantity.stale: >-
+  a été sourcé il y a {age} jours, au-delà du seuil de {limit} jours ; relisez la
+  source et rafraîchissez le nombre
+validate.derivation.self: "se cite lui-même dans derived_from"
+validate.derivation.unknown_reference: >-
+  dérive de {reference}, qui ne nomme rien dans ce modèle
+validate.derivation.not_a_quantity: >-
+  dérive de {reference}, qui n'est pas une quantité ; une dérivation doit nommer
+  quelque chose qui porte un statut
+validate.derivation.outranks: >-
+  revendique {status} alors que son entrée la plus faible est {ceiling} ; une
+  valeur dérivée ne peut pas surclasser les nombres d'où elle vient
+validate.derivation.circle: >-
+  dérive en cercle : {circle}. Chaque valeur du cercle est fondée sur une autre
+  valeur du cercle : aucune ne repose donc sur quoi que ce soit de mesuré ou de
+  sourcé
+validate.derivation.unit_mismatch: >-
+  est écrit en {unit}, qui ne peut pas venir des entrées qu'il nomme : aucune
+  façon de les multiplier et de les diviser ne donne cette unité. La dérivation
+  et l'unité se contredisent
+validate.derivation.does_not_follow: >-
+  énonce {value} mais ne découle pas des entrées qu'il nomme, lesquelles donnent
+  {expected}. Le nombre ou la dérivation est faux ; nommer des entrées d'où une
+  valeur ne vient pas est précisément la faute que ce champ existe pour rendre
+  impossible
+validate.measured.unit_not_observed: >-
+  est mesuré en {unit}, ce qu'une exécution chronométrée n'observe pas. Le bloc
+  de mesure de ce modèle atteste des durées, de l'énergie, de la puissance et des
+  octets ; il ne peut pas attester celle-ci. Dites dans notes ce qui l'a mesurée,
+  ou dérivez-la de quelque chose qui a été mesuré
+validate.measured.without_how: >-
+  est mesuré sans que rien ne dise par quoi : ni note, ni dérivation, ni bloc de
+  mesure dans ce modèle. `estimated` doit nommer une source ; le statut plus fort
+  ne devrait pas en demander moins
+validate.bare_number: >-
+  est un nombre nu ; enveloppez-le dans une quantité pour qu'il porte un statut
+  d'honnêteté
+validate.dimensions.not_list: "doit être une liste de déclarations de dimension"
+validate.dimensions.entry_not_mapping: "doit être une table avec au moins une clé"
+validate.dimensions.key_required: "est obligatoire"
+validate.dimensions.duplicate: >-
+  déclare {key} une seconde fois ; la déclaration la plus tardive est ignorée,
+  donc retirez-la ou donnez à cette dimension sa propre clé
+validate.dimensions.redeclares_builtin: >-
+  redéclare la dimension intégrée {key} ; ce sont l'étiquette et l'unité
+  intégrées que les rapports utilisent, cette déclaration ne change donc rien
+validate.dimensions.empty_unit: "est vide ; dites en quoi les nombres sont comptés"
+validate.scenario.not_mapping: >-
+  n'est pas une table ; un scénario est un bloc avec un nom et des coûts
+validate.scenario.name_required: >-
+  est obligatoire pour que les rapports et les comparaisons puissent nommer le
+  scénario
+validate.scenario.costs_required: >-
+  est obligatoire : un scénario énonce ce que coûte une unité de travail, par
+  dimension
+validate.scenario.costs_not_mapping: "doit être une table de clé de dimension vers quantité"
+validate.scenario.unknown_dimension: >-
+  {key} n'est pas une dimension enregistrée ; enregistrez-la dans le bloc
+  dimensions du modèle ou corrigez l'orthographe
+validate.scenario.not_a_quantity: "doit être une quantité avec une valeur et un statut"
+validate.scenario.money_no_currency: >-
+  porte sur la dimension monétaire {key} sans nommer de devise ; ajoutez un code
+  ISO 4217 pour que personne n'additionne des dollars à des euros
+validate.scenario.currency_on_non_money: >-
+  nomme une devise alors que {key} n'est pas une dimension monétaire
+validate.assumptions.not_mapping: "doit être une table de nom vers quantité"
+validate.assumptions.estimated_without_source: >-
+  est estimé sans source_url ; ajoutez la page d'où vient le nombre pour qu'un
+  lecteur puisse le vérifier et le rafraîchir
+validate.assumptions.measured_without_note: >-
+  est mesuré sans rien dire du comment ; notez l'instrument dans notes
+validate.market.no_source: >-
+  énonce un facteur d'émission market-based sans source_url. C'est le seul nombre
+  du modèle que personne d'autre ne peut vérifier et que rien ici ne peut
+  rafraîchir : il lui faut donc le document fournisseur, le certificat ou la
+  publication de mix résiduel qui l'énonce
+validate.market.no_date: >-
+  n'a pas de retrieved_date ; un facteur contractuel est réénoncé chaque année,
+  dites donc de quelle lecture il s'agit
+validate.market.alone: >-
+  est la moitié market-based du scope 2, sans chiffre location-based à côté. La
+  guidance exige les deux, et c'est la moitié qu'un contrat peut améliorer :
+  seule, elle se lit mieux que la déclaration ne l'est

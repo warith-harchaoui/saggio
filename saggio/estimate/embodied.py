@@ -67,6 +67,7 @@ from __future__ import annotations
 
 from typing import Final
 
+from ..i18n import number as localised
 from ..i18n import say
 from ..model.quantity import Quantity
 from ..model.taxonomy import TODO, weakest
@@ -246,10 +247,10 @@ def embodied_carbon(
         status=weakest("estimated", embodied.status, lifetime.status),
         notes=say(
             "embodied.method",
-            footprint=f"{embodied.value:g} kgCO2e",
-            hours=f"{run_hours:g} h",
-            years=f"{lifetime_hours / HOURS_PER_YEAR:.2f}",
-            share=f"{share:g}",
+            footprint=localised(f"{embodied.value:g} kgCO2e"),
+            hours=localised(f"{run_hours:g} h"),
+            years=localised(f"{lifetime_hours / HOURS_PER_YEAR:.2f}"),
+            share=localised(f"{share:g}"),
             calendar=say(_CALENDAR_NOTE_KEY),
         ),
     )

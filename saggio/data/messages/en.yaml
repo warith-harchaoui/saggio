@@ -424,3 +424,135 @@ repeat.odds.one_in: "one time in {count}"
 repeat.figure.runtime_s: "runtime"
 repeat.figure.power_w: "measured power"
 repeat.cannot_run: "A command cannot be run {repeats} times."
+
+# --- What the validator refuses, and why (saggio/model/validate.py)
+#
+# Each of these follows the field's own path, so a sentence begins mid-phrase:
+# "`scenarios` a model must define at least one scenario". Keep that shape — the
+# path is the subject, and a translation that repeated it would read twice.
+
+validate.schema.missing: >-
+  is missing; assuming "{version}". Add it at the top of the model.
+validate.schema.malformed: 'must be a MAJOR.MINOR string such as "{version}"'
+validate.schema.newer: >-
+  declares major {declared}, newer than this build understands ({version});
+  upgrade saggio
+validate.schema.older: >-
+  declares major {declared}, older than the current {version}; re-audit the
+  model or bump it once you have checked the numbers
+validate.required_missing: "is required and missing"
+validate.date.placeholder: "is still the template placeholder"
+validate.date.not_calendar: "must be a {shape} calendar date, got {given}"
+validate.unit_of_work.not_mapping: "must be a mapping"
+validate.unit_of_work.name_required: >-
+  is required: state the one thing whose cost this model reports, such as 'one
+  inference on a median request'
+validate.deployment.not_mapping: "must be a mapping"
+validate.scenarios.none: "a model must define at least one scenario"
+validate.unknown_block: "is not a block this build knows; it is carried through untouched"
+validate.quantity.hidden_numbers: >-
+  hides numbers under {key}, which a quantity does not define; a number the
+  walker cannot see is a number outside the rules
+validate.quantity.unknown_key: >-
+  carries {key}, which a quantity does not define; move it to notes or to its
+  own block
+validate.quantity.block_where_text: >-
+  has a block where {key} should be text; a number hidden inside it would escape
+  the rules
+validate.quantity.bad_status: >-
+  has status {status}; it must be one of measured, estimated, placeholder, TODO
+validate.quantity.value_not_number: >-
+  has value {value}, which is not a number; write numbers unquoted, or move
+  prose to notes
+validate.quantity.value_not_finite: >-
+  is {value}, which is not a finite number; NaN and infinity state nothing a
+  reader can check
+validate.quantity.negative: "is {value}; a cost of running code cannot be negative"
+validate.quantity.placeholder_with_value: >-
+  is status {status} but carries the number {value}; a placeholder or a TODO
+  should have no value
+validate.quantity.claims_without_number: >-
+  claims {status} but has no number; either supply one or lower the status to TODO
+validate.quantity.bad_source_kind: "has source_kind {kind}; it must be one of {allowed}"
+validate.quantity.bad_currency: >-
+  has currency {currency}; it must be a three-letter ISO 4217 code
+validate.quantity.template_date: >-
+  has retrieved_date {date}, still the template's literal; write the date the
+  source was actually read
+validate.quantity.date_not_calendar: >-
+  has retrieved_date {date}, which is not a calendar date
+validate.quantity.stale: >-
+  was sourced {age} days ago, past the {limit}-day mark; re-read the source and
+  refresh the number
+validate.derivation.self: "lists itself in derived_from"
+validate.derivation.unknown_reference: >-
+  derives from {reference}, which names nothing in this model
+validate.derivation.not_a_quantity: >-
+  derives from {reference}, which is not a quantity; a derivation must name
+  something that carries a status
+validate.derivation.outranks: >-
+  claims {status} but its weakest input is {ceiling}; a derived value cannot
+  outrank the numbers it came from
+validate.derivation.circle: >-
+  derives in a circle: {circle}. Every value in it is founded on another value
+  in it, so none of them rests on anything measured or sourced
+validate.derivation.unit_mismatch: >-
+  is written in {unit}, which cannot come from the inputs it names: no way of
+  multiplying and dividing them gives that unit. The derivation and the unit
+  disagree
+validate.derivation.does_not_follow: >-
+  states {value} but does not follow from the inputs it names, which give
+  {expected}. Either the number or the derivation is wrong; naming inputs a
+  value did not come from is the one mistake this field exists to make impossible
+validate.measured.unit_not_observed: >-
+  is measured in {unit}, which a timed run does not observe. The measurement
+  block in this model attests durations, energy, power and bytes; it cannot
+  attest this one. Say in notes what measured it, or derive it from something
+  that was measured
+validate.measured.without_how: >-
+  is measured but nothing says what measured it: no note, no derivation, and no
+  measurement block in this model. `estimated` has to name a source; the
+  stronger status should not ask for less
+validate.bare_number: >-
+  is a bare number; wrap it in a quantity so it carries an honesty status
+validate.dimensions.not_list: "must be a list of dimension declarations"
+validate.dimensions.entry_not_mapping: "must be a mapping with at least a key"
+validate.dimensions.key_required: "is required"
+validate.dimensions.duplicate: >-
+  declares {key} a second time; the later declaration is ignored, so remove it
+  or give this dimension its own key
+validate.dimensions.redeclares_builtin: >-
+  redeclares the built-in dimension {key}; the built-in label and unit are what
+  reports use, so this declaration changes nothing
+validate.dimensions.empty_unit: "is empty; say what the numbers are counted in"
+validate.scenario.not_mapping: "is not a mapping; a scenario is a block with a name and costs"
+validate.scenario.name_required: "is required so reports and diffs can name the scenario"
+validate.scenario.costs_required: >-
+  is required: a scenario states what one unit of work costs, keyed by dimension
+validate.scenario.costs_not_mapping: "must be a mapping of dimension key to quantity"
+validate.scenario.unknown_dimension: >-
+  {key} is not a registered dimension; register it under the model's top-level
+  dimensions block or correct the spelling
+validate.scenario.not_a_quantity: "must be a quantity with a value and a status"
+validate.scenario.money_no_currency: >-
+  is on the money dimension {key} but names no currency; add an ISO 4217 code so
+  nobody adds dollars to euros
+validate.scenario.currency_on_non_money: "names a currency but {key} is not a money dimension"
+validate.assumptions.not_mapping: "must be a mapping of name to quantity"
+validate.assumptions.estimated_without_source: >-
+  is estimated with no source_url; add the page the number came from so a reader
+  can verify and refresh it
+validate.assumptions.measured_without_note: >-
+  is measured but says nothing about how; note the instrument in notes
+validate.market.no_source: >-
+  states a market-based emission factor with no source_url. This is the one
+  number in the model nobody else can check and nothing here can refresh, so it
+  needs the supplier document, certificate or residual-mix publication that
+  states it
+validate.market.no_date: >-
+  has no retrieved_date; a contract factor is restated every year, so say which
+  reading this is
+validate.market.alone: >-
+  is the market-based half of scope 2 with no location-based figure beside it.
+  The guidance requires both, and this is the half a contract can improve, so
+  alone it reads better than the disclosure is

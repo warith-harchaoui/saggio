@@ -42,6 +42,7 @@ from ..estimate.ghg import (
     placements,
 )
 from ..i18n import current_language, phrase, say
+from ..i18n import number as localised
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
 from ..model.quantity import Quantity, looks_like_quantity
@@ -100,6 +101,14 @@ def format_number(value: float | int | None) -> str:
     '0'
     >>> format_number(None)
     'not known'
+
+    A figure is written the way the language in force writes it, which for
+    French means a comma between the units and the tenths:
+
+    >>> from ..i18n import language
+    >>> with language("fr"):
+    ...     format_number(17.4)
+    '17,4'
     """
     if value is None:
         return not_known()
@@ -110,7 +119,7 @@ def format_number(value: float | int | None) -> str:
     # drops trailing zeros either way. Energy per request is routinely a hundred
     # thousandth of a kilowatt-hour, so scientific notation is the common case,
     # not the exception.
-    return f"{number:.{_SIGNIFICANT_FIGURES}g}"
+    return localised(f"{number:.{_SIGNIFICANT_FIGURES}g}")
 
 
 def format_quantity(quantity: Quantity) -> str:
@@ -231,7 +240,7 @@ def format_duration(seconds: float | int | None) -> str:
     # model needs the number the model holds. Plainly, though: `1.087e+04 s` is
     # the spelling this function exists to stop printing, and printing it in
     # the parenthesis would be the same fault one bracket further in.
-    exact = f"{total:.1f}".rstrip("0").rstrip(".")
+    exact = localised(f"{total:.1f}".rstrip("0").rstrip("."))
     return f"{' '.join(parts[:2])} ({exact} s)"
 
 

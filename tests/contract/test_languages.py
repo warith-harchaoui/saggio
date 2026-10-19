@@ -425,3 +425,40 @@ def test_every_label_the_button_swaps_says_what_the_server_wrote() -> None:
             if table.get(key) != shown:
                 wrong.append((key, table.get(key), shown))
     assert not wrong, f"keys that would change the words: {wrong}"
+
+
+# --- How a figure is written ---------------------------------------------------
+
+
+@pytest.mark.parametrize("code", sorted(labels()))
+def test_every_language_says_how_it_writes_a_number(code: str) -> None:
+    # Warith's call: 17.4 W in English, 17,4 W in French. A language with no
+    # separator of its own would silently take the authored one, which is the
+    # kind of default this package does not keep.
+    separator = labels()[code].get("number.decimal")
+    assert separator in {".", ","}, f"{code} writes a number with {separator!r}"
+
+
+def test_the_separator_moves_between_digits_and_nowhere_else() -> None:
+    """Dates, schema versions and dotted paths must come through untouched.
+
+    The reason this is a function on a formatted figure rather than a pass over
+    a rendered page: `2026-10-18` is not a number, `schema 2.1` is a version,
+    and `example.invalid` is a host.
+    """
+    from saggio.i18n import language, number
+
+    with language("fr"):
+        assert number("17.4") == "17,4"
+        assert number("2.5e-05") == "2,5e-05"
+        assert number("not known") == "not known"
+    assert number("17.4") == "17.4", "the authored language is left alone"
+
+
+def test_the_browser_and_the_renderer_write_a_number_the_same_way() -> None:
+    # The what-if panel recomputes in the browser, so it formats figures itself.
+    # Two formatters mean two chances to disagree; this pins that the script
+    # reads the same key the renderer reads.
+    script = (ROOT / "reporting" / "report.js").read_text(encoding="utf-8")
+    assert 'translated("number.decimal"' in script, "the script invents its own separator"
+    assert "number.decimal" in labels()[DEFAULT_LANGUAGE]

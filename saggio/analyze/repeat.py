@@ -50,6 +50,7 @@ from pathlib import Path
 from statistics import median
 from typing import Any, Final
 
+from ..i18n import number as localised
 from ..i18n import say
 from .run import (
     DEFAULT_BASELINE_SECONDS,
@@ -535,10 +536,10 @@ def spread_warnings(measurement: Mapping[str, Any] | None) -> list[str]:
             say(
                 "repeat.wide",
                 figure=say(f"repeat.figure.{key}"),
-                low=f"{low:.4g} {unit}",
-                high=f"{high:.4g} {unit}",
+                low=localised(f"{low:.4g} {unit}"),
+                high=localised(f"{high:.4g} {unit}"),
                 repeats=repeats,
-                relative=f"{relative:.0%}",
+                relative=localised(f"{relative:.0%}"),
             )
         )
     return found
@@ -614,7 +615,11 @@ def spread_note(measurement: Mapping[str, Any] | None, key: str) -> str:
         return measured_once()
     unit = " s" if key == "runtime_s" else " W"
     middle = block.get("median")
-    width = say("repeat.width", relative=f"{relative:.0%}") if isinstance(relative, float) else ""
+    width = (
+        say("repeat.width", relative=localised(f"{relative:.0%}"))
+        if isinstance(relative, float)
+        else ""
+    )
     if key == "runtime_s":
         # The model carries this figure exactly: the representative run is
         # chosen by runtime, so the runtime it carries is the median one.
@@ -634,8 +639,8 @@ def spread_note(measurement: Mapping[str, Any] | None, key: str) -> str:
     return say(
         "repeat.ranged",
         opening=opening,
-        low=f"{low:.4g}{unit}",
-        high=f"{high:.4g}{unit}",
+        low=localised(f"{low:.4g}{unit}"),
+        high=localised(f"{high:.4g}{unit}"),
         width=width,
         repeats=repeats,
         odds=_as_odds(odds),

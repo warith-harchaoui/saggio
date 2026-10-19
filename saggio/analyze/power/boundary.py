@@ -40,6 +40,7 @@ from collections.abc import Mapping
 from typing import Any, Final
 
 from ...i18n import DEFAULT_LANGUAGE, current_language, languages, phrase, say
+from ...i18n import number as localised
 
 #: The phrase that marks an exclusion line as saying idle capacity is *in* the
 #: figures, and the words such a line starts with. Both are catalogue keys now:
@@ -221,22 +222,28 @@ def workload_scope(
         # the subtraction in that case, and a sentence that went on calling the
         # baseline a floor would contradict the field beside it.
         if watts is not None and idle >= watts:
-            parts.append(say("boundary.grew_quieter", idle=f"{idle:.1f} W", watts=f"{watts:.1f} W"))
+            parts.append(
+                say(
+                    "boundary.grew_quieter",
+                    idle=localised(f"{idle:.1f} W"),
+                    watts=localised(f"{watts:.1f} W"),
+                )
+            )
         elif watts is not None:
-            parts.append(say("boundary.floor_under", idle=f"{idle:.1f} W"))
+            parts.append(say("boundary.floor_under", idle=localised(f"{idle:.1f} W")))
         else:
-            parts.append(say("boundary.already_drawing", idle=f"{idle:.1f} W"))
+            parts.append(say("boundary.already_drawing", idle=localised(f"{idle:.1f} W")))
     if attributed is not None and share is not None:
         against = (
-            say("boundary.attributable.against", watts=f"{watts:.1f} W")
+            say("boundary.attributable.against", watts=localised(f"{watts:.1f} W"))
             if watts is not None
             else ""
         )
         parts.append(
             say(
                 "boundary.attributable",
-                share=f"{share:.0%}",
-                attributed=f"{attributed:.1f} W",
+                share=localised(f"{share:.0%}"),
+                attributed=localised(f"{attributed:.1f} W"),
                 against=against,
             )
         )
@@ -293,8 +300,8 @@ def idle_exclusion(
     if idle is not None and watts is not None and idle < watts:
         line += say(
             "boundary.idle_included.floor_within",
-            idle=f"{idle:.1f} W",
-            watts=f"{watts:.1f} W",
+            idle=localised(f"{idle:.1f} W"),
+            watts=localised(f"{watts:.1f} W"),
         )
     elif idle is not None and watts is not None:
         line += say(
@@ -303,13 +310,13 @@ def idle_exclusion(
             watts=f"{watts:.1f} W",
         )
     elif idle is not None:
-        line += say("boundary.idle_included.floor_only", idle=f"{idle:.1f} W")
+        line += say("boundary.idle_included.floor_only", idle=localised(f"{idle:.1f} W"))
     line += "."
     if attributed is not None and share is not None:
         line += " " + say(
             "boundary.idle_included.attributable",
-            attributed=f"{attributed:.1f} W",
-            share=f"{share:.0%}",
+            attributed=localised(f"{attributed:.1f} W"),
+            share=localised(f"{share:.0%}"),
         )
     return line
 
@@ -466,7 +473,7 @@ def measurement_rows(
             label = (
                 say(f"boundary.field.{key}") if key in _FIELD_UNITS else str(key).replace("_", " ")
             )
-            row = (label, f"{value}{unit}")
+            row = (label, localised(f"{value}{unit}"))
         if row is not None:
             rows.append(row)
     return rows
@@ -482,11 +489,15 @@ def _share_row(value: Any) -> tuple[str, str] | None:
     run = _number(value.get("run_cpu_seconds"))
     machine = _number(value.get("machine_cpu_seconds"))
     detail = (
-        say("boundary.row.share_detail", run=f"{run:g} s", machine=f"{machine:g} s")
+        say(
+            "boundary.row.share_detail",
+            run=localised(f"{run:g} s"),
+            machine=localised(f"{machine:g} s"),
+        )
         if run and machine
         else ""
     )
-    return (say("boundary.row.share"), f"{share:.1%}{detail}")
+    return (say("boundary.row.share"), localised(f"{share:.1%}") + detail)
 
 
 def _domain_row(value: Any) -> tuple[str, str] | None:
