@@ -115,8 +115,8 @@ from .tables import (
     GRAPHICS_POWER_FILE,
     NVIDIA_SMI,
     RAPL_ENERGY_GLOB,
-    RAPL_SCOPE_NOTE,
     RAPL_ZONE_GLOB,
+    rapl_scope_note,
 )
 
 __all__ = [
@@ -133,7 +133,7 @@ __all__ = [
     "PowerMeter",
     "PowerReading",
     "RAPL_ENERGY_GLOB",
-    "RAPL_SCOPE_NOTE",
+    "rapl_scope_note",
     "RAPL_ZONE_GLOB",
     "measure_for",
     "package_wrap_range_microjoules",

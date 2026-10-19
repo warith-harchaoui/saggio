@@ -10,6 +10,28 @@ cette ligne.
 
 ## Non publié
 
+### Ce que cette machine laisse lire, et ce que chaque compteur couvre
+
+Deux modules dont les phrases précèdent tout chiffre pour un lecteur : la sonde
+derrière `saggio power`, et la frontière que chaque compteur porte dans le modèle
+à côté de son propre nombre.
+
+- **La sonde** (`analyze/capability.py`) : huit interfaces, chacune avec ce
+  qu'elle couvre, l'état où elle est et pourquoi — dont celle qui explique
+  pourquoi Linux garde le compteur processeur réservé à root (CVE-2020-8694) et
+  qui affiche la manœuvre plutôt que de la faire. Les **noms d'interfaces gardent
+  l'orthographe du produit** — powercap, IOReport, nvidia-smi — parce que
+  renommer une interface du noyau laisserait un lecteur sans rien à chercher ;
+  seuls les mots autour bougent.
+- **Ce qu'un compteur couvre** (`analyze/power/tables.py`) : les onze phrases de
+  frontière qui finissent dans un fichier de modèle — le sous-comptage du paquet
+  seul, la carte accélératrice lue exactement ou échantillonnée, le compteur
+  mémoire qui remplace une estimation, le bouclage récupéré et la puissance
+  au-delà de laquelle il ne l'aurait pas été.
+- Onze constantes de module sont devenues des fonctions, `RAPL_SCOPE_NOTE`
+  comprise. Les lignes de commande du remède ne sont **pas** traduites et ne le
+  seront jamais : une commande se tape, elle ne se lit pas.
+
 ### Le README dit ce que fait l'i18n et où elle s'arrête
 
 Réécrit plutôt que rapiécé, parce que le paragraphe avait vieilli deux fois : il

@@ -34,10 +34,10 @@ from .llm import (
     pick_model,
 )
 from .power import (
-    RAPL_SCOPE_NOTE,
     GraphicsSampler,
     PowerMeter,
     PowerReading,
+    rapl_scope_note,
     read_graphics_energy_microjoules,
     read_graphics_watts,
     read_memory_energy_microjoules,
@@ -104,7 +104,7 @@ __all__ = [
     "PowerMeter",
     "PowerReading",
     "GraphicsSampler",
-    "RAPL_SCOPE_NOTE",
+    "rapl_scope_note",
     "read_package_energy_microjoules",
     "read_memory_energy_microjoules",
     "read_graphics_energy_microjoules",

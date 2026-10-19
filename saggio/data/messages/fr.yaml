@@ -990,3 +990,156 @@ fold.repeated.description: >-
   compris. Ce facteur est l'estimation de l'équipe elle-même ; rien ici ne peut
   le connaître, et c'est pourquoi il vit dans les hypothèses, là où le validateur
   le surveille.
+
+# --- Ce que cette machine laisse lire (analyze/capability.py)
+#
+# Les noms d'interfaces gardent l'orthographe du produit — powercap, IOReport,
+# nvidia-smi — et seuls les mots autour sont traduits. Renommer une interface du
+# noyau laisserait un lecteur sans rien à chercher.
+
+capability.platypus_note: >-
+  Linux garde ce compteur réservé à root depuis la 5.10, et c'est volontaire :
+  échantillonné assez vite, il laisse fuir ce que d'autres processus calculent
+  (CVE-2020-8694, l'attaque PLATYPUS). L'ouvrir à un groupe est un jugement sur
+  qui partage cette machine : c'est pourquoi la manœuvre est affichée ici plutôt
+  que faite à votre place.
+capability.rapl.remedy.until_reboot: "Jusqu'au prochain redémarrage :"
+capability.rapl.remedy.across_reboots: >-
+  D'un redémarrage à l'autre, une règle udev qui ne touche que les fichiers
+  d'énergie :
+capability.rapl.remedy.in_file: "dans {path}."
+capability.powermetrics.note: >-
+  macOS publie les mêmes chiffres par powermetrics, qui exige des droits
+  d'administrateur. Ce paquet ne les demandera pas ; lancez
+  `sudo powermetrics --samplers cpu_power -n 1` vous-même si vous voulez
+  comparer avec ce qui a été mesuré ici.
+capability.unsupported: >-
+  saggio prend en charge Linux et macOS. Windows est hors périmètre,
+  délibérément et pour de bonnes raisons : il ne publie à un processus non
+  privilégié aucun compteur d'énergie processeur indépendant du fournisseur,
+  aucun total de temps processeur à l'échelle de la machine que ce paquet puisse
+  lire, et aucune comptabilité POSIX des ressources d'un enfant. L'Energy Meter
+  Interface existe sur certains appareils via un pilote de fournisseur, et les
+  chiffres par application de powercfg sont un modèle de batterie, pas un
+  compteur. Un outil dont toute la proposition est qu'un nombre dit jusqu'où on
+  peut s'y fier ne devrait pas prétendre prendre en charge une plate-forme où il
+  ne pourrait jamais qu'estimer.
+
+capability.rapl.name: "powercap Linux (RAPL)"
+capability.rapl.covers: >-
+  le paquet processeur, et la mémoire là où une zone existe pour elle
+capability.rapl.covers.with_memory: "le paquet processeur et sa mémoire"
+capability.rapl.covers.without_memory: >-
+  le paquet processeur, mais pas la mémoire à côté
+capability.rapl.absent: >-
+  Aucune zone powercap n'est publiée ici. C'est une machine ARM, une machine
+  virtuelle dont l'hôte ne transmet pas les compteurs, ou un conteneur sans
+  /sys/class/powercap monté.
+capability.rapl.reads: "Zones qui répondent : {zones}."
+capability.rapl.blocked: "{count} zone(s) sont là et vous sont fermées. {why}"
+
+capability.apple.name: "Compteurs du système sur puce Apple (IOReport)"
+capability.apple.covers: >-
+  les cœurs processeur, les cœurs graphiques, le moteur neuronal et la mémoire
+capability.apple.reads: >-
+  Lus en utilisateur ordinaire ; aucun mot de passe n'est demandé et aucun n'est
+  nécessaire.
+capability.apple.absent: "Pas un Mac Apple Silicon."
+
+capability.powermetrics.name: "powermetrics (macOS)"
+capability.powermetrics.covers: "les mêmes sous-systèmes, par l'outil d'Apple"
+capability.powermetrics.absent: "Pas installé sur cette machine."
+
+capability.nvidia.name: "Pilote NVIDIA (nvidia-smi)"
+capability.nvidia.covers: "la carte accélératrice entière"
+capability.nvidia.absent: >-
+  Aucun nvidia-smi dans le PATH : il n'y a donc aucun pilote NVIDIA à interroger.
+capability.nvidia.energy: >-
+  La carte tient un compteur d'énergie cumulé, qui est lu exactement.
+capability.nvidia.sampled: >-
+  La carte publie une puissance instantanée plutôt qu'un total : elle est donc
+  échantillonnée sur toute l'exécution, et le nombre d'échantillons voyage avec
+  la moyenne.
+
+capability.graphics.name: "Pilote graphique Linux (amdgpu, i915, xe)"
+capability.graphics.covers: "le périphérique graphique"
+capability.graphics.absent: >-
+  Aucun périphérique graphique ici ne publie de capteur de puissance par sysfs.
+capability.graphics.energy: >-
+  Un compteur cumulé {file} est publié aux utilisateurs ordinaires : aucun outil
+  de fournisseur et aucun privilège ne sont donc nécessaires.
+capability.graphics.power: >-
+  {file} est publié aux utilisateurs ordinaires ; il est instantané, donc
+  échantillonné sur toute l'exécution.
+capability.graphics.blocked: >-
+  Le nœud de surveillance est là, mais ni son compteur d'énergie ni son capteur
+  de puissance ne peuvent être lus.
+
+capability.node.name: "Contrôleur de carte mère (IPMI, DCMI, Redfish)"
+capability.node.covers: >-
+  le nœud entier, ventilateurs, stockage et pertes de l'alimentation comprises
+capability.node.detail: >-
+  Le compteur propre d'un serveur est le seul chiffre ici qui couvre la machine
+  entière plutôt qu'une partie, et il s'atteint avec des identifiants du
+  contrôleur d'administration plutôt qu'avec un fichier. Ce paquet ne détient pas
+  ces identifiants et ne les demande pas ; sur une grappe, le chiffre que votre
+  exploitant collecte déjà est le meilleur, et le modèle peut le porter comme
+  valeur mesurée.
+capability.summary.covers: "couvre : {covers}"
+capability.summary.remedy: "pour l'ouvrir : {remedy}"
+capability.nothing_measures_detail: >-
+  Rien ici ne mesure la puissance : l'énergie sera donc estimée depuis le
+  catalogue matériel, et chaque chiffre qui en dérive portera `estimated`
+  plutôt que `measured`. C'est un chiffre plus faible, pas un chiffre faux.
+
+# --- Ce qu'un compteur de puissance couvre, et ce qu'il rate
+#     (analyze/power/tables.py)
+
+power.rapl_scope: >-
+  Intel RAPL ne compte que le paquet processeur : la consommation d'un
+  accélérateur discret n'y est pas comprise, donc une charge GPU mesurée ainsi
+  est sous-comptée.
+power.accelerator.counter: >-
+  la carte accélératrice entière, depuis le compteur d'énergie cumulé du pilote
+power.accelerator.sampled: >-
+  la carte accélératrice entière, comme moyenne de {count} relevés de puissance
+  de carte instantanée pris toutes les {interval} au long de l'exécution
+power.graphics.counter: >-
+  le périphérique graphique, depuis le compteur d'énergie cumulé du pilote dans
+  sysfs, qui n'exige ni outil de fournisseur ni droits d'administrateur
+power.graphics.sampled: >-
+  le périphérique graphique, comme moyenne de {count} relevés de puissance de
+  carte instantanée pris dans sysfs toutes les {interval} au long de l'exécution
+power.memory_measured: >-
+  La mémoire est mesurée et non estimée ici : la machine publie son propre
+  compteur d'énergie mémoire, donc le chiffre est ce que la mémoire a tiré et non
+  ce que sa capacité installée suggère qu'elle tirerait.
+power.both_measured: >-
+  Le chiffre est le paquet processeur et la carte accélératrice additionnés. Ce
+  qu'aucun des deux compteurs ne voit, c'est le reste de la machine : la mémoire
+  hors du paquet, le stockage, les ventilateurs et les pertes propres de
+  l'alimentation.
+power.package_missing: >-
+  Le paquet processeur n'est pas compris : aucun compteur lisible sur cette
+  machine, donc le chiffre est l'accélérateur seul et sous-estime le total.
+power.accelerator_missing: >-
+  Aucun accélérateur NVIDIA n'a répondu : rien en dehors du paquet processeur
+  n'est donc compris.
+power.accelerator_wrapped: >-
+  Le compteur d'énergie de l'accélérateur a bouclé ou s'est remis à zéro pendant
+  l'exécution : sa consommation n'est donc pas comprise ; la carte, elle, a bien
+  répondu.
+power.wrap_recovered: >-
+  Le compteur d'énergie du processeur a dépassé son plafond une fois pendant
+  l'exécution et a été débouclé par sa plage publiée. Cette récupération est
+  exacte tant que le processeur est resté en moyenne sous {ceiling} ; au-delà, le
+  compteur aurait dépassé le plafond deux fois et ce chiffre sous-estimerait
+  l'exécution.
+power.unavailable.darwin: >-
+  macOS ne publie la puissance du paquet que par powermetrics, qui exige des
+  droits d'administrateur et ne peut donc pas être lu depuis un appel de
+  bibliothèque.
+power.unavailable.linux: >-
+  Aucun compteur RAPL lisible n'a été trouvé : c'est une machine ARM, un
+  conteneur sans les fichiers sysfs, ou des fichiers qui ne sont pas lisibles par
+  tous.

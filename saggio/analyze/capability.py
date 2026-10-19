@@ -48,6 +48,7 @@ from typing import Final
 
 import os_helper as osh
 
+from ..i18n import say
 from . import apple
 from .power import (
     GRAPHICS_ENERGY_FILE,
@@ -83,32 +84,45 @@ STATES: Final[frozenset[str]] = frozenset({READS, BLOCKED, ROOT_ONLY, ABSENT})
 #: Why the kernel closed the processor's counter, and what opening it costs. The
 #: remedy is never printed without it: a reader who opens the counter should know
 #: they are reopening a published side channel on a machine they may share.
-PLATYPUS_NOTE: Final[str] = (
-    "Linux has kept this counter root-only since 5.10 on purpose: sampled fast "
-    "enough it leaks what other processes are computing (CVE-2020-8694, the "
-    "PLATYPUS attack). Opening it to a group is a judgement about who shares "
-    "this machine, which is why it is printed here rather than done for you."
-)
+PLATYPUS_NOTE: Final[str] = say("capability.platypus_note")
+
 
 #: How to open the processor counter for one session, and how to keep it open.
 #: Read-only, and only the energy files: the limits beside them stay shut, so
 #: nothing here lets a reader throttle or overheat the machine.
-_RAPL_REMEDY: Final[str] = (
-    "Until the next reboot:  sudo chmod a+r /sys/class/powercap/*/energy_uj\n"
-    "    Across reboots, a udev rule that touches the energy files and nothing "
-    "else:\n"
-    '      SUBSYSTEM=="powercap", ACTION=="add", '
-    'RUN+="/bin/chmod a+r /sys%p/energy_uj"\n'
-    "    in /etc/udev/rules.d/99-saggio-rapl.rules."
-)
+def _rapl_remedy() -> str:
+    """Return how to open the processor counter, in the language in force.
+
+    The commands are not translated and never will be: a shell line is typed,
+    not read. What the catalogue carries is the sentence around each one.
+
+    Returns
+    -------
+    str
+        Two commands, each introduced by a sentence.
+
+    Examples
+    --------
+    >>> "chmod a+r" in _rapl_remedy()
+    True
+    """
+    return "\n".join(
+        (
+            say("capability.rapl.remedy.until_reboot")
+            + "  sudo chmod a+r /sys/class/powercap/*/energy_uj",
+            "    " + say("capability.rapl.remedy.across_reboots"),
+            '      SUBSYSTEM=="powercap", ACTION=="add", RUN+="/bin/chmod a+r /sys%p/energy_uj"',
+            "    "
+            + say(
+                "capability.rapl.remedy.in_file",
+                path="/etc/udev/rules.d/99-saggio-rapl.rules",
+            ),
+        )
+    )
+
 
 #: What macOS offers behind a password, and why this package does not take it.
-_POWERMETRICS_NOTE: Final[str] = (
-    "macOS publishes the same figures through powermetrics, which needs "
-    "administrator rights. This package will not ask for them; run "
-    "`sudo powermetrics --samplers cpu_power -n 1` yourself if you want to "
-    "compare it against what was measured here."
-)
+_POWERMETRICS_NOTE_KEY: Final[str] = "capability.powermetrics.note"
 
 
 #: The platforms this package supports. Not a list of where it happens to
@@ -119,16 +133,7 @@ SUPPORTED_PLATFORMS: Final[tuple[str, ...]] = ("linux", "darwin")
 
 #: Why Windows is not among them. Written once, said wherever it is needed,
 #: because a limit stated four different ways reads as four different limits.
-UNSUPPORTED_REASON: Final[str] = (
-    "saggio supports Linux and macOS. Windows is out of scope, deliberately and "
-    "for good: it publishes no vendor-neutral processor energy counter to an "
-    "unprivileged process, no machine-wide processor-time total this package can "
-    "read, and no POSIX resource accounting for a child. The Energy Meter "
-    "Interface exists on some devices through a vendor driver, and powercfg's "
-    "per-application figures are a battery model rather than a counter. A tool "
-    "whose whole proposition is that a number says how far it can be trusted "
-    "should not pretend to support a platform where it could only ever estimate."
-)
+UNSUPPORTED_REASON: Final[str] = say("capability.unsupported")
 
 
 def is_supported(platform: str | None = None) -> bool:
@@ -206,37 +211,35 @@ def _rapl_interface() -> Interface:
     zones = _zones()
     if not zones:
         return Interface(
-            name="Linux powercap (RAPL)",
-            covers="the processor package, and the memory where a zone exists for it",
+            name=say("capability.rapl.name"),
+            covers=say("capability.rapl.covers"),
             state=ABSENT,
-            detail=(
-                "No powercap zone is published here. That is an ARM machine, a "
-                "virtual machine whose host does not pass the counters through, "
-                "or a container without /sys/class/powercap mounted."
-            ),
+            detail=say("capability.rapl.absent"),
         )
     if read_package_energy_microjoules() is not None:
         memory = read_memory_energy_microjoules()
         names = ", ".join(sorted({name for name, _ in zones}))
         return Interface(
-            name="Linux powercap (RAPL)",
-            covers=(
-                "the processor package and its memory"
+            name=say("capability.rapl.name"),
+            covers=say(
+                "capability.rapl.covers.with_memory"
                 if memory is not None
-                else "the processor package, but not the memory beside it"
+                else "capability.rapl.covers.without_memory"
             ),
             state=READS,
-            detail=f"Zones answering: {names}.",
+            detail=say("capability.rapl.reads", zones=names),
         )
     unreadable = [path.name for _, path in zones if not os.access(path / "energy_uj", os.R_OK)]
     return Interface(
-        name="Linux powercap (RAPL)",
-        covers="the processor package, and the memory where a zone exists for it",
+        name=say("capability.rapl.name"),
+        covers=say("capability.rapl.covers"),
         state=BLOCKED,
-        detail=(
-            f"{len(unreadable) or len(zones)} zone(s) are here and closed to you. {PLATYPUS_NOTE}"
+        detail=say(
+            "capability.rapl.blocked",
+            count=len(unreadable) or len(zones),
+            why=say("capability.platypus_note"),
         ),
-        remedy=_RAPL_REMEDY,
+        remedy=_rapl_remedy(),
     )
 
 
@@ -244,16 +247,16 @@ def _apple_interface() -> Interface:
     """Return the state of an Apple chip's own energy counters."""
     if apple.available():
         return Interface(
-            name="Apple system-on-chip counters (IOReport)",
-            covers="the processor cores, graphics cores, neural engine, and memory",
+            name=say("capability.apple.name"),
+            covers=say("capability.apple.covers"),
             state=READS,
-            detail="Read as an ordinary user; no password is asked for and none is needed.",
+            detail=say("capability.apple.reads"),
         )
     return Interface(
-        name="Apple system-on-chip counters (IOReport)",
-        covers="the processor cores, graphics cores, neural engine, and memory",
+        name=say("capability.apple.name"),
+        covers=say("capability.apple.covers"),
         state=ABSENT,
-        detail=apple.unavailable_reason() or "Not an Apple Silicon Mac.",
+        detail=apple.unavailable_reason() or say("capability.apple.absent"),
     )
 
 
@@ -261,10 +264,10 @@ def _powermetrics_interface() -> Interface:
     """Return the state of the tool macOS ships behind a password."""
     present = shutil.which("powermetrics") is not None
     return Interface(
-        name="macOS powermetrics",
-        covers="the same subsystems, through Apple's own tool",
+        name=say("capability.powermetrics.name"),
+        covers=say("capability.powermetrics.covers"),
         state=ROOT_ONLY if present else ABSENT,
-        detail=_POWERMETRICS_NOTE if present else "Not installed on this machine.",
+        detail=say(_POWERMETRICS_NOTE_KEY if present else "capability.powermetrics.absent"),
     )
 
 
@@ -272,26 +275,23 @@ def _nvidia_interface() -> Interface:
     """Return the state of NVIDIA's driver."""
     if shutil.which(NVIDIA_SMI) is None:
         return Interface(
-            name="NVIDIA driver (nvidia-smi)",
-            covers="the whole accelerator board",
+            name=say("capability.nvidia.name"),
+            covers=say("capability.nvidia.covers"),
             state=ABSENT,
-            detail="No nvidia-smi on PATH, so there is no NVIDIA driver to ask.",
+            detail=say("capability.nvidia.absent"),
         )
     if read_accelerator_energy_millijoules() is not None:
         return Interface(
-            name="NVIDIA driver (nvidia-smi)",
-            covers="the whole accelerator board",
+            name=say("capability.nvidia.name"),
+            covers=say("capability.nvidia.covers"),
             state=READS,
-            detail="The board keeps an accumulated energy counter, which is read exactly.",
+            detail=say("capability.nvidia.energy"),
         )
     return Interface(
-        name="NVIDIA driver (nvidia-smi)",
-        covers="the whole accelerator board",
+        name=say("capability.nvidia.name"),
+        covers=say("capability.nvidia.covers"),
         state=READS,
-        detail=(
-            "The board publishes instantaneous power rather than a total, so it is "
-            "sampled across the run and the count of samples travels with the mean."
-        ),
+        detail=say("capability.nvidia.sampled"),
     )
 
 
@@ -300,30 +300,24 @@ def _graphics_interface() -> Interface:
     directories = _graphics_hwmon_directories()
     if not directories:
         return Interface(
-            name="Linux graphics driver (amdgpu, i915, xe)",
-            covers="the graphics device",
+            name=say("capability.graphics.name"),
+            covers=say("capability.graphics.covers"),
             state=ABSENT,
-            detail="No graphics device here publishes a power sensor through sysfs.",
+            detail=say("capability.graphics.absent"),
         )
     if read_graphics_energy_microjoules() is not None:
         return Interface(
-            name="Linux graphics driver (amdgpu, i915, xe)",
-            covers="the graphics device",
+            name=say("capability.graphics.name"),
+            covers=say("capability.graphics.covers"),
             state=READS,
-            detail=(
-                f"An accumulated {GRAPHICS_ENERGY_FILE} counter is published to "
-                "ordinary users, so no vendor tool and no privileges are needed."
-            ),
+            detail=say("capability.graphics.energy", file=GRAPHICS_ENERGY_FILE),
         )
     if read_graphics_watts() is not None:
         return Interface(
-            name="Linux graphics driver (amdgpu, i915, xe)",
-            covers="the graphics device",
+            name=say("capability.graphics.name"),
+            covers=say("capability.graphics.covers"),
             state=READS,
-            detail=(
-                f"{GRAPHICS_POWER_FILE} is published to ordinary users; it is "
-                "instantaneous, so it is sampled across the run."
-            ),
+            detail=say("capability.graphics.power", file=GRAPHICS_POWER_FILE),
         )
     blocked = [
         path
@@ -332,13 +326,10 @@ def _graphics_interface() -> Interface:
         and not os.access(path / GRAPHICS_POWER_FILE, os.R_OK)
     ]
     return Interface(
-        name="Linux graphics driver (amdgpu, i915, xe)",
-        covers="the graphics device",
+        name=say("capability.graphics.name"),
+        covers=say("capability.graphics.covers"),
         state=BLOCKED if blocked else ABSENT,
-        detail=(
-            "The monitoring node is here but neither its energy counter nor its "
-            "power sensor can be read."
-        ),
+        detail=say("capability.graphics.blocked"),
         remedy=(
             "sudo chmod a+r "
             f"{directories[0]}/{GRAPHICS_ENERGY_FILE} "
@@ -352,17 +343,10 @@ def _graphics_interface() -> Interface:
 def _node_interface() -> Interface:
     """Return the state of the whole-node meters a datacentre has."""
     return Interface(
-        name="Baseboard controller (IPMI, DCMI, Redfish)",
-        covers="the whole node, including fans, storage, and the power supply's losses",
+        name=say("capability.node.name"),
+        covers=say("capability.node.covers"),
         state=ROOT_ONLY,
-        detail=(
-            "A server's own meter is the only figure here that covers the whole "
-            "machine rather than a part of it, and it is reached with credentials "
-            "for the management controller rather than a file. This package does "
-            "not hold those credentials and does not ask for them; on a cluster, "
-            "the figure your operator already collects is the better one, and the "
-            "model can carry it as a measured value."
-        ),
+        detail=say("capability.node.detail"),
     )
 
 
@@ -429,18 +413,13 @@ def summary() -> str:
     lines: list[str] = []
     for interface in probe():
         lines.append(f"[{interface.state}] {interface.name}")
-        lines.append(f"    covers: {interface.covers}")
+        lines.append("    " + say("capability.summary.covers", covers=interface.covers))
         lines.append(f"    {interface.detail}")
         if interface.remedy:
-            lines.append(f"    to open it: {interface.remedy}")
+            lines.append("    " + say("capability.summary.remedy", remedy=interface.remedy))
         lines.append("")
     if not measurable():
-        lines.append(
-            "Nothing here measures power, so energy will be estimated from the "
-            "hardware catalogue and every figure derived from it will say "
-            "`estimated` rather than `measured`. That is a weaker number, not a "
-            "wrong one."
-        )
+        lines.append(say("capability.nothing_measures_detail"))
     return "\n".join(lines).rstrip() + "\n"
 
 

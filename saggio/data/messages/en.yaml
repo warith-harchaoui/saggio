@@ -910,3 +910,141 @@ fold.repeated.description: >-
   computation is actually performed, tuning and re-runs included. The factor is
   the team's own estimate; nothing here can know it, which is why it lives in
   the assumptions where the validator watches it.
+
+# --- What this machine will let you read (analyze/capability.py)
+#
+# The interface names carry a product's own spelling — powercap, IOReport,
+# nvidia-smi — and only the words around them are translated. Renaming a kernel
+# interface would leave a reader with nothing to search for.
+
+capability.platypus_note: >-
+  Linux has kept this counter root-only since 5.10 on purpose: sampled fast
+  enough it leaks what other processes are computing (CVE-2020-8694, the
+  PLATYPUS attack). Opening it to a group is a judgement about who shares this
+  machine, which is why it is printed here rather than done for you.
+capability.rapl.remedy.until_reboot: "Until the next reboot:"
+capability.rapl.remedy.across_reboots: >-
+  Across reboots, a udev rule that touches the energy files and nothing else:
+capability.rapl.remedy.in_file: "in {path}."
+capability.powermetrics.note: >-
+  macOS publishes the same figures through powermetrics, which needs
+  administrator rights. This package will not ask for them; run
+  `sudo powermetrics --samplers cpu_power -n 1` yourself if you want to compare
+  it against what was measured here.
+capability.unsupported: >-
+  saggio supports Linux and macOS. Windows is out of scope, deliberately and for
+  good: it publishes no vendor-neutral processor energy counter to an
+  unprivileged process, no machine-wide processor-time total this package can
+  read, and no POSIX resource accounting for a child. The Energy Meter Interface
+  exists on some devices through a vendor driver, and powercfg's per-application
+  figures are a battery model rather than a counter. A tool whose whole
+  proposition is that a number says how far it can be trusted should not pretend
+  to support a platform where it could only ever estimate.
+
+capability.rapl.name: "Linux powercap (RAPL)"
+capability.rapl.covers: >-
+  the processor package, and the memory where a zone exists for it
+capability.rapl.covers.with_memory: "the processor package and its memory"
+capability.rapl.covers.without_memory: >-
+  the processor package, but not the memory beside it
+capability.rapl.absent: >-
+  No powercap zone is published here. That is an ARM machine, a virtual machine
+  whose host does not pass the counters through, or a container without
+  /sys/class/powercap mounted.
+capability.rapl.reads: "Zones answering: {zones}."
+capability.rapl.blocked: "{count} zone(s) are here and closed to you. {why}"
+
+capability.apple.name: "Apple system-on-chip counters (IOReport)"
+capability.apple.covers: >-
+  the processor cores, graphics cores, neural engine, and memory
+capability.apple.reads: >-
+  Read as an ordinary user; no password is asked for and none is needed.
+capability.apple.absent: "Not an Apple Silicon Mac."
+
+capability.powermetrics.name: "macOS powermetrics"
+capability.powermetrics.covers: "the same subsystems, through Apple's own tool"
+capability.powermetrics.absent: "Not installed on this machine."
+
+capability.nvidia.name: "NVIDIA driver (nvidia-smi)"
+capability.nvidia.covers: "the whole accelerator board"
+capability.nvidia.absent: "No nvidia-smi on PATH, so there is no NVIDIA driver to ask."
+capability.nvidia.energy: >-
+  The board keeps an accumulated energy counter, which is read exactly.
+capability.nvidia.sampled: >-
+  The board publishes instantaneous power rather than a total, so it is sampled
+  across the run and the count of samples travels with the mean.
+
+capability.graphics.name: "Linux graphics driver (amdgpu, i915, xe)"
+capability.graphics.covers: "the graphics device"
+capability.graphics.absent: >-
+  No graphics device here publishes a power sensor through sysfs.
+capability.graphics.energy: >-
+  An accumulated {file} counter is published to ordinary users, so no vendor tool
+  and no privileges are needed.
+capability.graphics.power: >-
+  {file} is published to ordinary users; it is instantaneous, so it is sampled
+  across the run.
+capability.graphics.blocked: >-
+  The monitoring node is here but neither its energy counter nor its power
+  sensor can be read.
+
+capability.node.name: "Baseboard controller (IPMI, DCMI, Redfish)"
+capability.node.covers: >-
+  the whole node, including fans, storage, and the power supply's losses
+capability.node.detail: >-
+  A server's own meter is the only figure here that covers the whole machine
+  rather than a part of it, and it is reached with credentials for the management
+  controller rather than a file. This package does not hold those credentials and
+  does not ask for them; on a cluster, the figure your operator already collects
+  is the better one, and the model can carry it as a measured value.
+capability.summary.covers: "covers: {covers}"
+capability.summary.remedy: "to open it: {remedy}"
+capability.nothing_measures_detail: >-
+  Nothing here measures power, so energy will be estimated from the hardware
+  catalogue and every figure derived from it will say `estimated` rather than
+  `measured`. That is a weaker number, not a wrong one.
+
+# --- What a power counter covers, and what it misses (analyze/power/tables.py)
+
+power.rapl_scope: >-
+  Intel RAPL counts the processor package only: a discrete accelerator's draw is
+  not included, so a GPU workload measured this way is undercounted.
+power.accelerator.counter: >-
+  the whole accelerator board, from the driver's accumulated energy counter
+power.accelerator.sampled: >-
+  the whole accelerator board, as the mean of {count} readings of instantaneous
+  board power taken every {interval} across the run
+power.graphics.counter: >-
+  the graphics device, from the driver's own accumulated energy counter in
+  sysfs, which needs neither a vendor tool nor administrator rights
+power.graphics.sampled: >-
+  the graphics device, as the mean of {count} readings of instantaneous board
+  power taken from sysfs every {interval} across the run
+power.memory_measured: >-
+  Memory is measured rather than estimated here: the machine publishes its own
+  memory energy counter, so the figure is what the memory drew rather than what
+  its installed capacity suggests it would draw.
+power.both_measured: >-
+  The figure is the processor package and the accelerator board added together.
+  What neither counter sees is the rest of the machine: memory outside the
+  package, storage, fans, and the power supply's own losses.
+power.package_missing: >-
+  The processor package is not included: no readable counter on this machine, so
+  the figure is the accelerator alone and understates the total.
+power.accelerator_missing: >-
+  No NVIDIA accelerator answered, so nothing outside the processor package is
+  included.
+power.accelerator_wrapped: >-
+  The accelerator's energy counter wrapped or reset during the run, so its draw
+  is not included; the board itself did answer.
+power.wrap_recovered: >-
+  The processor energy counter passed its ceiling once during the run and was
+  unwrapped by its published range. That recovery is exact as long as the
+  processor averaged under {ceiling}, above which the counter would have passed
+  the ceiling twice and this figure would understate the run.
+power.unavailable.darwin: >-
+  macOS publishes package power only through powermetrics, which needs
+  administrator rights and so cannot be read from a library call.
+power.unavailable.linux: >-
+  No readable RAPL counter was found: this is an ARM machine, a container without
+  the sysfs files, or the files are not world-readable.

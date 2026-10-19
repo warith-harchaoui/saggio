@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 import os_helper as osh
 
 from .. import apple
-from .tables import _UNAVAILABLE_REASON
+from .tables import unavailable_reason as _reason
 
 
 def unavailable_reason() -> str:
@@ -38,8 +38,8 @@ def unavailable_reason() -> str:
     if osh.macos():
         # An Apple Silicon Mac has its own counters and its own reasons for not
         # answering; only an Intel Mac falls back to the powermetrics sentence.
-        return apple.unavailable_reason() or _UNAVAILABLE_REASON["darwin"]
-    return _UNAVAILABLE_REASON["linux"]
+        return apple.unavailable_reason() or _reason("darwin")
+    return _reason("linux")
 
 
 @dataclass(frozen=True, slots=True)

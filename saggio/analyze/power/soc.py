@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from .. import apple
 from .reading import PowerReading
-from .tables import _MEMORY_MEASURED_NOTE
+from .tables import scope_note
 
 
 def _soc_reading(energy: apple.SocEnergy, *, seconds: float) -> PowerReading:
@@ -57,7 +57,7 @@ def _soc_reading(energy: apple.SocEnergy, *, seconds: float) -> PowerReading:
             f"The figure covers {apple.SOC_SCOPE} and {apple.SOC_MEMORY_SCOPE}, "
             f"read from the {', '.join(energy.channels)} counters."
         )
-        scopes.append(_MEMORY_MEASURED_NOTE)
+        scopes.append(scope_note("memory_measured"))
     scopes.append(apple.SOC_MODEL_NOTE)
     return PowerReading(
         watts=joules / seconds,

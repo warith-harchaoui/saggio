@@ -9,6 +9,28 @@ release of that line.
 
 ## Unreleased
 
+### What this machine will let you read, and what each counter covers
+
+Two modules whose sentences a reader meets before any figure: the probe behind
+`saggio power`, and the boundary each counter carries into the model beside its
+own number.
+
+- **The probe** (`analyze/capability.py`): eight interfaces, each with what it
+  covers, what state it is in and why — including the one that explains why
+  Linux keeps the processor counter root-only (CVE-2020-8694) and prints the
+  remedy rather than performing it. The **interface names keep the product's own
+  spelling** — powercap, IOReport, nvidia-smi — because renaming a kernel
+  interface would leave a reader with nothing to search for; only the words
+  around them move.
+- **What a counter covers** (`analyze/power/tables.py`): the eleven boundary
+  sentences that end up in a model file — the package-only undercount, the
+  accelerator board read exactly or sampled, the memory counter that replaces an
+  estimate, the wrap recovered and the wattage above which it would not have
+  been.
+- Eleven module constants became functions, and `RAPL_SCOPE_NOTE` with them.
+  The shell lines in the remedy are **not** translated and never will be: a
+  command is typed, not read.
+
 ### The README says what the i18n does and where it stops
 
 Rewritten rather than patched, because the paragraph had gone out of date twice

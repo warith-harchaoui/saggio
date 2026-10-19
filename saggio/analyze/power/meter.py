@@ -17,6 +17,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 
+from ...i18n import number as localised
 from .. import apple
 from .accelerator import AcceleratorSampler, read_accelerator_energy_millijoules
 from .graphics import GraphicsSampler, read_graphics_energy_microjoules
@@ -28,20 +29,11 @@ from .rapl import (
 from .reading import PowerReading, unavailable_reason
 from .soc import _soc_reading
 from .tables import (
-    _ACCELERATOR_MISSING_NOTE,
-    _ACCELERATOR_WRAPPED_NOTE,
-    _BOTH_MEASURED_NOTE,
-    _MEMORY_MEASURED_NOTE,
     _MICROJOULES_PER_JOULE,
     _MILLIJOULES_PER_JOULE,
-    _PACKAGE_MISSING_NOTE,
     _SAMPLE_INTERVAL_MS,
-    _WRAP_RECOVERED_NOTE,
-    ACCELERATOR_COUNTER_SCOPE,
-    ACCELERATOR_SAMPLED_SCOPE,
-    GRAPHICS_COUNTER_SCOPE,
-    GRAPHICS_SAMPLED_SCOPE,
-    RAPL_SCOPE_NOTE,
+    rapl_scope_note,
+    scope_note,
 )
 
 
@@ -200,7 +192,7 @@ class PowerMeter:
                 "the run, so the difference is not a measurement."
             )
         ceiling = self.wrap_range / _MICROJOULES_PER_JOULE / seconds
-        return recovered, _WRAP_RECOVERED_NOTE.format(ceiling=ceiling)
+        return recovered, scope_note("wrap_recovered", ceiling=localised(f"{ceiling:.0f} W"))
 
     def _memory_joules(self) -> float | None:
         """Return what the memory drew over the run, or ``None``."""
@@ -223,15 +215,17 @@ class PowerMeter:
             if ended_at is None or ended_at < self.graphics_started_at:
                 return None, None
             joules = (ended_at - self.graphics_started_at) / _MICROJOULES_PER_JOULE
-            return joules / seconds, GRAPHICS_COUNTER_SCOPE
+            return joules / seconds, scope_note("graphics_counter")
         if self.graphics_sampler is None:
             return None, None
         sampled = self.graphics_sampler.stop()
         if sampled is None:
             return None, None
         mean_watts, count = sampled
-        return mean_watts, GRAPHICS_SAMPLED_SCOPE.format(
-            count=count, interval=_SAMPLE_INTERVAL_MS / 1000.0
+        return mean_watts, scope_note(
+            "graphics_sampled",
+            count=count,
+            interval=localised(f"{_SAMPLE_INTERVAL_MS / 1000.0:g} s"),
         )
 
     def _accelerator_watts(self, *, seconds: float) -> tuple[float | None, str | None]:
@@ -252,9 +246,9 @@ class PowerMeter:
                 # The board answered; its counter wrapped or was reset. Saying
                 # "no accelerator answered" here would mislabel a measurement
                 # problem as an absence of hardware.
-                return None, _ACCELERATOR_WRAPPED_NOTE
+                return None, scope_note("accelerator_wrapped")
             joules = (ended_at - self.accelerator_started_at) / _MILLIJOULES_PER_JOULE
-            return joules / seconds, ACCELERATOR_COUNTER_SCOPE
+            return joules / seconds, scope_note("accelerator_counter")
         if self.sampler is None:
             return None, None
         sampled = self.sampler.stop()
@@ -264,8 +258,10 @@ class PowerMeter:
         # The sampler writes one line per board per tick, so on a machine with
         # eight boards the count of readings is eight times the count of ticks.
         # The sentence says readings, which is what was counted.
-        return mean_watts, ACCELERATOR_SAMPLED_SCOPE.format(
-            count=count, interval=_SAMPLE_INTERVAL_MS / 1000.0
+        return mean_watts, scope_note(
+            "accelerator_sampled",
+            count=count,
+            interval=localised(f"{_SAMPLE_INTERVAL_MS / 1000.0:g} s"),
         )
 
     def stop(self, *, seconds: float) -> PowerReading:
@@ -333,18 +329,18 @@ class PowerMeter:
             return PowerReading(None, None, package_reason or unavailable_reason())
 
         if accelerator_watts is None:
-            # RAPL_SCOPE_NOTE is about what the package counter misses, which is
+            # The RAPL note is about what the package counter misses, which is
             # only worth saying when nothing else made up for it. When the
             # accelerator answered but its counter wrapped, that reason arrives
             # in accelerator_scope and is told instead of the absence line.
-            scopes.insert(0, RAPL_SCOPE_NOTE)
-            scopes.append(accelerator_scope or _ACCELERATOR_MISSING_NOTE)
+            scopes.insert(0, rapl_scope_note())
+            scopes.append(accelerator_scope or scope_note("accelerator_missing"))
         elif package_joules is None:
-            scopes.append(_PACKAGE_MISSING_NOTE)
+            scopes.append(scope_note("package_missing"))
         else:
-            scopes.insert(0, _BOTH_MEASURED_NOTE)
+            scopes.insert(0, scope_note("both_measured"))
         if memory_joules is not None:
-            scopes.append(_MEMORY_MEASURED_NOTE)
+            scopes.append(scope_note("memory_measured"))
         if package_reason is not None and package_joules is not None:
             # A recovered wrap is a measurement with a condition attached, and
             # the condition travels with the number rather than being dropped
