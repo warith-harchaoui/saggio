@@ -16,6 +16,8 @@
 
 en:
   number.decimal: "."
+  # Whether a count of zero takes the singular or the plural form.
+  number.plural.zero: "many"
   bar.theme.light: "Switch to the light theme"
   bar.theme.dark: "Switch to the dark theme"
   bar.language: "Language"
@@ -94,6 +96,7 @@ en:
 
 fr:
   number.decimal: ","
+  number.plural.zero: "one"
   bar.theme.light: "Passer au thème clair"
   bar.theme.dark: "Passer au thème sombre"
   bar.language: "Langue"

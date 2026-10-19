@@ -611,3 +611,64 @@ validate.market.alone: >-
   est la moitié market-based du scope 2, sans chiffre location-based à côté. La
   guidance exige les deux, et c'est la moitié qu'un contrat peut améliorer :
   seule, elle se lit mieux que la déclaration ne l'est
+
+# --- Ce que les verbes impriment (saggio/cli/commands.py)
+
+cli.init.next_step: >-
+  Remplissez maintenant les TODO, puis vérifiez avec `saggio validate {path}`.
+cli.validate.weakest: "Chiffre le plus faible du modèle : {status}."
+cli.scopes.heading: "Pour {unit}, sur {provider} :"
+cli.scopes.unit_default: "une unité de travail"
+cli.scopes.provider_default: "un fournisseur non indiqué"
+cli.scopes.dual: "Double déclaration : {sentence}"
+cli.scopes.founded: "Solidité des chiffres rangés : {summary}."
+cli.scopes.filer: >-
+  Un déclarant doit indiquer la part d'un bilan qui repose sur des estimations
+  plutôt que sur des relevés. C'est cette part, déjà faite.
+cli.next.nothing_open: "Rien n'est ouvert. Chaque chiffre de ce modèle est établi."
+cli.next.unlocking: >-
+  {open_total} chiffre(s) ouvert(s). {question_count} question(s) en
+  fermeraient {closed_count}.
+cli.next.none_unlocks: >-
+  {open_total} chiffre(s) ouvert(s), et aucun n'en ferme un autre.
+cli.next.closes: "ferme : {paths}"
+cli.next.alone: "{count} autres attendent après vous et ne ferment qu'eux-mêmes :"
+cli.audit.has_issues: "Le modèle produit par cet audit a des constats :"
+cli.audit.read_first: "À lire avant de se fier à ce modèle :"
+cli.measure.nothing: >-
+  Rien à mesurer. Passez la commande après --, par exemple : measure -- pytest -q
+cli.measure.ran: "Exécuté : {command}"
+cli.measure.exit_code: "Code de sortie : {code}"
+cli.measure.runs: "Exécutions : {count}"
+cli.measure.wall_clock: "Temps d'horloge : {seconds}"
+cli.measure.wall_clock_median: "Temps d'horloge : {seconds} (médiane de {count} ; {low}-{high})"
+cli.measure.power: "Puissance moyenne : {watts} (mesurée)"
+cli.measure.power_median: "Puissance moyenne : {watts} (médiane de {count} ; {low}-{high})"
+cli.measure.power_not_measured: "Puissance moyenne : non mesurée"
+cli.measure.at_rest: "machine au repos avant : {watts}"
+cli.measure.added: "ajouté par cette tranche : {watts}"
+cli.measure.added_unknown: "ajouté par cette tranche : non établi"
+cli.measure.attributable: "attribuable à elle{share} : {watts}"
+cli.measure.attributable_share: " ({share} du travail processeur de la machine)"
+cli.measure.covering: "couvre {scope}"
+cli.fold.failed_run: >-
+  La commande est sortie en {code} et rien n'a été écrit dans {path}. Une
+  exécution en échec a mesuré un échec, qui n'a aucun coût par unité de travail
+  puisqu'il n'a produit aucune unité.
+cli.fold.refused: "Rien n'a été écrit dans {path} : {reason}"
+cli.fold.wrote: "Écrit dans {path}"
+cli.render.needs_output: >-
+  Une sortie {format} exige --output, puisque ce n'est pas du texte.
+cli.render.unknown_format: "Format {format} inconnu. Connus : {known}."
+
+# --- Le verdict du validateur, tel qu'un verbe l'imprime (saggio/model/results.py)
+
+results.verdict.valid: "Valide"
+results.verdict.invalid: "Invalide"
+results.summary: "{verdict} : {errors}, {warnings}."
+results.error.one: "erreur"
+results.error.many: "erreurs"
+results.warning.one: "avertissement"
+results.warning.many: "avertissements"
+results.severity.error: "ERREUR"
+results.severity.warning: "AVERTISSEMENT"

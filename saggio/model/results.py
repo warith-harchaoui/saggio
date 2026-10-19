@@ -27,14 +27,13 @@ Warith Harchaoui
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Final, Literal
+from typing import Any, Literal
+
+from ..i18n import plural, say
 
 #: The two severities. An error means the model must not be trusted as it
 #: stands; a warning means it can be used but a reader should know something.
 Severity = Literal["error", "warning"]
-
-#: Column width for the severity in rendered text, so paths line up.
-_SEVERITY_WIDTH: Final[int] = 7
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,7 +74,11 @@ class Issue:
         >>> Issue("error", "", "the model has no scenario").to_text()
         'ERROR   the model has no scenario'
         """
-        label = self.severity.upper().ljust(_SEVERITY_WIDTH)
+        # The width comes from the longest label this language has, so the
+        # columns stay straight in a language whose words are longer.
+        said = say(f"results.severity.{self.severity}")
+        width = max(len(say(f"results.severity.{kind}")) for kind in ("error", "warning"))
+        label = said.ljust(width)
         if not self.path:
             return f"{label} {self.message}"
         return f"{label} {self.path}: {self.message}"
@@ -272,8 +275,11 @@ class Report:
         >>> Report().summary()
         'Valid: 0 errors, 0 warnings.'
         """
-        verdict = "Valid" if self.ok else "Invalid"
-        errors, warnings = len(self.errors), len(self.warnings)
-        plural_e = "" if errors == 1 else "s"
-        plural_w = "" if warnings == 1 else "s"
-        return f"{verdict}: {errors} error{plural_e}, {warnings} warning{plural_w}."
+        return say(
+            "results.summary",
+            verdict=say("results.verdict.valid" if self.ok else "results.verdict.invalid"),
+            errors=plural(len(self.errors), say("results.error.one"), say("results.error.many")),
+            warnings=plural(
+                len(self.warnings), say("results.warning.one"), say("results.warning.many")
+            ),
+        )

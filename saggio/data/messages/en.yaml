@@ -556,3 +556,61 @@ validate.market.alone: >-
   is the market-based half of scope 2 with no location-based figure beside it.
   The guidance requires both, and this is the half a contract can improve, so
   alone it reads better than the disclosure is
+
+# --- What the verbs print (saggio/cli/commands.py)
+
+cli.init.next_step: "Now fill in the TODOs, then check it with `saggio validate {path}`."
+cli.validate.weakest: "Weakest number anywhere in the model: {status}."
+cli.scopes.heading: "Per {unit}, on {provider}:"
+cli.scopes.unit_default: "one unit of work"
+cli.scopes.provider_default: "an unstated provider"
+cli.scopes.dual: "Dual reporting: {sentence}"
+cli.scopes.founded: "How well founded the placed figures are: {summary}."
+cli.scopes.filer: >-
+  A filer is asked to disclose the share of an inventory that rests on estimates
+  rather than readings. This is that share, already.
+cli.next.nothing_open: "Nothing is open. Every number in this model is established."
+cli.next.unlocking: >-
+  {open_total} number(s) open. {question_count} question(s) would close
+  {closed_count} of them.
+cli.next.none_unlocks: "{open_total} number(s) open, and none of them closes another."
+cli.next.closes: "closes: {paths}"
+cli.next.alone: "{count} more are waiting on you and close only themselves:"
+cli.audit.has_issues: "The model this audit produced has issues:"
+cli.audit.read_first: "Read before trusting this model:"
+cli.measure.nothing: >-
+  Nothing to measure. Pass the command after --, for example: measure -- pytest -q
+cli.measure.ran: "Ran: {command}"
+cli.measure.exit_code: "Exit code: {code}"
+cli.measure.runs: "Runs: {count}"
+cli.measure.wall_clock: "Wall-clock: {seconds}"
+cli.measure.wall_clock_median: "Wall-clock: {seconds} (median of {count}; {low}-{high})"
+cli.measure.power: "Average power: {watts} (measured)"
+cli.measure.power_median: "Average power: {watts} (median of {count}; {low}-{high})"
+cli.measure.power_not_measured: "Average power: not measured"
+cli.measure.at_rest: "machine at rest before it: {watts}"
+cli.measure.added: "added by this slice: {watts}"
+cli.measure.added_unknown: "added by this slice: not established"
+cli.measure.attributable: "attributable to it{share}: {watts}"
+cli.measure.attributable_share: " ({share} of the machine's processor work)"
+cli.measure.covering: "covering {scope}"
+cli.fold.failed_run: >-
+  The command exited {code} and nothing was written to {path}. A failed run
+  measured a failure, which has no cost per unit of work because it produced no
+  units.
+cli.fold.refused: "Nothing was written to {path}: {reason}"
+cli.fold.wrote: "Wrote {path}"
+cli.render.needs_output: "{format} output needs --output, since it is not text."
+cli.render.unknown_format: "Unknown format {format}. Known: {known}."
+
+# --- The validator's verdict, as a command prints it (saggio/model/results.py)
+
+results.verdict.valid: "Valid"
+results.verdict.invalid: "Invalid"
+results.summary: "{verdict}: {errors}, {warnings}."
+results.error.one: "error"
+results.error.many: "errors"
+results.warning.one: "warning"
+results.warning.many: "warnings"
+results.severity.error: "ERROR"
+results.severity.warning: "WARNING"

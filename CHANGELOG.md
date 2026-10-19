@@ -9,6 +9,23 @@ release of that line.
 
 ## Unreleased
 
+### What the verbs print, and zero as each language counts it
+
+- **Every line the daily verbs print** (`cli/commands.py`): `init`'s next step,
+  `validate`'s weakest number, `scopes` with its dual-reporting note and the
+  sentence a filer needs, `next`'s arithmetic of what closes what, `measure`'s
+  power lines — the floor, what the slice added, what is attributable and the
+  share it rests on — `audit`'s two warnings, and `measure --into`'s refusal to
+  fold a failed run.
+- **The validator's verdict** (`model/results.py`): `Valide : 0 erreur, 0
+  avertissement.` The severity labels go with it, and the column width is
+  computed from the longest label **this language has**, so the paths stay
+  aligned where the word is longer.
+- **Zero is not plural in every language.** *0 errors* is plural in English;
+  *0 erreur* is singular in French. That is a property of the language, not a
+  rule the code can hold, so it is a key like every other wording —
+  `number.plural.zero` — and `saggio.i18n.plural()` reads it.
+
 ### Numbers written the way the language writes them, and the validator's 55 refusals
 
 - **`17.4 W` in English, `17,4 W` in French.** Warith's call, against my own

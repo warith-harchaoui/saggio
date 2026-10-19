@@ -328,6 +328,43 @@ def number(text: str) -> str:
     return re.sub(r"(?<=\d)\.(?=\d)", separator, text)
 
 
+def plural(count: int, one: str, many: str) -> str:
+    """Return the form this language uses for a count, and the count with it.
+
+    English and French disagree about zero: *0 errors* is plural, *0 erreur* is
+    singular. One is not a rule the code can hold, because it is a property of
+    the language; it is a key, like every other wording here.
+
+    Parameters
+    ----------
+    count : int
+        How many.
+    one : str
+        The wording for a single thing, with no count in it.
+    many : str
+        The wording for several.
+
+    Returns
+    -------
+    str
+        The count and the right form, separated by a space.
+
+    Examples
+    --------
+    >>> plural(1, "error", "errors"), plural(0, "error", "errors")
+    ('1 error', '0 errors')
+    >>> with language("fr"):
+    ...     plural(0, "erreur", "erreurs"), plural(2, "erreur", "erreurs")
+    ('0 erreur', '2 erreurs')
+    """
+    if count == 1:
+        return f"{count} {one}"
+    if count == 0:
+        zero = phrase("number.plural.zero", language=current_language(), table="label") or "many"
+        return f"{count} {one if zero == 'one' else many}"
+    return f"{count} {many}"
+
+
 def say(key: str, /, **arguments: object) -> str:
     """Return one of the engine's sentences, in the language in force.
 

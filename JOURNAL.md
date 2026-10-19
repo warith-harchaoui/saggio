@@ -10,6 +10,24 @@ cette ligne.
 
 ## Non publié
 
+### Ce que les verbes impriment, et le zéro tel que chaque langue le compte
+
+- **Chaque ligne que les verbes du quotidien impriment** (`cli/commands.py`) :
+  l'étape suivante d'`init`, le chiffre le plus faible de `validate`, `scopes`
+  avec sa note de double déclaration et la phrase dont un déclarant a besoin,
+  l'arithmétique de `next` sur ce qui ferme quoi, les lignes de puissance de
+  `measure` — le plancher, ce que la tranche a ajouté, ce qui lui est
+  attribuable et la part sur laquelle cela repose — les deux avertissements
+  d'`audit`, et le refus de `measure --into` de plier une exécution en échec.
+- **Le verdict du validateur** (`model/results.py`) : `Valide : 0 erreur, 0
+  avertissement.` Les étiquettes de gravité suivent, et la largeur de colonne
+  est calculée depuis l'étiquette la plus longue **de cette langue**, pour que
+  les chemins restent alignés là où le mot est plus long.
+- **Le zéro n'est pas pluriel dans toutes les langues.** *0 errors* est pluriel
+  en anglais ; *0 erreur* est singulier en français. C'est une propriété de la
+  langue, pas une règle que le code peut tenir : c'est donc une clé comme les
+  autres — `number.plural.zero` — et `saggio.i18n.plural()` la lit.
+
 ### Les nombres écrits comme la langue les écrit, et les 55 refus du validateur
 
 - **`17.4 W` en anglais, `17,4 W` en français.** Décision de Warith, contre ma

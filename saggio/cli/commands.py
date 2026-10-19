@@ -77,13 +77,14 @@ from ..estimate.ghg import (
 )
 from ..estimate.machine import detect_machine
 from ..fold import fold_measurement
-from ..i18n import DEFAULT_LANGUAGE, phrase
+from ..i18n import DEFAULT_LANGUAGE, phrase, say
+from ..i18n import number as localised
 from ..model.cost_model import CostModel
 from ..model.questions import questions_payload
 from ..model.validate import overall_status, validate
 from ..report.dashboard import render_dashboard
 from ..report.html import render_html
-from ..report.markdown import format_number, render_markdown
+from ..report.markdown import format_number, not_known, render_markdown
 from ..report.office import OFFICE_FORMATS, render_office
 from ..templates import template_text
 from .exit_codes import DECLINED, INVALID, OK, UNAVAILABLE, USAGE
@@ -186,7 +187,7 @@ def initialise(args: argparse.Namespace) -> int:
         return USAGE
     _write(text, args.output)
     if args.output:
-        osh.info(f"Now fill in the TODOs, then check it with `saggio validate {args.output}`.")
+        osh.info(say("cli.init.next_step", path=args.output))
     return OK
 
 
@@ -226,7 +227,7 @@ def check(args: argparse.Namespace) -> int:
         print(report.summary())
         weakest = overall_status(model)
         if weakest:
-            print(f"Weakest number anywhere in the model: {weakest}.")
+            print(say("cli.validate.weakest", status=weakest))
     return OK if report.ok else INVALID
 
 
@@ -281,13 +282,20 @@ def scopes(args: argparse.Namespace) -> int:
         _emit(placed, as_json=True)
         return OK
 
-    named = placed["unit_of_work"] or "one unit of work"
-    print(f"Per {named}, on {provider or 'an unstated provider'}:\n")
+    named = placed["unit_of_work"] or say("cli.scopes.unit_default")
+    print(
+        say(
+            "cli.scopes.heading",
+            unit=named,
+            provider=provider or say("cli.scopes.provider_default"),
+        )
+        + "\n"
+    )
     for row in rows:
         # The report's own rounding, so the same figure reads the same in both
         # places. Seven decimal places of a derived gram are noise either way.
         shown = (
-            "not known"
+            not_known()
             if row["value"] is None
             else f"{format_number(row['value'])} {row['unit'] or ''}".strip()
         )
@@ -307,15 +315,12 @@ def scopes(args: argparse.Namespace) -> int:
         if row["source_url"]:
             print(f"  {row['source_url']}")
         if row["dual_reporting"]:
-            print(f"  Dual reporting: {row['dual_reporting']}")
+            print("  " + say("cli.scopes.dual", sentence=row["dual_reporting"]))
         print()
     if counted:
         summary = ", ".join(f"{count} {status}" for status, count in sorted(counted.items()))
-        print(f"How well founded the placed figures are: {summary}.")
-        print(
-            "A filer is asked to disclose the share of an inventory that rests on "
-            "estimates rather than readings. This is that share, already."
-        )
+        print(say("cli.scopes.founded", summary=summary))
+        print(say("cli.scopes.filer"))
     return OK
 
 
@@ -358,16 +363,20 @@ def next_question(args: argparse.Namespace) -> int:
 
     questions = payload["questions"]
     if not payload["open_total"]:
-        print("Nothing is open. Every number in this model is established.")
+        print(say("cli.next.nothing_open"))
         return OK
 
     unlocking = [q for q in questions if q["unlocks"]]
     closed_by_them = sum(q["unlocks"] for q in unlocking)
     print(
-        f"{payload['open_total']} number(s) open. "
-        f"{len(unlocking)} question(s) would close {closed_by_them} of them."
+        say(
+            "cli.next.unlocking",
+            open_total=payload["open_total"],
+            question_count=len(unlocking),
+            closed_count=closed_by_them,
+        )
         if unlocking
-        else f"{payload['open_total']} number(s) open, and none of them closes another."
+        else say("cli.next.none_unlocks", open_total=payload["open_total"])
     )
     print()
 
@@ -379,12 +388,12 @@ def next_question(args: argparse.Namespace) -> int:
             # reason this command can be trusted to ask the right thing.
             for line in textwrap.wrap(question["note"], width=76):
                 print(f"      {line}")
-        print(f"      closes: {', '.join(question['closes'])}")
+        print("      " + say("cli.next.closes", paths=", ".join(question["closes"])))
         print()
 
     alone = [q for q in questions if not q["unlocks"]]
     if alone:
-        print(f"{len(alone)} more are waiting on you and close only themselves:")
+        print(say("cli.next.alone", count=len(alone)))
         for question in alone:
             print(f"  {question['path']}")
     return OK
@@ -423,7 +432,7 @@ def render(args: argparse.Namespace) -> int:
         return OK
     if args.format in OFFICE_FORMATS:
         if args.output is None:
-            osh.error(f"{args.format} output needs --output, since it is not text.")
+            osh.error(say("cli.render.needs_output", format=args.format))
             return USAGE
         try:
             written = render_office(
@@ -438,10 +447,16 @@ def render(args: argparse.Namespace) -> int:
         except RuntimeError as exc:
             osh.error(str(exc))
             return UNAVAILABLE
-        osh.info(f"Wrote {written}")
+        osh.info(say("cli.fold.wrote", path=written))
         return OK
 
-    osh.error(f"Unknown format {args.format!r}.")
+    osh.error(
+        say(
+            "cli.render.unknown_format",
+            format=repr(args.format),
+            known=", ".join(("md", "html", *sorted(OFFICE_FORMATS))),
+        )
+    )
     return USAGE
 
 
@@ -533,12 +548,12 @@ def audit_command(args: argparse.Namespace) -> int:
     else:
         _write(result.model.to_yaml(), args.output)
         if result.report.issues:
-            print("\nThe model this audit produced has issues:", file=sys.stderr)
+            print("\n" + say("cli.audit.has_issues"), file=sys.stderr)
             print(result.report.to_text(), file=sys.stderr)
         if result.notes:
             # These go to standard error, so redirecting the model to a file still
             # shows the reader what the audit could not establish and why.
-            print("\nRead before trusting this model:", file=sys.stderr)
+            print("\n" + say("cli.audit.read_first"), file=sys.stderr)
             for note in result.notes:
                 print(f"  - {note}", file=sys.stderr)
     return OK if result.report.ok else INVALID
@@ -571,13 +586,11 @@ def measure(args: argparse.Namespace) -> int:
     if command and command[0] == "--":
         command = command[1:]
     if not command:
-        osh.error(
-            "Nothing to measure. Pass the command after --, for example: measure -- pytest -q"
-        )
+        osh.error(say("cli.measure.nothing"))
         return USAGE
     repeats = int(getattr(args, "repeat", 1) or 1)
     if repeats < 1:
-        osh.error(f"A command cannot be run {repeats} times.")
+        osh.error(say("repeat.cannot_run", repeats=repeats))
         return USAGE
     series = run_slices(
         command,
@@ -609,35 +622,61 @@ def measure(args: argparse.Namespace) -> int:
     if args.json:
         _emit(payload, as_json=True)
     else:
-        print(f"Ran: {' '.join(result.command)}")
-        print(f"Exit code: {result.exit_code}")
+        print(say("cli.measure.ran", command=" ".join(result.command)))
+        print(say("cli.measure.exit_code", code=result.exit_code))
         if len(series.runs) > 1:
             spread = series.runtime_spread()
-            print(f"Runs: {len(series.runs)}")
+            print(say("cli.measure.runs", count=len(series.runs)))
             print(
-                f"Wall-clock: {result.wall_seconds:.3f} s (median of "
-                f"{len(series.runs)}; {spread.low:.3f}-{spread.high:.3f} s)"
+                say(
+                    "cli.measure.wall_clock_median",
+                    seconds=localised(f"{result.wall_seconds:.3f} s"),
+                    count=len(series.runs),
+                    low=localised(f"{spread.low:.3f}"),
+                    high=localised(f"{spread.high:.3f} s"),
+                )
             )
         else:
-            print(f"Wall-clock: {result.wall_seconds:.3f} s")
+            print(
+                say(
+                    "cli.measure.wall_clock",
+                    seconds=localised(f"{result.wall_seconds:.3f} s"),
+                )
+            )
         if result.power.measured():
             watts = series.power_spread()
             if watts is not None and len(series.runs) > 1:
                 print(
-                    f"Average power: {result.power.watts:.1f} W (median of "
-                    f"{len(series.runs)}; {watts.low:.1f}-{watts.high:.1f} W)"
+                    say(
+                        "cli.measure.power_median",
+                        watts=localised(f"{result.power.watts:.1f} W"),
+                        count=len(series.runs),
+                        low=localised(f"{watts.low:.1f}"),
+                        high=localised(f"{watts.high:.1f} W"),
+                    )
                 )
             else:
-                print(f"Average power: {result.power.watts:.1f} W (measured)")
+                print(
+                    say(
+                        "cli.measure.power",
+                        watts=localised(f"{result.power.watts:.1f} W"),
+                    )
+                )
             if result.baseline is not None and result.baseline.measured():
-                print(f"  machine at rest before it: {result.baseline.watts:.1f} W")
+                print(
+                    "  "
+                    + say(
+                        "cli.measure.at_rest",
+                        watts=localised(f"{result.baseline.watts:.1f} W"),
+                    )
+                )
                 marginal = result.marginal_watts()
                 # The counter measured the machine. What the slice added is the
                 # difference, and it is the figure worth quoting for the slice.
                 print(
-                    f"  added by this slice: {marginal:.1f} W"
+                    "  " + say("cli.measure.added", watts=localised(f"{marginal:.1f} W"))
                     if marginal is not None
-                    else "  added by this slice: not established"
+                    else "  " + say("cli.measure.added_unknown")
                 )
             attributed = result.attributed_watts()
             if attributed is not None:
@@ -645,11 +684,22 @@ def measure(args: argparse.Namespace) -> int:
                 # else, this is the better of the two, and printing only the
                 # subtraction left the reader with the half that flatters.
                 share = result.cpu_share.share if result.cpu_share else None
-                by_share = f" ({share:.0%} of the machine's processor work)" if share else ""
-                print(f"  attributable to it{by_share}: {attributed:.1f} W")
-                print(f"    covering {result.attributed_scope()}")
+                by_share = (
+                    say("cli.measure.attributable_share", share=localised(f"{share:.0%}"))
+                    if share
+                    else ""
+                )
+                print(
+                    "  "
+                    + say(
+                        "cli.measure.attributable",
+                        share=by_share,
+                        watts=localised(f"{attributed:.1f} W"),
+                    )
+                )
+                print("    " + say("cli.measure.covering", scope=result.attributed_scope()))
         else:
-            print("Average power: not measured")
+            print(say("cli.measure.power_not_measured"))
         for entry in result.hot_path[:5]:
             print(f"  {entry.cumulative_seconds:8.3f} s  {entry.function}")
         for warning in measurement.get("warnings", result.warnings):
@@ -683,11 +733,7 @@ def _fold_into(args: argparse.Namespace, result: Any, measurement: Any = None) -
     2
     """
     if result is not None and (result.exit_code != 0 or result.truncated):
-        osh.error(
-            f"The command exited {result.exit_code} and nothing was written to "
-            f"{args.into}. A failed run measured a failure, which has no cost per "
-            "unit of work because it produced no units."
-        )
+        osh.error(say("cli.fold.failed_run", code=result.exit_code, path=args.into))
         return USAGE
     try:
         model = _load(args.into)
@@ -704,10 +750,10 @@ def _fold_into(args: argparse.Namespace, result: Any, measurement: Any = None) -
         command=" ".join(result.command),
     )
     if folded.refused:
-        osh.error(f"Nothing was written to {args.into}: {folded.refused}")
+        osh.error(say("cli.fold.refused", path=args.into, reason=folded.refused))
         return INVALID
     folded.model.save(args.into)
-    osh.info(f"Wrote {args.into}")
+    osh.info(say("cli.fold.wrote", path=args.into))
     for change in folded.changes:
         print(f"  {change}")
     return OK
