@@ -1143,3 +1143,127 @@ power.unavailable.linux: >-
   Aucun compteur RAPL lisible n'a été trouvé : c'est une machine ARM, un
   conteneur sans les fichiers sysfs, ou des fichiers qui ne sont pas lisibles par
   tous.
+
+# --- Ajuster comment le travail croît avec le job, et refuser de l'ajuster
+#     (estimate/scaling.py)
+
+scaling.reading.linear: >-
+  Le travail a crû proportionnellement à la taille : projeter par le rapport des
+  tailles est donc fondé sur l'intervalle mesuré.
+scaling.reading.superlinear: >-
+  Le travail a crû plus vite que la taille, à la puissance {exponent}. Doubler le
+  job multiplie le coût par {doubling} et non par 2 : une projection qui aurait
+  divisé par le rapport des tailles sous-estimerait la course entière.
+scaling.reading.sublinear: >-
+  Le travail a crû moins vite que la taille, à la puissance {exponent}. Sur ces
+  tailles, la course est dominée par des coûts qui ne croissent pas avec le job —
+  démarrage, imports, chargement d'un modèle : les tranches mesurent donc surtout
+  de la surcharge, et une projection depuis elles surestimerait la course
+  entière.
+scaling.refuse.too_few: >-
+  {count} exécution(s) chronométrée(s) ne suffisent pas pour ajuster un exposant
+  de montée en charge ; il en faut {needed} de tailles différentes, parce que
+  deux points ajustent une droite exactement et n'écartent donc rien.
+scaling.refuse.not_finite: >-
+  Une exécution a rapporté une taille ou une durée qui n'est pas un nombre fini :
+  aucune courbe ne peut passer par là.
+scaling.refuse.not_positive: >-
+  Une exécution de taille {size} a pris {seconds}. Une loi de puissance s'ajuste
+  sur des logarithmes : chaque taille et chaque durée doivent donc être
+  strictement positives ; une exécution trop courte pour l'horloge demande une
+  tranche plus grande, pas plus petite.
+scaling.refuse.narrow_range: >-
+  Les tailles exécutées s'étendent sur un facteur {span}, de {smallest} à
+  {largest}. Distinguer une droite d'une courbe demande au moins un facteur
+  {needed}, et idéalement des ordres de grandeur ; sur un intervalle aussi
+  étroit, tous les exposants s'ajustent à peu près aussi bien.
+scaling.refuse.one_size: >-
+  Toutes les exécutions avaient la même taille : il n'y a aucune tendance à
+  ajuster.
+scaling.refuse.negative: >-
+  L'ajustement donne un exposant de {exponent} : les grandes exécutions ont fini
+  plus tôt que les petites. Le travail ne rétrécit pas quand il y en a plus : ceci
+  mesure donc autre chose — un démarrage qui domine chaque échelon, un cache qui
+  se remplit, ou un autre processus sur la machine. Exécutez des tranches plus
+  grandes sur une machine plus calme, ou regardez ce que faisait la machine avec
+  `saggio power`.
+scaling.refuse.bad_fit: >-
+  Une loi de puissance n'explique que {explained} de la variation sur {count}
+  exécutions, sous les {required} exigés. Les tranches ne mesurent pas un
+  comportement unique et constant — un cache qui se remplit, un ordonnancement
+  qui change de forme, ou une machine occupée ailleurs au même moment : aucun
+  exposant tiré d'elles ne décrirait la course.
+scaling.notes: >-
+  Ajusté sur {count} exécutions de tailles {smallest} à {largest}, R² =
+  {r_squared}.
+scaling.method: >-
+  Moindres carrés de log(secondes) sur log(taille) sur {count} exécutions :
+  secondes = {coefficient} × taille^{exponent}.
+scaling.limit.range: >-
+  L'exposant a été mesuré entre les tailles {smallest} et {largest}. En dehors de
+  cet intervalle, c'est une extrapolation comme une autre.
+scaling.limit.changes_shape: >-
+  Un coût qui change de forme en cours de course réelle — un ordonnancement du
+  taux d'apprentissage qui change la taille de lot, un jeu de données qui cesse
+  de tenir en mémoire — n'est pas visible dans des tranches qui ont toutes tourné
+  avant.
+
+# --- Les verbes qui lisent un document, comparent, ou sondent (cli/commands.py)
+
+cli.pcf.read: "Lu : {url}"
+cli.pcf.says: "le document dit : {sentence}"
+cli.pcf.elsewhere: "et, ailleurs dedans : {line}"
+cli.pcf.divided: "donc un(e) des {units} : {stated} / {units} = {per_unit} kgCO2e"
+cli.pcf.already_one: "ce qui est déjà une unité : {per_unit} kgCO2e"
+cli.pcf.draft: >-
+  Une ligne que vous pouvez accepter, refuser ou corriger — rien n'a été écrit :
+cli.pcf.key_is_yours: >-
+  La clé est à vous de fournir : un document ne sait pas comment ce catalogue
+  nomme les choses.
+cli.diff.nothing_changed: "Rien n'a changé."
+cli.diff.summary: >-
+  {count} changement(s), {breaches} au-delà de la porte de {threshold}.{tail}
+cli.diff.excused: " {count} dans le bruit que les modèles ont mesuré."
+cli.freshness.stale: "périmé {kind} : {keys}"
+cli.freshness.re_read: >-
+  Relisez les sources et rajoutez les lignes avec un retrieved_date frais.
+cli.freshness.all_fresh: >-
+  Chaque ligne de catalogue est dans sa fenêtre de rafraîchissement.
+cli.freshness.expiring: >-
+  bientôt périmé {kind} : {count} ligne(s) se périment dans {days} jour(s) —
+  {keys}{more}. Relisez la source maintenant plutôt que de la redater plus tard.
+cli.freshness.and_more: " et {count} de plus"
+cli.machine.memory: "Mémoire : {amount}"
+cli.machine.cpu_key: "Clé de catalogue du processeur : {key}"
+cli.machine.gpu_key: "Clé de catalogue du GPU : {key}"
+cli.machine.generic_fallback: " (repli générique)"
+cli.machine.none: "aucune"
+cli.power.reads: "lit : {path}"
+cli.power.nothing_measured: "Sur {seconds} : rien mesuré. {scope}"
+cli.power.drew: "Sur {seconds}, cette machine a tiré {watts} ({joules}) via {sources}."
+
+# --- Ce que couvrent les compteurs propres d'une puce Apple
+#     (analyze/apple.py, power/soc.py)
+
+apple.soc_scope: >-
+  les cœurs processeur, les cœurs graphiques et le moteur neuronal de la puce,
+  depuis les compteurs d'énergie du système sur puce
+apple.soc_memory_scope: >-
+  la mémoire de la puce, depuis son propre compteur d'énergie
+apple.soc_model_note: >-
+  Ce sont les compteurs d'énergie propres à la puce : un modèle à l'intérieur du
+  silicium plutôt qu'un appareil de mesure sur le rail d'alimentation, et Apple
+  dit explicitement qu'ils ne sont pas une base pour comparer une machine à une
+  autre. N'y figurent pas : l'écran, le stockage, le réseau, les ventilateurs et
+  les pertes propres de l'alimentation.
+apple.intel_mac: >-
+  C'est un Mac Intel, dont macOS ne publie le compteur de paquet que par
+  powermetrics, qui exige des droits d'administrateur et ne peut donc pas être lu
+  depuis un appel de bibliothèque.
+apple.unknown_layout: >-
+  Cette puce Apple publie ses canaux d'énergie sous des noms que ce paquet ne
+  reconnaît pas : rien n'a donc été mesuré plutôt que quelque chose deviné.
+  Signaler les noms de canaux dans un ticket suffit à ajouter la pièce.
+soc.figure_covers: "Le chiffre couvre {scope}, lu sur les compteurs {channels}."
+soc.figure_covers_both: >-
+  Le chiffre couvre {scope} et {memory}, lus sur les compteurs {channels}.

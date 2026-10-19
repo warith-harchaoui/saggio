@@ -10,10 +10,10 @@ from __future__ import annotations
 
 from saggio.analyze.apple import (
     _JOULES_PER_UNIT,
-    SOC_MODEL_NOTE,
     SocEnergy,
     _assemble,
     available,
+    soc_model_note,
     unavailable_reason,
 )
 from saggio.analyze.power import _soc_reading
@@ -93,7 +93,7 @@ def test_the_reading_always_says_the_counters_are_a_model() -> None:
     # vendor is explicit that they do not compare across machines. That caveat
     # ships with every figure rather than living in documentation nobody reads.
     reading = _soc_reading(SocEnergy(2.0, None, {"cpu": 2.0}, ("CPU Energy",)), seconds=1.0)
-    assert SOC_MODEL_NOTE in reading.scope
+    assert soc_model_note() in reading.scope
 
 
 def test_availability_and_its_reason_agree() -> None:

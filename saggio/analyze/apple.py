@@ -51,6 +51,8 @@ from typing import Any, Final
 
 import os_helper as osh
 
+from ..i18n import say
+
 #: Where macOS keeps the reporting library. It has no headers and no promises,
 #: which is why every call here is defensive and every failure is a ``None``.
 _IOREPORT_PATH: Final[str] = "/usr/lib/libIOReport.dylib"
@@ -119,44 +121,74 @@ _DOMAIN_CHANNELS: Final[dict[str, tuple[tuple[str, ...], ...]]] = {
 #: what this package reports as the compute figure.
 _COMPUTE_DOMAINS: Final[tuple[str, ...]] = ("cpu", "gpu", "ane")
 
-#: What the compute figure covers, said in full because a reader comparing it
-#: against a laptop's wall socket needs to know what is missing from it.
-SOC_SCOPE: Final[str] = (
-    "the chip's processor cores, graphics cores, and neural engine, from the "
-    "system-on-chip's own energy counters"
-)
+#: The keys of the sentences this module says. Functions rather than constants,
+#: for the reason the rest of the package converted: a constant carries one
+#: language by construction, and these end up in a model file beside a figure.
+_SCOPE_KEY: Final[str] = "apple.soc_scope"
+_MEMORY_SCOPE_KEY: Final[str] = "apple.soc_memory_scope"
+_MODEL_NOTE_KEY: Final[str] = "apple.soc_model_note"
+_INTEL_MAC_KEY: Final[str] = "apple.intel_mac"
+_UNKNOWN_LAYOUT_KEY: Final[str] = "apple.unknown_layout"
 
-#: What the memory figure covers. Green Algorithms estimates memory power from
-#: how much memory is installed; here the chip reports what its memory actually
-#: drew, which is the same quantity arrived at by a shorter route.
-SOC_MEMORY_SCOPE: Final[str] = "the chip's memory, from its own energy counter"
 
-#: Said alongside any Apple figure. The counters are a model inside the chip,
-#: not an ammeter, and Apple is explicit that they are not a basis for comparing
-#: one machine against another. Within one machine they are exactly what is
-#: wanted, and that distinction belongs in the report rather than in a footnote
-#: nobody ships.
-SOC_MODEL_NOTE: Final[str] = (
-    "These are the chip's own energy counters, which are a model inside the "
-    "silicon rather than a meter on the power rail, and Apple says they are not "
-    "a basis for comparing one machine against another. Left out of them: the "
-    "display, storage, networking, the fans, and the power supply's own losses."
-)
+def soc_scope() -> str:
+    """Return what the compute figure covers, in the language in force.
 
-#: Said when the machine is a Mac but not one this can read.
-_INTEL_MAC_NOTE: Final[str] = (
-    "This is an Intel Mac, whose package counter macOS publishes only through "
-    "powermetrics, which needs administrator rights and so cannot be read from "
-    "a library call."
-)
+    Said in full because a reader comparing it against a laptop's wall socket
+    needs to know what is missing from it.
 
-#: Said when the chip is Apple Silicon but its channels are not the ones known
-#: here, which is what a future part renaming a channel would look like.
-_UNKNOWN_LAYOUT_NOTE: Final[str] = (
-    "This Apple chip publishes energy channels under names this package does "
-    "not recognise, so nothing was measured rather than something guessed. "
-    "Reporting the channel names in an issue is enough to add the part."
-)
+    Returns
+    -------
+    str
+        The phrase.
+
+    Examples
+    --------
+    >>> "neural engine" in soc_scope()
+    True
+    """
+    return say(_SCOPE_KEY)
+
+
+def soc_memory_scope() -> str:
+    """Return what the memory figure covers.
+
+    Green Algorithms estimates memory power from how much memory is installed;
+    here the chip reports what its memory actually drew, which is the same
+    quantity arrived at by a shorter route.
+
+    Returns
+    -------
+    str
+        The phrase.
+
+    Examples
+    --------
+    >>> "own energy counter" in soc_memory_scope()
+    True
+    """
+    return say(_MEMORY_SCOPE_KEY)
+
+
+def soc_model_note() -> str:
+    """Return what is said alongside any Apple figure.
+
+    The counters are a model inside the chip, not an ammeter, and Apple is
+    explicit that they are not a basis for comparing one machine against
+    another. Within one machine they are exactly what is wanted, and that
+    distinction belongs in the report rather than in a footnote nobody ships.
+
+    Returns
+    -------
+    str
+        The sentence.
+
+    Examples
+    --------
+    >>> "not a basis for comparing" in soc_model_note()
+    True
+    """
+    return say(_MODEL_NOTE_KEY)
 
 
 def _load() -> tuple[Any, Any] | None:
@@ -292,9 +324,9 @@ def unavailable_reason() -> str | None:
     if not osh.macos():
         return None
     if platform.machine() != "arm64":
-        return _INTEL_MAC_NOTE
+        return say(_INTEL_MAC_KEY)
     if _load() is None:
-        return _UNKNOWN_LAYOUT_NOTE
+        return say(_UNKNOWN_LAYOUT_KEY)
     return None
 
 

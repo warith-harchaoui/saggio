@@ -15,6 +15,7 @@ Warith Harchaoui
 
 from __future__ import annotations
 
+from ...i18n import say
 from .. import apple
 from .reading import PowerReading
 from .tables import scope_note
@@ -49,16 +50,22 @@ def _soc_reading(energy: apple.SocEnergy, *, seconds: float) -> PowerReading:
     joules = energy.compute_joules + (energy.memory_joules or 0.0)
     sources = ["system-on-chip"]
     scopes = [
-        f"The figure covers {apple.SOC_SCOPE}, read from the {', '.join(energy.channels)} counters."
+        say(
+            "soc.figure_covers",
+            scope=apple.soc_scope(),
+            channels=", ".join(energy.channels),
+        )
     ]
     if energy.memory_joules is not None:
         sources.append("memory")
-        scopes[0] = (
-            f"The figure covers {apple.SOC_SCOPE} and {apple.SOC_MEMORY_SCOPE}, "
-            f"read from the {', '.join(energy.channels)} counters."
+        scopes[0] = say(
+            "soc.figure_covers_both",
+            scope=apple.soc_scope(),
+            memory=apple.soc_memory_scope(),
+            channels=", ".join(energy.channels),
         )
         scopes.append(scope_note("memory_measured"))
-    scopes.append(apple.SOC_MODEL_NOTE)
+    scopes.append(apple.soc_model_note())
     return PowerReading(
         watts=joules / seconds,
         joules=joules,

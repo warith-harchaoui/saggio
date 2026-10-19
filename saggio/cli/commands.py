@@ -792,21 +792,24 @@ def catalog_read_pcf(args: argparse.Namespace) -> int:
     # The working, before the answer. A draft whose arithmetic is hidden is a
     # draft nobody can check, and checking it is the only job left for the
     # person this is printed to.
-    print(f"Read: {reading.source_url}")
-    print(f"  the document says: {reading.sentence}")
+    print(say("cli.pcf.read", url=reading.source_url))
+    print("  " + say("cli.pcf.says", sentence=reading.sentence))
     if reading.form_factor:
-        print(f"  and, elsewhere in it: {reading.form_factor}")
+        print("  " + say("cli.pcf.elsewhere", line=reading.form_factor))
         print(
-            f"  so one of {reading.units}: {reading.stated:g} / "
-            f"{reading.units} = {reading.per_unit:g} kgCO2e"
+            "  "
+            + say(
+                "cli.pcf.divided",
+                units=reading.units,
+                stated=localised(f"{reading.stated:g}"),
+                per_unit=localised(f"{reading.per_unit:g}"),
+            )
         )
     else:
-        print(f"  which is already one unit: {reading.per_unit:g} kgCO2e")
-    print("\nA row you may accept, reject, or correct — nothing has been written:\n")
+        print("  " + say("cli.pcf.already_one", per_unit=localised(f"{reading.per_unit:g}")))
+    print("\n" + say("cli.pcf.draft") + "\n")
     print(yaml.safe_dump(reading.draft_row(), sort_keys=False, allow_unicode=True).rstrip())
-    print(
-        "\nThe key is yours to supply: a document does not know what this catalogue calls things."
-    )
+    print("\n" + say("cli.pcf.key_is_yours"))
     return OK
 
 
@@ -840,21 +843,26 @@ def difference(args: argparse.Namespace) -> int:
         _emit(comparison.to_mapping(), as_json=True)
     else:
         if not comparison.changes:
-            print("Nothing changed.")
+            print(say("cli.diff.nothing_changed"))
         for change in comparison.changes:
             print(change.describe(threshold_percent=args.threshold))
         breaches = comparison.breaches()
         excused = comparison.excused()
         tail = (
-            f" {len(excused)} inside the noise the models measured."
+            say("cli.diff.excused", count=len(excused))
             # Said out loud rather than silently subtracted: a release excused
             # by a hundred-per-cent band should show the reader the band.
             if excused
             else ""
         )
         print(
-            f"{len(comparison.changes)} change(s), {len(breaches)} past the "
-            f"{args.threshold:g}% gate.{tail}"
+            say(
+                "cli.diff.summary",
+                count=len(comparison.changes),
+                breaches=len(breaches),
+                threshold=localised(f"{args.threshold:g}%"),
+                tail=tail,
+            )
         )
     return OK if comparison.passes() else INVALID
 
@@ -984,10 +992,10 @@ def catalog_freshness(args: argparse.Namespace) -> int:
 
     if stale:
         for kind, keys in stale.items():
-            print(f"stale {kind}: {', '.join(keys)}")
-        print("Re-read the sources and add the rows again with a fresh retrieved_date.")
+            print(say("cli.freshness.stale", kind=kind, keys=", ".join(keys)))
+        print(say("cli.freshness.re_read"))
     else:
-        print("Every catalogue row is within its refresh window.")
+        print(say("cli.freshness.all_fresh"))
 
     # Said even when nothing is stale, and deliberately without failing. A gate
     # that turns red overnight gets the date bumped in a hurry rather than the
@@ -995,10 +1003,16 @@ def catalog_freshness(args: argparse.Namespace) -> int:
     for kind, rows in soon.items():
         nearest = rows[0][1]
         listed = ", ".join(key for key, _ in rows[:6])
-        more = f" and {len(rows) - 6} more" if len(rows) > 6 else ""
+        more = say("cli.freshness.and_more", count=len(rows) - 6) if len(rows) > 6 else ""
         print(
-            f"expiring {kind}: {len(rows)} row(s) go stale in {nearest} day(s) — "
-            f"{listed}{more}. Re-read the source now rather than re-dating it later."
+            say(
+                "cli.freshness.expiring",
+                kind=kind,
+                count=len(rows),
+                days=nearest,
+                keys=listed,
+                more=more,
+            )
         )
     return INVALID if stale else OK
 
@@ -1347,10 +1361,13 @@ def machine(args: argparse.Namespace) -> int:
         )
     else:
         print(profile.describe())
-        print(f"Memory: {profile.memory_gb:g} GB")
-        print(f"CPU catalogue key: {profile.cpu_key or 'none'}", end="")
-        print(" (generic fallback)" if profile.cpu_is_fallback else "")
-        print(f"GPU catalogue key: {profile.gpu_key or 'none'}")
+        print(say("cli.machine.memory", amount=localised(f"{profile.memory_gb:g} GB")))
+        print(
+            say("cli.machine.cpu_key", key=profile.cpu_key or say("cli.machine.none")),
+            end="",
+        )
+        print(say("cli.machine.generic_fallback") if profile.cpu_is_fallback else "")
+        print(say("cli.machine.gpu_key", key=profile.gpu_key or say("cli.machine.none")))
         for miss in profile.catalog_misses:
             osh.warning(miss)
     return OK
@@ -1411,16 +1428,27 @@ def power(args: argparse.Namespace) -> int:
 
     print(summary(), end="")
     for path in paths_read():
-        print(f"reads: {path}")
+        print(say("cli.power.reads", path=path))
     if args.seconds > 0.0:
         reading = _measure_idle(args.seconds)
         print()
         if reading["watts"] is None:
-            print(f"Over {args.seconds:g}s: nothing measured. {reading['scope']}")
+            print(
+                say(
+                    "cli.power.nothing_measured",
+                    seconds=localised(f"{args.seconds:g} s"),
+                    scope=reading["scope"],
+                )
+            )
         else:
             print(
-                f"Over {args.seconds:g}s this machine drew {reading['watts']:.1f} W "
-                f"({reading['joules']:.1f} J) through {', '.join(reading['sources'])}."
+                say(
+                    "cli.power.drew",
+                    seconds=localised(f"{args.seconds:g} s"),
+                    watts=localised(f"{reading['watts']:.1f} W"),
+                    joules=localised(f"{reading['joules']:.1f} J"),
+                    sources=", ".join(reading["sources"]),
+                )
             )
             print(f"    {reading['scope']}")
     return OK

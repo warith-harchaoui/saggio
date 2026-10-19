@@ -1048,3 +1048,112 @@ power.unavailable.darwin: >-
 power.unavailable.linux: >-
   No readable RAPL counter was found: this is an ARM machine, a container without
   the sysfs files, or the files are not world-readable.
+
+# --- Fitting how the work grows with the job, and refusing to (estimate/scaling.py)
+
+scaling.reading.linear: >-
+  The work grew in proportion to the size, so projecting by the ratio of sizes
+  is sound over the range measured.
+scaling.reading.superlinear: >-
+  The work grew faster than the size, by a power of {exponent}. Doubling the job
+  multiplies the cost by {doubling} rather than by 2, so a projection that
+  divided by the size ratio would understate the whole run.
+scaling.reading.sublinear: >-
+  The work grew more slowly than the size, by a power of {exponent}. Over these
+  sizes the run is dominated by costs that do not grow with the job — start-up,
+  imports, loading a model — so the slices are mostly measuring overhead and a
+  projection from them would overstate the whole run.
+scaling.refuse.too_few: >-
+  {count} timed run(s) is not enough to fit a scaling exponent; {needed} of
+  different sizes are needed, because two points fit a straight line exactly and
+  so rule nothing out.
+scaling.refuse.not_finite: >-
+  A run reported a size or a duration that is not a finite number, so no curve
+  can be fitted through it.
+scaling.refuse.not_positive: >-
+  A run of size {size} took {seconds}. A power law is fitted on logarithms, so
+  every size and every duration has to be above zero; a run too short for the
+  clock to resolve needs a larger slice, not a smaller one.
+scaling.refuse.narrow_range: >-
+  The sizes run span a factor of {span}, from {smallest} to {largest}. Telling a
+  line from a curve needs them to span at least {needed}, and ideally orders of
+  magnitude; over a range this narrow every exponent fits about as well as every
+  other.
+scaling.refuse.one_size: "Every run was the same size, so there is no trend to fit."
+scaling.refuse.negative: >-
+  The fit came out with an exponent of {exponent}: the larger runs finished
+  sooner than the smaller ones. Work does not shrink when there is more of it,
+  so this is a measurement of something else — start-up that dominates every
+  rung, a cache warming up, or another process on the machine. Run larger slices
+  on a quieter machine, or check what the machine was doing with `saggio power`.
+scaling.refuse.bad_fit: >-
+  A power law explains only {explained} of the variation across {count} runs,
+  below the {required} required. The slices are not measuring one consistent
+  behaviour — a cache warming up, a schedule that changes shape, or a machine
+  doing something else at the time — so no exponent from them would describe the
+  run.
+scaling.notes: "Fitted over {count} runs of sizes {smallest} to {largest}, R² = {r_squared}."
+scaling.method: >-
+  Least squares of log(seconds) on log(size) over {count} runs:
+  seconds = {coefficient} × size^{exponent}.
+scaling.limit.range: >-
+  The exponent was measured between sizes {smallest} and {largest}. Outside that
+  range it is an extrapolation like any other.
+scaling.limit.changes_shape: >-
+  A cost that changes shape partway through a real run — a learning-rate
+  schedule that changes batch size, a dataset that stops fitting in memory — is
+  not visible in slices that all ran before it.
+
+# --- The verbs that read a document, compare, or probe (cli/commands.py)
+
+cli.pcf.read: "Read: {url}"
+cli.pcf.says: "the document says: {sentence}"
+cli.pcf.elsewhere: "and, elsewhere in it: {line}"
+cli.pcf.divided: "so one of {units}: {stated} / {units} = {per_unit} kgCO2e"
+cli.pcf.already_one: "which is already one unit: {per_unit} kgCO2e"
+cli.pcf.draft: "A row you may accept, reject, or correct — nothing has been written:"
+cli.pcf.key_is_yours: >-
+  The key is yours to supply: a document does not know what this catalogue calls
+  things.
+cli.diff.nothing_changed: "Nothing changed."
+cli.diff.summary: "{count} change(s), {breaches} past the {threshold} gate.{tail}"
+cli.diff.excused: " {count} inside the noise the models measured."
+cli.freshness.stale: "stale {kind}: {keys}"
+cli.freshness.re_read: >-
+  Re-read the sources and add the rows again with a fresh retrieved_date.
+cli.freshness.all_fresh: "Every catalogue row is within its refresh window."
+cli.freshness.expiring: >-
+  expiring {kind}: {count} row(s) go stale in {days} day(s) — {keys}{more}.
+  Re-read the source now rather than re-dating it later.
+cli.freshness.and_more: " and {count} more"
+cli.machine.memory: "Memory: {amount}"
+cli.machine.cpu_key: "CPU catalogue key: {key}"
+cli.machine.gpu_key: "GPU catalogue key: {key}"
+cli.machine.generic_fallback: " (generic fallback)"
+cli.machine.none: "none"
+cli.power.reads: "reads: {path}"
+cli.power.nothing_measured: "Over {seconds}: nothing measured. {scope}"
+cli.power.drew: "Over {seconds} this machine drew {watts} ({joules}) through {sources}."
+
+# --- What an Apple chip's own counters cover (analyze/apple.py, power/soc.py)
+
+apple.soc_scope: >-
+  the chip's processor cores, graphics cores, and neural engine, from the
+  system-on-chip's own energy counters
+apple.soc_memory_scope: "the chip's memory, from its own energy counter"
+apple.soc_model_note: >-
+  These are the chip's own energy counters, which are a model inside the silicon
+  rather than a meter on the power rail, and Apple says they are not a basis for
+  comparing one machine against another. Left out of them: the display, storage,
+  networking, the fans, and the power supply's own losses.
+apple.intel_mac: >-
+  This is an Intel Mac, whose package counter macOS publishes only through
+  powermetrics, which needs administrator rights and so cannot be read from a
+  library call.
+apple.unknown_layout: >-
+  This Apple chip publishes energy channels under names this package does not
+  recognise, so nothing was measured rather than something guessed. Reporting the
+  channel names in an issue is enough to add the part.
+soc.figure_covers: "The figure covers {scope}, read from the {channels} counters."
+soc.figure_covers_both: >-
+  The figure covers {scope} and {memory}, read from the {channels} counters.

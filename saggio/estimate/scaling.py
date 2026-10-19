@@ -54,6 +54,8 @@ import math
 from dataclasses import dataclass, field
 from typing import Any, Final
 
+from ..i18n import number as localised
+from ..i18n import say
 from ..model.quantity import Quantity
 from ..model.taxonomy import MEASURED, TODO, status_strength
 
@@ -80,30 +82,6 @@ DEFAULT_MINIMUM_R_SQUARED: Final[float] = 0.95
 #: The unit an exponent carries. Dimensionless, and named rather than left empty
 #: so that a reader meeting it in a YAML file knows it is not seconds.
 EXPONENT_UNIT: Final[str] = "exponent"
-
-#: Said when the exponent came out near one, which is the assumption every
-#: projection in this package used to make silently.
-_LINEAR_READING: Final[str] = (
-    "The work grew in proportion to the size, so projecting by the ratio of "
-    "sizes is sound over the range measured."
-)
-
-#: Said when the exponent came out above one, which is the case the assumption
-#: got wrong.
-_SUPERLINEAR_READING: Final[str] = (
-    "The work grew faster than the size, by a power of {exponent:.2f}. Doubling "
-    "the job multiplies the cost by {doubling:.2f} rather than by 2, so a "
-    "projection that divided by the size ratio would understate the whole run."
-)
-
-#: Said when the exponent came out below one, which is usually fixed overhead
-#: rather than a sublinear algorithm.
-_SUBLINEAR_READING: Final[str] = (
-    "The work grew more slowly than the size, by a power of {exponent:.2f}. Over "
-    "these sizes the run is dominated by costs that do not grow with the job — "
-    "start-up, imports, loading a model — so the slices are mostly measuring "
-    "overhead and a projection from them would overstate the whole run."
-)
 
 
 @dataclass(frozen=True, slots=True)
@@ -324,7 +302,7 @@ def _reading_for(exponent: float) -> str:
 
     Examples
     --------
-    >>> _reading_for(1.02) == _LINEAR_READING
+    >>> "in proportion" in _reading_for(1.02)
     True
     >>> "understate" in _reading_for(2.0)
     True
@@ -335,10 +313,14 @@ def _reading_for(exponent: float) -> str:
     # on a shared machine can resolve, so it is reported as linear rather than as
     # a precision nobody has.
     if abs(exponent - 1.0) <= 0.1:
-        return _LINEAR_READING
+        return say("scaling.reading.linear")
     if exponent > 1.0:
-        return _SUPERLINEAR_READING.format(exponent=exponent, doubling=2.0**exponent)
-    return _SUBLINEAR_READING.format(exponent=exponent)
+        return say(
+            "scaling.reading.superlinear",
+            exponent=localised(f"{exponent:.2f}"),
+            doubling=localised(f"{2.0**exponent:.2f}"),
+        )
+    return say("scaling.reading.sublinear", exponent=localised(f"{exponent:.2f}"))
 
 
 def fit_power_law(
@@ -390,7 +372,7 @@ def fit_power_law(
     >>> fit = fit_power_law(linear)
     >>> round(fit.exponent.value, 3), round(fit.r_squared, 6)
     (1.0, 1.0)
-    >>> fit.reading == _LINEAR_READING
+    >>> "in proportion" in fit.reading
     True
 
     A quadratic one, which is the case a linear projection gets wrong:
@@ -414,9 +396,11 @@ def fit_power_law(
 
     if len(kept) < MINIMUM_OBSERVATIONS:
         return _refusal(
-            f"{len(kept)} timed run(s) is not enough to fit a scaling exponent; "
-            f"{MINIMUM_OBSERVATIONS} of different sizes are needed, because two "
-            "points fit a straight line exactly and so rule nothing out.",
+            say(
+                "scaling.refuse.too_few",
+                count=len(kept),
+                needed=MINIMUM_OBSERVATIONS,
+            ),
             kept,
         )
 
@@ -424,16 +408,16 @@ def fit_power_law(
         size, seconds = float(observation.size), float(observation.seconds)
         if not (math.isfinite(size) and math.isfinite(seconds)):
             return _refusal(
-                "A run reported a size or a duration that is not a finite number, "
-                "so no curve can be fitted through it.",
+                say("scaling.refuse.not_finite"),
                 kept,
             )
         if size <= 0.0 or seconds <= 0.0:
             return _refusal(
-                f"A run of size {size:g} took {seconds:g} s. A power law is fitted "
-                "on logarithms, so every size and every duration has to be above "
-                "zero; a run too short for the clock to resolve needs a larger "
-                "slice, not a smaller one.",
+                say(
+                    "scaling.refuse.not_positive",
+                    size=localised(f"{size:g}"),
+                    seconds=localised(f"{seconds:g} s"),
+                ),
                 kept,
             )
 
@@ -441,11 +425,13 @@ def fit_power_law(
     smallest, largest = min(sizes), max(sizes)
     if largest / smallest < MINIMUM_SIZE_RATIO:
         return _refusal(
-            f"The sizes run span a factor of {largest / smallest:.2f}, from "
-            f"{smallest:g} to {largest:g}. Telling a line from a curve needs them "
-            f"to span at least {MINIMUM_SIZE_RATIO:g}, and ideally orders of "
-            "magnitude; over a range this narrow every exponent fits about as "
-            "well as every other.",
+            say(
+                "scaling.refuse.narrow_range",
+                span=localised(f"{largest / smallest:.2f}"),
+                smallest=localised(f"{smallest:g}"),
+                largest=localised(f"{largest:g}"),
+                needed=localised(f"{MINIMUM_SIZE_RATIO:g}"),
+            ),
             kept,
         )
 
@@ -461,7 +447,7 @@ def fit_power_law(
     )
     variance = sum((x - mean_x) ** 2 for x in log_sizes)
     if variance <= 0.0:  # pragma: no cover - the size-ratio guard above catches this.
-        return _refusal("Every run was the same size, so there is no trend to fit.", kept)
+        return _refusal(say("scaling.refuse.one_size"), kept)
 
     exponent = covariance / variance
     intercept = mean_y - exponent * mean_x
@@ -474,12 +460,7 @@ def fit_power_law(
         # it: a downward line through three points fits beautifully and means
         # nothing, so the sign is checked separately from the R-squared.
         return _refusal(
-            f"The fit came out with an exponent of {exponent:.3f}: the larger "
-            "runs finished sooner than the smaller ones. Work does not shrink "
-            "when there is more of it, so this is a measurement of something "
-            "else — start-up that dominates every rung, a cache warming up, or "
-            "another process on the machine. Run larger slices on a quieter "
-            "machine, or check what the machine was doing with `saggio power`.",
+            say("scaling.refuse.negative", exponent=localised(f"{exponent:.3f}")),
             kept,
         )
 
@@ -494,11 +475,12 @@ def fit_power_law(
 
     if r_squared < minimum_r_squared:
         return _refusal(
-            f"A power law explains only {r_squared:.2f} of the variation across "
-            f"{len(kept)} runs, below the {minimum_r_squared:.2f} required. The "
-            "slices are not measuring one consistent behaviour — a cache warming "
-            "up, a schedule that changes shape, or a machine doing something else "
-            "at the time — so no exponent from them would describe the run.",
+            say(
+                "scaling.refuse.bad_fit",
+                explained=localised(f"{r_squared:.2f}"),
+                count=len(kept),
+                required=localised(f"{minimum_r_squared:.2f}"),
+            ),
             kept,
         )
 
@@ -511,24 +493,30 @@ def fit_power_law(
             value=exponent,
             unit=EXPONENT_UNIT,
             status=carried,
-            notes=(
-                f"Fitted over {len(kept)} runs of sizes {smallest:g} to {largest:g}, "
-                f"R² = {r_squared:.3f}."
+            notes=say(
+                "scaling.notes",
+                count=len(kept),
+                smallest=localised(f"{smallest:g}"),
+                largest=localised(f"{largest:g}"),
+                r_squared=localised(f"{r_squared:.3f}"),
             ),
         ),
         coefficient=math.exp(intercept),
         r_squared=r_squared,
         observations=kept,
-        method=(
-            f"Least squares of log(seconds) on log(size) over {len(kept)} runs: "
-            f"seconds = {math.exp(intercept):.4g} × size^{exponent:.3f}."  # noqa: RUF001 -- the multiplication sign is the correct typography
+        method=say(
+            "scaling.method",
+            count=len(kept),
+            coefficient=localised(f"{math.exp(intercept):.4g}"),
+            exponent=localised(f"{exponent:.3f}"),
         ),
         reading=_reading_for(exponent),
         limits=(
-            f"The exponent was measured between sizes {smallest:g} and {largest:g}. "
-            "Outside that range it is an extrapolation like any other.",
-            "A cost that changes shape partway through a real run — a learning-rate "
-            "schedule that changes batch size, a dataset that stops fitting in "
-            "memory — is not visible in slices that all ran before it.",
+            say(
+                "scaling.limit.range",
+                smallest=localised(f"{smallest:g}"),
+                largest=localised(f"{largest:g}"),
+            ),
+            say("scaling.limit.changes_shape"),
         ),
     )
