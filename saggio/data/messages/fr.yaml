@@ -912,3 +912,81 @@ project.scaled.limit.range: >-
   L'exposant tient entre les tailles {smallest} et {largest}, et la course
   entière vaut environ {whole} à la même échelle, soit {times} fois la plus
   grande taille réellement exécutée.
+
+# --- Ce qu'un audit écrit dans le modèle qu'il construit (auditor/build.py)
+
+audit.no_country: >-
+  Aucun pays n'a été résolu : les chiffres carbone et monétaires restent donc
+  ouverts. Passez --country avec un code ISO, par exemple --country FR.
+audit.country_not_catalogued: >-
+  Le catalogue des réseaux n'a aucune ligne pour {country} : son intensité
+  carbone et son tarif restent donc ouverts. Ajoutez-la avec
+  `saggio catalog add country`.
+audit.no_local_model: >-
+  Aucun modèle local n'était joignable ; la lecture est purement statique.
+audit.machine_provenance: >-
+  Ceci décrit la machine qui a exécuté l'audit, pas l'endroit où le code tourne.
+  {origin} a été cloné et lu ici. Remplacez la machine, le fournisseur et le pays
+  par ceux sur lesquels il tourne réellement avant qu'aucun chiffre ci-dessous ne
+  signifie quoi que ce soit sur ce projet.
+audit.scenario_description: >-
+  Une unité de travail telle que cet audit l'a trouvée, sur la machine où il a
+  tourné.
+audit.exclusion.hardware: >-
+  La fabrication du matériel. Seule l'électricité qui le fait tourner est
+  comptée.
+audit.exclusion.people: >-
+  Les gens. Salaires, bureaux et déplacements sont hors périmètre.
+audit.rule.provenance: >-
+  Toute valeur sourcée porte un source_url et un retrieved_date.
+audit.rule.weakest: >-
+  Une valeur dérivée nomme ses entrées et ne surclasse jamais la plus faible
+  d'entre elles.
+audit.rule.country: >-
+  Le pays est indiqué par un humain, jamais déduit de la locale d'un développeur.
+audit.clone.no_git: >-
+  git n'est pas dans le PATH, et le clonage en a besoin. Installez git, ou clonez
+  le dépôt vous-même et auditez le répertoire.
+audit.clone.timeout: "Le clonage de {url} a dépassé {seconds}."
+audit.clone.failed: "Impossible de cloner {url} : {detail}"
+
+# --- Plier une mesure dans un modèle (saggio/fold.py)
+
+fold.no_units: "Une commande ne peut pas avoir accompli {units} unités de travail."
+fold.no_duration: "Une exécution sans durée n'est pas la mesure d'une durée."
+fold.no_such_scenario: "Ce modèle n'a aucun scénario nommé {name}."
+fold.no_scenario: "Ce modèle n'a aucun scénario où plier une mesure."
+fold.invalid_before: "Le modèle ne valide pas avant le pliage : {issues}"
+fold.invalid_after: "Le modèle ne validerait plus : {issues}"
+fold.change.idle: >-
+  exclusions : la capacité au repos n'est plus déclarée dehors, parce que la
+  puissance a été lue sur la machine entière
+fold.change.whole_run: "course entière : projetée depuis les coûts par unité ci-dessus"
+fold.change.repeated_runs: >-
+  exécutions répétées : la course entière fois le facteur d'échelle pragmatique
+  du modèle
+fold.timed: "Chronométré avec `saggio measure` : {command}."
+fold.timed_no_command: "Chronométré avec `saggio measure`."
+fold.per_unit: >-
+  La commande a accompli {units} unités de travail : le chiffre est donc le temps
+  d'horloge divisé par {units}.
+fold.power_read: >-
+  Lu sur la machine pendant l'exécution de la commande. {scope} {boundary}
+  {spread}
+fold.whole_run.description: >-
+  Ce que coûterait une course entière, depuis les coûts par unité de {scenario}.
+  Une course entière accomplit {units} {unit}, comme {source} l'indique. Cela
+  suppose qu'une unité de travail est un(e) {singular} ; si l'unité de travail du
+  modèle désigne autre chose, réénoncez ceci.
+fold.repeated.open: >-
+  Le chiffre de la course entière ou le facteur d'échelle pragmatique est encore
+  ouvert.
+fold.repeated.scaled: >-
+  La course entière fois le facteur d'échelle énoncé de {factor}.
+fold.repeated.description: >-
+  Ce que coûteraient toutes les exécutions ensemble : la projection de course
+  entière multipliée par le facteur d'échelle pragmatique que le modèle énonce —
+  combien de fois ce calcul est réellement effectué, réglages et reprises
+  compris. Ce facteur est l'estimation de l'équipe elle-même ; rien ici ne peut
+  le connaître, et c'est pourquoi il vit dans les hypothèses, là où le validateur
+  le surveille.

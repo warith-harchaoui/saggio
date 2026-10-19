@@ -55,6 +55,8 @@ from .estimate.energy import (
     water_from_energy,
 )
 from .estimate.extrapolate import project_to_completion
+from .i18n import number as localised
+from .i18n import say
 from .model.cost_model import CostModel
 from .model.quantity import Quantity
 from .model.taxonomy import MEASURED, TODO, weakest
@@ -143,10 +145,7 @@ def _rewrite_idle_exclusion(
     for position, line in enumerate(exclusions):
         if isinstance(line, str) and is_idle_claim(line):
             exclusions[position] = replacement
-            changes.append(
-                "exclusions: idle capacity is no longer claimed to be out, "
-                "because the power figure was read off the whole machine"
-            )
+            changes.append(say("fold.change.idle"))
     return changes
 
 
@@ -232,16 +231,16 @@ def fold_measurement(
     'A command cannot have performed 0 units of work.'
     """
     if units <= 0:
-        return Fold(model, refused=f"A command cannot have performed {units:g} units of work.")
+        return Fold(model, refused=say("fold.no_units", units=localised(f"{units:g}")))
     if seconds <= 0:
-        return Fold(model, refused="A run of no duration is not a measurement of one.")
+        return Fold(model, refused=say("fold.no_duration"))
 
     data = model.data
     index = _scenario_index(data, scenario)
     if index is None:
         if scenario is not None:
-            return Fold(model, refused=f"This model has no scenario named {scenario!r}.")
-        return Fold(model, refused="This model has no scenario to fold a measurement into.")
+            return Fold(model, refused=say("fold.no_such_scenario", name=repr(scenario)))
+        return Fold(model, refused=say("fold.no_scenario"))
 
     before = validate(model)
     if not before.ok:
@@ -252,7 +251,7 @@ def fold_measurement(
         # Refusing up front keeps the post-fold check meaningful: without this,
         # folding into one scenario could paper over an existing fault while
         # folding into another was blamed for it.
-        return Fold(model, refused=f"The model does not validate before folding: {listed}")
+        return Fold(model, refused=say("fold.invalid_before", issues=listed))
 
     updated: dict[str, Any] = _deep_copy(data)
     if measurement:
@@ -265,15 +264,8 @@ def fold_measurement(
     scenario_path = f"scenarios[{index}]"
     changes: list[str] = []
 
-    timed = (
-        f"Timed with `saggio measure`: {command}." if command else "Timed with `saggio measure`."
-    )
-    per_unit = (
-        f" The command performed {units:g} units of work, so the figure is the "
-        f"wall-clock time divided by {units:g}."
-        if units != 1
-        else ""
-    )
+    timed = say("fold.timed", command=command) if command else say("fold.timed_no_command")
+    per_unit = " " + say("fold.per_unit", units=localised(f"{units:g}")) if units != 1 else ""
     runtime = Quantity(
         value=seconds / units,
         unit="s",
@@ -292,10 +284,11 @@ def fold_measurement(
             value=power.watts,
             unit="W",
             status=MEASURED,
-            notes=(
-                f"Read from the machine while the command ran. {power.scope} "
-                f"{workload_scope(measurement, watts=power.watts)} "
-                f"{spread_note(measurement, 'power_w')}"
+            notes=say(
+                "fold.power_read",
+                scope=power.scope,
+                boundary=workload_scope(measurement, watts=power.watts),
+                spread=spread_note(measurement, "power_w"),
             ),
         )
         changes.append(_moved("power draw", power_quantity.to_mapping(), measured_power))
@@ -349,13 +342,11 @@ def fold_measurement(
     whole = _whole_run(updated, costs, scenario_path)
     if whole is not None:
         updated["projections"] = dict(updated.get("projections") or {}) | {"whole_run": whole}
-        changes.append("whole run: projected from the per-unit costs above")
+        changes.append(say("fold.change.whole_run"))
         repeated = _repeated_runs(updated, whole)
         if repeated is not None:
             updated["projections"]["repeated_runs"] = repeated
-            changes.append(
-                "repeated runs: the whole run times the model's pragmatic scaling factor"
-            )
+            changes.append(say("fold.change.repeated_runs"))
 
     folded = CostModel.from_mapping(updated, path=model.path)
     verdict = validate(folded)
@@ -364,7 +355,7 @@ def fold_measurement(
             f"{issue.path}: {issue.message}" if issue.path else issue.message
             for issue in verdict.errors[:3]
         )
-        return Fold(model, refused=f"The model would no longer validate: {listed}")
+        return Fold(model, refused=say("fold.invalid_after", issues=listed))
     return Fold(folded, changes=tuple(change for change in changes if change))
 
 
@@ -423,11 +414,13 @@ def _whole_run(
     unit = ((data.get("analysis") or {}).get("total_work") or {}).get("unit") or "units"
     source = ((data.get("analysis") or {}).get("total_work") or {}).get("source") or "the analysis"
     return {
-        "description": (
-            f"What a whole run would cost, from the per-unit costs in {scenario_path}. "
-            f"A whole run performs {units_in_a_run:g} {unit}, as {source} states. This "
-            f"assumes one unit of work is one {unit.rstrip('s')}; if the model's unit of "
-            "work means something else, restate this."
+        "description": say(
+            "fold.whole_run.description",
+            scenario=scenario_path,
+            units=localised(f"{units_in_a_run:g}"),
+            unit=unit,
+            source=source,
+            singular=unit.rstrip("s"),
         ),
         "costs": projected,
     }
@@ -481,7 +474,7 @@ def _repeated_runs(data: dict[str, Any], whole: dict[str, Any]) -> dict[str, Any
                 currency=cost.currency,
                 status=TODO,
                 derived_from=source_paths,
-                notes="The whole-run figure or the pragmatic scaling factor is still open.",
+                notes=say("fold.repeated.open"),
             ).to_mapping()
             continue
         scaled[key] = Quantity(
@@ -490,20 +483,13 @@ def _repeated_runs(data: dict[str, Any], whole: dict[str, Any]) -> dict[str, Any
             currency=cost.currency,
             status=weakest(cost.status, psf.status),
             derived_from=source_paths,
-            notes=f"The whole run times the stated scaling factor of {float(psf.value):g}.",
+            notes=say("fold.repeated.scaled", factor=localised(f"{float(psf.value):g}")),
         ).to_mapping()
     if not scaled:
         return None
 
     return {
-        "description": (
-            "What all the runs together would cost: the whole-run projection "
-            "multiplied by the pragmatic scaling factor the model states — how many "
-            "times this computation is actually performed, tuning and re-runs "
-            "included. The factor is the team's own estimate; nothing here can know "
-            "it, which is why it lives in the assumptions where the validator "
-            "watches it."
-        ),
+        "description": say("fold.repeated.description"),
         "costs": scaled,
     }
 

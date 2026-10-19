@@ -37,7 +37,8 @@ from ..estimate.energy import (
 )
 from ..estimate.ghg import OPERATED_BY_SELF, operated_by
 from ..estimate.machine import detect_machine
-from ..i18n import unknown_language_note
+from ..i18n import number as localised
+from ..i18n import say, unknown_language_note
 from ..model.cost_model import CostModel
 from ..model.quantity import Quantity
 from ..model.schema import SCHEMA_VERSION
@@ -123,18 +124,12 @@ def audit(
         overlay=settings.overlay,
     )
     if context.country is None:
-        notes.append(
-            "No country was resolved, so the carbon and money figures are open. "
-            "Pass --country with an ISO code, for example --country FR."
-        )
+        notes.append(say("audit.no_country"))
     elif settings.country and context.grid_intensity().status == TODO:
         # The user named a country and it is kept as stated, but the grid
         # catalogue has no row for it — a miss that belongs in the notes, next
         # to the machine's, not only in a log line that scrolls away.
-        notes.append(
-            f"The grid catalogue has no row for {context.country!r}, so its carbon "
-            "intensity and tariff stay open. Add it with `saggio catalog add country`."
-        )
+        notes.append(say("audit.country_not_catalogued", country=repr(context.country)))
 
     slice_result, scaling, slice_notes = _run_a_slice(reading, settings)
     notes.extend(slice_notes)
@@ -152,9 +147,7 @@ def audit(
                 analysis.setdefault(key, value)
             analysis["evidence_source"] = f"static + llm:{classification.model}"
         else:
-            analysis.setdefault(
-                "llm_note", "No local model was reachable; the read is static only."
-            )
+            analysis.setdefault("llm_note", say("audit.no_local_model"))
 
     measurement = slice_result.to_mapping() if slice_result is not None else None
     power = _power_assumption(machine, context, slice_result)
@@ -236,12 +229,7 @@ def audit(
         # system below are the auditing machine's. Somebody reading a model of a
         # training framework would otherwise take a laptop's figures for the place
         # that framework runs, and every energy number under them with it.
-        deployment["machine_provenance"] = (
-            "This describes the machine that ran the audit, not where the code "
-            f"runs. {origin} was cloned and read here. Replace the machine, the "
-            "provider and the country with the ones it actually runs on before "
-            "any number below means anything about this project."
-        )
+        deployment["machine_provenance"] = say("audit.machine_provenance", origin=origin)
     assumptions: dict[str, Any] = {
         "power_draw": power.to_mapping(),
         "pue": pue.to_mapping(),
@@ -273,17 +261,15 @@ def audit(
         "scenarios": [
             {
                 "name": SCENARIO_NAME,
-                "description": (
-                    "One unit of work as this audit found it, on the machine it ran on."
-                ),
+                "description": say("audit.scenario_description"),
                 "runtime": runtime.to_mapping(),
                 "costs": {key: value.to_mapping() for key, value in costs.items()},
             }
         ],
         "analysis": analysis,
         "exclusions": [
-            "Making the hardware. Only the electricity to run it is counted.",
-            "The people. Salaries, offices, and travel are out of scope.",
+            say("audit.exclusion.hardware"),
+            say("audit.exclusion.people"),
             # Not a constant. A model whose power came off this machine's own
             # counters has idle capacity inside its figures, and the line that
             # used to say otherwise was contradicted by the measurement block
@@ -291,9 +277,9 @@ def audit(
             idle_exclusion(measurement, measured=power.status == MEASURED, watts=power.value),
         ],
         "provenance_rules": [
-            "Every sourced value carries source_url and retrieved_date.",
-            "A derived value names its inputs and never outranks the weakest of them.",
-            "The country is stated by a human, never inferred from a developer's locale.",
+            say("audit.rule.provenance"),
+            say("audit.rule.weakest"),
+            say("audit.rule.country"),
         ],
     }
     if reading.services:
@@ -369,13 +355,16 @@ def audit_git_url(url: str, *, options: AuditOptions | None = None) -> AuditResu
             check=False,
         )
     except FileNotFoundError as exc:
-        raise RuntimeError(
-            "git is not on the PATH, and cloning needs it. Install git, or clone "
-            "the repository yourself and audit the directory."
-        ) from exc
+        raise RuntimeError(say("audit.clone.no_git")) from exc
     except subprocess.TimeoutExpired as exc:
-        raise RuntimeError(f"Cloning {url} took longer than {_CLONE_TIMEOUT_SECONDS:g} s.") from exc
+        raise RuntimeError(
+            say(
+                "audit.clone.timeout",
+                url=url,
+                seconds=localised(f"{_CLONE_TIMEOUT_SECONDS:g} s"),
+            )
+        ) from exc
     if completed.returncode != 0:
         detail = (completed.stderr or "").strip().splitlines()[-1:] or ["no output"]
-        raise RuntimeError(f"Could not clone {url}: {detail[0]}")
+        raise RuntimeError(say("audit.clone.failed", url=url, detail=detail[0]))
     return audit(target, options=options, origin=url)

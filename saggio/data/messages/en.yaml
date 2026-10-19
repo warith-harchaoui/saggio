@@ -847,3 +847,66 @@ project.scaled.limit.range: >-
   The exponent holds between sizes {smallest} and {largest}, and the whole run
   is about {whole} at the same scale, which is {times} times the largest size
   actually run.
+
+# --- What an audit writes into the model it builds (auditor/build.py)
+
+audit.no_country: >-
+  No country was resolved, so the carbon and money figures are open. Pass
+  --country with an ISO code, for example --country FR.
+audit.country_not_catalogued: >-
+  The grid catalogue has no row for {country}, so its carbon intensity and
+  tariff stay open. Add it with `saggio catalog add country`.
+audit.no_local_model: "No local model was reachable; the read is static only."
+audit.machine_provenance: >-
+  This describes the machine that ran the audit, not where the code runs.
+  {origin} was cloned and read here. Replace the machine, the provider and the
+  country with the ones it actually runs on before any number below means
+  anything about this project.
+audit.scenario_description: >-
+  One unit of work as this audit found it, on the machine it ran on.
+audit.exclusion.hardware: "Making the hardware. Only the electricity to run it is counted."
+audit.exclusion.people: "The people. Salaries, offices, and travel are out of scope."
+audit.rule.provenance: "Every sourced value carries source_url and retrieved_date."
+audit.rule.weakest: >-
+  A derived value names its inputs and never outranks the weakest of them.
+audit.rule.country: >-
+  The country is stated by a human, never inferred from a developer's locale.
+audit.clone.no_git: >-
+  git is not on the PATH, and cloning needs it. Install git, or clone the
+  repository yourself and audit the directory.
+audit.clone.timeout: "Cloning {url} took longer than {seconds}."
+audit.clone.failed: "Could not clone {url}: {detail}"
+
+# --- Folding a measurement into a model (saggio/fold.py)
+
+fold.no_units: "A command cannot have performed {units} units of work."
+fold.no_duration: "A run of no duration is not a measurement of one."
+fold.no_such_scenario: "This model has no scenario named {name}."
+fold.no_scenario: "This model has no scenario to fold a measurement into."
+fold.invalid_before: "The model does not validate before folding: {issues}"
+fold.invalid_after: "The model would no longer validate: {issues}"
+fold.change.idle: >-
+  exclusions: idle capacity is no longer claimed to be out, because the power
+  figure was read off the whole machine
+fold.change.whole_run: "whole run: projected from the per-unit costs above"
+fold.change.repeated_runs: >-
+  repeated runs: the whole run times the model's pragmatic scaling factor
+fold.timed: "Timed with `saggio measure`: {command}."
+fold.timed_no_command: "Timed with `saggio measure`."
+fold.per_unit: >-
+  The command performed {units} units of work, so the figure is the wall-clock
+  time divided by {units}.
+fold.power_read: "Read from the machine while the command ran. {scope} {boundary} {spread}"
+fold.whole_run.description: >-
+  What a whole run would cost, from the per-unit costs in {scenario}. A whole
+  run performs {units} {unit}, as {source} states. This assumes one unit of work
+  is one {singular}; if the model's unit of work means something else, restate
+  this.
+fold.repeated.open: "The whole-run figure or the pragmatic scaling factor is still open."
+fold.repeated.scaled: "The whole run times the stated scaling factor of {factor}."
+fold.repeated.description: >-
+  What all the runs together would cost: the whole-run projection multiplied by
+  the pragmatic scaling factor the model states — how many times this
+  computation is actually performed, tuning and re-runs included. The factor is
+  the team's own estimate; nothing here can know it, which is why it lives in
+  the assumptions where the validator watches it.
