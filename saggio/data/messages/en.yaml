@@ -802,3 +802,48 @@ cli.help.catalog.freshness.json: "Print them as JSON."
 cli.help.language: >-
   Language for what this command writes, asks and prints. Sentences already
   recorded in a model stay as they were written.
+
+# --- Projecting a slice onto a whole run (estimate/extrapolate.py)
+
+project.no_number: "The slice carries no number, so there is nothing to project."
+project.bad_fraction: >-
+  A completed fraction of {fraction} is outside (0, 1]; it must be the share of
+  the whole run that was actually executed.
+project.scaling_refused: >-
+  The scaling of this workload was measured and the measurement refused to
+  report an exponent: {reason} Until that is resolved, projecting by the ratio
+  of sizes would assert a proportionality that the runs available do not
+  support.
+project.linear.notes: "Projected from a slice covering {percent} of the run."
+project.linear.method: "Whole run = measured slice / {fraction}."
+project.linear.assumption.same_per_unit: >-
+  The remaining work costs the same per unit as the slice that was run.
+project.linear.assumption.spread_evenly: >-
+  Warm-up, checkpointing, and data loading are spread evenly across the run.
+project.linear.limit.later_stages: >-
+  A run whose later stages differ in shape, such as a learning-rate schedule
+  that changes batch size, will not scale linearly.
+project.linear.limit.one_off: >-
+  One-off costs paid entirely inside the slice are counted as though they
+  recurred throughout.
+project.linear.limit.unchecked: >-
+  Nothing here checked that the work is uniform. Measuring a few slices of
+  different sizes would turn that assumption into an exponent; see
+  saggio.estimate.scaling.
+project.scaled.notes: >-
+  Projected from a slice covering {percent} of the run, with a measured scaling
+  exponent of {exponent}.
+project.scaled.method: "Whole run = measured slice / {fraction}^{exponent}. {method}"
+project.scaled.assumption.keeps_scaling: >-
+  The workload keeps the scaling it was measured to have over the sizes that
+  were run.
+project.scaled.assumption.grows_with_size: >-
+  Warm-up, checkpointing, and data loading grow with the size the same way the
+  measured slices did.
+project.scaled.limit.beyond_measured: >-
+  Beyond the largest size measured, the exponent is an extrapolation: it
+  describes how the work grew where it was watched growing, not a law.
+project.scaled.limit.range: >-
+  The exponent holds between sizes {smallest} and {largest}, and the whole run
+  is about {whole} at the same scale, which is {times} times the largest size
+  actually run.

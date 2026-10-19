@@ -865,3 +865,50 @@ cli.help.catalog.freshness.json: "Les afficher en JSON."
 cli.help.language: >-
   Langue de ce que cette commande écrit, demande et affiche. Les phrases déjà
   enregistrées dans un modèle restent telles qu'elles ont été écrites.
+
+# --- Projeter une tranche sur une course entière (estimate/extrapolate.py)
+
+project.no_number: "La tranche ne porte aucun nombre : il n'y a donc rien à projeter."
+project.bad_fraction: >-
+  Une part exécutée de {fraction} est en dehors de (0, 1] ; ce doit être la part
+  de la course entière réellement exécutée.
+project.scaling_refused: >-
+  La montée en charge de ce travail a été mesurée et la mesure a refusé
+  d'énoncer un exposant : {reason} Tant que ce n'est pas résolu, projeter par le
+  rapport des tailles affirmerait une proportionnalité que les exécutions
+  disponibles n'étayent pas.
+project.linear.notes: "Projeté depuis une tranche couvrant {percent} de la course."
+project.linear.method: "Course entière = tranche mesurée / {fraction}."
+project.linear.assumption.same_per_unit: >-
+  Le travail restant coûte autant par unité que la tranche exécutée.
+project.linear.assumption.spread_evenly: >-
+  Le démarrage, les points de reprise et le chargement des données sont répartis
+  uniformément sur la course.
+project.linear.limit.later_stages: >-
+  Une course dont les étapes tardives changent de forme — un ordonnancement du
+  taux d'apprentissage qui change la taille de lot, par exemple — ne monte pas
+  linéairement.
+project.linear.limit.one_off: >-
+  Les coûts payés une seule fois, entièrement dans la tranche, sont comptés
+  comme s'ils revenaient du début à la fin.
+project.linear.limit.unchecked: >-
+  Rien ici n'a vérifié que le travail est uniforme. Mesurer quelques tranches de
+  tailles différentes transformerait cette hypothèse en un exposant ; voir
+  saggio.estimate.scaling.
+project.scaled.notes: >-
+  Projeté depuis une tranche couvrant {percent} de la course, avec un exposant
+  de montée en charge mesuré de {exponent}.
+project.scaled.method: "Course entière = tranche mesurée / {fraction}^{exponent}. {method}"
+project.scaled.assumption.keeps_scaling: >-
+  Le travail conserve la montée en charge qu'on lui a mesurée sur les tailles
+  exécutées.
+project.scaled.assumption.grows_with_size: >-
+  Le démarrage, les points de reprise et le chargement des données croissent
+  avec la taille comme ils l'ont fait sur les tranches mesurées.
+project.scaled.limit.beyond_measured: >-
+  Au-delà de la plus grande taille mesurée, l'exposant est une extrapolation :
+  il décrit comment le travail a crû là où on l'a regardé croître, pas une loi.
+project.scaled.limit.range: >-
+  L'exposant tient entre les tailles {smallest} et {largest}, et la course
+  entière vaut environ {whole} à la même échelle, soit {times} fois la plus
+  grande taille réellement exécutée.

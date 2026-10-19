@@ -9,6 +9,19 @@ release of that line.
 
 ## Unreleased
 
+### Projecting a slice onto a whole run, in the reader's language
+
+The half of `estimate/extrapolate.py` that every gallery model carries: the two
+refusals, the linear projection with its two assumptions and three limits, the
+scaled one with its measured exponent, and the sentence that says how far past
+the measured sizes the whole run sits.
+
+The hardware half — projecting a runtime from one accelerator or processor onto
+another — is **not** done, and it is the one piece of this chantier that is a
+rewrite rather than a translation: its fifty-odd pieces are spliced around
+values by concatenation, and whole sentences with named arguments are a
+different shape of code. Left for its own iteration rather than hurried.
+
 ### `--help` in the reader's language, which needed reading the argument twice
 
 Eighty-five help sentences into the catalogue, and a problem of order to solve

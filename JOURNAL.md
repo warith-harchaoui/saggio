@@ -10,6 +10,20 @@ cette ligne.
 
 ## Non publié
 
+### Projeter une tranche sur une course entière, dans la langue du lecteur
+
+La moitié d'`estimate/extrapolate.py` que porte chaque modèle de la galerie :
+les deux refus, la projection linéaire avec ses deux hypothèses et ses trois
+limites, la projection à exposant mesuré, et la phrase qui dit de combien la
+course entière dépasse les tailles mesurées.
+
+La moitié matérielle — projeter un temps d'un accélérateur ou d'un processeur
+sur un autre — n'est **pas** faite, et c'est le seul morceau de ce chantier qui
+soit une réécriture plutôt qu'une traduction : sa cinquantaine de fragments est
+collée autour de valeurs par concaténation, et des phrases entières à arguments
+nommés sont une autre forme de code. Laissée à son propre tour plutôt que
+bâclée.
+
 ### `--help` dans la langue du lecteur, ce qui demandait de lire l'argument deux fois
 
 Quatre-vingt-cinq phrases d'aide dans le catalogue, et un problème d'ordre à

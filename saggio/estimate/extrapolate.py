@@ -43,6 +43,8 @@ from dataclasses import dataclass, field
 from typing import Any, Final
 
 from ..catalog.registry import Catalog
+from ..i18n import number as localised
+from ..i18n import say
 from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, TODO, status_strength, weakest
 from .scaling import ScalingFit
@@ -296,23 +298,19 @@ def project_to_completion(
         return _refusal(
             measured.unit,
             measured.currency,
-            "The slice carries no number, so there is nothing to project.",
+            say("project.no_number"),
         )
     if not 0.0 < fraction <= 1.0:
         return _refusal(
             measured.unit,
             measured.currency,
-            f"A completed fraction of {fraction!r} is outside (0, 1]; "
-            "it must be the share of the whole run that was actually executed.",
+            say("project.bad_fraction", fraction=repr(fraction)),
         )
     if scaling is not None and not scaling.usable():
         return _refusal(
             measured.unit,
             measured.currency,
-            "The scaling of this workload was measured and the measurement "
-            f"refused to report an exponent: {scaling.exponent.notes} Until that "
-            "is resolved, projecting by the ratio of sizes would assert a "
-            "proportionality that the runs available do not support.",
+            say("project.scaling_refused", reason=scaling.exponent.notes),
         )
 
     percent = fraction * 100.0
@@ -323,21 +321,17 @@ def project_to_completion(
                 unit=measured.unit,
                 currency=measured.currency,
                 status=_cap(measured.status),
-                notes=f"Projected from a slice covering {percent:g}% of the run.",
+                notes=say("project.linear.notes", percent=localised(f"{percent:g}%")),
             ),
-            method=f"Whole run = measured slice / {fraction:g}.",
+            method=say("project.linear.method", fraction=localised(f"{fraction:g}")),
             assumptions=(
-                "The remaining work costs the same per unit as the slice that was run.",
-                "Warm-up, checkpointing, and data loading are spread evenly across the run.",
+                say("project.linear.assumption.same_per_unit"),
+                say("project.linear.assumption.spread_evenly"),
             ),
             limits=(
-                "A run whose later stages differ in shape, such as a learning-rate "
-                "schedule that changes batch size, will not scale linearly.",
-                "One-off costs paid entirely inside the slice are counted as though "
-                "they recurred throughout.",
-                "Nothing here checked that the work is uniform. Measuring a few "
-                "slices of different sizes would turn that assumption into an "
-                "exponent; see saggio.estimate.scaling.",
+                say("project.linear.limit.later_stages"),
+                say("project.linear.limit.one_off"),
+                say("project.linear.limit.unchecked"),
             ),
         )
 
@@ -346,16 +340,19 @@ def project_to_completion(
     measured_range = scaling.size_range()
     limits = [
         *scaling.limits,
-        "Beyond the largest size measured, the exponent is an extrapolation: it "
-        "describes how the work grew where it was watched growing, not a law.",
+        say("project.scaled.limit.beyond_measured"),
     ]
     if measured_range is not None:
         smallest, largest = measured_range
         limits.insert(
             0,
-            f"The exponent holds between sizes {smallest:g} and {largest:g}, and the "
-            f"whole run is about {largest / fraction:.3g} at the same scale, which is "
-            f"{1.0 / fraction:.3g} times the largest size actually run.",
+            say(
+                "project.scaled.limit.range",
+                smallest=localised(f"{smallest:g}"),
+                largest=localised(f"{largest:g}"),
+                whole=localised(f"{largest / fraction:.3g}"),
+                times=localised(f"{1.0 / fraction:.3g}"),
+            ),
         )
     return Projection(
         quantity=Quantity(
@@ -363,16 +360,21 @@ def project_to_completion(
             unit=measured.unit,
             currency=measured.currency,
             status=weakest(_cap(measured.status), scaling.exponent.status),
-            notes=(
-                f"Projected from a slice covering {percent:g}% of the run, with a "
-                f"measured scaling exponent of {exponent:.3f}."
+            notes=say(
+                "project.scaled.notes",
+                percent=localised(f"{percent:g}%"),
+                exponent=localised(f"{exponent:.3f}"),
             ),
         ),
-        method=(f"Whole run = measured slice / {fraction:g}^{exponent:.3f}. {scaling.method}"),
+        method=say(
+            "project.scaled.method",
+            fraction=localised(f"{fraction:g}"),
+            exponent=localised(f"{exponent:.3f}"),
+            method=scaling.method,
+        ),
         assumptions=(
-            "The workload keeps the scaling it was measured to have over the sizes that were run.",
-            "Warm-up, checkpointing, and data loading grow with the size the same "
-            "way the measured slices did.",
+            say("project.scaled.assumption.keeps_scaling"),
+            say("project.scaled.assumption.grows_with_size"),
         ),
         limits=tuple(limits),
     )
