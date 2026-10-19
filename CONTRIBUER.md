@@ -38,6 +38,29 @@ existe pour être l'inverse de ça. Mettez le lien : la fiche technique du
 constructeur, la page du régulateur, le rapport de durabilité de l'hébergeur.
 « Tout le monde sait qu'un A100 fait 400 watts » n'est pas une source.
 
+**Et une empreinte de fabrication demande une chose de plus : ce dont elle est
+l'empreinte.** C'est le champ qu'on attend d'un outil, et c'est celui qu'un
+outil ne peut pas remplir. Les fiches PCF de NVIDIA énoncent, dans une prose
+qu'un analyseur trouverait du premier coup, que l'empreinte du berceau à la
+sortie d'usine d'une carte de base HGX H100 est de 1 312 kgCO2e — 2 274 pour une
+HGX B200. L'unité de ce catalogue est **un accélérateur**. Le diviseur est sur
+une autre page, dans un tableau de spécifications qui dit *« Form Factor: 8x
+NVIDIA H100 SXM »*, et savoir qu'il faut diviser vient du schéma, pas du
+document.
+
+Une ligne portant `embodied_kgco2e: 1312` sous la clé `H100` serait fausse d'un
+facteur huit et paraîtrait impeccable : une vraie URL constructeur, une vraie
+date, un nombre réellement imprimé dans le document. C'est la pire sortie que ce
+paquet puisse produire, et c'est pourquoi **il n'existe aucun verbe qui lit un
+PCF et propose une ligne**. Lire le nombre est la moitié facile ; savoir ce
+qu'est une unité de destination, et écrire qu'on a divisé, est la moitié qui
+doit être faite par quelqu'un à qui l'on peut demander pourquoi.
+
+`embodied_scope` est donc obligatoire, et doit commencer par nommer une unité —
+*« One SXM 40GB card… »*, *« One of the eight GPUs on an HGX H100 baseboard:
+1312 kgCO2e… divided by eight »*. Un test de contrat refuse une empreinte qui
+n'en a pas.
+
 ### Un chiffre qui est faux
 
 Si une valeur de `saggio/data/` est fausse ou a vieilli, dites-le, et dites ce

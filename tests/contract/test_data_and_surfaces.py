@@ -727,3 +727,54 @@ def test_a_european_room_can_close_its_water() -> None:
     providers = Catalog.load("providers", overlay=Path("/nonexistent")).rows("providers")
     assert providers["on-prem"]["wue_l_per_kwh"] is None, "the global row still publishes none"
     assert providers["on-prem-eu"]["wue_l_per_kwh"] is not None
+
+
+def test_every_footprint_says_what_one_of_it_is() -> None:
+    """A manufacturing footprint is meaningless without the thing it is of.
+
+    NVIDIA's PCF summaries state a figure for a *baseboard* — 1,312 kgCO2e for
+    an HGX H100, 2,274 for an HGX B200 — while this catalogue's unit is one
+    accelerator. The divisor is on a different page of the document, in a spec
+    table reading "Form Factor: 8x NVIDIA H100 SXM". A row carrying 1312 under
+    the key `H100` would be wrong by a factor of eight and would look perfect:
+    real source, real date, a number genuinely in the document.
+
+    So the scope is not decoration. It is the field that says which of the two
+    numbers in the document this one is, and it is required of every row that
+    states a footprint at all.
+    """
+    offenders: list[str] = []
+    for kind, key, row in catalog_rows():
+        if row.get("embodied_kgco2e") is None:
+            continue
+        scope = str(row.get("embodied_scope") or "")
+        if not scope:
+            offenders.append(f"{kind}:{key} states a footprint and no scope")
+            continue
+        # "One X", "One of the eight Y": the scope has to open by naming a unit,
+        # because a scope that only names a method still leaves the reader
+        # dividing by a number nobody wrote down.
+        if not scope.lower().startswith("one"):
+            offenders.append(
+                f"{kind}:{key} scope does not begin by naming one unit: {scope[:60]!r}"
+            )
+        if row.get("embodied_source_url") is None:
+            offenders.append(f"{kind}:{key} states a footprint and no source")
+        if row.get("embodied_retrieved_date") is None:
+            offenders.append(f"{kind}:{key} states a footprint and no date")
+    assert not offenders, "\n".join(offenders)
+
+
+def test_a_footprint_divided_from_a_board_says_so_and_by_how_much() -> None:
+    # Checked against the two documents on 2026-10-19: the HGX H100 summary
+    # states 1,312 kgCO2e for the baseboard and the H100 row carries 164.0,
+    # which is 1312/8; the HGX B200 summary states 2,274 and the B200 row
+    # carries 284.25, which is 2274/8. Both rows say so in their own scope.
+    rows = {key: row for _, key, row in catalog_rows() if row.get("embodied_kgco2e")}
+    for key, board, count in (("H100", 1312.0, 8), ("B200", 2274.0, 8)):
+        row = rows[key]
+        scope = str(row["embodied_scope"])
+        assert str(int(board)) in scope, f"{key}: the scope does not quote the board figure"
+        assert row["embodied_kgco2e"] == pytest.approx(board / count), (
+            f"{key} carries {row['embodied_kgco2e']} and {board}/{count} is {board / count}"
+        )

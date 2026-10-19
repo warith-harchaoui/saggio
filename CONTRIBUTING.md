@@ -37,6 +37,27 @@ to be the opposite of that. Link the vendor datasheet, the regulator's page, the
 provider's own sustainability report. "Everyone knows an A100 is 400 watts" is not
 a source.
 
+**And a manufacturing footprint needs one thing more: what one of it is.** This
+is the field people expect a tool to fill in for them, and it is the one a tool
+cannot. NVIDIA's PCF summaries state, in prose a parser would find on the first
+try, that the cradle-to-gate footprint of an HGX H100 baseboard is 1,312 kgCO2e
+— 2,274 for an HGX B200. This catalogue's unit is **one accelerator**. The
+divisor is on a different page, in a spec table reading *"Form Factor: 8x NVIDIA
+H100 SXM"*, and the knowledge that it is needed at all comes from the schema
+rather than from the document.
+
+A row carrying `embodied_kgco2e: 1312` under the key `H100` would be wrong by a
+factor of eight and would look impeccable: a real vendor URL, a real date, a
+number genuinely printed in the document. That is the worst output this package
+can produce, and it is why **there is no verb that reads a PCF and proposes a
+row**. Reading the number is the easy half; knowing what one unit of the
+destination is, and writing down that you divided, is the half that has to be
+done by somebody who can be asked why.
+
+So `embodied_scope` is required, and it has to begin by naming one unit — *"One
+SXM 40GB card…"*, *"One of the eight GPUs on an HGX H100 baseboard: 1312
+kgCO2e… divided by eight"*. A contract test refuses a footprint without it.
+
 ### A number that is wrong
 
 If a figure in `saggio/data/` is wrong or has gone stale, say so,

@@ -9,6 +9,37 @@ release of that line.
 
 ## Unreleased
 
+### Why there is no verb that reads a product carbon footprint
+
+- The working list has carried, since October, the idea of a verb that reads a
+  vendor's PCF PDF and **proposes** a catalogue row for a human to accept. The
+  two documents this package already cites were opened and worked through by
+  hand to find out whether that is a good idea. It is not, and the reason is
+  arithmetic rather than taste.
+- Both summaries state their figure in prose a parser would find on the first
+  try: *"the carbon footprint from cradle-to-gate for one HGX H100 GPU
+  baseboard is 1,312 kg CO₂e"*, and 2,274 for the HGX B200. **This catalogue's
+  unit is one accelerator.** The divisor sits on a different page, in a spec
+  table reading *"Form Factor: 8x NVIDIA H100 SXM"*, and the knowledge that a
+  division is needed at all comes from the schema rather than from the
+  document.
+- A row carrying `embodied_kgco2e: 1312` under the key `H100` would be **wrong
+  by a factor of eight and would look impeccable** — real vendor URL, real
+  date, a number genuinely printed in the document. That is the worst output
+  this package can produce. Reading the number is the easy half; knowing what
+  one unit of the destination is, and writing down that you divided, is the
+  half that has to be done by somebody who can be asked why.
+- Both committed figures were verified against their documents while this was
+  being settled: 164.0 is 1312/8 and 284.25 is 2274/8, and both rows already
+  said so in their own `embodied_scope`.
+- **That discipline was a convention and is now a rule.** Every row stating a
+  footprint must carry a scope, a source and a date, and the scope must *begin
+  by naming one unit* — `One SXM 40GB card…`, `One of the eight GPUs on an HGX
+  H100 baseboard…`. Eight rows carry a footprint today and all eight pass;
+  removing a scope makes the suite fail.
+- `CONTRIBUTING.md` / `CONTRIBUER.md` say all of this where somebody about to
+  add a row will read it.
+
 ### A regulation that publishes numbers back, and the water TODO it closes
 
 - The working notes said the EU data centre reporting scheme would turn the PUE

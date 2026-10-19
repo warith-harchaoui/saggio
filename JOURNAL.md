@@ -10,6 +10,37 @@ cette ligne.
 
 ## Non publié
 
+### Pourquoi il n'existe aucun verbe qui lit une empreinte produit
+
+- La liste de travail portait depuis octobre l'idée d'un verbe qui lirait le PDF
+  de PCF d'un constructeur et **proposerait** une ligne de catalogue à valider
+  par un humain. Les deux documents que ce paquet cite déjà ont été ouverts et
+  dépouillés à la main pour savoir si c'est une bonne idée. Ce n'en est pas une,
+  et la raison est arithmétique, pas affaire de goût.
+- Les deux fiches énoncent leur valeur dans une prose qu'un analyseur trouverait
+  du premier coup : *« the carbon footprint from cradle-to-gate for one HGX H100
+  GPU baseboard is 1,312 kg CO₂e »*, et 2 274 pour la HGX B200. **L'unité de ce
+  catalogue est un accélérateur.** Le diviseur est sur une autre page, dans un
+  tableau de spécifications disant *« Form Factor: 8x NVIDIA H100 SXM »*, et
+  savoir qu'il faut diviser vient du schéma, pas du document.
+- Une ligne portant `embodied_kgco2e: 1312` sous la clé `H100` serait **fausse
+  d'un facteur huit et paraîtrait impeccable** — vraie URL constructeur, vraie
+  date, nombre réellement imprimé dans le document. C'est la pire sortie que ce
+  paquet puisse produire. Lire le nombre est la moitié facile ; savoir ce qu'est
+  une unité de destination, et écrire qu'on a divisé, est la moitié qui doit
+  être faite par quelqu'un à qui l'on peut demander pourquoi.
+- Les deux valeurs commitées ont été confrontées à leurs documents pendant que
+  la question se tranchait : 164,0 est 1312/8 et 284,25 est 2274/8, et les deux
+  lignes le disaient déjà dans leur propre `embodied_scope`.
+- **Cette discipline était une convention, elle est désormais une règle.** Toute
+  ligne énonçant une empreinte doit porter une portée, une source et une date,
+  et la portée doit *commencer par nommer une unité* — `One SXM 40GB card…`,
+  `One of the eight GPUs on an HGX H100 baseboard…`. Huit lignes portent une
+  empreinte aujourd'hui et les huit passent ; retirer une portée fait échouer la
+  suite.
+- `CONTRIBUTING.md` / `CONTRIBUER.md` disent tout cela là où quelqu'un qui
+  s'apprête à ajouter une ligne le lira.
+
 ### Un règlement qui publie des chiffres en retour, et le TODO eau qu'il ferme
 
 - Les notes de travail annonçaient que le dispositif européen de déclaration
