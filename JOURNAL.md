@@ -10,6 +10,39 @@ cette ligne.
 
 ## Non publié
 
+### Ce que vaut une étendue de cinq exécutions, exactement
+
+- `--repeat 5` enregistre une étendue et rien ne disait ce qu'une étendue
+  **est**. Le module disait que ce n'était pas un intervalle de confiance ; la
+  porte disait qu'un mouvement était « inside the noise the models measured »,
+  ce qui laisse entendre que le bruit a été mesuré. Un lecteur devait deviner,
+  et ce qu'une largeur invite à deviner, c'est « borne ».
+- Ce n'est pas une borne, et le chiffre est exact. Pour **n'importe quelle**
+  distribution continue, la prochaine exécution tombe hors de l'étendue des `n`
+  précédentes avec probabilité **2 / (n + 1)** — parmi `n + 1` tirages
+  échangeables chacun a la même chance d'être le plus grand, donc le nouveau est
+  un maximum inédit avec probabilité `1/(n+1)`, un minimum inédit de même, et il
+  ne peut être les deux. Aucune forme supposée, aucune ajustée. Vérifié sur des
+  tirages normaux, exponentiels et uniformes, 200 000 essais chacun : 0,3334,
+  0,3329, 0,3337 contre 0,3333 prédit à n = 5.
+- **Cinq exécutions sont dépassées par un travail inchangé une fois sur
+  trois**, et le levier est dans l'arithmétique : pour diviser la surprise par
+  deux, doublez à peu près les exécutions.
+- Dit là où ça compte, pas seulement sur une page. Les notes d'une quantité se
+  terminent par *« A range from 5 runs is not a bound: the next run lands
+  outside it about one time in 3… »*. Et `saggio diff`, quand il excuse un
+  mouvement tombé dans un intervalle, ajoute désormais *« a 5-run range,
+  exceeded by unchanged work one time in 3 »* — une porte qui excuse doit dire à
+  quelle fréquence l'excuse est fausse.
+- Un intervalle bâti sur deux étendues rapporte le **plus petit** des deux
+  comptes d'exécutions : un produit n'est pas mieux fondé que son facteur le
+  plus faible.
+- Cela tranche aussi la façon dont le résultat de l'itération précédente peut
+  être cité. Les trois attributions ont gardé leur **classement** sur trois
+  séries indépendantes ; le **facteur** entre elles, non — d'environ quatre à
+  environ quinze. Un classement survit à une étendue large ; un rapport de deux
+  étendues, non, et les pages citent le classement.
+
 ### Quelle attribution ce paquet emploie, décidé sur des mesures et non par goût
 
 - Une puissance mesurée a trois lectures, et le paquet portait les trois sans

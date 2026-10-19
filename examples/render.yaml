@@ -40,8 +40,9 @@ assumptions:
       of the 17.9 W is attributable to it. Every cost derived from it therefore prices the machine, not
       the process. Read during the run this model carries, which is the one whose runtime was the median
       of 5; the middle power of the 5 (16.14 W) is a different run''s. Across them this figure ranged
-      15.25 W to 23.16 W, a spread of 49% of their median. That range is what a second measurement would
-      be free to land anywhere inside.'
+      15.25 W to 23.16 W, a spread of 49% of their median. A range from 5 runs is not a bound: the next
+      run lands outside it about one time in 3, whatever the shape of the variation, and nothing need
+      have changed for it to.'
   pue:
     value: 1.5
     status: estimated
@@ -203,8 +204,9 @@ scenarios:
       \ = yaml.safe_load(open(\"examples/saggio.yaml\", encoding=\"utf-8\"))\nfor _ in range(50):\n  \
       \  render_html(model)\n. The command performed 50 units of work, so the figure is the wall-clock\
       \ time divided by 50. The median of 5 runs of the same command. Across them this figure ranged 1.31\
-      \ s to 1.371 s, a spread of 4% of their median. That range is what a second measurement would be\
-      \ free to land anywhere inside."
+      \ s to 1.371 s, a spread of 4% of their median. A range from 5 runs is not a bound: the next run\
+      \ lands outside it about one time in 3, whatever the shape of the variation, and nothing need have\
+      \ changed for it to."
   costs:
     time:
       value: 0.02717652416002238
@@ -216,8 +218,9 @@ scenarios:
         model = yaml.safe_load(open(\"examples/saggio.yaml\", encoding=\"utf-8\"))\nfor _ in range(50):\n\
         \    render_html(model)\n. The command performed 50 units of work, so the figure is the wall-clock\
         \ time divided by 50. The median of 5 runs of the same command. Across them this figure ranged\
-        \ 1.31 s to 1.371 s, a spread of 4% of their median. That range is what a second measurement would\
-        \ be free to land anywhere inside."
+        \ 1.31 s to 1.371 s, a spread of 4% of their median. A range from 5 runs is not a bound: the next\
+        \ run lands outside it about one time in 3, whatever the shape of the variation, and nothing need\
+        \ have changed for it to."
     energy:
       value: 2.0235889644166668e-07
       status: estimated
@@ -412,6 +415,7 @@ measurement:
   repeats: 5
   spread:
     runtime_s:
+      outside_odds: 0.3333
       low: 1.310291
       median: 1.358826
       high: 1.37118
@@ -423,6 +427,7 @@ measurement:
       - 1.312342
       - 1.358826
     power_w:
+      outside_odds: 0.3333
       low: 15.249693
       median: 16.137901
       high: 23.163707
@@ -434,6 +439,7 @@ measurement:
       - 16.137901
       - 17.870621
     attributed_w:
+      outside_odds: 0.3333
       low: 3.209357
       median: 3.359116
       high: 3.645655
@@ -445,6 +451,7 @@ measurement:
       - 3.645655
       - 3.441337
     idle_w:
+      outside_odds: 0.3333
       low: 10.205713
       median: 13.328792
       high: 13.611657

@@ -196,3 +196,41 @@ def test_a_single_run_still_gets_its_profile() -> None:
         [sys.executable, "-c", "pass"], repeats=1, profile=True, baseline_seconds=0.0
     )
     assert not any("profiler changes" in w for w in series.to_mapping().get("warnings", []))
+
+
+# --- What a range of five is worth -------------------------------------------
+
+
+def test_the_odds_the_next_run_falls_outside_are_two_over_n_plus_one() -> None:
+    # Not an estimate and not a fit: among n+1 exchangeable draws from any
+    # continuous distribution each is equally likely to be the largest, so the
+    # new one is a fresh maximum with probability 1/(n+1), a fresh minimum with
+    # the same, and it cannot be both.
+    for count in (3, 5, 11, 21):
+        spread = Spread(tuple(float(n) for n in range(count)))
+        assert spread.outside_odds() == pytest.approx(2.0 / (count + 1))
+
+
+def test_five_runs_are_exceeded_one_time_in_three() -> None:
+    assert Spread((1.0, 2.0, 3.0, 4.0, 5.0)).outside_odds() == pytest.approx(1 / 3)
+
+
+def test_doubling_the_runs_roughly_halves_the_odds() -> None:
+    # The lever a reader has. Worth asserting because it is the reason the
+    # figure is printed at all.
+    five, eleven = Spread((1.0,) * 5), Spread((1.0,) * 11)
+    assert five.outside_odds() / eleven.outside_odds() == pytest.approx(2.0)
+
+
+def test_the_block_records_the_odds_beside_the_range() -> None:
+    block = SliceSeries(tuple(_run(1.0 + n / 10, 10.0 + n) for n in range(5))).to_mapping()
+    assert block["spread"]["runtime_s"]["outside_odds"] == pytest.approx(1 / 3, abs=1e-4)
+
+
+def test_the_sentence_says_a_range_is_not_a_bound() -> None:
+    # Silence about what a range is worth reads as a guarantee it does not give.
+    block = SliceSeries(tuple(_run(1.0 + n / 10, 10.0 + n) for n in range(5))).to_mapping()
+    note = spread_note(block, "runtime_s")
+    assert "is not a bound" in note
+    assert "one time in 3" in note
+    assert "whatever the shape of the variation" in note

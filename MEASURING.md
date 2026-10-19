@@ -290,6 +290,42 @@ stability, and the power is the figure that is not stable.
 A spread wider than 10% — the threshold `saggio diff` gates a release on — is
 reported as a warning rather than left to a reader to notice.
 
+### What a range of five runs is worth
+
+A range is not a bound, and the package now says by how much. For **any**
+continuous distribution, the probability that the next run falls outside the
+range of the `n` before it is exactly
+
+    2 / (n + 1)
+
+which is a fact rather than a fit. Among `n + 1` exchangeable draws each is
+equally likely to be the largest, so the new one is a fresh maximum with
+probability `1 / (n + 1)`; the same holds for the minimum; and it cannot be
+both. No shape is assumed and none is estimated.
+
+| Runs | The next one lands outside |
+|---|---|
+| 3 | one time in 2 |
+| **5** | **one time in 3** |
+| 11 | one time in 6 |
+| 21 | one time in 11 |
+
+So a five-run range is exceeded by work that **did not change** one time in
+three, and the lever is in the table: to halve the surprise, roughly double the
+runs. The one assumption is that nothing changed between the runs — which is
+exactly the proposition a drift gate is testing, so this is the rate at which
+such a gate cries wolf.
+
+`saggio diff` therefore says it where it matters. A movement excused for
+landing inside a band is reported as *"a 5-run range, exceeded by unchanged
+work one time in 3"*, because a gate that excuses something should say how
+often the excuse is wrong.
+
+**And it is why this page quotes orders rather than factors.** The three
+attributions above kept their ranking across three independent series; the
+factor between them did not, moving from about four to about fifteen. A
+ranking survives a range being wide. A ratio of two ranges does not.
+
 ### What this is not: Kepler's formula, and how far it differs
 
 Kepler v0.10 removed its eBPF engine and now reads `/proc` and `/sys` without

@@ -98,6 +98,12 @@ class Band:
     sources : tuple of str
         Which measured figures the band came from, so a reader is never asked
         to take the width on trust.
+    runs : int
+        How many runs the range was observed over. ``0`` when the band is a
+        single value standing in for a side that repeated nothing. It is kept
+        because the width of a range means little without it: the next run
+        lands outside a range of ``n`` about ``2 / (n + 1)`` of the time, so
+        five runs are exceeded one time in three by work that did not change.
 
     Examples
     --------
@@ -110,6 +116,7 @@ class Band:
     low: float
     high: float
     sources: tuple[str, ...] = ()
+    runs: int = 0
 
     def overlaps(self, other: Band) -> bool:
         """Return whether two bands share any value at all.
@@ -136,6 +143,25 @@ class Band:
         True
         """
         return self.low <= other.high and other.low <= self.high
+
+    def outside_odds(self) -> float | None:
+        """Return how often unchanged work would fall outside this band.
+
+        Returns
+        -------
+        float or None
+            ``2 / (runs + 1)``, or ``None`` for a band that came from no runs.
+            Distribution-free: see
+            :meth:`saggio.analyze.repeat.Spread.outside_odds`.
+
+        Examples
+        --------
+        >>> Band(1.0, 2.0, (), 5).outside_odds()
+        0.3333333333333333
+        >>> Band(1.0, 2.0).outside_odds() is None
+        True
+        """
+        return 2.0 / (self.runs + 1) if self.runs else None
 
     def width(self) -> float | None:
         """Return the range as a fraction of its midpoint, or ``None``.
@@ -183,12 +209,14 @@ class Band:
         Examples
         --------
         >>> sorted(Band(1.0, 2.0, ("runtime",)).to_mapping())
-        ['high', 'low', 'sources']
+        ['high', 'low', 'outside_odds', 'runs', 'sources']
         """
         return {
             "low": self.low,
             "high": self.high,
             "sources": list(self.sources),
+            "runs": self.runs,
+            "outside_odds": self.outside_odds(),
         }
 
 
@@ -389,6 +417,7 @@ def band_for(model: CostModel, path: str) -> Band | None:
         return None
     low = high = 1.0
     named: list[str] = []
+    counts: list[int] = []
     for key in sorted(keys):
         factor = _factor(model, key)
         if factor is None:
@@ -396,7 +425,12 @@ def band_for(model: CostModel, path: str) -> Band | None:
         low *= factor[0]
         high *= factor[1]
         named.append("the runtime" if key == _RUNTIME_KEY else "the power")
+        block = _spread(model, key)
+        observed = block.get("runs") if isinstance(block, Mapping) else None
+        counts.append(len(observed) if isinstance(observed, list) else 0)
     # A negative figure would swap the ends; costs are not negative, but the
     # arithmetic should not quietly produce a band whose low exceeds its high.
     ends = sorted((value * low, value * high))
-    return Band(ends[0], ends[1], tuple(named))
+    # The fewest runs behind any of the ranges that built this band: a product
+    # of two ranges is no better founded than the thinner of the two.
+    return Band(ends[0], ends[1], tuple(named), min(counts) if counts else 0)

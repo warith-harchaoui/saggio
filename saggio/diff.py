@@ -60,6 +60,46 @@ _COSTS_SEGMENT: Final[str] = ".costs."
 _NO_NUMBER: Final[str] = "no number"
 
 
+def _odds(*bands: Band | None) -> str:
+    """Return what a band's run count is worth, as a clause.
+
+    A range is not a bound. The next run falls outside a range of ``n`` about
+    ``2 / (n + 1)`` of the time with nothing having changed, so a gate that
+    excuses a movement for landing inside one should say how often that
+    excuse is wrong — and a gate that fails for landing outside should say how
+    often *that* is.
+
+    Parameters
+    ----------
+    *bands : Band or None
+        The bands in play. The thinnest decides, since it is the one that will
+        be exceeded first.
+
+    Returns
+    -------
+    str
+        A clause, or an empty string when no band came from repeated runs.
+
+    Examples
+    --------
+    >>> _odds(Band(1.0, 2.0, (), 5))
+    ' — a 5-run range, exceeded by unchanged work one time in 3'
+    >>> _odds(Band(1.0, 2.0))
+    ''
+    """
+    counted = [band for band in bands if band is not None and band.runs]
+    if not counted:
+        return ""
+    thinnest = min(counted, key=lambda band: band.runs)
+    odds = thinnest.outside_odds()
+    if odds is None:
+        return ""
+    return (
+        f" — a {thinnest.runs}-run range, exceeded by unchanged work "
+        f"one time in {round(1 / odds)}"
+    )
+
+
 def _point(quantity: Quantity | None) -> Band | None:
     """Return a quantity's value as a zero-width band, or ``None``.
 
@@ -212,7 +252,7 @@ class Change:
             return (
                 f"inside the noise both models measured: "
                 f"{before.low:.4g} to {before.high:.4g}, then "
-                f"{after.low:.4g} to {after.high:.4g}"
+                f"{after.low:.4g} to {after.high:.4g}{_odds(before, after)}"
             )
         measured = before if before is not None else after
         side = "the earlier" if before is not None else "the later"
@@ -220,7 +260,7 @@ class Change:
             return ""
         return (
             f"inside the noise {side} model measured: "
-            f"{measured.low:.4g} to {measured.high:.4g}"
+            f"{measured.low:.4g} to {measured.high:.4g}{_odds(measured)}"
         )
 
     def units_mismatch(self) -> bool:

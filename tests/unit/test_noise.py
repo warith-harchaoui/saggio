@@ -7,6 +7,8 @@ the evidence in both files it was comparing and read neither.
 
 from __future__ import annotations
 
+import pytest
+
 from saggio.model import CostModel
 from saggio.model.noise import Band, band_for
 
@@ -17,8 +19,10 @@ MEASURED = {
     "measurement": {
         "repeats": 5,
         "spread": {
-            "runtime_s": {"low": 1.0, "median": 2.0, "high": 4.0},
-            "power_w": {"low": 5.0, "median": 30.0, "high": 20.0},
+            "runtime_s": {"low": 1.0, "median": 2.0, "high": 4.0,
+                          "runs": [1.0, 2.0, 2.0, 3.0, 4.0]},
+            "power_w": {"low": 5.0, "median": 30.0, "high": 20.0,
+                        "runs": [5.0, 10.0, 30.0, 15.0, 20.0]},
         },
     },
     "assumptions": {
@@ -88,7 +92,7 @@ def test_the_runtime_band_is_anchored_on_the_spread_median() -> None:
 
 
 def test_a_cost_scaled_from_the_runtime_is_scaled_the_same_way() -> None:
-    assert band_for(model(), "scenarios[0].costs.time") == Band(1.0, 4.0, ("the runtime",))
+    assert band_for(model(), "scenarios[0].costs.time") == Band(1.0, 4.0, ("the runtime",), 5)
 
 
 def test_a_figure_derived_from_both_multiplies_both_ranges() -> None:
@@ -141,3 +145,27 @@ def test_a_derivation_cycle_terminates() -> None:
         },
     }
     assert band_for(CostModel.from_mapping(looped), "assumptions.a") is None
+
+
+def test_a_band_carries_how_many_runs_it_came_from() -> None:
+    # The width of a range means little without the count behind it.
+    band = band_for(model(), "assumptions.power_draw")
+    assert band.runs == 5
+    assert band.outside_odds() == pytest.approx(1 / 3)
+
+
+def test_a_band_from_two_ranges_is_only_as_founded_as_the_thinner() -> None:
+    thin = {**MEASURED}
+    thin["measurement"] = {
+        "repeats": 3,
+        "spread": {
+            "runtime_s": {"low": 1.0, "median": 2.0, "high": 4.0, "runs": [1.0, 2.0, 4.0]},
+            "power_w": {"low": 5.0, "median": 30.0, "high": 20.0, "runs": [5.0] * 5},
+        },
+    }
+    band = band_for(CostModel.from_mapping(thin), "assumptions.machine_energy")
+    assert band.runs == 3, "a product of two ranges is no better founded than the thinner"
+
+
+def test_a_side_that_repeated_nothing_claims_no_odds() -> None:
+    assert Band(1.0, 2.0).outside_odds() is None

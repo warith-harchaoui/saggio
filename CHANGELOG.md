@@ -9,6 +9,36 @@ release of that line.
 
 ## Unreleased
 
+### What a range of five runs is worth, exactly
+
+- `--repeat 5` records a range and nothing said what a range *is*. The module
+  said it was not a confidence interval; the gate said a movement was "inside
+  the noise the models measured", which sounds like the noise was measured. A
+  reader was left to guess, and the guess a width invites is "bound".
+- It is not a bound, and the figure is exact. For **any** continuous
+  distribution the next run falls outside the range of the `n` before it with
+  probability **2 / (n + 1)** — among `n + 1` exchangeable draws each is
+  equally likely to be the largest, so the new one is a fresh maximum with
+  probability `1/(n+1)`, a fresh minimum with the same, and cannot be both. No
+  shape assumed, none fitted. Checked against normal, exponential and uniform
+  draws over 200 000 trials each: 0.3334, 0.3329, 0.3337 against a predicted
+  0.3333 at n = 5.
+- **Five runs are exceeded by unchanged work one time in three**, and the lever
+  is in the arithmetic: to halve the surprise, roughly double the runs.
+- Said where it matters rather than only on a page. A quantity's notes end
+  *"A range from 5 runs is not a bound: the next run lands outside it about one
+  time in 3, whatever the shape of the variation, and nothing need have changed
+  for it to."* And `saggio diff`, when it excuses a movement for landing inside
+  a band, now adds *"a 5-run range, exceeded by unchanged work one time in 3"*
+  — a gate that excuses something should say how often the excuse is wrong.
+- A band built from two ranges reports the **thinner** of the two run counts: a
+  product is no better founded than its weakest factor.
+- This also settles how the previous iteration's result may be quoted. The
+  three attributions kept their **ranking** across three independent series;
+  the **factor** between them did not, moving from about four to about fifteen.
+  A ranking survives a wide range; a ratio of two ranges does not, and the
+  pages quote the ranking.
+
 ### Which attribution this package uses, decided on measurements rather than taste
 
 - A measured power figure has three readings and the package carried all three

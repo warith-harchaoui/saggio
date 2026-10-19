@@ -307,6 +307,43 @@ Un écart supérieur à 10 % — le seuil sur lequel `saggio diff` arbitre une
 publication — est rapporté comme avertissement plutôt que laissé à la sagacité
 du lecteur.
 
+### Ce que vaut une étendue de cinq exécutions
+
+Une étendue n'est pas une borne, et le paquet dit désormais de combien. Pour
+**n'importe quelle** distribution continue, la probabilité que la prochaine
+exécution tombe hors de l'étendue des `n` précédentes vaut exactement
+
+    2 / (n + 1)
+
+ce qui est un fait et non un ajustement. Parmi `n + 1` tirages échangeables,
+chacun a la même chance d'être le plus grand : le nouveau est donc un maximum
+inédit avec probabilité `1 / (n + 1)` ; de même pour le minimum ; et il ne peut
+pas être les deux. Aucune forme n'est supposée, aucune n'est estimée.
+
+| Exécutions | La suivante tombe dehors |
+|---|---|
+| 3 | une fois sur 2 |
+| **5** | **une fois sur 3** |
+| 11 | une fois sur 6 |
+| 21 | une fois sur 11 |
+
+Une étendue de cinq exécutions est donc dépassée par un travail qui **n'a pas
+changé** une fois sur trois, et le levier est dans le tableau : pour diviser la
+surprise par deux, doublez à peu près les exécutions. La seule hypothèse est que
+rien n'a changé entre elles — ce qui est précisément la proposition qu'une porte
+de dérive teste, donc c'est le taux auquel une telle porte crie au loup.
+
+`saggio diff` le dit donc là où ça compte. Un mouvement excusé parce qu'il tombe
+dans un intervalle est rapporté comme *« a 5-run range, exceeded by unchanged
+work one time in 3 »*, parce qu'une porte qui excuse doit dire à quelle
+fréquence l'excuse est fausse.
+
+**Et c'est pourquoi cette page cite des ordres plutôt que des facteurs.** Les
+trois attributions ci-dessus ont gardé leur classement sur trois séries
+indépendantes ; le facteur entre elles, non — il est passé d'environ quatre à
+environ quinze. Un classement survit à une étendue large. Un rapport de deux
+étendues, non.
+
 ### Ce que ce n'est pas : la formule de Kepler, et de combien elle diffère
 
 Kepler v0.10 a retiré son moteur eBPF et lit désormais `/proc` et `/sys` sans

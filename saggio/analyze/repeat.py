@@ -159,6 +159,34 @@ class Spread:
             return None
         return (self.high - self.low) / middle
 
+    def outside_odds(self) -> float:
+        """Return how often the next run would land outside this range.
+
+        Exactly ``2 / (n + 1)``, and that is a fact rather than an estimate.
+        Among ``n + 1`` exchangeable draws from any continuous distribution,
+        each is equally likely to be the largest, so the new one is a fresh
+        maximum with probability ``1 / (n + 1)``; the same holds for the
+        minimum; and it cannot be both. No shape is assumed and none is fitted.
+
+        The one thing it does assume is that nothing changed between the runs —
+        which is the very proposition a drift gate is testing, so this is the
+        rate at which such a gate cries wolf on unchanged work.
+
+        Returns
+        -------
+        float
+            A probability in ``(0, 1]``. Five runs give ``1/3``; to halve it,
+            roughly double the runs.
+
+        Examples
+        --------
+        >>> Spread((1.0, 2.0, 3.0, 4.0, 5.0)).outside_odds()
+        0.3333333333333333
+        >>> round(Spread(tuple(float(n) for n in range(11))).outside_odds(), 4)
+        0.1667
+        """
+        return 2.0 / (len(self.values) + 1)
+
     def wide(self) -> bool:
         """Return whether this spread would fail the drift gate.
 
@@ -189,10 +217,11 @@ class Spread:
         Examples
         --------
         >>> sorted(Spread((1.0, 2.0)).to_mapping())
-        ['high', 'low', 'median', 'relative', 'runs']
+        ['high', 'low', 'median', 'outside_odds', 'relative', 'runs']
         """
         relative = self.relative
         return {
+            "outside_odds": round(self.outside_odds(), 4),
             "low": round(self.low, 6),
             "median": round(self.median, 6),
             "high": round(self.high, 6),
@@ -499,6 +528,32 @@ def spread_warnings(measurement: Mapping[str, Any] | None) -> list[str]:
     return found
 
 
+def _as_odds(probability: float) -> str:
+    """Return a probability as the plain phrase a reader can hold.
+
+    Parameters
+    ----------
+    probability : float
+        A number in ``(0, 1]``.
+
+    Returns
+    -------
+    str
+        ``"one time in 3"`` rather than ``"0.3333"``: the figure is about how
+        often a reader will be surprised, and a reader counts occasions.
+
+    Examples
+    --------
+    >>> _as_odds(1 / 3)
+    'one time in 3'
+    >>> _as_odds(1.0)
+    'every time'
+    """
+    if probability >= 1.0:
+        return "every time"
+    return f"one time in {round(1.0 / probability)}"
+
+
 def spread_note(measurement: Mapping[str, Any] | None, key: str) -> str:
     """Return the sentence bounding how far a figure would move again.
 
@@ -560,10 +615,15 @@ def spread_note(measurement: Mapping[str, Any] | None, key: str) -> str:
             f"runtime was the median of {repeats}; the middle power of the "
             f"{repeats}{middling} is a different run's"
         )
+    # What the range is worth, which is a different question from how wide it
+    # is. A reader who is told only the width reads it as a bound; it is not
+    # one, and the odds say by how much.
+    odds = 2.0 / (repeats + 1)
     return (
         f"{opening}. Across them this figure ranged {low:.4g}{unit} to "
-        f"{high:.4g}{unit}{width}. That range is what a second measurement "
-        f"would be free to land anywhere inside."
+        f"{high:.4g}{unit}{width}. A range from {repeats} runs is not a bound: "
+        f"the next run lands outside it about {_as_odds(odds)}, whatever the "
+        f"shape of the variation, and nothing need have changed for it to."
     )
 
 

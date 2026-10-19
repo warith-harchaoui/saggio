@@ -302,3 +302,18 @@ def test_the_json_surface_carries_the_bands_it_judged_on() -> None:
     assert carbon["within_noise"] is True
     assert carbon["noise_before"]["low"] == 16.0
     assert carbon["noise_after"]["high"] == 40.0
+
+
+def test_the_gate_says_how_often_its_own_excuse_is_wrong() -> None:
+    # A range is not a bound. Excusing a movement for landing inside one
+    # without saying how often that is the wrong call would be a gate asking
+    # to be trusted more than its evidence allows.
+    before = _repeated(17.0, 16.0, 37.0)
+    after = _repeated(35.0, 30.0, 40.0)
+    for payload in (before, after):
+        payload["measurement"]["spread"]["power_w"]["runs"] = [16.0, 20.0, 25.0, 30.0, 37.0]
+    comparison = compare(before, after)
+    carbon = next(c for c in comparison.changes if c.path.endswith("costs.carbon"))
+    spoken = carbon.describe(threshold_percent=comparison.threshold_percent)
+    assert "a 5-run range" in spoken
+    assert "exceeded by unchanged work one time in 3" in spoken
