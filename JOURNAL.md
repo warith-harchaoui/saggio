@@ -10,6 +10,66 @@ cette ligne.
 
 ## Non publié
 
+### Trois chiffres que les docs citaient, remesurés avec la méthode écrite
+
+`README.md` disait qu'un fichier de modèle écrit **48 %** d'un rapport statique,
+et que le demander en français en donne **29,4 %** en français. `USING.md` et
+`i18n.py` disaient que la prose d'un audit, c'est **709 littéraux dans 51
+modules**. Les trois étaient datés du 2026-10-19 et donc pas faux, et les trois
+avaient bougé sous quatre chantiers sans que rien les surveille. Un nombre daté
+se périme sans mentir, et c'est la façon la plus discrète qu'a une page de
+cesser d'être vraie.
+
+Chacun est désormais défini dans `tests/contract/test_languages.py`, recalculé
+là depuis le rapport qu'il décrit, et comparé au nombre que cite la page. La
+porte échoue en nommant le vrai chiffre : corriger une page est un copier-coller
+et non une enquête.
+
+| Revendication | Était | Est | Comment |
+|---|---|---|---|
+| part d'un rapport statique venant du modèle | 48 % | **50 %** | chaque chaîne du modèle, la plus longue d'abord et appariée une fois, contre le texte visible du rapport markdown |
+| part qui sort en français quand on le demande | 29,4 % | **30,3 %** | une comparaison mot à mot des deux rendus d'un même modèle |
+| littéraux de prose de quatre mots ou plus | 709 dans 51 modules | **209 dans 35** | une définition écrite de la prose, chaque exclusion étant une règle |
+
+**Reproduire l'ancien chiffre comptait plus que le remplacer.** Ma première
+méthode pour la part du modèle donnait 13,4 %, loin des 48 — parce qu'elle
+mesurait la page HTML, là où la revendication porte sur un rapport **statique**,
+ce qui dans ce projet désigne le markdown. Sur le markdown elle donne 50,0 %.
+Même histoire pour la part française : une comparaison caractère par caractère
+annonce 18 %, parce que `difflib` apparie des sous-chaînes parasites entre
+phrases sans rapport ; mot à mot elle annonce 30,3 %, juste à côté des 29,4 %
+qui s'y trouvaient. Une méthode incapable de tomber près du chiffre qu'elle
+remplace mesure autre chose, et échanger le nombre l'aurait caché.
+
+Le compte de littéraux est celui que je n'ai pas su reproduire : passée sur
+l'arbre qui citait 709 au départ, ma définition en compte **801**. Ces deux-là
+ne forment donc pas une tendance, et les docs énoncent plutôt la comparaison
+qu'un lecteur peut vérifier — la même définition sur les deux arbres, **801
+contre 209** et **53 modules contre 35**.
+
+#### Et les jumelles, que rien ne comparait
+
+Trois de ces chiffres vivent aussi dans une page française, et rien ne
+vérifiait que les deux moitiés citent le même nombre.
+`test_the_two_languages_quote_the_same_figures` le fait désormais — la sœur de la
+vérification des commandes à côté d'elle, et pour la même raison : un chiffre
+remesuré en anglais et pas en français laisse un public lire le nombre du mois
+dernier avec l'assurance de ce mois-ci.
+
+L'écrire n'a rien trouvé de faux dans les pages et trois choses de fausses dans
+mon extraction, chacune valant la règle qu'elle a achetée :
+
+- **L'anglais groupe les milliers par une virgule et la France par une espace.**
+  « 1,312 » et « 1 312 » sont un seul chiffre écrit deux fois, et sans une règle
+  de séparateur par langue la vérification annonçait trois paires en désaccord,
+  toutes trois de son fait.
+- **Un nombre dans un `code span` est une notation, pas une mesure.** L'entrée
+  sur le séparateur décimal se lit **`17.4 W` en anglais, `17,4 W` en français**
+  dans les deux moitiés : une phrase qui montre deux notations.
+- **Un chiffre dans un mot n'est pas un compte.** **La porte a11y structurelle
+  ne trouve rien** est un numéronyme pour *accessibilité*, et c'est la dernière
+  chose qu'a signalée la vérification avant d'avoir raison.
+
 ### L'Allemagne s'appelle Allemagne, et la colonne qu'on ne pouvait pas traduire
 
 Trente-huit noms de pays, dans les deux langues. Un rapport français disait

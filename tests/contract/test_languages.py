@@ -15,6 +15,7 @@ updated.
 from __future__ import annotations
 
 import ast
+import difflib
 import re
 from pathlib import Path
 from typing import Final
@@ -25,9 +26,9 @@ from saggio.analyze.llm import WORKLOAD_KINDS, _build_prompt
 from saggio.api.app import AuditIn
 from saggio.auditor.options import AuditOptions
 from saggio.cli.app import build_parser
-from saggio.i18n import DEFAULT_LANGUAGE, labels, languages, messages, prompts
+from saggio.i18n import DEFAULT_LANGUAGE, labels, language, languages, messages, prompts
 from saggio.model import CostModel
-from saggio.report import render_html
+from saggio.report import render_html, render_markdown
 from saggio.report.dashboard import render_dashboard
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -158,6 +159,176 @@ def test_the_share_of_a_report_the_button_switches_is_the_share_the_docs_quote()
     # thing. The share is what the claim is about.
     assert round(share, 1) == float(quoted.group(1)), (
         f"USING.md says {quoted.group(1)}% of a report switches language, it is {share:.1f}%"
+    )
+
+
+# --- What the docs claim about translation, recomputed ------------------------
+#
+# Three figures the pages quote, each measured here so it cannot go stale by
+# itself. They had: four rounds of translation moved all three and nobody
+# noticed, because a dated number is not a false one and nothing was watching.
+
+
+#: What a string literal has to look like to be prose an audit would show a
+#: reader and no translation reaches. Each exclusion is a rule rather than a
+#: judgement, so somebody who disagrees with the count can see which rule to
+#: argue with.
+_MARKUP: Final[re.Pattern[str]] = re.compile(r"</?[a-zA-Z][^>]*>|^[<>&]|[{}]\s*$|^\s*[-*#|]")
+_KEYISH: Final[re.Pattern[str]] = re.compile(r"^[a-z][a-z0-9_]*(\.[a-z0-9_]+)+\.?$")
+_PATHISH: Final[re.Pattern[str]] = re.compile(
+    r"^[./~]|^[a-z]+://|\.(py|ya?ml|json|md|csv|html|js|css)$"
+)
+
+
+def is_prose(text: str) -> bool:
+    """Return whether a literal is a sentence rather than markup, a key or a path."""
+    stripped = text.strip()
+    if len(stripped.split()) < 4:
+        return False
+    if _KEYISH.match(stripped) or _PATHISH.search(stripped):
+        return False
+    if _MARKUP.search(stripped):
+        return False
+    # A sentence has a letter, a space and a letter, and a lower-case run of
+    # three. `python3 -c import yaml` has the first and not the second.
+    return bool(re.search(r"[A-Za-z]\s+[A-Za-z]", stripped)) and bool(
+        re.search(r"[a-z]{3}", stripped)
+    )
+
+
+def prose_literals(tree_root: Path) -> dict[str, int]:
+    """Return how many prose literals each module under a tree still holds."""
+    per_module: dict[str, int] = {}
+    for path in sorted((tree_root / "saggio").rglob("*.py")):
+        parsed = ast.parse(path.read_text(encoding="utf-8"))
+        docs = set()
+        for node in ast.walk(parsed):
+            if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                found = ast.get_docstring(node, clean=False)
+                if found:
+                    docs.add(found)
+        count = sum(
+            1
+            for node in ast.walk(parsed)
+            if isinstance(node, ast.Constant)
+            and isinstance(node.value, str)
+            and node.value not in docs
+            and is_prose(node.value)
+        )
+        if count:
+            per_module[path.relative_to(tree_root).as_posix()] = count
+    return per_module
+
+
+def flattened(text: str) -> str:
+    """Return text with its whitespace collapsed, for comparing one run to another."""
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _example_model() -> CostModel:
+    import yaml
+
+    return CostModel.from_mapping(
+        yaml.safe_load((ROOT / "examples" / "render.yaml").read_text(encoding="utf-8"))
+    )
+
+
+def _quoted(page: str, pattern: str) -> float:
+    """Return the one number a page quotes for a claim, or fail saying it is gone."""
+    written = re.sub(r"\s+", " ", (ROOT / page).read_text(encoding="utf-8"))
+    found = re.search(pattern, written)
+    assert found is not None, f"{page} no longer states this claim"
+    return float(found.group(1))
+
+
+def test_where_an_audit_prose_lives_is_what_the_docs_count() -> None:
+    """How many prose literals are left, and in how many modules.
+
+    The claim this serves: the button moves the page's structure and not its
+    substance, because the substance is composed where the measurement happens.
+    That is only worth saying with a number beside it.
+
+    The definition above is not the one that produced the 709 first quoted
+    here — run against the tree that quoted it, this counts 801 — so the two
+    are not a trend. The trend is this definition on both trees, which is the
+    only comparison a reader can check.
+    """
+    per_module = prose_literals(ROOT)
+    total = sum(per_module.values())
+    under_report = sum(v for key, v in per_module.items() if key.startswith("saggio/report/"))
+    assert total == _quoted("USING.md", r"\*\*(\d+) prose literals of four words or more"), (
+        f"USING.md counts a different number of prose literals; there are {total}"
+    )
+    assert len(per_module) == _quoted("USING.md", r"or more across (\d+) modules"), (
+        f"USING.md counts a different number of modules; there are {len(per_module)}"
+    )
+    share = round(100 * under_report / total)
+    assert share == _quoted("USING.md", r"modules\*\*[^.]*?only (\d+)% of"), (
+        f"USING.md states a different share under report/; it is {share}%"
+    )
+
+
+def test_the_share_a_model_file_writes_is_the_share_the_docs_quote() -> None:
+    """How much of a static report is the model's own sentences.
+
+    Every string in the model, longest first so a note containing a shorter one
+    is not counted twice, and matched once so a sentence the report repeats is
+    credited once: the question is how much of the page the file wrote, not how
+    often it appears. Measured on the Markdown report, which is what this
+    project means by a static one.
+    """
+    model = _example_model()
+    with language(DEFAULT_LANGUAGE):
+        seen = flattened(render_markdown(model))
+    total_visible = len(seen)
+    strings: list[str] = []
+
+    def walk(node: object) -> None:
+        if isinstance(node, str):
+            if len(node.split()) >= 3:
+                strings.append(node)
+        elif isinstance(node, dict):
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    walk(model.data)
+    written = 0
+    for text in sorted(set(strings), key=len, reverse=True):
+        flat = flattened(text)
+        if flat and flat in seen:
+            written += len(flat)
+            seen = seen.replace(flat, " " * len(flat), 1)
+    share = round(100 * written / total_visible)
+    assert share == _quoted("README.md", r"\*\*(\d+)% of a static report's text\*\*"), (
+        f"README.md states a different share from the model file; it is {share}%"
+    )
+
+
+def test_the_share_that_comes_out_french_is_the_share_the_docs_quote() -> None:
+    """How much of a static report is French when the report is asked for in French.
+
+    Word by word rather than character by character. A character diff matches
+    stray substrings between unrelated sentences — it reports 18% where a word
+    diff reports 30% — and what is being measured is how much of the text
+    changed, not how many letters two texts happen to share.
+    """
+    model = _example_model()
+    with language(DEFAULT_LANGUAGE):
+        english = flattened(render_markdown(model)).split(" ")
+    with language("fr"):
+        french = flattened(render_markdown(model)).split(" ")
+    matcher = difflib.SequenceMatcher(None, english, french, autojunk=False)
+    shared = sum(
+        sum(len(word) + 1 for word in french[block.b : block.b + block.size])
+        for block in matcher.get_matching_blocks()
+    )
+    total = sum(len(word) + 1 for word in french)
+    share = round(100 * (total - shared) / total, 1)
+    assert share == _quoted("README.md", r"and \*\*([\d.]+)%\*\* of it comes out French"), (
+        f"README.md states a different French share; it is {share}%"
     )
 
 

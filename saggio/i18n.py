@@ -9,13 +9,17 @@ is French and whose generated sentence is English is one deliverable in two
 languages, which is worse than either.
 
 **What this does not cover, measured rather than guessed.** Pressing the
-report's language button exchanges **929 of the 19,337 characters** of visible
-text on a rendered report — **4.8%**. The other 95% is the notes, the methods,
-the caveats and the refusals, and none of it is written here: an audit's prose
-is composed where the measurement happens, and that is **709 prose literals of
-four words or more across 51 modules**, only 8% of them under ``report/``. So
-this file translates the page's structure, not its substance, and saying
-otherwise would be the kind of claim this package refuses about numbers.
+report's language button exchanges **6.9%** of the visible text on a rendered
+report. The other 93% is the notes, the methods, the caveats and the refusals,
+and none of it is written here: an audit's prose is composed where the
+measurement happens, and that is **209 prose literals of four words or more
+across 35 modules**, only 4% of them under ``report/``. So this file translates
+the page's structure, not its substance, and saying otherwise would be the kind
+of claim this package refuses about numbers.
+
+Every figure in that paragraph is recomputed by a contract test from the report
+it describes. They are quoted in ``USING.md`` and ``README.md`` rather than
+here, so there is one place a reader checks and one place a gate reads.
 
 So there is one loader and two tables, and :func:`languages` answers for the
 package as a whole: a language appears there only when **both** tables have it.

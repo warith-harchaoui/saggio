@@ -306,11 +306,13 @@ de code.
 
 Deux limites, mesurées plutôt que sous-entendues. Un modèle porte les phrases
 avec lesquelles il a été écrit : un modèle audité en anglais se rend en anglais
-quoi que vous demandiez — **48 % du texte d'un rapport statique** vient du
+quoi que vous demandiez — **50 % du texte d'un rapport statique** vient du
 fichier lui-même. Et le bouton de langue d'une page HTML change l'ossature de la
 page, **6,9 %**, parce que le reste est de la prose que le moteur a composée côté
-serveur ; demandez plutôt le rapport dans une langue et **29,4 %** en sortaient en
-français au 2026-10-19, une part qui grandit avec le catalogue.
+serveur ; demandez plutôt le rapport dans une langue et **30,3 %** en sortent en
+français, une part qui grandit avec le catalogue. Les trois chiffres sont
+recalculés par des tests de contrat depuis le rapport qu'ils décrivent, parce
+qu'un nombre dans une phrase se périme sans mentir.
 
 Et il ne compte jamais ce qu'il ne peut pas compter. La fabrication du matériel,
 les gens, les bureaux : tout cela est listé comme exclu dans le rapport, parce

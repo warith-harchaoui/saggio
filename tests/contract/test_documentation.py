@@ -346,6 +346,57 @@ def test_the_two_languages_show_the_same_commands(english: str, french: str) -> 
     )
 
 
+#: How each language groups thousands and marks tenths. English groups with a
+#: comma and France with a space, so `1,312` and `1 312` are one figure written
+#: twice and `19,337` and `19 337` are another. Without this the comparison
+#: below reports three pairs in disagreement and all three are its own doing.
+_THOUSANDS: dict[str, re.Pattern[str]] = {
+    "en": re.compile(r"(?<=\d),(?=\d)"),
+    "fr": re.compile(r"(?<=\d)[\s\u00a0\u202f](?=\d)"),
+}
+
+
+def _bold_figures(page: str, code: str) -> Counter[str]:
+    """Return every measurement a bold run on a page claims, normalised.
+
+    A number inside a code span is not one of them. The entry about the decimal
+    separator reads **`17.4 W` in English, `17,4 W` in French** in both halves,
+    which is one sentence showing two notations rather than two measurements —
+    and the only thing the first version of this check reported, because it read
+    the French notation in the English page as a thousands-grouped integer.
+
+    Nor is a digit inside a word. The second version reported one figure, from
+    **The structural a11y gate finds nothing** — a numeronym, which is a way of
+    spelling *accessibility* and not a count of eleven.
+    """
+    text = (ROOT / page).read_text(encoding="utf-8")
+    found: Counter[str] = Counter()
+    for bold in re.findall(r"\*\*([^*]+)\*\*", text):
+        shown = re.sub(r"`[^`]*`", " ", bold)
+        plain = _THOUSANDS[code].sub("", shown)
+        for raw in re.findall(r"(?<![A-Za-z\d])\d+(?:[.,]\d+)?\s*%?(?![A-Za-z\d])", plain):
+            found[re.sub(r"\s+", "", raw).replace(",", ".")] += 1
+    return found
+
+
+@pytest.mark.parametrize(("english", "french"), BILINGUAL_PAIRS)
+def test_the_two_languages_quote_the_same_figures(english: str, french: str) -> None:
+    """A measurement stated in bold must be the same measurement in both halves.
+
+    Not a translation check, a staleness check, and the sibling of the commands
+    one above: a figure remeasured in English and not in French leaves one
+    audience reading last month's number with this month's confidence. That is
+    how three figures in these pages went four rounds of work out of date — the
+    English was corrected, or was not, and nothing compared the halves.
+    """
+    in_english = _bold_figures(english, "en")
+    in_french = _bold_figures(french, "fr")
+    assert in_english == in_french, (
+        f"only in {english}: {sorted((in_english - in_french).elements())}; "
+        f"only in {french}: {sorted((in_french - in_english).elements())}"
+    )
+
+
 @pytest.mark.parametrize("page", sorted(MONOLINGUAL_ON_PURPOSE))
 def test_a_page_written_once_is_written_once_on_purpose(page: str) -> None:
     assert (ROOT / page).is_file(), f"{page} is listed as monolingual and is not there"

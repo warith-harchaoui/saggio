@@ -9,6 +9,62 @@ release of that line.
 
 ## Unreleased
 
+### Three figures the docs quoted, remeasured with the method written down
+
+`README.md` said a model file writes **48%** of a static report and that asking
+for one in French gives **29.4%** of it in French. `USING.md` and `i18n.py` said
+an audit's prose is **709 literals across 51 modules**. All three were dated
+2026-10-19 and therefore not false, and all three had moved under four rounds of
+work with nothing watching them. A dated number goes stale without lying, which
+is the quietest way for a page to stop being true.
+
+Each is now defined in `tests/contract/test_languages.py`, recomputed there from
+the report it describes, and compared against the number the page quotes. The
+gate fails naming the real figure, so correcting a page is a copy-paste rather
+than an investigation.
+
+| Claim | Was | Is | How |
+|---|---|---|---|
+| a model file's share of a static report | 48% | **50%** | every string in the model, longest first and matched once, against the Markdown report's visible text |
+| the share that comes out French when asked | 29.4% | **30.3%** | a word-level diff of the two renders of one model |
+| prose literals of four words or more | 709 across 51 modules | **209 across 35** | a written definition of prose, with each exclusion a rule |
+
+**Reproducing the old number mattered more than replacing it.** My first method
+for the model share gave 13.4%, which is nowhere near 48 — because it measured
+the HTML page and the claim is about a *static* report, which in this project
+means the Markdown one. On Markdown it gives 50.0%. The French share was the
+same story: a character-level diff reports 18%, because `difflib` matches stray
+substrings between unrelated sentences; word-level reports 30.3%, next door to
+the 29.4% that was there. A method that cannot land near the figure it replaces
+is measuring something else, and swapping the number would have hidden that.
+
+The literal count is the one I could not reproduce: run against the tree that
+first quoted 709, my definition counts **801**. So those two are not a trend,
+and the docs say the comparison a reader can check instead — the same definition
+on both trees, **801 to 209** and **53 modules to 35**.
+
+#### And the twins, which nothing was comparing
+
+Three of these figures live in a French page as well, and nothing checked that
+the two halves quote the same number. `test_the_two_languages_quote_the_same_figures`
+does now — the sibling of the commands check beside it, for the same reason: a
+figure remeasured in English and not in French leaves one audience reading last
+month's number with this month's confidence.
+
+Writing it found nothing wrong with the pages and three things wrong with my own
+extraction, each worth the rule it bought:
+
+- **English groups thousands with a comma and France with a space.** `1,312`
+  and `1 312` are one figure written twice, and without a separator rule per
+  language the check reported three pairs in disagreement, all three its own
+  doing.
+- **A number inside a code span is a notation, not a measurement.** The entry
+  about the decimal separator reads **`17.4 W` in English, `17,4 W` in French**
+  in both halves — one sentence showing two notations.
+- **A digit inside a word is not a count.** **The structural a11y gate finds
+  nothing** is a numeronym for *accessibility*, and it was the last thing the
+  check reported before it was right.
+
 ### Germany is Allemagne, and the column that could not be translated
 
 Thirty-eight country names, in both languages. A French report said `Germany`
