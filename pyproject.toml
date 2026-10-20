@@ -4,11 +4,13 @@
 # (os-helper, audio-helper, vocal-helper): the importable package sits at the
 # repository root rather than under src/.
 #
-# Runtime dependencies are deliberately three. os-helper owns every
+# Runtime dependencies are deliberately four. os-helper owns every
 # per-operating-system question (what CPU is this, what GPU, how much memory,
 # which platform, where are the temporary files, how do I time a block), PyYAML
-# parses the models and the catalogues, and platformdirs finds the per-user
-# config directory portably. Everything else the package does, it does itself.
+# parses the models and the catalogues, platformdirs finds the per-user config
+# directory portably, and Babel owns every question whose answer is a property
+# of a language rather than of this package. Everything else the package does,
+# it does itself.
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
@@ -57,6 +59,21 @@ dependencies = [
     "os-helper>=2.0.0,<3",
     "PyYAML>=6.0",
     "platformdirs>=4.0",
+    # Babel carries the Common Locale Data Repository (CLDR), the Unicode
+    # Consortium's database of how each language writes a number, orders a
+    # list, pluralises a count and names a country. This package had three of
+    # those written by hand, and the hand got one wrong: the space before a
+    # per-cent sign in French is a no-break space and I had written the narrow
+    # no-break one. Thirty-eight country names were also hand-written, and
+    # thirty-seven agreed with the database — the thirty-eighth is Türkiye,
+    # which this said was Turkey.
+    #
+    # Taken for locale *data* only. The sentences stay in this repository's own
+    # catalogue, with its own gates: Babel knows how French writes a thousand
+    # and nothing about what this package has to say. What it does not carry is
+    # collation, which is why sorting a list of country names is still done
+    # here, and said so where it is done.
+    "Babel>=2.12",
 ]
 
 [project.optional-dependencies]

@@ -278,8 +278,17 @@ class Report:
         return say(
             "results.summary",
             verdict=say("results.verdict.valid" if self.ok else "results.verdict.invalid"),
-            errors=plural(len(self.errors), say("results.error.one"), say("results.error.many")),
+            # Keyed by the plural category the Common Locale Data Repository
+            # names, so a language with four of them gets four keys rather than
+            # a rule this package invented for two.
+            errors=plural(
+                len(self.errors),
+                one=say("results.error.one"),
+                other=say("results.error.other"),
+            ),
             warnings=plural(
-                len(self.warnings), say("results.warning.one"), say("results.warning.many")
+                len(self.warnings),
+                one=say("results.warning.one"),
+                other=say("results.warning.other"),
             ),
         )

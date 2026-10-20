@@ -233,7 +233,11 @@ def render_dashboard(models: list[CostModel | dict[str, Any]]) -> str:
     # one argument and not two.
     title = say(
         "dashboard.title",
-        projects=plural(count, say("dashboard.project.one"), say("dashboard.project.many")),
+        projects=plural(
+            count,
+            one=say("dashboard.project.one"),
+            other=say("dashboard.project.other"),
+        ),
     )
     body = "".join(
         [

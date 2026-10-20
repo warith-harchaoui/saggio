@@ -26,6 +26,23 @@ package as a whole: a language appears there only when **both** tables have it.
 A contract test refuses a table that speaks a language the other does not, so a
 half-added language is a failing test rather than a page with English holes.
 
+**What is not in either table.** How a language writes a figure, orders a list,
+pluralises a count and names a country are properties of the language and not of
+this package, and they come from the Common Locale Data Repository — the Unicode
+Consortium's database, which covers seven hundred languages — through Babel.
+Four of them were written here by hand and the hand got two wrong: the space
+before a per-cent sign in French is the no-break space and this had the narrow
+one, and the plural rule was two forms plus a key saying which one zero took,
+which is right for these two languages and wrong for Polish's four. The country
+names were thirty-eight keys and thirty-seven agreed with the database; the
+thirty-eighth said Turkey where the country has asked to be called Türkiye since
+2022, which is the sort of thing a hand-kept list never hears.
+
+What the database does not carry is collation, so :func:`sort_key` is still this
+package's own and says so where it is defined: it folds accents, which is right
+for French and wrong for a language whose alphabet ends in the letters another
+one accents.
+
 They are two files rather than two sections of one file, and the easy argument
 for that is wrong: the prompt table is **375 bytes, 0.30% of a rendered page**,
 so what keeps them apart is not size. It is that the two texts are edited by
@@ -63,7 +80,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import cache
@@ -71,6 +88,9 @@ from importlib import resources
 from typing import Final
 
 import yaml
+from babel import Locale
+from babel.lists import format_list
+from babel.numbers import get_decimal_symbol, get_group_symbol
 
 #: The language everything falls back to, and the one the package is authored in.
 DEFAULT_LANGUAGE: Final[str] = "en"
@@ -272,8 +292,43 @@ def language(code: str | None) -> Iterator[str]:
         _CURRENT.reset(token)
 
 
+@cache
+def _locale(code: str) -> Locale:
+    """Return the Common Locale Data Repository's entry for a language tag.
+
+    Parameters
+    ----------
+    code : str
+        A language tag.
+
+    Returns
+    -------
+    Locale
+        Babel's locale object, or the default language's when the tag is not one
+        the database knows. A tag this package offers is always one it knows;
+        the fallback is for a caller that passes something else.
+
+    Examples
+    --------
+    >>> _locale("fr").language
+    'fr'
+    >>> _locale("zz-not-a-tag").language == _locale(DEFAULT_LANGUAGE).language
+    True
+    """
+    try:
+        return Locale.parse(code.replace("-", "_"))
+    except Exception:
+        return Locale.parse(DEFAULT_LANGUAGE)
+
+
 def decimal_separator(code: str | None = None) -> str:
     """Return the character this language writes between units and tenths.
+
+    From the Common Locale Data Repository rather than from a key in this
+    repository: how a language writes a number is a property of the language,
+    and the database has it for seven hundred of them. It used to be a hand-kept
+    key here, which agreed with the database — the per-cent spacing beside it
+    did not.
 
     Parameters
     ----------
@@ -283,27 +338,25 @@ def decimal_separator(code: str | None = None) -> str:
     Returns
     -------
     str
-        ``"."`` or ``","``. It is kept with the page's labels rather than with
-        the engine's sentences because both halves need it: the renderer writes
-        a figure server-side, and the what-if panel recomputes in the browser
-        from the table the page carries.
+        ``"."`` or ``","``, or whatever the language writes.
 
     Examples
     --------
     >>> decimal_separator("en"), decimal_separator("fr")
     ('.', ',')
     """
-    return phrase("number.decimal", language=code or current_language(), table="label") or "."
+    return get_decimal_symbol(_locale(code or current_language()))
 
 
 def percent_space(code: str | None = None) -> str:
     """Return what this language puts between a figure and its per-cent sign.
 
-    English puts nothing. French puts a space, and the one typographers use is
-    the narrow no-break one, which also stops a line breaking between the
-    figure and the sign. Nine call sites wrote ``f"{share:.0%}"`` and a French
-    report said `21,9%`, which is the decimal separator applied and the spacing
-    rule not — a rule nothing had written down.
+    Read out of the language's own per-cent pattern: English's is ``#,##0%``
+    and France's is ``#,##0\u00a0%``, so what sits between the digits and the
+    sign is whatever the database says. Written by hand this was the narrow
+    no-break space, U+202F, and the database says the no-break space, U+00A0 —
+    a width apart, invisible in a report, and the kind of detail a hand-kept
+    table gets wrong because nothing can check it.
 
     Parameters
     ----------
@@ -313,22 +366,24 @@ def percent_space(code: str | None = None) -> str:
     Returns
     -------
     str
-        The spacing, possibly empty.
+        The spacing, empty for a language that sets the sign tight.
 
     Examples
     --------
     >>> percent_space("en") == ""
     True
-    >>> percent_space("fr") == "\u202f"
+    >>> percent_space("fr") == "\u00a0"
     True
     """
-    return phrase("number.percent", language=code or current_language(), table="label") or ""
+    pattern = _locale(code or current_language()).percent_formats[None].pattern
+    found = re.search(r"([^#,.0]*)%", pattern)
+    return found.group(1) if found else ""
 
 
 def group_separator(code: str | None = None) -> str:
     """Return what this language puts between groups of three digits.
 
-    A comma in English, a narrow no-break space in French. Both languages group
+    A comma in English, a narrow no-break space in France. Both languages group
     and this package did neither, so a French report read `10870,6 s` and
     `400000 num_samples` — the decimal separator applied and the grouping rule
     not, which is the same omission the per-cent sign had.
@@ -350,7 +405,7 @@ def group_separator(code: str | None = None) -> str:
     >>> group_separator("fr") == "\u202f"
     True
     """
-    return phrase("number.group", language=code or current_language(), table="label") or ""
+    return get_group_symbol(_locale(code or current_language()))
 
 
 #: A run of four digits or more that is the whole part of a figure, and
@@ -395,7 +450,7 @@ def number(text: str) -> str:
     ...     number("17.4"), number("1.087e+04"), number("not known")
     ('17,4', '1,087e+04', 'not known')
     >>> with language("fr"):
-    ...     number("21.9%") == "21,9\u202f%"
+    ...     number("21.9%") == "21,9\u00a0%"
     True
     >>> number("1234567.89")
     '1,234,567.89'
@@ -468,41 +523,160 @@ def sort_key(text: str) -> str:
     return "".join(mark for mark in decomposed if not unicodedata.combining(mark)).casefold()
 
 
-def plural(count: int, one: str, many: str) -> str:
-    """Return the form this language uses for a count, and the count with it.
+def plural(count: int, /, **forms: str) -> str:
+    """Return a count with the wording this language uses for that count.
 
-    English and French disagree about zero: *0 errors* is plural, *0 erreur* is
-    singular. One is not a rule the code can hold, because it is a property of
-    the language; it is a key, like every other wording here.
+    The form is chosen by the Common Locale Data Repository's rule for the
+    language, and the keyword is the category that rule returns. English has
+    ``one`` and ``other``; French has ``one``, ``many`` and ``other`` — ``one``
+    covers zero, which is why *0 erreur* is singular and *0 errors* is not.
+    Polish has four and Arabic six, and this package did not have them: it had
+    two forms and a key saying which one zero took, which happened to be right
+    for both languages here and would have been wrong for the third.
+
+    A category the caller did not supply falls back to ``other``, then to
+    whatever was supplied: French's ``many`` is the compact form for a million
+    and an error count will not reach it, so a caller that gives ``one`` and
+    ``other`` is complete rather than careless.
 
     Parameters
     ----------
     count : int
         How many.
-    one : str
-        The wording for a single thing, with no count in it.
-    many : str
-        The wording for several.
+    **forms : str
+        The wording per plural category, with no count in it.
 
     Returns
     -------
     str
-        The count and the right form, separated by a space.
+        The count, written the way this language writes a number, and the form.
 
     Examples
     --------
-    >>> plural(1, "error", "errors"), plural(0, "error", "errors")
-    ('1 error', '0 errors')
+    >>> plural(1, one="error", other="errors")
+    '1 error'
+    >>> plural(0, one="error", other="errors")
+    '0 errors'
     >>> with language("fr"):
-    ...     plural(0, "erreur", "erreurs"), plural(2, "erreur", "erreurs")
+    ...     plural(0, one="erreur", other="erreurs"), plural(2, one="erreur", other="erreurs")
     ('0 erreur', '2 erreurs')
+    >>> with language("fr"):
+    ...     plural(1500, one="erreur", other="erreurs") == "1\u202f500 erreurs"
+    True
     """
-    if count == 1:
-        return f"{count} {one}"
-    if count == 0:
-        zero = phrase("number.plural.zero", language=current_language(), table="label") or "many"
-        return f"{count} {one if zero == 'one' else many}"
-    return f"{count} {many}"
+    category = str(_locale(current_language()).plural_form(count))
+    wording = forms.get(category) or forms.get("other") or next(iter(forms.values()))
+    return f"{number(str(count))} {wording}"
+
+
+def joined(items: Iterable[str]) -> str:
+    """Return a list written the way this language writes a list.
+
+    A conjunction is a word, and this package had the only one in its source:
+    ``' and '.join`` in a refusal that named two catalogue keys. It was replaced
+    by a comma and a sentence shaped around it, because a conjunction key is the
+    kind of fragment that reads wrong in the next language. The Common Locale
+    Data Repository has the conjunction, and the comma rule that goes with it:
+    English puts one before *and* in a list of three and France does not.
+
+    Parameters
+    ----------
+    items : iterable of str
+        What to list, in the order to list it.
+
+    Returns
+    -------
+    str
+        The list.
+
+    Examples
+    --------
+    >>> joined(["A100", "H100"])
+    'A100 and H100'
+    >>> joined(["A", "B", "C"])
+    'A, B, and C'
+    >>> with language("fr"):
+    ...     joined(["A100", "H100"]), joined(["A", "B", "C"])
+    ('A100 et H100', 'A, B et C')
+    """
+    return format_list(list(items), locale=_locale(current_language()))
+
+
+def territory_name(code: str, *, within: str | None = None) -> str:
+    """Return what a country is called, in the language in force.
+
+    From the Common Locale Data Repository, which has every country's name in
+    every language it covers. Thirty-eight of them were written here by hand
+    and thirty-seven agreed with it; the one that did not was Turkey, which the
+    database calls Türkiye because the country asked the United Nations to be
+    called that in 2022. A hand-kept list does not hear about such a request.
+
+    Parameters
+    ----------
+    code : str
+        A code from the International Organization for Standardization's
+        ISO 3166-1 alpha-2 list.
+    within : str or None, optional
+        The language to name it in; the one in force when omitted.
+
+    `ZZ` is the code ISO 3166-1 reserves for a region nobody has specified, and
+    the database does have a name for it — *Unknown Region*, *région
+    indéterminée*. That is a label for the absence of a country and not the name
+    of one, so it comes back empty here: a caller with an overlay row for a
+    place the database has never heard of is better served by its own name than
+    by being told the region is unknown.
+
+    Returns
+    -------
+    str
+        The name, or an empty string when the database does not know the code —
+        so a caller can fall back to whatever it has.
+
+    Examples
+    --------
+    >>> territory_name("DE", within="en"), territory_name("DE", within="fr")
+    ('Germany', 'Allemagne')
+    >>> territory_name("TR", within="en")
+    'Türkiye'
+    >>> territory_name("XX", within="en"), territory_name("ZZ", within="en")
+    ('', '')
+    """
+    territories = _locale(within or current_language()).territories
+    named = territories.get(code, "")
+    # The database's own word for "no country" is not a country's name.
+    return "" if named == territories.get("ZZ") else named
+
+
+def language_name(code: str, *, within: str | None = None) -> str:
+    """Return what a language is called, by default in itself.
+
+    The name a language gives itself is the one to offer a reader who does not
+    yet read the page: a French speaker looking for their language looks for
+    *français*, not for *French*. The database has every autonym, which is a
+    thing a translator should not have to know — adding a third language should
+    not require knowing how it names itself in its own script.
+
+    Parameters
+    ----------
+    code : str
+        The language to name.
+    within : str or None, optional
+        The language to name it in. Itself when omitted.
+
+    Returns
+    -------
+    str
+        The name, or the tag when the database does not know it.
+
+    Examples
+    --------
+    >>> language_name("fr"), language_name("en")
+    ('français', 'English')
+    >>> language_name("fr", within="en")
+    'French'
+    """
+    named = _locale(code).get_display_name(_locale(within or code))
+    return named or code
 
 
 def say(key: str, /, **arguments: object) -> str:

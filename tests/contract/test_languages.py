@@ -26,7 +26,17 @@ from saggio.analyze.llm import WORKLOAD_KINDS, _build_prompt
 from saggio.api.app import AuditIn
 from saggio.auditor.options import AuditOptions
 from saggio.cli.app import build_parser
-from saggio.i18n import DEFAULT_LANGUAGE, labels, language, languages, messages, prompts
+from saggio.i18n import (
+    DEFAULT_LANGUAGE,
+    decimal_separator,
+    group_separator,
+    labels,
+    language,
+    languages,
+    messages,
+    percent_space,
+    prompts,
+)
 from saggio.model import CostModel
 from saggio.report import render_html, render_markdown
 from saggio.report.dashboard import render_dashboard
@@ -107,12 +117,53 @@ def test_no_language_translates_the_closed_set(code: str) -> None:
     assert tuple(part.strip() for part in offered.group(1).split(",")) == WORKLOAD_KINDS
 
 
+def _asking_sentence(code: str) -> str:
+    """Return the sentence that asks for a language, as the prompt will carry it.
+
+    The key holds `{language}` and the name is filled from the Common Locale
+    Data Repository's autonym, so the sentence a prompt carries is not the key
+    verbatim and a test comparing the two has to fill it the same way.
+    """
+    from saggio.i18n import language_name
+
+    return prompts()[code]["prompt.classify.language"].format(language=language_name(code))
+
+
 @pytest.mark.parametrize("code", sorted(prompts()))
 def test_a_prompt_carries_its_own_language_and_only_its_own(code: str) -> None:
     prompt = _build_prompt("a repository", language=code)
-    assert prompts()[code]["prompt.classify.language"] in prompt
+    assert _asking_sentence(code) in prompt
     for other in set(prompts()) - {code}:
-        assert prompts()[other]["prompt.classify.language"] not in prompt
+        assert _asking_sentence(other) not in prompt
+
+
+@pytest.mark.parametrize("code", sorted(prompts()))
+def test_the_prompt_names_the_language_in_the_language(code: str) -> None:
+    """A model is asked in the word its training data saw most.
+
+    *Écris … en français*, not *en French*: the autonym is what a French corpus
+    contains, and it is a thing the database knows so a translator does not have
+    to. The sentence that asks is read in the language being asked for, so the
+    name inside it has to be that language's name for itself.
+    """
+    from saggio.i18n import language_name
+
+    assert language_name(code) in _build_prompt("a repository", language=code)
+
+
+def test_no_prompt_states_a_number() -> None:
+    """Locale data for numbers has no place in a prompt, and this says why.
+
+    Adopting the database raised the question of telling a model how to write a
+    figure. The prompt forbids it to write one at all — every number in this
+    package comes from a measurement — so a decimal separator rule there would
+    contradict an instruction three paragraphs below it. This pins the premise
+    rather than the conclusion: if a prompt ever states a figure, the question
+    reopens and this is where it is asked.
+    """
+    for code, entries in prompts().items():
+        for key, wording in entries.items():
+            assert not re.search(r"\d", wording), f"{code}/{key} states a figure: {wording!r}"
 
 
 # --- What the language button actually switches ------------------------------
@@ -633,11 +684,44 @@ def test_every_label_the_button_swaps_says_what_the_server_wrote() -> None:
 
 @pytest.mark.parametrize("code", sorted(labels()))
 def test_every_language_says_how_it_writes_a_number(code: str) -> None:
-    # Warith's call: 17.4 W in English, 17,4 W in French. A language with no
-    # separator of its own would silently take the authored one, which is the
-    # kind of default this package does not keep.
-    separator = labels()[code].get("number.decimal")
-    assert separator in {".", ","}, f"{code} writes a number with {separator!r}"
+    # Not in this repository any more: how a language writes a figure comes from
+    # the Common Locale Data Repository, and the page carries what it says so the
+    # browser can write a figure the way the renderer did. This checks the page's
+    # copy against the database, which is the only way the two can disagree.
+    from saggio.report.html import translations
+
+    carried = translations()[code]
+    for key, answer in (
+        ("number.decimal", decimal_separator(code)),
+        ("number.group", group_separator(code)),
+        ("number.percent", percent_space(code)),
+    ):
+        assert key in carried, f"the page does not carry {key} for {code}"
+        assert carried[key] == answer, f"the page and the database disagree about {key}"
+    assert decimal_separator(code), f"{code} writes a number with no decimal separator"
+
+
+@pytest.mark.parametrize("code", sorted(labels()))
+def test_the_number_rules_are_not_kept_by_hand(code: str) -> None:
+    """The three symbols are read, not written here, and the file says so.
+
+    One of them was wrong for as long as it was hand-kept: the space before a
+    per-cent sign in French is U+00A0, the no-break space, and this had U+202F,
+    the narrow one. Invisible in a report, and nothing could have caught it.
+    """
+    assert "number.decimal" not in labels()[code], (
+        "the decimal separator is back in the hand-kept table"
+    )
+    assert "number.group" not in labels()[code], "the grouping separator is back"
+    assert "number.percent" not in labels()[code], "the per-cent spacing is back"
+
+
+def test_the_per_cent_space_is_the_one_the_database_gives() -> None:
+    # The hand-written value was the narrow no-break space and the database says
+    # the no-break space. Pinned by code point, because the two are a width
+    # apart and a test that read as `" " == " "` would teach nobody anything.
+    assert percent_space("en") == ""
+    assert percent_space("fr") == "\u00a0", "French spaces a per-cent sign with U+00A0"
 
 
 def test_the_separator_moves_between_digits_and_nowhere_else() -> None:
@@ -666,19 +750,15 @@ NUMBER_RULES: Final[tuple[str, ...]] = ("number.decimal", "number.group")
 @pytest.mark.parametrize("key", NUMBER_RULES)
 def test_the_browser_and_the_renderer_write_a_number_the_same_way(key: str) -> None:
     # Two formatters mean two chances to disagree; this pins that the script
-    # reads the same keys the renderer reads. `number.percent` is not among them
-    # because the panel states no percentages — when it does, it joins this list.
+    # reads the keys the page carries, and the test above pins that what the
+    # page carries is what the database says. `number.percent` is not among
+    # them because the panel states no percentages — when it does, it joins
+    # this list.
+    from saggio.report.html import translations
+
     script = (ROOT / "reporting" / "report.js").read_text(encoding="utf-8")
     assert f'translated("{key}"' in script, f"the script invents its own {key}"
-    assert key in labels()[DEFAULT_LANGUAGE]
-
-
-@pytest.mark.parametrize("code", sorted(labels()))
-def test_every_language_says_how_it_groups_digits(code: str) -> None:
-    # The decimal separator's other sibling, and missing for as long: a French
-    # report read `10870,6 s` and `3638 mois-arbre`, which is one rule applied
-    # and the other never written down.
-    assert "number.group" in labels()[code], f"{code} does not say how it groups digits"
+    assert key in translations()[DEFAULT_LANGUAGE]
 
 
 def test_a_figure_is_grouped_the_way_each_language_groups_it() -> None:
@@ -834,38 +914,49 @@ def test_the_french_spaces_its_punctuation_the_way_french_does() -> None:
 
 @pytest.mark.parametrize("code", sorted(messages()))
 def test_every_country_on_file_has_a_name_in_every_language(code: str) -> None:
-    """A grid row with no name reads as its ISO code to a reader.
+    """A grid row the database cannot name reads as its code to a reader.
 
-    Thirty-eight rows, and the next one somebody adds is the one this is for:
-    a country whose name nobody wrote falls back to `ZZ`, which is a code and
-    not a word.
+    Thirty-eight rows, and the next one somebody adds is the one this is for.
+    The Common Locale Data Repository covers every country there is, so a row
+    this fails on is a row keyed by something that is not a country code.
     """
     from saggio.catalog.registry import Catalog
+    from saggio.i18n import territory_name
 
     rows = Catalog.bundled("grid").rows("countries")
-    missing = sorted(key for key in rows if f"country.{key}" not in messages()[code])
-    assert not missing, f"{code} does not name: {missing}"
+    missing = sorted(key for key in rows if not territory_name(key, within=code))
+    assert not missing, f"the database cannot name these in {code}: {missing}"
 
 
-def test_the_english_name_of_a_country_is_the_name_its_row_carries() -> None:
-    """The catalogue of words and the catalogue of numbers, pinned together.
+def test_the_database_and_the_grid_row_agree_about_a_country_name() -> None:
+    """The catalogue of numbers and the database of names, pinned together.
 
     The row's ``name`` could not be translated: thirty-two of the thirty-eight
-    are matched to the tariff source by it. So the words live in the message
-    catalogue and the column keeps its job — which leaves the English of each
-    key a copy of its row, and a copy with nothing watching it is the defect
-    this file keeps finding. This is what watches it.
+    are matched to the tariff source by it. So the column keeps its job and the
+    words come from the database — which leaves two spellings of one country,
+    and two spellings with nothing watching them is the defect this file keeps
+    finding.
+
+    The exceptions are listed, not tolerated. Each is a row whose ``name`` is
+    the tariff source's spelling and whose displayed name is the country's, and
+    each is in `PRICE_NAME_OF_KEY` so the matching is stated rather than
+    incidental.
     """
+    from saggio.catalog.refresh.tariffs import PRICE_NAME_OF_KEY
     from saggio.catalog.registry import Catalog
+    from saggio.i18n import territory_name
 
     rows = Catalog.bundled("grid").rows("countries")
-    table = messages()[DEFAULT_LANGUAGE]
-    wrong = {
-        key: (table.get(f"country.{key}"), row.get("name"))
-        for key, row in rows.items()
-        if row.get("name") and table.get(f"country.{key}") != row["name"]
-    }
-    assert not wrong, f"the key and the row disagree, as (key says, row says): {wrong}"
+    wrong = {}
+    for key, row in rows.items():
+        own, named = row.get("name"), territory_name(key, within=DEFAULT_LANGUAGE)
+        if own and named != own and key not in PRICE_NAME_OF_KEY:
+            wrong[key] = (named, own)
+    assert not wrong, (
+        "the database and the row disagree, as (database says, row says): "
+        f"{wrong}. Either correct the row, or name it in PRICE_NAME_OF_KEY so "
+        "the tariff refresh keeps matching on the source's spelling."
+    )
 
 
 def test_the_country_list_is_alphabetical_in_the_language_it_is_read_in() -> None:
@@ -894,15 +985,6 @@ def test_the_country_list_is_alphabetical_in_the_language_it_is_read_in() -> Non
         )
 
 
-@pytest.mark.parametrize("code", sorted(labels()))
-def test_every_language_says_how_it_spaces_a_per_cent_sign(code: str) -> None:
-    # The sibling of `number.decimal`, and missing for as long: nine call sites
-    # wrote f"{share:.0%}" and a French report said `21,9%`. Empty is a real
-    # answer — English sets the sign tight — so this checks the key exists, not
-    # that it says something.
-    assert "number.percent" in labels()[code], f"{code} does not say how it spaces a per-cent sign"
-
-
 def test_the_per_cent_sign_is_spaced_the_way_each_language_spaces_it() -> None:
     """A formatted figure comes back spaced, and only where a figure precedes.
 
@@ -914,10 +996,11 @@ def test_the_per_cent_sign_is_spaced_the_way_each_language_spaces_it() -> None:
 
     assert number("21.9%") == "21.9%", "English sets the sign tight against the figure"
     with language("fr"):
-        narrow = percent_space()
-        assert number("21.9%") == f"21,9{narrow}%"
-        assert number("49%") == f"49{narrow}%"
+        spacing = percent_space()
+        assert spacing == "\u00a0", "the database gives the no-break space, not the narrow one"
+        assert number("21.9%") == f"21,9{spacing}%"
+        assert number("49%") == f"49{spacing}%"
         # Already spaced, and not spaced twice.
-        assert number(f"49{narrow}%") == f"49{narrow}%"
+        assert number(f"49{spacing}%") == f"49{spacing}%"
         # No figure before it, so nothing to space away from.
         assert number("%") == "%"

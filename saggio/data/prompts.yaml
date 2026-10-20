@@ -39,9 +39,18 @@
 # has to tell the model that those two stay as given while the prose moves.
 
 en:
+  # The language names itself. `{language}` is filled from the Common Locale
+  # Data Repository's autonym — the name a language gives itself — so a
+  # translator adding a third language does not have to know how it writes its
+  # own name, and a model is asked in the word its training data saw most.
+  #
+  # Nothing here says how to write a number, and that is not an omission: the
+  # prompt below forbids the model to produce any number at all, because every
+  # figure in this package comes from a measurement. A rule for a decimal
+  # separator would contradict the instruction three paragraphs down.
   prompt.classify.language: >-
-    Write "dominant_operation" and "reasoning" in English. The field names and
-    the value of "workload_kind" stay exactly as given above.
+    Write "dominant_operation" and "reasoning" in {language}. The field names
+    and the value of "workload_kind" stay exactly as given above.
   prompt.consent.terms: |
     To measure what this code costs to run, it has to be run.
 
@@ -72,9 +81,20 @@ en:
     with `saggio consent grant`.
 
 fr:
+  # La langue se nomme elle-même. `{language}` est rempli depuis l'autonyme du
+  # Common Locale Data Repository — le nom qu'une langue se donne — pour qu'un
+  # traducteur qui ajoute une troisième langue n'ait pas à savoir comment elle
+  # écrit son propre nom, et que le modèle soit interrogé dans le mot que ses
+  # données d'entraînement ont le plus vu.
+  #
+  # Rien ici ne dit comment écrire un nombre, et ce n'est pas un oubli : le
+  # prompt ci-dessous interdit au modèle de produire le moindre nombre, parce
+  # que chaque chiffre de ce paquet vient d'une mesure. Une règle de séparateur
+  # décimal contredirait l'instruction située trois paragraphes plus bas.
   prompt.classify.language: >-
-    Écris "dominant_operation" et "reasoning" en français. Les noms de champs et
-    la valeur de "workload_kind" restent exactement tels qu'énoncés ci-dessus.
+    Écris "dominant_operation" et "reasoning" en {language}. Les noms de champs
+    et la valeur de "workload_kind" restent exactement tels qu'énoncés
+    ci-dessus.
   prompt.consent.terms: |
     Pour mesurer ce que ce code coûte à l'exécution, il faut l'exécuter.
 

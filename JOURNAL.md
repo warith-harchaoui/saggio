@@ -10,6 +10,91 @@ cette ligne.
 
 ## Non publié
 
+### Quatre règles de locale lues dans une base au lieu d'être tenues à la main, et deux étaient fausses
+
+Babel est la quatrième dépendance d'exécution, et le commentaire de
+`pyproject.toml` qui disait qu'il y en avait délibérément trois dit maintenant
+pourquoi il y en a quatre. Elle porte le Common Locale Data Repository (CLDR) —
+le « dépôt commun de données de locale » du consortium Unicode — qui recense
+comment chaque langue écrit un nombre, ordonne une liste, accorde un pluriel et
+nomme un pays. Ce paquet en tenait quatre à la main.
+
+**Deux étaient fausses, et rien ici n'aurait pu les attraper.**
+
+- L'espace devant un signe pour-cent en français est l'**espace insécable**,
+  U+00A0. Nous avions l'espace **fine** insécable, U+202F, que j'avais choisie
+  deux commits plus tôt au motif que les typographes la préfèrent pour les
+  milliers. C'est juste pour les milliers, et la base le confirme ; ce n'est pas
+  ce que demande le motif du pour-cent. Les deux diffèrent d'une largeur et sont
+  invisibles dans un rapport.
+- La règle du pluriel était deux formes et une clé disant laquelle prenait le
+  zéro. Juste pour l'anglais et le français, fausse pour la troisième langue :
+  le polonais a quatre formes de pluriel et l'arabe six. `plural` prend
+  désormais les formes indexées par la catégorie que rend la base, de sorte
+  qu'une langue à quatre formes demande quatre clés au lieu d'une règle que ce
+  paquet aurait inventée pour deux.
+
+**Une était périmée plutôt que fausse.** Trente-huit noms de pays, dont
+trente-sept concordaient avec la base. Le trente-huitième disait Turkey, et le
+pays a demandé aux Nations unies à s'appeler **Türkiye** en 2022 — exactement ce
+dont une liste tenue à la main n'entend jamais parler. Les trente-huit clés ont
+disparu ; la colonne `name` du catalogue du réseau reste, parce que trente-deux
+des trente-huit lignes y sont toujours appariées à la source tarifaire, et les
+six qui ne le sont pas sont nommées dans `PRICE_NAME_OF_KEY` — la Türkiye parmi
+elles, puisque la source la liste comme Turkey. La porte qui épinglait la clé
+anglaise à sa ligne épingle désormais la **base** à sa ligne, et échoue en
+disant de corriger la ligne ou de la nommer dans cette carte.
+
+**Et une était simplement juste**, ce qui mérite d'être noté : les séparateurs
+décimal et de groupement que j'avais écrits concordaient exactement avec la
+base, espace fine insécable des milliers français comprise.
+
+#### Ce qui est revenu
+
+Une conjonction. `' and '.join` était la seule conjonction traduite de ce
+source, et je l'avais retirée trois commits plus tôt au profit d'une virgule et
+d'une phrase construite autour — une clé de conjonction étant le genre de
+fragment qui se lit mal dans la langue suivante. La base porte la conjonction
+**et** la règle de virgule qui l'accompagne : l'anglais met une virgule avant
+*and* dans une liste de trois, le français non. Le refus lit donc à nouveau
+« 'A100' and 'H100' » et « 'A100' et 'H100' », et aucune de ces deux règles n'est
+l'affaire de ce paquet.
+
+#### Les prompts compris, et c'est là que la réponse est non
+
+La question était de savoir s'il faut dire à un modèle comment écrire un
+chiffre. Non, et la raison se trouve trois paragraphes sous l'endroit où
+l'instruction aurait atterri : le prompt interdit au modèle de produire le
+moindre nombre, parce que chaque chiffre vient ici d'une mesure. Une règle de
+séparateur décimal la contredirait. Un test épingle la prémisse plutôt que la
+conclusion — aucun prompt n'énonce de chiffre — de sorte que si l'un le fait un
+jour, la question se rouvre là où elle a été posée.
+
+Ce que le prompt a pris, c'est l'**autonyme** de la langue : le nom qu'une langue
+se donne. « Écris … en français », et non « en French », et ce nom vient de la
+base plutôt que d'un traducteur qui devrait sans cela savoir comment une
+troisième langue écrit son propre nom dans sa propre écriture.
+
+#### Ce que la base ne porte pas
+
+La collation. `sort_key` reste propre à ce paquet et le dit là où elle est
+définie : elle replie les accents, ce qui est juste pour le français et faux
+pour une langue dont l'alphabet finit par les lettres qu'une autre accentue.
+Babel n'implémente pas la collation et l'alternative est une dépendance bien
+plus lourde : cela reste fait main, et cela reste étiqueté.
+
+Les dates et les montants restent tels quels, par choix et non par oubli : la
+norme ISO 8601 de l'Organisation internationale de normalisation (ISO) pour une
+date,
+et le code de devise à trois lettres de sa norme ISO 4217 pour un montant, sont
+non ambigus, triables et vérifiables, et un enregistrement
+de provenance veut cela plus qu'il ne veut « 18 octobre 2026 ».
+
+Les trois symboles ne sont plus dans `reporting/i18n.yaml`. La page les porte
+toujours, parce que le panneau what-if recalcule dans le navigateur et doit
+écrire un chiffre comme le moteur de rendu l'a fait : `translations()` les ajoute
+à la sortie, et une porte refuse une page dont les trois divergent de la base.
+
 ### Le séparateur de milliers que nous n'avions pas, et quatre recommandations déjà dépassées
 
 Un guide d'internationalisation en Python — i18n, le numéronyme du mot anglais

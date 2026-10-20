@@ -43,7 +43,14 @@ from ..analyze.power import measurement_rows
 from ..catalog.registry import Catalog, country_name
 from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE
 from ..estimate.ghg import GHG_EMISSIONS, market_based_figure_exists, placements
-from ..i18n import labels, say, sort_key
+from ..i18n import (
+    decimal_separator,
+    group_separator,
+    labels,
+    percent_space,
+    say,
+    sort_key,
+)
 from ..i18n import languages as language_codes
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
@@ -181,22 +188,42 @@ def _logo_data_uri() -> str:
 
 
 def translations() -> dict[str, dict[str, str]]:
-    """Return the report's translation table.
+    """Return the table the page embeds: the labels, plus how to write a number.
+
+    The labels come from this repository, which is the one loader for both
+    halves of its translations — the labels on this page and the instruction
+    sent to a local model. The three number symbols do not: how a language
+    writes a figure is a property of the language, and they come from the Common
+    Locale Data Repository through Babel.
+
+    They are added here rather than read by the script from somewhere else
+    because the what-if panel recomputes in the browser and has to write a
+    figure the way the renderer did. The page is where the two halves meet, so
+    the page is what carries them.
 
     Returns
     -------
     dict
-        Language code to key-value mapping, read by :mod:`saggio.i18n`, which
-        is the one loader for both halves of this package's translations: the
-        labels on this page and the instruction sent to a local model. Kept
-        here as the name the renderer has always used.
+        Language code to key-value mapping.
 
     Examples
     --------
     >>> sorted(translations())
     ['en', 'fr']
+    >>> translations()["fr"]["number.decimal"]
+    ','
+    >>> translations()["en"]["number.group"]
+    ','
     """
-    return labels()
+    return {
+        code: {
+            **entries,
+            "number.decimal": decimal_separator(code),
+            "number.group": group_separator(code),
+            "number.percent": percent_space(code),
+        }
+        for code, entries in labels().items()
+    }
 
 
 def _escape(text: object) -> str:

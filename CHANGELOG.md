@@ -9,6 +9,85 @@ release of that line.
 
 ## Unreleased
 
+### Four locale rules read from a database instead of kept by hand, and two of them were wrong
+
+Babel is the fourth runtime dependency, and the comment in `pyproject.toml` that
+said there were deliberately three now says why there is a fourth. It carries
+the Common Locale Data Repository (CLDR), the Unicode Consortium's database of
+how each language writes a number, orders a list, pluralises a count and names a
+country. This package had four of those written by hand.
+
+**Two were wrong, and nothing here could have caught either.**
+
+- The space before a per-cent sign in French is the **no-break space**, U+00A0.
+  This had the **narrow** no-break space, U+202F, which I had chosen two
+  commits earlier on the strength of typographers preferring it for thousands.
+  It is right for thousands and the database says so; it is not what the
+  per-cent pattern asks for. The two are a width apart and invisible in a
+  report.
+- The plural rule was two forms and a key saying which one zero took. It is
+  right for English and French and wrong for the third language: Polish has
+  four plural forms and Arabic six. `plural` now takes the forms keyed by the
+  category the database returns, so a language with four needs four keys rather
+  than a rule this package invented for two.
+
+**One was out of date rather than wrong.** Thirty-eight country names, of which
+thirty-seven agreed with the database. The thirty-eighth said Turkey, and the
+country asked the United Nations to be called **Türkiye** in 2022 — exactly the
+sort of thing a hand-kept list never hears about. The thirty-eight keys are
+gone; the grid catalogue's `name` column stays, because thirty-two of the
+thirty-eight rows are still matched to the tariff source by it, and the six that
+are not are named in `PRICE_NAME_OF_KEY` — Türkiye among them, because the
+source lists it as Turkey. The gate that used to pin the English key to its row
+now pins the *database* to its row, and fails telling you to either correct the
+row or name it in that map.
+
+**And one was simply right**, which is worth recording: the decimal and grouping
+separators I wrote agreed with the database exactly, including the narrow
+no-break space for French thousands.
+
+#### What came back
+
+A conjunction. `' and '.join` was the only translated conjunction in this
+source, and three commits ago I removed it in favour of a comma and a sentence
+shaped around it — a conjunction key being the kind of fragment that reads wrong
+in the next language. The database has the conjunction *and* the comma rule that
+goes with it: English puts a comma before *and* in a list of three and France
+does not. So the refusal reads `'A100' and 'H100'` again, and `'A100' et
+'H100'`, and neither of those is this package's business to know.
+
+#### Including the prompts, which is where the answer was no
+
+The question was whether a model should be told how to write a figure. It
+should not, and the reason is three paragraphs below where the instruction would
+have gone: the prompt forbids the model to produce any number at all, because
+every figure here comes from a measurement. A decimal separator rule there would
+contradict it. A test pins the premise rather than the conclusion — no prompt
+states a figure — so if one ever does, the question reopens where it was asked.
+
+What the prompt did take is the language's **autonym**: the name a language
+gives itself. `Écris … en français`, not `en French`, and the name comes from
+the database rather than from a translator who would otherwise have to know how
+a third language writes its own name in its own script.
+
+#### What the database does not carry
+
+Collation. `sort_key` is still this package's own and says so where it is
+defined: it folds accents, which is right for French and wrong for a language
+whose alphabet ends in the letters another one accents. Babel does not implement
+collation and the alternative is a much heavier dependency, so this stays
+hand-rolled and stays labelled.
+
+Dates and currency stay as they were, which is a choice and not an omission:
+the International Organization for Standardization's ISO 8601 for a date and
+the three-letter currency code of its ISO 4217 for an amount are unambiguous, sortable and checkable, and a provenance record wants those more
+than it wants *18 octobre 2026*.
+
+The three symbols are no longer in `reporting/i18n.yaml`. The page still carries
+them, because the what-if panel recomputes in the browser and has to write a
+figure the way the renderer did, so `translations()` adds them on the way out
+and a gate refuses a page whose three disagree with the database.
+
 ### The thousands separator we never had, and four recommendations we already beat
 
 A guide to internationalisation in Python — i18n, the numeronym for the word,

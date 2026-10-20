@@ -246,6 +246,21 @@ l'instruction — et rien d'autre. Un test de contrat refuse une langue que seul
 l'un des deux porte : une page qu'une collègue lit dans sa langue avec, dedans,
 une phrase engendrée dans une autre, c'est une seule livraison en deux langues.
 
+Ce que vous n'écrivez **pas**, c'est la manière dont la langue traite un chiffre.
+Le séparateur décimal, le groupement des chiffres, l'espace devant un signe
+pour-cent, la forme du pluriel que prend un compte, la façon de joindre une
+liste et le nom de chaque pays viennent du Common Locale Data Repository — le
+« dépôt commun de données de locale » du consortium Unicode, lu par Babel.
+Quatre de ces règles étaient tenues ici à la main jusqu'au 2026-10-20 et deux
+étaient fausses, ce qui est l'argument pour ne pas les tenir : l'espace devant
+un pour-cent français est l'espace insécable et nous avions la fine, et la règle
+du pluriel couvrait deux langues et aurait cassé à la troisième.
+
+Ce que le dépôt ne porte pas, c'est la collation : trier une liste de noms se
+fait donc encore dans ce paquet, et le dit là où ça se fait — par repliement des
+accents, ce qui est juste pour le français et faux pour une langue dont
+l'alphabet finit par des lettres qu'une autre accentue.
+
 ## Ajouter une sixième
 
 Écrire d'abord la fonction dans la bibliothèque, avec son exemple exécutable.

@@ -4,3 +4,4 @@
 os-helper>=2.0.0,<3
 PyYAML>=6.0
 platformdirs>=4.0
+Babel>=2.12

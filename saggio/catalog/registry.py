@@ -340,17 +340,26 @@ def country_name(key: str, row: dict[str, Any] | None = None) -> str:
     country under: thirty-two of the thirty-eight rows are matched to that
     source by it, and :data:`~saggio.catalog.refresh.tariffs.PRICE_NAME_OF_KEY`
     exists for the six that disagree. Translating the column would have broken
-    the refresh, so the words a reader sees are in the message catalogue and the
-    column keeps its job. A contract test pins the English of each key to its
-    row, so the two cannot drift apart without something failing.
+    the refresh, so the column keeps its job and the words a reader sees come
+    from somewhere else.
+
+    That somewhere was thirty-eight hand-written catalogue keys, and it is now
+    the Common Locale Data Repository — the Unicode Consortium's database, which
+    holds every country's name in every language it covers. Thirty-seven of the
+    thirty-eight hand-written names agreed with it. The thirty-eighth was
+    Turkey, which the database calls **Türkiye**: the country asked the United
+    Nations to be called that in 2022, and a hand-kept list is exactly the thing
+    that does not hear about such a request.
 
     Parameters
     ----------
     key : str
-        An ISO 3166-1 alpha-2 code, as the grid catalogue keys its rows.
+        A code from the International Organization for Standardization's
+        ISO 3166-1 alpha-2 list, as the grid catalogue keys its rows.
     row : dict or None, optional
-        The row, read only as a fallback. A country an overlay added has a row
-        and no key, and its own name is better than its code.
+        The row, read only as a fallback. A country an overlay added may have a
+        row and be outside the database, and its own name is better than its
+        code.
 
     Returns
     -------
@@ -361,6 +370,8 @@ def country_name(key: str, row: dict[str, Any] | None = None) -> str:
     --------
     >>> country_name("DE")
     'Germany'
+    >>> country_name("TR")
+    'Türkiye'
     >>> from saggio.i18n import language
     >>> with language("fr"):
     ...     country_name("DE"), country_name("KR")
@@ -370,9 +381,9 @@ def country_name(key: str, row: dict[str, Any] | None = None) -> str:
     >>> country_name("ZZ")
     'ZZ'
     """
-    from ..i18n import current_language, phrase
+    from ..i18n import territory_name
 
-    named = phrase(f"country.{key}", language=current_language(), table="message")
+    named = territory_name(key)
     if named:
         return named
     own = (row or {}).get("name")

@@ -239,6 +239,21 @@ instruction — and nothing else. A contract test refuses a language that only
 one of them has: a page a colleague reads in their language with a sentence
 generated inside it in another is one deliverable in two languages.
 
+What you do **not** write is how the language handles a figure. The decimal
+separator, the digit grouping, the space before a per-cent sign, which plural
+form a count takes, how a list is joined, and the name of every country come
+from the Common Locale Data Repository — the Unicode Consortium's database of
+such things, read through Babel. Four of those were kept here by hand until
+2026-10-20 and two were wrong, which is the argument for not keeping them: the
+space before a French per-cent sign is the no-break space and this had the
+narrow one, and the plural rule covered two languages and would have broken on
+a third.
+
+One thing the database does not carry is collation, so sorting a list of names
+is still done in this package and says so where it is done: it folds accents,
+which is right for French and wrong for a language whose alphabet ends in
+letters another one accents.
+
 ## Adding a sixth
 
 Write the function in the library first, with its docstring example. Then the

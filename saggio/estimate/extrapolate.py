@@ -43,8 +43,8 @@ from dataclasses import dataclass, field
 from typing import Any, Final
 
 from ..catalog.registry import Catalog
+from ..i18n import joined, say
 from ..i18n import number as localised
-from ..i18n import say
 from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, TODO, status_strength, weakest
 from .scaling import ScalingFit
@@ -223,9 +223,13 @@ def _refusal(unit: str | None, currency: str | None, reason: str) -> Projection:
 def _quoted(keys: list[str]) -> str:
     """Return catalogue keys as one quoted list, for a sentence to name them.
 
-    Joined with a comma rather than with *and*, because a conjunction is a word
-    and this has to read in every language the catalogue is written in. The
-    sentences that take this carry the grammar; this carries only the keys.
+    This was a comma for a while, because the conjunction before it was
+    ``' and '.join`` — the only translated conjunction in the source, and the
+    kind of fragment that reads wrong in the next language. The Common Locale
+    Data Repository has the conjunction and the comma rule that goes with it,
+    so the list reads as a list again: English puts a comma before *and* in a
+    list of three and France does not, and neither of those is this package's
+    business to know.
 
     Parameters
     ----------
@@ -235,14 +239,18 @@ def _quoted(keys: list[str]) -> str:
     Returns
     -------
     str
-        The keys, quoted, comma-separated.
+        The keys, quoted, listed the way the reader's language lists things.
 
     Examples
     --------
     >>> _quoted(["A100", "H100"])
-    "'A100', 'H100'"
+    "'A100' and 'H100'"
+    >>> from saggio.i18n import language
+    >>> with language("fr"):
+    ...     _quoted(["A100", "H100"])
+    "'A100' et 'H100'"
     """
-    return ", ".join(repr(key) for key in keys)
+    return joined(repr(key) for key in keys)
 
 
 def _hardware_notes(source_key: str, target_key: str, ratio: float, basis: str) -> str:

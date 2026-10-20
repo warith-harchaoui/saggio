@@ -40,7 +40,7 @@ from typing import Any, Final
 
 import os_helper as osh
 
-from ..i18n import DEFAULT_LANGUAGE, phrase, resolve
+from ..i18n import DEFAULT_LANGUAGE, language_name, phrase, resolve
 
 #: Where Ollama listens by default.
 DEFAULT_HOST: Final[str] = "http://127.0.0.1:11434"
@@ -315,7 +315,12 @@ def _build_prompt(summary: str, *, language: str = DEFAULT_LANGUAGE) -> str:
     True
     """
     kinds = ", ".join(WORKLOAD_KINDS)
-    asked = phrase("prompt.classify.language", language=language)
+    # The sentence is read in the language being asked for, and the language is
+    # named by its own autonym from the Common Locale Data Repository: *Écris …
+    # en français*, not *en French*.
+    asked = phrase("prompt.classify.language", language=language).format(
+        language=language_name(language)
+    )
     return (
         "You are reading a source repository to classify the shape of the work it "
         "does. Answer with a single JSON object and nothing else.\n\n"
