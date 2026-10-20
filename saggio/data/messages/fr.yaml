@@ -178,7 +178,7 @@ boundary.field.exit_code: "code de sortie"
 boundary.field.measured_on: "mesuré le"
 boundary.field.power_scope: "ce que couvrent les compteurs"
 boundary.field.cpu_seconds: "secondes-processeur utilisées par l'exécution"
-boundary.field.fraction_completed: "part de la course entière couverte par la tranche"
+boundary.field.fraction_completed: "part de l'exécution entière couverte par la tranche"
 boundary.field.idle_watts: "machine au repos avant la tranche"
 boundary.field.marginal_watts: "ajouté par la tranche au-dessus de ce plancher"
 boundary.field.power_note: "soustraction de ce plancher"
@@ -774,7 +774,7 @@ cli.help.measure.C: "Où l'exécuter."
 cli.help.measure.timeout: >-
   Secondes avant arrêt. Par défaut {default}.
 cli.help.measure.fraction: >-
-  La part d'une course entière que cette commande couvre, si vous la connaissez.
+  La part d'une exécution entière que cette commande couvre, si vous la connaissez.
 cli.help.measure.no_profile: "Sauter le profil par fonction."
 cli.help.measure.baseline: >-
   Observer la machine pendant ce temps avant de démarrer, pour distinguer ce que
@@ -866,28 +866,27 @@ cli.help.language: >-
   Langue de ce que cette commande écrit, demande et affiche. Les phrases déjà
   enregistrées dans un modèle restent telles qu'elles ont été écrites.
 
-# --- Projeter une tranche sur une course entière (estimate/extrapolate.py)
+# --- Projeter une tranche sur une exécution entière (estimate/extrapolate.py)
 
 project.no_number: "La tranche ne porte aucun nombre : il n'y a donc rien à projeter."
 project.bad_fraction: >-
-  Une part exécutée de {fraction} est en dehors de (0, 1] ; ce doit être la part
-  de la course entière réellement exécutée.
+  Une part exécutée de {fraction} est en dehors de (0, 1] ; ce doit être la part de
+  l'exécution entière réellement exécutée.
 project.scaling_refused: >-
   La montée en charge de ce travail a été mesurée et la mesure a refusé
   d'énoncer un exposant : {reason} Tant que ce n'est pas résolu, projeter par le
   rapport des tailles affirmerait une proportionnalité que les exécutions
   disponibles n'étayent pas.
-project.linear.notes: "Projeté depuis une tranche couvrant {percent} de la course."
+project.linear.notes: "Projeté depuis une tranche couvrant {percent} de l'exécution."
 project.linear.method: "Course entière = tranche mesurée / {fraction}."
 project.linear.assumption.same_per_unit: >-
   Le travail restant coûte autant par unité que la tranche exécutée.
 project.linear.assumption.spread_evenly: >-
   Le démarrage, les points de reprise et le chargement des données sont répartis
-  uniformément sur la course.
+  uniformément sur l'exécution.
 project.linear.limit.later_stages: >-
-  Une course dont les étapes tardives changent de forme — un ordonnancement du
-  taux d'apprentissage qui change la taille de lot, par exemple — ne monte pas
-  linéairement.
+  Une exécution dont les étapes tardives changent de forme — un ordonnancement du taux
+  d'apprentissage qui change la taille de lot, par exemple — ne monte pas linéairement.
 project.linear.limit.one_off: >-
   Les coûts payés une seule fois, entièrement dans la tranche, sont comptés
   comme s'ils revenaient du début à la fin.
@@ -896,8 +895,8 @@ project.linear.limit.unchecked: >-
   tailles différentes transformerait cette hypothèse en un exposant ; voir
   saggio.estimate.scaling.
 project.scaled.notes: >-
-  Projeté depuis une tranche couvrant {percent} de la course, avec un exposant
-  de montée en charge mesuré de {exponent}.
+  Projeté depuis une tranche couvrant {percent} de l'exécution, avec un exposant de
+  montée en charge mesuré de {exponent}.
 project.scaled.method: "Course entière = tranche mesurée / {fraction}^{exponent}. {method}"
 project.scaled.assumption.keeps_scaling: >-
   Le travail conserve la montée en charge qu'on lui a mesurée sur les tailles
@@ -909,9 +908,9 @@ project.scaled.limit.beyond_measured: >-
   Au-delà de la plus grande taille mesurée, l'exposant est une extrapolation :
   il décrit comment le travail a crû là où on l'a regardé croître, pas une loi.
 project.scaled.limit.range: >-
-  L'exposant tient entre les tailles {smallest} et {largest}, et la course
-  entière vaut environ {whole} à la même échelle, soit {times} fois la plus
-  grande taille réellement exécutée.
+  L'exposant tient entre les tailles {smallest} et {largest}, et l'exécution entière
+  vaut environ {whole} à la même échelle, soit {times} fois la plus grande taille
+  réellement exécutée.
 
 # --- Projeter sur une autre machine (estimate/extrapolate.py, moitié matérielle)
 
@@ -932,9 +931,9 @@ project.machine.no_throughput: >-
   d'après la fiche technique du fabricant, avec `saggio catalog add gpu {first} --field
   {column}=...`, ou mesurez sur la cible.
 project.machine.declared_memory_bound: >-
-  Le travail a été déclaré limité par la mémoire et le catalogue n'a pas de
-  {column} pour l'une de ces puces. Ajoutez les lignes de bande passante avant
-  de projeter une course limitée par la mémoire.
+  Le travail a été déclaré limité par la mémoire et le catalogue n'a pas de {column}
+  pour l'une de ces puces. Ajoutez les lignes de bande passante avant de projeter une
+  exécution limitée par la mémoire.
 
 project.machine.basis.compute: >-
   le rapport des débits arithmétiques de crête en {precision}, {target} /
@@ -969,13 +968,13 @@ project.machine.assumption.between: >-
 
 project.machine.limit.less_memory: >-
   {target} a {target_memory} Go de mémoire contre {source_memory} Go sur {source}. Rien
-  ici ne sait quelle part la course mesurée en a utilisée : c'est donc une durée pour
-  une course qui pourrait ne pas démarrer du tout. Vérifiez l'ensemble de travail avant
-  de citer le chiffre.
+  ici ne sait quelle part l'exécution mesurée en a utilisée : c'est donc une durée pour
+  une exécution qui pourrait ne pas démarrer du tout. Vérifiez l'ensemble de travail
+  avant de citer le chiffre.
 project.machine.limit.datasheet: >-
-  Le débit de crête et la bande passante de crête sont des chiffres de fiche
-  technique, pas des mesures. Une vraie course n'atteint qu'une fraction de l'un
-  comme de l'autre, et cette fraction diffère selon la puce.
+  Le débit de crête et la bande passante de crête sont des chiffres de fiche technique,
+  pas des mesures. Une vraie exécution n'atteint qu'une fraction de l'un comme de
+  l'autre, et cette fraction diffère selon la puce.
 project.machine.limit.not_accelerator_bound: >-
   Un travail limité par le stockage, par le chargeur de données ou par le processeur
   hôte ne suivra ni l'un ni l'autre rapport, et peut n'y gagner rien du tout.
@@ -985,10 +984,10 @@ project.machine.limit.multi_accelerator: >-
 project.machine.limit.no_bracket: >-
   Le catalogue n'a pas de {column} pour l'une de ces puces : rien n'encadre donc le
   chiffre par le bas. C'est l'extrémité de l'intervalle où l'arithmétique limite : une
-  borne haute sur l'accélération, et donc une borne basse sur ce que coûte la course.
+  borne haute sur l'accélération, et donc une borne basse sur ce que coûte l'exécution.
 
 project.machine.bound.best: >-
-  Au mieux : chaque partie de la course obtient la totalité du facteur {ratio}x.
+  Au mieux : chaque partie de l'exécution obtient la totalité du facteur {ratio}x.
 
 project.processor.unknown_processor: >-
   Pas au catalogue matériel : {missing}. Processeurs connus : {known}. Ajoutez le
@@ -1014,28 +1013,28 @@ project.processor.basis.only_throughput: >-
   le rapport des indices de débit tous cœurs, le seul que le catalogue puisse
   soutenir
 project.processor.basis.single: >-
-  le rapport des indices mono-fil, la course ayant occupé {parallelism} cœurs en
+  le rapport des indices mono-fil, l'exécution ayant occupé {parallelism} cœurs en
   moyenne
 project.processor.basis.throughput: >-
-  le rapport des indices de débit tous cœurs, la course ayant occupé
-  {parallelism} cœurs sur {cores} en moyenne
+  le rapport des indices de débit tous cœurs, l'exécution ayant occupé {parallelism}
+  cœurs sur {cores} en moyenne
 project.processor.basis.slower_single: >-
   le plus lent des deux rapports (celui des indices mono-fil), {measured}
 project.processor.basis.slower_throughput: >-
   le plus lent des deux rapports (celui des indices de débit tous cœurs),
   {measured}
 project.processor.measured.none: >-
-  rien n'ayant mesuré combien de cœurs la course a occupés
+  rien n'ayant mesuré combien de cœurs l'exécution a occupés
 project.processor.measured.between: >-
-  la course ayant occupé {parallelism} cœurs, ce qui n'est ni un seul cœur ni la
+  l'exécution ayant occupé {parallelism} cœurs, ce qui n'est ni un seul cœur ni la
   plupart d'entre eux
 
 project.processor.assumption.still_single: >-
-  La course projetée est aussi mono-fil que la course mesurée l'était.
+  L'exécution projetée est aussi mono-fil que l'exécution mesurée l'était.
 project.processor.assumption.spreads: >-
-  La course projetée s'étale sur les cœurs de la cible comme elle s'est étalée
-  sur les {cores} de la source, ce qu'une puce bien plus pourvue en cœurs peut ne
-  pas lui permettre.
+  L'exécution projetée s'étale sur les cœurs de la cible comme elle s'est étalée sur les
+  {cores} de la source, ce qu'une puce bien plus pourvue en cœurs peut ne pas lui
+  permettre.
 project.processor.assumption.same_share: >-
   Les deux processeurs atteignent sur ce travail une part comparable de leur
   propre indice, ce qui est une hypothèse plus solide pour un banc d'essai que
@@ -1056,7 +1055,7 @@ project.processor.limit.no_bracket: >-
   chiffre. Ajoutez l'autre avant de le citer comme un intervalle.
 
 project.processor.bound.best: >-
-  Au mieux : la course obtient la totalité du facteur {ratio}x.
+  Au mieux : l'exécution obtient la totalité du facteur {ratio}x.
 
 project.hardware.bound.worst: "Au pire dans l'encadrement : {ratio}x."
 project.hardware.notes: >-
@@ -1112,10 +1111,11 @@ fold.invalid_after: "Le modèle ne validerait plus : {issues}"
 fold.change.idle: >-
   exclusions : la capacité au repos n'est plus déclarée dehors, parce que la
   puissance a été lue sur la machine entière
-fold.change.whole_run: "course entière : projetée depuis les coûts par unité ci-dessus"
+fold.change.whole_run: >-
+  exécution entière : projetée depuis les coûts par unité ci-dessus
 fold.change.repeated_runs: >-
-  exécutions répétées : la course entière fois le facteur d'échelle pragmatique
-  du modèle
+  exécutions répétées : l'exécution entière fois le facteur d'échelle pragmatique du
+  modèle
 fold.timed: "Chronométré avec `saggio measure` : {command}."
 fold.timed_no_command: "Chronométré avec `saggio measure`."
 fold.per_unit: >-
@@ -1125,22 +1125,21 @@ fold.power_read: >-
   Lu sur la machine pendant l'exécution de la commande. {scope} {boundary}
   {spread}
 fold.whole_run.description: >-
-  Ce que coûterait une course entière, depuis les coûts par unité de {scenario}.
-  Une course entière accomplit {units} {unit}, comme {source} l'indique. Cela
-  suppose qu'une unité de travail est un(e) {singular} ; si l'unité de travail du
-  modèle désigne autre chose, réénoncez ceci.
+  Ce que coûterait une exécution entière, depuis les coûts par unité de {scenario}. Une
+  exécution entière accomplit {units} {unit}, comme {source} l'indique. Cela suppose
+  qu'une unité de travail est un(e) {singular} ; si l'unité de travail du modèle désigne
+  autre chose, réénoncez ceci.
 fold.repeated.open: >-
-  Le chiffre de la course entière ou le facteur d'échelle pragmatique est encore
+  Le chiffre de l'exécution entière ou le facteur d'échelle pragmatique est encore
   ouvert.
 fold.repeated.scaled: >-
-  La course entière fois le facteur d'échelle énoncé de {factor}.
+  L'exécution entière fois le facteur d'échelle énoncé de {factor}.
 fold.repeated.description: >-
-  Ce que coûteraient toutes les exécutions ensemble : la projection de course
-  entière multipliée par le facteur d'échelle pragmatique que le modèle énonce —
-  combien de fois ce calcul est réellement effectué, réglages et reprises
-  compris. Ce facteur est l'estimation de l'équipe elle-même ; rien ici ne peut
-  le connaître, et c'est pourquoi il vit dans les hypothèses, là où le validateur
-  le surveille.
+  Ce que coûteraient toutes les exécutions ensemble : la projection de l'exécution
+  entière multipliée par le facteur d'échelle pragmatique que le modèle énonce — combien
+  de fois ce calcul est réellement effectué, réglages et reprises compris. Ce facteur
+  est l'estimation de l'équipe elle-même ; rien ici ne peut le connaître, et c'est
+  pourquoi il vit dans les hypothèses, là où le validateur le surveille.
 
 # --- Ce que cette machine laisse lire (analyze/capability.py)
 #
@@ -1302,15 +1301,14 @@ scaling.reading.linear: >-
   Le travail a crû proportionnellement à la taille : projeter par le rapport des
   tailles est donc fondé sur l'intervalle mesuré.
 scaling.reading.superlinear: >-
-  Le travail a crû plus vite que la taille, à la puissance {exponent}. Doubler le
-  job multiplie le coût par {doubling} et non par 2 : une projection qui aurait
-  divisé par le rapport des tailles sous-estimerait la course entière.
+  Le travail a crû plus vite que la taille, à la puissance {exponent}. Doubler le job
+  multiplie le coût par {doubling} et non par 2 : une projection qui aurait divisé par
+  le rapport des tailles sous-estimerait l'exécution entière.
 scaling.reading.sublinear: >-
-  Le travail a crû moins vite que la taille, à la puissance {exponent}. Sur ces
-  tailles, la course est dominée par des coûts qui ne croissent pas avec le job —
-  démarrage, imports, chargement d'un modèle : les tranches mesurent donc surtout
-  de la surcharge, et une projection depuis elles surestimerait la course
-  entière.
+  Le travail a crû moins vite que la taille, à la puissance {exponent}. Sur ces tailles,
+  l'exécution est dominée par des coûts qui ne croissent pas avec le job — démarrage,
+  imports, chargement d'un modèle : les tranches mesurent donc surtout de la surcharge,
+  et une projection depuis elles surestimerait l'exécution entière.
 scaling.refuse.too_few: >-
   {count} exécution(s) chronométrée(s) ne suffisent pas pour ajuster un exposant
   de montée en charge ; il en faut {needed} de tailles différentes, parce que
@@ -1340,10 +1338,10 @@ scaling.refuse.negative: >-
   `saggio power`.
 scaling.refuse.bad_fit: >-
   Une loi de puissance n'explique que {explained} de la variation sur {count}
-  exécutions, sous les {required} exigés. Les tranches ne mesurent pas un
-  comportement unique et constant — un cache qui se remplit, un ordonnancement
-  qui change de forme, ou une machine occupée ailleurs au même moment : aucun
-  exposant tiré d'elles ne décrirait la course.
+  exécutions, sous les {required} exigés. Les tranches ne mesurent pas un comportement
+  unique et constant — un cache qui se remplit, un ordonnancement qui change de forme,
+  ou une machine occupée ailleurs au même moment : aucun exposant tiré d'elles ne
+  décrirait l'exécution.
 scaling.notes: >-
   Ajusté sur {count} exécutions de tailles {smallest} à {largest}, R² =
   {r_squared}.
@@ -1354,10 +1352,9 @@ scaling.limit.range: >-
   L'exposant a été mesuré entre les tailles {smallest} et {largest}. En dehors de
   cet intervalle, c'est une extrapolation comme une autre.
 scaling.limit.changes_shape: >-
-  Un coût qui change de forme en cours de course réelle — un ordonnancement du
-  taux d'apprentissage qui change la taille de lot, un jeu de données qui cesse
-  de tenir en mémoire — n'est pas visible dans des tranches qui ont toutes tourné
-  avant.
+  Un coût qui change de forme en cours d'exécution réelle — un ordonnancement du taux
+  d'apprentissage qui change la taille de lot, un jeu de données qui cesse de tenir en
+  mémoire — n'est pas visible dans des tranches qui ont toutes tourné avant.
 
 # --- Les verbes qui lisent un document, comparent, ou sondent (cli/commands.py)
 

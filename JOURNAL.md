@@ -10,6 +10,24 @@ cette ligne.
 
 ## Non publié
 
+### Une *run* est une « exécution », pas une « course »
+
+« Course » est une épreuve de vitesse ou une commission. Un calcul qui tourne est
+une **exécution**, et le catalogue le disait déjà par endroits — y compris, dans
+`scaling.refuse.bad_fit`, à l'intérieur de la phrase même qui disait aussi
+« course » : « la variation sur {count} exécutions … aucun exposant tiré d'elles
+ne décrirait la course ». Une seule chose, deux mots, à une proposition d'écart.
+
+Trente entrées renommées, dans les chapitres de la projection, du pliage et de la
+montée en charge. « Exécution » est féminin comme « course » : aucun accord ne
+bouge, seule l'élision change — « la course » devient « l'exécution ». Deux mots
+qui n'en contiennent que les lettres sont laissés tels quels : « en cours » veut
+dire *in progress* et « parcours » est un chemin ; et « en cours de course
+réelle » perd son bégaiement au passage.
+
+Signalé à l'entrée précédente comme un renommage et non une relecture, et laissé
+à l'arbitrage d'un humain. L'arbitrage a été : traduire pour le sens.
+
 ### Lire les quatre-vingt-seize phrases françaises comme du français, pas comme des traductions
 
 Trente-cinq des quatre-vingt-seize entrées ajoutées ce tour ont été réécrites

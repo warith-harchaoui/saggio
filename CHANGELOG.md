@@ -9,6 +9,23 @@ release of that line.
 
 ## Unreleased
 
+### A run is an `exécution`, not a `course`
+
+`course` is a footrace or an errand. A computation that runs is an `exécution`,
+and the catalogue already said so in places — including, in
+`scaling.refuse.bad_fit`, inside the very sentence that also said `course`:
+*« la variation sur {count} exécutions … aucun exposant tiré d'elles ne
+décrirait la course »*. One thing, two words, one sentence apart.
+
+Thirty entries renamed, across the projection, folding and scaling chapters.
+`exécution` is feminine like `course`, so no agreement moved; only the elision
+did — `la course` became `l'exécution`. Two words that merely contain the
+letters were left alone: `en cours` is "in progress" and `parcours` is a path,
+and `en cours de course réelle` loses its stutter as a side effect.
+
+Flagged in the previous entry as a rename rather than a proofread, and left for
+a human to rule on. The ruling was to translate for the meaning.
+
 ### Reading the ninety-six French sentences as French, not as translations
 
 Thirty-five of the ninety-six entries this round added were rewritten after
