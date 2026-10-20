@@ -51,6 +51,7 @@ from typing import Any, Final
 import os_helper as osh
 
 from ..catalog.registry import Catalog
+from ..catalog.registry import country_name as named_country
 from ..i18n import say
 from ..model.quantity import Quantity
 from ..model.taxonomy import ESTIMATED, MEASURED, TODO
@@ -391,7 +392,7 @@ class DeploymentContext:
         return Catalog.load("providers", overlay=self.overlay).row("providers", self.provider)
 
     def country_name(self) -> str | None:
-        """Return the resolved country's human name.
+        """Return the resolved country's human name, in the language in force.
 
         Returns
         -------
@@ -402,9 +403,13 @@ class DeploymentContext:
         --------
         >>> DeploymentContext.build(country="JP").country_name()
         'Japan'
+        >>> from saggio.i18n import language
+        >>> with language("fr"):
+        ...     DeploymentContext.build(country="JP").country_name()
+        'Japon'
         """
         row = self._country_row()
-        return str(row["name"]) if row and row.get("name") else None
+        return named_country(self.country, row) if row else None
 
     def grid_intensity(self) -> Quantity:
         """Return the grid carbon intensity where the code runs.
@@ -494,7 +499,7 @@ class DeploymentContext:
                     else say("context.tariff.missing", country=self.country)
                 ),
             )
-        note = say("context.tariff.indicative", country=row.get("name"))
+        note = say("context.tariff.indicative", country=named_country(self.country, row))
         if provider_row and self.provider != DEFAULT_PROVIDER:
             note += " " + say("context.tariff.machine_hours", provider=provider_row.get("name"))
         elif not provider_row and self.provider and self.provider != DEFAULT_PROVIDER:

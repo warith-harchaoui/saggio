@@ -9,6 +9,59 @@ release of that line.
 
 ## Unreleased
 
+### Germany is Allemagne, and the column that could not be translated
+
+Thirty-eight country names, in both languages. A French report said `Germany`
+because the name came off the grid catalogue row, and I had written that
+translating it was a decision about data rather than about a renderer. It is,
+and the decision turns on one measurement: **thirty-two of the thirty-eight rows
+are matched to the tariff source by that very field.** `PRICE_NAME_OF_KEY`
+exists for the six that disagree — `Czechia` against `Czech Republic`, `United
+Kingdom` against `UK`. Translating the column would have broken the refresh
+silently, for thirty-two countries, in a code path nobody runs weekly.
+
+So the column keeps its job and the words a reader sees are `country.<ISO2>` in
+the message catalogue. That leaves the English of each key a copy of its row,
+which is the defect this project keeps finding — so **a contract test pins them
+together**, and says which is authoritative. A second test refuses a grid row
+with no name in any language, because the next row somebody adds is the one it
+is for: a country nobody named reads as `ZZ`.
+
+`country_name(key, row)` reads the key, falls back to the row for a country an
+overlay added, and falls back to the code for neither. Three places used the raw
+field: the what-if dropdown, the location figure's rows and tooltips, and
+`DeploymentContext.country_name`, whose sentence about an indicative tariff was
+already translated around a name that was not.
+
+#### Two faults in one `sorted()`
+
+The dropdown was ordered by `str`, which is code-point order, so the French list
+ran `… Turquie, Ukraine, Égypte, Émirats arabes unis, États-Unis` — three
+countries past the end of the alphabet — and put `Suisse` before `Suède`. An
+accent is a mark on a letter, not a different letter. `saggio.i18n.sort_key`
+takes the mark off for the comparison and leaves it on the word; the list is
+alphabetical in both languages now, and a test says so against the code-point
+sort it replaced.
+
+Not full Unicode collation, and the docstring says so: that is a table per
+language and a dependency, and this orders Latin script for the two languages
+this package writes.
+
+#### A gate that was right about everything except how many dots a prefix has
+
+`test_no_sentence_is_dead` recognises a family of keys by the literal a module
+leaves behind — `say(f"boundary.field.{key}")` leaves `boundary.field.` in the
+source. It asked for two dots in that literal, which let `boundary.field.`
+through and kept `country.` out, so thirty-eight names were unreachable
+wording by a rule that was counting where it meant to match a shape. It matches
+a key prefix now. Seventeen prefixes qualify; the nine that actually cover
+message keys are all genuine families, checked rather than assumed.
+
+Four of the thirty-eight are the same word in French — Canada, France, Portugal,
+Ukraine — and are on the identity check's allow-list with that reason. Not five:
+Singapore is Singapour, which the test found by disagreeing with a comment I had
+just written above it.
+
 ### The page stops writing its own copy of the table, in fourteen nodes and a table helper
 
 `report/html.py` had no English prose of its own worth the name. What it had was

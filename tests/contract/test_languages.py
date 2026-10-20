@@ -387,6 +387,15 @@ def test_no_language_invents_a_sentence(code: str) -> None:
     assert not extra, f"{code} has {len(extra)} sentences nothing asks for: {extra[:5]}"
 
 
+#: What a key prefix looks like, for recognising the literal a module leaves
+#: behind when it builds a family of keys. Matched rather than counted: the rule
+#: used to ask for two dots, which let `boundary.field.` through and kept
+#: `country.` out — a one-segment family is still a family, and thirty-eight
+#: country names were unreachable by a test that was right about everything
+#: except how many dots a prefix has.
+_KEY_PREFIX: Final[re.Pattern[str]] = re.compile(r"^[a-z][a-z0-9_]*(\.[a-z0-9_]+)*\.$")
+
+
 def test_no_sentence_is_dead() -> None:
     # Reachable means spelled somewhere, or inside a family some module builds
     # keys for: `say(f"boundary.field.{key}")` leaves the literal
@@ -394,7 +403,7 @@ def test_no_sentence_is_dead() -> None:
     # labels is reached without any of them being written out. A key that is
     # neither spelled nor inside such a family is wording nobody can see.
     spelled = literals_in_the_package()
-    families = {text for text in spelled if text.endswith(".") and text.count(".") >= 2}
+    families = {text for text in spelled if _KEY_PREFIX.match(text)}
     orphans = sorted(
         key
         for key in messages()[DEFAULT_LANGUAGE]
@@ -516,6 +525,13 @@ SAME_IN_BOTH: frozenset[str] = frozenset(
         "figure.domains.total",
         # "source" is the same word in French.
         "report.link.source",
+        # Four of the thirty-eight countries, and only four: Singapore is
+        # Singapour and Israel is Israël, so a fifth identical entry here would
+        # mean somebody pasted the English column rather than translating it.
+        "country.CA",
+        "country.FR",
+        "country.PT",
+        "country.UA",
     }
 )
 
@@ -600,6 +616,71 @@ def test_the_french_spaces_its_punctuation_the_way_french_does() -> None:
                         )
                         break
     assert not offenders, "French wants a space before these marks:\n  " + "\n  ".join(offenders)
+
+
+# --- What a country is called -------------------------------------------------
+
+
+@pytest.mark.parametrize("code", sorted(messages()))
+def test_every_country_on_file_has_a_name_in_every_language(code: str) -> None:
+    """A grid row with no name reads as its ISO code to a reader.
+
+    Thirty-eight rows, and the next one somebody adds is the one this is for:
+    a country whose name nobody wrote falls back to `ZZ`, which is a code and
+    not a word.
+    """
+    from saggio.catalog.registry import Catalog
+
+    rows = Catalog.bundled("grid").rows("countries")
+    missing = sorted(key for key in rows if f"country.{key}" not in messages()[code])
+    assert not missing, f"{code} does not name: {missing}"
+
+
+def test_the_english_name_of_a_country_is_the_name_its_row_carries() -> None:
+    """The catalogue of words and the catalogue of numbers, pinned together.
+
+    The row's ``name`` could not be translated: thirty-two of the thirty-eight
+    are matched to the tariff source by it. So the words live in the message
+    catalogue and the column keeps its job — which leaves the English of each
+    key a copy of its row, and a copy with nothing watching it is the defect
+    this file keeps finding. This is what watches it.
+    """
+    from saggio.catalog.registry import Catalog
+
+    rows = Catalog.bundled("grid").rows("countries")
+    table = messages()[DEFAULT_LANGUAGE]
+    wrong = {
+        key: (table.get(f"country.{key}"), row.get("name"))
+        for key, row in rows.items()
+        if row.get("name") and table.get(f"country.{key}") != row["name"]
+    }
+    assert not wrong, f"the key and the row disagree, as (key says, row says): {wrong}"
+
+
+def test_the_country_list_is_alphabetical_in_the_language_it_is_read_in() -> None:
+    """A dropdown somebody has to find a country in, ordered as they would look.
+
+    Code-point order put `Égypte` after `Ukraine` and `Suisse` before `Suède`:
+    three countries past the end of the alphabet and two swapped, from one
+    `sorted()` with no key. An accent is a mark on a letter, not a letter.
+    """
+    import yaml
+
+    from saggio.i18n import language, sort_key
+
+    model = CostModel.from_mapping(
+        yaml.safe_load((ROOT / "examples" / "render.yaml").read_text(encoding="utf-8"))
+    )
+    for code in sorted(messages()):
+        with language(code):
+            page = render_html(model)
+        options = re.search(r'<select id="whatif-country">(.*?)</select>', page, re.S)
+        assert options is not None, "the what-if panel offers no countries"
+        shown = re.findall(r'<option value="[A-Z]{2}"[^>]*>([^<]+)</option>', options.group(1))
+        assert shown, f"{code} lists no countries"
+        assert shown == sorted(shown, key=sort_key), (
+            f"{code} lists them out of order, from {shown[0]!r} to {shown[-1]!r}"
+        )
 
 
 @pytest.mark.parametrize("code", sorted(labels()))

@@ -36,6 +36,7 @@ from __future__ import annotations
 import html
 from typing import Any, Final
 
+from ..catalog.registry import country_name
 from ..i18n import number as localised
 from ..i18n import say
 from ..model.cost_model import CostModel
@@ -712,7 +713,7 @@ def location_impact(countries: dict[str, dict[str, Any]], current: str | None = 
             # One malformed overlay row ("n/a", a list, a typo) must not take
             # the whole report page down with it; the row simply is not drawn.
             continue
-        usable.append((str(key), str(row.get("name") or key), value))
+        usable.append((str(key), country_name(str(key), row), value))
     usable.sort(key=lambda entry: entry[2])
     if len(usable) < 2 or max(entry[2] for entry in usable) <= 0.0:
         # Nothing to compare, or nothing to scale the bars by.

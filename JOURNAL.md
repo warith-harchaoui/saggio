@@ -10,6 +10,62 @@ cette ligne.
 
 ## Non publié
 
+### L'Allemagne s'appelle Allemagne, et la colonne qu'on ne pouvait pas traduire
+
+Trente-huit noms de pays, dans les deux langues. Un rapport français disait
+« Germany » parce que le nom venait de la ligne du catalogue du réseau, et
+j'avais écrit que le traduire était une décision sur des données plutôt que sur
+un moteur de rendu. C'en est une, et elle tient à une mesure : **trente-deux des
+trente-huit lignes sont appariées à la source tarifaire par ce champ même.**
+`PRICE_NAME_OF_KEY` existe pour les six qui divergent — « Czechia » contre
+« Czech Republic », « United Kingdom » contre « UK ». Traduire la colonne aurait
+cassé le rafraîchissement en silence, pour trente-deux pays, dans un chemin de
+code que personne n'exécute chaque semaine.
+
+La colonne garde donc son métier, et les mots que lit un lecteur sont
+`country.<ISO2>` dans le catalogue de messages. Il reste que l'anglais de chaque
+clé est une copie de sa ligne, ce qui est le défaut que ce projet n'arrête pas de
+trouver — alors **un test de contrat les épingle ensemble** et dit laquelle fait
+foi. Un second test refuse une ligne de réseau sans nom dans une langue, parce
+que la prochaine ligne qu'on ajoutera est celle pour laquelle il existe : un pays
+que personne n'a nommé se lit « ZZ ».
+
+`country_name(key, row)` lit la clé, se rabat sur la ligne pour un pays ajouté
+par une surcouche, et sur le code à défaut des deux. Trois endroits lisaient le
+champ brut : le menu déroulant what-if, les lignes et infobulles de la figure du
+lieu, et `DeploymentContext.country_name`, dont la phrase sur un tarif indicatif
+était déjà traduite autour d'un nom qui ne l'était pas.
+
+#### Deux fautes dans un seul `sorted()`
+
+Le menu était trié par `str`, c'est-à-dire par point de code : la liste française
+finissait par « … Turquie, Ukraine, Égypte, Émirats arabes unis, États-Unis » —
+trois pays au-delà de la fin de l'alphabet — et plaçait « Suisse » avant
+« Suède ». Un accent est une marque sur une lettre, pas une autre lettre.
+`saggio.i18n.sort_key` retire la marque pour la comparaison et la laisse sur le
+mot ; la liste est alphabétique dans les deux langues désormais, et un test le
+dit contre le tri par point de code qu'elle remplace.
+
+Pas une collation Unicode complète, et la docstring le dit : cela demande une
+table par langue et une dépendance, et ceci ordonne l'écriture latine pour les
+deux langues que ce paquet écrit.
+
+#### Une porte qui avait raison sur tout, sauf sur le nombre de points d'un préfixe
+
+`test_no_sentence_is_dead` reconnaît une famille de clés au littéral qu'un module
+laisse derrière lui — `say(f"boundary.field.{key}")` laisse `boundary.field.`
+dans le source. Elle exigeait deux points dans ce littéral, ce qui laissait
+passer `boundary.field.` et tenait `country.` dehors : trente-huit noms étaient
+de la formulation inatteignable, par une règle qui comptait là où elle voulait
+reconnaître une forme. Elle reconnaît un préfixe de clé maintenant. Dix-sept
+préfixes se qualifient ; les neuf qui couvrent effectivement des clés de messages
+sont tous de vraies familles, vérifié plutôt que supposé.
+
+Quatre des trente-huit sont le même mot en français — Canada, France, Portugal,
+Ukraine — et figurent sur la liste d'autorisation de la vérification d'identité
+avec cette raison. Pas cinq : « Singapore » se dit « Singapour », ce que le test
+a trouvé en contredisant un commentaire que je venais d'écrire au-dessus de lui.
+
 ### La page cesse d'écrire sa propre copie de la table, en quatorze nœuds et un helper de tableau
 
 `report/html.py` n'avait presque pas de prose anglaise en propre. Ce qu'il avait,

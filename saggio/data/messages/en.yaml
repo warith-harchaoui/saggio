@@ -1429,6 +1429,54 @@ figure.domains.description: >-
   {listed}, {total} W in total, each read from its own counter.
 figure.domains.total: "Total {total} W."
 
+# --- What each country is called (saggio/data/grid.yaml, one key per row)
+#
+# The row's own `name` is not this. It is the name the tariff source lists the
+# country under, which is why thirty-two of the thirty-eight rows are matched to
+# that source by it and why `PRICE_NAME_OF_KEY` exists for the six that
+# disagree — `Czechia` against `Czech Republic`. Translating the column would
+# break the refresh. So the words a reader sees live here, and a contract test
+# pins the English of each to its row so the two cannot drift apart.
+
+country.AE: "United Arab Emirates"
+country.AT: "Austria"
+country.AU: "Australia"
+country.BE: "Belgium"
+country.BR: "Brazil"
+country.CA: "Canada"
+country.CH: "Switzerland"
+country.CL: "Chile"
+country.CN: "China"
+country.CZ: "Czechia"
+country.DE: "Germany"
+country.DK: "Denmark"
+country.EG: "Egypt"
+country.ES: "Spain"
+country.FI: "Finland"
+country.FR: "France"
+country.GB: "United Kingdom"
+country.IE: "Ireland"
+country.IL: "Israel"
+country.IN: "India"
+country.IT: "Italy"
+country.JP: "Japan"
+country.KR: "South Korea"
+country.MX: "Mexico"
+country.NL: "Netherlands"
+country.NO: "Norway"
+country.PL: "Poland"
+country.PT: "Portugal"
+country.RO: "Romania"
+country.RU: "Russia"
+country.SA: "Saudi Arabia"
+country.SE: "Sweden"
+country.SG: "Singapore"
+country.SK: "Slovakia"
+country.TR: "Turkey"
+country.UA: "Ukraine"
+country.US: "United States"
+country.ZA: "South Africa"
+
 # --- What an Apple chip's own counters cover (analyze/apple.py, power/soc.py)
 
 apple.soc_scope: >-

@@ -40,10 +40,10 @@ from importlib import resources
 from typing import Any, Final
 
 from ..analyze.power import measurement_rows
-from ..catalog.registry import Catalog
+from ..catalog.registry import Catalog, country_name
 from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE
 from ..estimate.ghg import GHG_EMISSIONS, market_based_figure_exists, placements
-from ..i18n import labels, say
+from ..i18n import labels, say, sort_key
 from ..i18n import languages as language_codes
 from ..model.cost_model import CostModel
 from ..model.dimensions import DimensionRegistry
@@ -1198,12 +1198,17 @@ def _whatif_section(model: CostModel, *, overlay: Any = None) -> str:
     current_country = str(model.get("deployment.country") or "")
     current_provider = str(model.get("deployment.provider") or "on-prem")
 
+    # Sorted on the name a reader will see, so a French list is alphabetical in
+    # French. The button does not re-sort a `<select>`, so these are rendered
+    # server-side in the language in force rather than carrying `data-i18n`:
+    # switching would have left Allemagne filed under G.
     country_options = "".join(
         f'<option value="{_escape(key)}"'
         + (" selected" if key == current_country else "")
-        + f">{_escape(row.get('name') or key)}</option>"
-        for key, row in sorted(
-            countries.items(), key=lambda item: str(item[1].get("name") or item[0])
+        + f">{_escape(name)}</option>"
+        for key, name in sorted(
+            ((key, country_name(key, row)) for key, row in countries.items()),
+            key=lambda item: sort_key(item[1]),
         )
     )
     provider_options = "".join(

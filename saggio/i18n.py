@@ -58,6 +58,7 @@ Warith Harchaoui
 from __future__ import annotations
 
 import re
+import unicodedata
 from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -369,6 +370,40 @@ def number(text: str) -> str:
         # English sets tight against its number and French does not.
         text = re.sub(rf"(?<=\d)(?<!{re.escape(spacing)})%", spacing + "%", text)
     return text
+
+
+def sort_key(text: str) -> str:
+    """Return a key that orders words the way a reader expects to find them.
+
+    Python sorts by code point, which puts `Égypte` after `Ukraine` and `Suisse`
+    before `Suède` — a French dropdown with three countries exiled past Z and
+    two in the wrong order. An accent is a mark on a letter, not a different
+    letter, so the mark comes off for the comparison and stays on the word.
+
+    Not full Unicode collation: that is a table per language and a dependency,
+    and this orders Latin script for the two languages this package writes. A
+    language whose order is not its alphabet's would need more than this, and
+    should say so rather than inherit it.
+
+    Parameters
+    ----------
+    text : str
+        What a reader sees.
+
+    Returns
+    -------
+    str
+        Fold-cased, with combining marks removed.
+
+    Examples
+    --------
+    >>> sorted(["Ukraine", "Égypte", "Suisse", "Suède"], key=sort_key)
+    ['Égypte', 'Suède', 'Suisse', 'Ukraine']
+    >>> sort_key("États-Unis")
+    'etats-unis'
+    """
+    decomposed = unicodedata.normalize("NFD", text)
+    return "".join(mark for mark in decomposed if not unicodedata.combining(mark)).casefold()
 
 
 def plural(count: int, one: str, many: str) -> str:

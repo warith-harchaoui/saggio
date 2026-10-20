@@ -333,6 +333,52 @@ def is_stale(row: dict[str, Any], kind: str, *, today: date | None = None) -> bo
     return any(age > allowed for age, allowed in dated if age is not None)
 
 
+def country_name(key: str, row: dict[str, Any] | None = None) -> str:
+    """Return what a country is called, in the language in force.
+
+    Not the row's ``name``. That field is the name the tariff source lists the
+    country under: thirty-two of the thirty-eight rows are matched to that
+    source by it, and :data:`~saggio.catalog.refresh.tariffs.PRICE_NAME_OF_KEY`
+    exists for the six that disagree. Translating the column would have broken
+    the refresh, so the words a reader sees are in the message catalogue and the
+    column keeps its job. A contract test pins the English of each key to its
+    row, so the two cannot drift apart without something failing.
+
+    Parameters
+    ----------
+    key : str
+        An ISO 3166-1 alpha-2 code, as the grid catalogue keys its rows.
+    row : dict or None, optional
+        The row, read only as a fallback. A country an overlay added has a row
+        and no key, and its own name is better than its code.
+
+    Returns
+    -------
+    str
+        The name, or the row's own, or the code.
+
+    Examples
+    --------
+    >>> country_name("DE")
+    'Germany'
+    >>> from saggio.i18n import language
+    >>> with language("fr"):
+    ...     country_name("DE"), country_name("KR")
+    ('Allemagne', 'Corée du Sud')
+    >>> country_name("ZZ", {"name": "Atlantis"})
+    'Atlantis'
+    >>> country_name("ZZ")
+    'ZZ'
+    """
+    from ..i18n import current_language, phrase
+
+    named = phrase(f"country.{key}", language=current_language(), table="message")
+    if named:
+        return named
+    own = (row or {}).get("name")
+    return str(own) if own else key
+
+
 def require_provenance(row: dict[str, Any]) -> None:
     """Refuse a catalogue row that does not say where its numbers came from.
 
