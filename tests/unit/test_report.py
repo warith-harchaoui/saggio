@@ -31,7 +31,9 @@ from saggio.templates import template_mapping
 
 @pytest.mark.parametrize(
     ("value", "expected"),
-    [(1234.5678, "1235"), (2.5e-05, "2.5e-05"), (0, "0"), (0.0, "0"), (None, NOT_KNOWN)],
+    # Grouped, because both languages this package writes group: `1,235` in
+    # English and `1 235` in French, from one rule in `saggio.i18n.number`.
+    [(1234.5678, "1,235"), (2.5e-05, "2.5e-05"), (0, "0"), (0.0, "0"), (None, NOT_KNOWN)],
 )
 def test_numbers_are_shown_without_false_precision(value: float | None, expected: str) -> None:
     assert format_number(value) == expected
@@ -544,7 +546,7 @@ def test_a_long_duration_is_not_spelled_in_scientific_notation() -> None:
     # should be legible has no business printing the first spelling.
     from saggio.report import format_duration
 
-    assert format_duration(10870.4) == "3 h 1 min (10870.4 s)"
+    assert format_duration(10870.4) == "3 h 1 min (10,870.4 s)"
     assert "e+" not in format_duration(10870.4)
 
 
@@ -557,12 +559,15 @@ def test_a_short_duration_takes_the_prefix_a_reader_thinks_in() -> None:
 
 
 def test_the_exact_seconds_stay_beside_the_readable_form() -> None:
-    # A reader checking the report against the model needs the number the model
-    # holds, so the spelled form never replaces it — it precedes it.
+    # A reader checking the report against the model needs the figure the model
+    # holds, so the spelled form never replaces it — it precedes it. Written the
+    # way the reader's language writes it, which is the ruling already made about
+    # the decimal separator: the file holds a float for a machine to read, and
+    # the report holds a number for a person to read.
     from saggio.report import format_duration
 
     assert "(90 s)" in format_duration(90)
-    assert "(190800 s)" in format_duration(190800)
+    assert "(190,800 s)" in format_duration(190800)
 
 
 def test_a_quantity_in_seconds_is_rendered_as_a_duration() -> None:

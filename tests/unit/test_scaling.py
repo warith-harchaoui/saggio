@@ -61,7 +61,7 @@ def test_a_status_stronger_than_measured_is_not_invented() -> None:
 def test_the_exponent_carries_the_range_it_was_measured_over() -> None:
     fit = fit_power_law(series(2.0, sizes=(10, 100, 1000)))
     assert fit.size_range() == (10.0, 1000.0)
-    assert "10 to 1000" in str(fit.exponent.notes)
+    assert "10 to 1,000" in str(fit.exponent.notes)
     assert "R²" in str(fit.exponent.notes)
 
 

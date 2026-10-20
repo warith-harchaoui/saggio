@@ -325,6 +325,41 @@ def percent_space(code: str | None = None) -> str:
     return phrase("number.percent", language=code or current_language(), table="label") or ""
 
 
+def group_separator(code: str | None = None) -> str:
+    """Return what this language puts between groups of three digits.
+
+    A comma in English, a narrow no-break space in French. Both languages group
+    and this package did neither, so a French report read `10870,6 s` and
+    `400000 num_samples` — the decimal separator applied and the grouping rule
+    not, which is the same omission the per-cent sign had.
+
+    Parameters
+    ----------
+    code : str or None, optional
+        A language tag; the one in force when omitted.
+
+    Returns
+    -------
+    str
+        The separator, empty for a language that does not group.
+
+    Examples
+    --------
+    >>> group_separator("en")
+    ','
+    >>> group_separator("fr") == "\u202f"
+    True
+    """
+    return phrase("number.group", language=code or current_language(), table="label") or ""
+
+
+#: A run of four digits or more that is the whole part of a figure, and
+#: therefore the part that groups. Not preceded by a digit, a decimal separator
+#: or an exponent marker: `0.12345` has five digits after its point and they are
+#: tenths, and `1.906e+04` has an exponent that is not a quantity.
+_WHOLE_PART: Final[re.Pattern[str]] = re.compile(r"(?<![\d.,])(?<![eE][+-])\d{4,}(?![\d])")
+
+
 def number(text: str) -> str:
     """Return a formatted number written the way the language in force writes it.
 
@@ -332,10 +367,13 @@ def number(text: str) -> str:
     every caller keeps the precision it chose — significant figures, a fixed
     number of decimals, scientific notation — and only the separator moves.
 
-    Two things move: the decimal separator, and the space before a per-cent
-    sign. Nothing else is touched. A blanket substitution over a report would
-    have rewritten dates, schema versions, dotted field paths and URLs; this is
-    called on the digits and on nothing else.
+    Three things move: the decimal separator, the space before a per-cent sign,
+    and the grouping of the whole part. Nothing else is touched. A blanket
+    substitution over a report would have rewritten dates, schema versions,
+    dotted field paths and URLs; this is called on the digits and on nothing
+    else — audited call site by call site before the grouping was added, because
+    a year grouped as `2 025` is the exact failure that docstring warns about,
+    and no caller passes one.
 
     Parameters
     ----------
@@ -359,6 +397,13 @@ def number(text: str) -> str:
     >>> with language("fr"):
     ...     number("21.9%") == "21,9\u202f%"
     True
+    >>> number("1234567.89")
+    '1,234,567.89'
+    >>> with language("fr"):
+    ...     number("10870.6 s") == "10\u202f870,6 s"
+    True
+    >>> number("0.12345"), number("1.906e+04"), number("2.5e-06")
+    ('0.12345', '1.906e+04', '2.5e-06')
     """
     if not text:
         return text
@@ -373,7 +418,20 @@ def number(text: str) -> str:
         # Only a sign that follows a figure. A per-cent sign is the one unit
         # English sets tight against its number and French does not.
         text = re.sub(rf"(?<=\d)(?<!{re.escape(spacing)})%", spacing + "%", text)
+    grouping = group_separator()
+    if grouping:
+        text = _WHOLE_PART.sub(lambda found: _grouped(found.group(0), grouping), text)
     return text
+
+
+def _grouped(digits: str, separator: str) -> str:
+    """Return a run of digits with a separator every three, counting from the right."""
+    out = []
+    for index, digit in enumerate(reversed(digits)):
+        if index and index % 3 == 0:
+            out.append(separator)
+        out.append(digit)
+    return "".join(reversed(out))
 
 
 def sort_key(text: str) -> str:

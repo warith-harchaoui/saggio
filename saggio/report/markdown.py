@@ -94,7 +94,7 @@ def format_number(value: float | int | None) -> str:
     Examples
     --------
     >>> format_number(1234.5678)
-    '1235'
+    '1,235'
     >>> format_number(2.5e-05)
     '2.5e-05'
     >>> format_number(0)
@@ -195,7 +195,7 @@ def format_duration(seconds: float | int | None) -> str:
     Examples
     --------
     >>> format_duration(10870.4)
-    '3 h 1 min (10870.4 s)'
+    '3 h 1 min (10,870.4 s)'
     >>> format_duration(0.0272)
     '27.2 ms'
     >>> format_duration(1.5)

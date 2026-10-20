@@ -656,13 +656,53 @@ def test_the_separator_moves_between_digits_and_nowhere_else() -> None:
     assert number("17.4") == "17.4", "the authored language is left alone"
 
 
-def test_the_browser_and_the_renderer_write_a_number_the_same_way() -> None:
-    # The what-if panel recomputes in the browser, so it formats figures itself.
+#: Every key that says how a language writes a figure. The what-if panel
+#: recomputes in the browser, so each of these is read twice — once by the
+#: renderer and once by the script — and a rule one of them has and the other
+#: does not is two halves of a page writing one number differently.
+NUMBER_RULES: Final[tuple[str, ...]] = ("number.decimal", "number.group")
+
+
+@pytest.mark.parametrize("key", NUMBER_RULES)
+def test_the_browser_and_the_renderer_write_a_number_the_same_way(key: str) -> None:
     # Two formatters mean two chances to disagree; this pins that the script
-    # reads the same key the renderer reads.
+    # reads the same keys the renderer reads. `number.percent` is not among them
+    # because the panel states no percentages — when it does, it joins this list.
     script = (ROOT / "reporting" / "report.js").read_text(encoding="utf-8")
-    assert 'translated("number.decimal"' in script, "the script invents its own separator"
-    assert "number.decimal" in labels()[DEFAULT_LANGUAGE]
+    assert f'translated("{key}"' in script, f"the script invents its own {key}"
+    assert key in labels()[DEFAULT_LANGUAGE]
+
+
+@pytest.mark.parametrize("code", sorted(labels()))
+def test_every_language_says_how_it_groups_digits(code: str) -> None:
+    # The decimal separator's other sibling, and missing for as long: a French
+    # report read `10870,6 s` and `3638 mois-arbre`, which is one rule applied
+    # and the other never written down.
+    assert "number.group" in labels()[code], f"{code} does not say how it groups digits"
+
+
+def test_a_figure_is_grouped_the_way_each_language_groups_it() -> None:
+    """The whole part, in threes, and nothing else.
+
+    What must not move is the list: tenths are not grouped however many there
+    are, an exponent is not a quantity, and a run of three digits is not long
+    enough to group. Each was a way to break a report by rewriting a number
+    that was already right.
+    """
+    from saggio.i18n import group_separator, language, number
+
+    assert number("1234567.89") == "1,234,567.89"
+    assert number("999") == "999"
+    with language("fr"):
+        space = group_separator()
+        assert number("10870.6 s") == f"10{space}870,6 s"
+        assert number("1000") == f"1{space}000"
+        # Already grouped, and not grouped twice.
+        assert number(f"1{space}000") == f"1{space}000"
+        # Tenths, an exponent, and a figure too short to group.
+        assert number("0.12345") == "0,12345"
+        assert number("1.906e+04") == "1,906e+04"
+        assert number("999") == "999"
 
 
 # --- What a machine can check in a translation --------------------------------

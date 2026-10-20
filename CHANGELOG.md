@@ -9,6 +9,89 @@ release of that line.
 
 ## Unreleased
 
+### The thousands separator we never had, and four recommendations we already beat
+
+A guide to Python i18n, read against what this package does. One of its
+recommendations named a defect that was measurably here; the rest named problems
+this package does not have, and one named a limit of mine that turned out not to
+exist.
+
+**Taken: grouping.** The guide files it under `babel.format_number` and CLDR
+locale data. We had simply omitted it: a French report read `10870,6 s` and
+`3638 mois-arbre` — the decimal separator applied and the grouping rule never
+written down, the same omission the per-cent space was in the last entry.
+`number.group` is the third sibling of `number.decimal` and `number.percent`: a
+comma in English, a narrow no-break space in French, which is the convention the
+Imprimerie nationale and ISO 31-0 both give and the one that will not let a line
+break inside a figure. The browser applies it too, and a gate pins that both do.
+
+**Audited before it was switched on**, because a year written `2 025` is exactly
+the failure `number`'s docstring warns about: no call site passes a year, a
+schema version or an identifier through it. The four-digit figures in a report
+that are *not* measurements — `2025`, `7742`, `9000` — come from a URL, a
+processor's model name and a fixture's, and none of them goes near the
+formatter. The ones that do are watts, seconds, shares, ratios, sizes and
+counts, and all of them group.
+
+English groups too, so four tests and two doctests pinned ungrouped spellings
+and now pin grouped ones. One of them is worth quoting, because its comment is
+the objection: *a reader checking the report against the model needs the figure
+the model holds*. They still do — the file holds a float for a machine to read
+and the report holds a number for a person to read, which is the ruling already
+made about the decimal separator.
+
+The measurement gate from the last entry caught its own figure moving within
+minutes: the French share went 30.3% to **30.4%** and the test said so, naming
+the new number.
+
+#### What the guide recommends that this package already answers
+
+- **`pgettext(context, msgid)`** — the same word in two senses. Our keys are
+  contextual by construction: `column.value` and `whatif.energy` cannot collide
+  because they are not the same key.
+- **`%(name)s` named placeholders** — so a translator cannot swap arguments. We
+  go further: numbers reach a sentence **already formatted, as strings**, so a
+  format specification cannot crash inside a translated string. A `%(count)d`
+  in a `.po` file is the classic crash gettext does not prevent.
+- **`pybabel extract`** — find the strings nobody translated. We answer the same
+  question with gates rather than a report: every key the code asks for must be
+  written, every written key must be reachable, and the count of prose literals
+  is pinned to what the docs quote. A gate beats a tool somebody remembers to
+  run.
+- **`format_date` and `format_currency`** — our dates are ISO and our amounts
+  carry the ISO code. For a provenance record that is deliberate and better:
+  unambiguous, sortable, checkable. Written down as a choice now rather than
+  left to look like an omission.
+
+#### A limit of ours that was a misdiagnosis
+
+`gettext_lazy` answers "fixed at import", and this repository has recorded for
+five iterations that the HTTP route descriptions are fixed at import because
+FastAPI builds its OpenAPI schema before a language is in force. **Measured:
+`create_app()` is a function, and calling it under `language("fr")` returns the
+same English summary** — because those twenty-nine strings are plain literals
+that were never passed through `say()`. Nothing is blocked by FastAPI.
+
+The real limit is smaller and worth stating correctly: `app = create_app()` at
+module scope runs at import, and FastAPI caches `openapi_schema` per instance,
+so **one app carries one language's schema**. Serving two means two instances,
+which is a design decision rather than a wall.
+
+#### Three limits of ours that are real, and bite at the third language
+
+Not today's problem with two, and named so the third does not find them by
+surprise: **pluralisation is not CLDR** (`plural(count, one, many)` plus a
+zero-form key is right for English and French and wrong for Polish's four forms
+and Arabic's six); **collation is not CLDR** (`sort_key` folds accents, which is
+right for French and wrong for Swedish, where å ä ö sort after z); and **the
+locale data is hand-written** — three keys we maintain where CLDR has them for
+seven hundred locales.
+
+Adopting Babel as a *locale-data* dependency — plural categories, grouping,
+collation — without touching the catalogue or the gates is the move if a third
+language arrives. With two, hand-rolled is correct and the gates are the part
+worth having.
+
 ### Three figures the docs quoted, remeasured with the method written down
 
 `README.md` said a model file writes **48%** of a static report and that asking

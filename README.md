@@ -301,7 +301,7 @@ written with, so a model audited in English renders in English however you ask
 for it — **50% of a static report's text** comes from the file itself. And the
 language button on an HTML page switches the page's furniture, **6.9%** of it,
 because the rest is prose the renderer composed server-side; ask for the report
-in a language instead and **30.3%** of it comes out French, a share that grows as
+in a language instead and **30.4%** of it comes out French, a share that grows as
 the catalogue does. All three are recomputed by contract tests from the report
 they describe, because a number in a sentence goes stale without lying.
 

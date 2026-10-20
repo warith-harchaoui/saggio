@@ -309,7 +309,7 @@ avec lesquelles il a été écrit : un modèle audité en anglais se rend en ang
 quoi que vous demandiez — **50 % du texte d'un rapport statique** vient du
 fichier lui-même. Et le bouton de langue d'une page HTML change l'ossature de la
 page, **6,9 %**, parce que le reste est de la prose que le moteur a composée côté
-serveur ; demandez plutôt le rapport dans une langue et **30,3 %** en sortent en
+serveur ; demandez plutôt le rapport dans une langue et **30,4 %** en sortent en
 français, une part qui grandit avec le catalogue. Les trois chiffres sont
 recalculés par des tests de contrat depuis le rapport qu'ils décrivent, parce
 qu'un nombre dans une phrase se périme sans mentir.

@@ -10,6 +10,94 @@ cette ligne.
 
 ## Non publié
 
+### Le séparateur de milliers que nous n'avions pas, et quatre recommandations déjà dépassées
+
+Un guide d'i18n Python, lu contre ce que fait ce paquet. Une de ses
+recommandations nommait un défaut mesurablement présent ici ; les autres
+nommaient des problèmes que ce paquet n'a pas, et une nommait une limite de mon
+cru qui n'existait pas.
+
+**Pris : le groupement.** Le guide le range sous `babel.format_number` et les
+données CLDR. Nous l'avions tout bonnement omis : un rapport français écrivait
+« 10870,6 s » et « 3638 mois-arbre » — le séparateur décimal appliqué et la
+règle de groupement jamais écrite, la même omission que l'espace avant le
+pour-cent à l'entrée précédente. `number.group` est la troisième sœur de
+`number.decimal` et `number.percent` : virgule en anglais, espace fine
+insécable en français, la convention que donnent l'Imprimerie nationale comme
+l'ISO 31-0, et celle qui interdit une coupure de ligne à l'intérieur d'un
+chiffre. Le navigateur l'applique aussi, et une porte épingle que les deux le
+font.
+
+**Audité avant d'être allumé**, parce qu'une année écrite « 2 025 » est
+exactement la faute contre laquelle la docstring de `number` met en garde :
+aucun site d'appel ne lui passe une année, une version de schéma ni un
+identifiant. Les nombres de quatre chiffres d'un rapport qui ne sont **pas** des
+mesures — 2025, 7742, 9000 — viennent d'une URL, du nom d'un processeur et de
+celui d'une fixture, et aucun n'approche le formateur. Ceux qui y passent sont
+des watts, des secondes, des parts, des rapports, des tailles et des comptes, et
+tous se groupent.
+
+L'anglais groupe aussi : quatre tests et deux doctests épinglaient des
+orthographes non groupées et en épinglent des groupées. L'un d'eux mérite d'être
+cité, parce que son commentaire est l'objection : *un lecteur qui vérifie le
+rapport contre le modèle a besoin du chiffre que le modèle porte*. Il l'a
+toujours — le fichier porte un flottant pour une machine et le rapport un nombre
+pour une personne, ce qui est l'arbitrage déjà rendu sur le séparateur décimal.
+
+La porte de mesure de l'entrée précédente a attrapé son propre chiffre en
+quelques minutes : la part française est passée de 30,3 % à **30,4 %** et le
+test l'a dit en nommant le nouveau nombre.
+
+#### Ce que le guide recommande et que ce paquet résout déjà
+
+- **`pgettext(context, msgid)`** — le même mot en deux sens. Nos clés sont
+  contextuelles par construction : `column.value` et `whatif.energy` ne peuvent
+  pas se télescoper puisque ce ne sont pas la même clé.
+- **Les paramètres nommés `%(name)s`** — pour qu'un traducteur ne permute pas
+  les arguments. Nous allons plus loin : les nombres arrivent **déjà formatés,
+  en chaînes**, donc une spécification de format ne peut pas planter dans une
+  phrase traduite. Un `%(count)d` dans un `.po` est le plantage classique que
+  gettext n'empêche pas.
+- **`pybabel extract`** — trouver les chaînes que personne n'a traduites. Nous
+  répondons à la même question par des portes plutôt que par un rapport : toute
+  clé demandée par le code doit être écrite, toute clé écrite doit être
+  atteignable, et le compte de littéraux de prose est épinglé à ce que citent
+  les docs. Une porte vaut mieux qu'un outil qu'on pense à lancer.
+- **`format_date` et `format_currency`** — nos dates sont ISO et nos montants
+  portent le code ISO. Pour un enregistrement de provenance, c'est délibéré et
+  meilleur : non ambigu, triable, vérifiable. Écrit comme un choix désormais,
+  plutôt que laissé à l'apparence d'un oubli.
+
+#### Une limite de notre cru qui était un mauvais diagnostic
+
+`gettext_lazy` répond à « fixé à l'import », et ce dépôt note depuis cinq
+itérations que les descriptions de routes HTTP sont fixées à l'import parce que
+FastAPI construit son OpenAPI avant qu'une langue soit en vigueur. **Mesuré :
+`create_app()` est une fonction, et l'appeler sous `language("fr")` rend le même
+résumé anglais** — parce que ces vingt-neuf chaînes sont des littéraux qui n'ont
+jamais été passés par `say()`. Rien n'est bloqué par FastAPI.
+
+La vraie limite est plus petite et mérite d'être énoncée juste : `app =
+create_app()` au niveau du module tourne à l'import, et FastAPI met en cache
+`openapi_schema` par instance, donc **une app porte une langue**. En servir deux
+veut dire deux instances, ce qui est un choix de conception et non un mur.
+
+#### Trois limites de notre cru qui sont réelles, et qui mordront à la troisième langue
+
+Pas le problème du jour avec deux, et nommées pour que la troisième ne les
+découvre pas par surprise : **la pluralisation n'est pas CLDR**
+(`plural(count, one, many)` plus une clé de forme zéro est juste pour l'anglais
+et le français, faux pour les quatre formes du polonais et les six de l'arabe) ;
+**la collation n'est pas CLDR** (`sort_key` replie les accents, juste pour le
+français et faux pour le suédois, où å ä ö se trient après z) ; et **les données
+de locale sont écrites à la main** — trois clés que nous maintenons là où CLDR
+les a pour sept cents locales.
+
+Adopter Babel comme dépendance de *données de locale* — catégories de pluriel,
+groupement, collation — sans toucher au catalogue ni aux portes, voilà le geste
+si une troisième langue arrive. Avec deux, le fait main est correct et ce sont
+les portes qui valent la peine.
+
 ### Trois chiffres que les docs citaient, remesurés avec la méthode écrite
 
 `README.md` disait qu'un fichier de modèle écrit **48 %** d'un rapport statique,

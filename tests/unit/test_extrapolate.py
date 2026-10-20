@@ -208,7 +208,9 @@ def test_the_method_can_be_redone_by_hand() -> None:
     method = project_to_machine(
         runtime=measured(1.0, "s"), source_key="A100", target_key="H100"
     ).method
-    assert ("312" in method and "989" in method) or ("1555" in method and "3350" in method)
+    # The whole part of a figure is grouped, so the bandwidths read `1,555` and
+    # `3,350` here and `1 555` and `3 350` in French.
+    assert ("312" in method and "989" in method) or ("1,555" in method and "3,350" in method)
     assert "/" in method
 
 
