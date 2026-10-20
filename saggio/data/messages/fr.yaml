@@ -700,7 +700,7 @@ cli.help.scopes.summary: >-
   Dire à quel scope du GHG Protocol appartient chaque coût d'un modèle.
 cli.help.scopes.model: "Le modèle de coût à ranger."
 cli.help.scopes.scenario: >-
-  Quel scénario ranger. Le premier si omis.
+  Les coûts de quel scénario ranger. Le premier si omis.
 cli.help.scopes.json: "Afficher les placements en JSON."
 cli.help.next.summary: >-
   Dire quelle question ouverte fermerait le plus de chiffres.

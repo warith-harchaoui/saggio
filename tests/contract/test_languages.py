@@ -17,6 +17,7 @@ from __future__ import annotations
 import ast
 import re
 from pathlib import Path
+from typing import Final
 
 import pytest
 
@@ -482,3 +483,111 @@ def test_the_browser_and_the_renderer_write_a_number_the_same_way() -> None:
     script = (ROOT / "reporting" / "report.js").read_text(encoding="utf-8")
     assert 'translated("number.decimal"' in script, "the script invents its own separator"
     assert "number.decimal" in labels()[DEFAULT_LANGUAGE]
+
+
+# --- What a machine can check in a translation --------------------------------
+#
+# Not quality: no test reads a sentence and judges it, and a human reviewer is
+# still owed one. These are the three defects a machine *can* find, measured
+# before they became gates — over ~520 entries they found exactly one real
+# fault, a dropped clause in `cli.help.scopes.scenario` where the French said
+# "which scenario to place" and the English said "which scenario's *costs*".
+
+#: Entries that are the same in both languages on purpose: a word French spells
+#: the same way, a term of art kept in the standard's own wording, or a label
+#: deliberately written in the language it offers. Anything else identical is a
+#: translation somebody forgot, which is the likeliest translation defect there
+#: is and the one hardest to see by reading.
+SAME_IN_BOTH: frozenset[str] = frozenset(
+    {
+        "bar.language.en",
+        "bar.language.fr",
+        "section.projections",
+        "whatif.machine",
+        "column.dimension",
+        "column.notes",
+        "column.provenance",
+        "column.source",
+        "column.protocol",
+        "column.service",
+        "ghg.label.scope2_location",
+        "ghg.label.scope2_market",
+    }
+)
+
+
+def every_table() -> dict[str, dict[str, dict[str, str]]]:
+    """Return the three tables by name, so a check can say which one it found."""
+    return {"label": labels(), "prompt": prompts(), "message": messages()}
+
+
+@pytest.mark.parametrize("name", ["label", "prompt", "message"])
+def test_no_translation_lost_a_clause(name: str) -> None:
+    """A translation much shorter than its source has usually dropped something.
+
+    French runs some fifteen to twenty per cent longer than English, so a French
+    entry under four fifths of the English length is a sentence to look at. The
+    threshold is loose on purpose: it is a hint for a reader, and it found a real
+    one — a help line that said which scenario to place where the English said
+    which scenario's *costs*.
+    """
+    table = every_table()[name]
+    english = table[DEFAULT_LANGUAGE]
+    for code, entries in table.items():
+        if code == DEFAULT_LANGUAGE:
+            continue
+        for key, source in english.items():
+            target = entries.get(key, "")
+            if not target or len(source) < 60:
+                continue
+            assert len(target) >= len(source) * 0.8, (
+                f"{code}/{key} is {100 * len(target) / len(source):.0f}% of the "
+                f"English length — a clause may be missing:\n  en: {source}\n  {code}: {target}"
+            )
+
+
+@pytest.mark.parametrize("name", ["label", "prompt", "message"])
+def test_nothing_is_identical_without_saying_why(name: str) -> None:
+    table = every_table()[name]
+    english = table[DEFAULT_LANGUAGE]
+    for code, entries in table.items():
+        if code == DEFAULT_LANGUAGE:
+            continue
+        for key, source in english.items():
+            target = entries.get(key, "")
+            if key in SAME_IN_BOTH or len(source.strip()) <= 3:
+                continue
+            assert source.strip() != target.strip(), (
+                f"{code}/{key} is word for word the English. If that is right, add it "
+                f"to SAME_IN_BOTH with the reason; if not, it was never translated: {source!r}"
+            )
+
+
+#: The three characters that count as a space before French punctuation: a plain
+#: one, a no-break one, and the narrow no-break one typographers prefer. Written
+#: by code point because a line holding all three is a line nobody can proofread.
+SPACES: Final[str] = " " + "\u00a0" + "\u202f"
+
+
+def test_the_french_spaces_its_punctuation_the_way_french_does() -> None:
+    """A space before `:` `;` `!` `?`, every time or not at all.
+
+    French typography puts one there and English does not. Either convention
+    reads; mixing them inside one page is what a reader notices.
+    """
+    offenders: list[str] = []
+    for name, table in every_table().items():
+        for key, wording in table.get("fr", {}).items():
+            # A URL's own colon is not punctuation, and neither is a time or a
+            # ratio: the guard is what the first version of this check lacked,
+            # and `https:` was its one and only finding.
+            text = re.sub(r"\w+://\S+", "", wording)
+            text = re.sub(r"\{\w+\}", "", text)
+            for mark in (":", ";", "!", "?"):
+                for match in re.finditer(rf"(.)\{mark}", text):
+                    if match.group(1) not in SPACES:
+                        offenders.append(
+                            f"{name}/{key}: …{text[max(0, match.start() - 24) : match.start() + 2]}"
+                        )
+                        break
+    assert not offenders, "French wants a space before these marks:\n  " + "\n  ".join(offenders)

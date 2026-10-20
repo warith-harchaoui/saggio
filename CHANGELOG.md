@@ -9,6 +9,35 @@ release of that line.
 
 ## Unreleased
 
+### Three things a machine can check in a translation, and the one fault they found
+
+No test reads a French sentence and judges it — a human reviewer is still owed
+one. These are the defects a machine *can* find, measured over some five hundred
+and twenty entries before any of them became a gate:
+
+| Check | Hits |
+|---|---|
+| a translation under four fifths of the English length | **1**, a real one |
+| identical to the English | 12, all of them legitimate |
+| French punctuation spaced the English way | 1, a false positive (`https:`) |
+
+The real one: `cli.help.scopes.scenario` said *"which scenario to place"* in
+French where the English says *"which scenario's **costs** to place"*. A dropped
+clause in a help line, invisible to every check that existed — the keys matched,
+the arguments matched, the language was French. Only the **length** gave it away.
+
+- The twelve identical entries are an allow-list with the reason attached:
+  `Dimension`, `Notes`, `Provenance`, `Source`, `GHG Protocol`, `Service`,
+  `Projections`, `Machine` are the same word in French; `Scope 2
+  (location-based)` is the standard's own wording; `bar.language.*` are
+  deliberately written in the language they offer. A thirteenth identical entry
+  now fails, because a forgotten translation is the likeliest translation defect
+  there is and the hardest to see by reading.
+- The spacing check guards URLs, times and ratios — the guard is what the first
+  version lacked, and `https:` was its only finding.
+- Three sabotages confirm all three: a clause removed, a sentence left in
+  English, a colon with no space before it.
+
 ### The HTML page reads the table too, and eleven headings stop carrying their own copy
 
 `_heading(level, text, key)` took both the words and the key, so eleven headings

@@ -10,6 +10,36 @@ cette ligne.
 
 ## Non publié
 
+### Trois choses qu'une machine peut vérifier dans une traduction, et le défaut qu'elles ont trouvé
+
+Aucun test ne lit une phrase française pour la juger — une relecture humaine
+reste due. Voici les défauts qu'une machine **peut** trouver, mesurés sur quelque
+cinq cent vingt entrées avant qu'aucun ne devienne une porte :
+
+| Vérification | Trouvés |
+|---|---|
+| traduction sous les quatre cinquièmes de la longueur anglaise | **1**, un vrai |
+| identique à l'anglais | 12, toutes légitimes |
+| ponctuation française espacée à l'anglaise | 1, un faux positif (`https:`) |
+
+Le vrai : `cli.help.scopes.scenario` disait « quel scénario ranger » en français
+là où l'anglais dit « les **coûts** de quel scénario ranger ». Une clause perdue
+dans une ligne d'aide, invisible pour toutes les vérifications existantes — les
+clés correspondaient, les arguments correspondaient, la langue était bien le
+français. Seule la **longueur** l'a trahie.
+
+- Les douze entrées identiques forment une liste d'autorisation avec sa raison :
+  `Dimension`, `Notes`, `Provenance`, `Source`, `GHG Protocol`, `Service`,
+  `Projections`, `Machine` s'écrivent pareil en français ; `Scope 2
+  (location-based)` est la formulation de la norme ; `bar.language.*` sont
+  volontairement écrites dans la langue qu'elles proposent. Une treizième entrée
+  identique échoue désormais, parce qu'une traduction oubliée est le défaut de
+  traduction le plus probable et le plus difficile à voir en lisant.
+- La vérification de typographie protège les URL, les heures et les rapports — ce
+  garde-fou manquait à la première version, et `https:` fut sa seule trouvaille.
+- Trois sabotages les confirment toutes les trois : une clause retirée, une
+  phrase laissée en anglais, un deux-points sans espace devant.
+
 ### La page HTML lit la table aussi, et onze titres cessent d'en porter une copie
 
 `_heading(level, text, key)` prenait à la fois les mots et la clé : onze titres
