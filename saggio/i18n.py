@@ -291,6 +291,35 @@ def decimal_separator(code: str | None = None) -> str:
     return phrase("number.decimal", language=code or current_language(), table="label") or "."
 
 
+def percent_space(code: str | None = None) -> str:
+    """Return what this language puts between a figure and its per-cent sign.
+
+    English puts nothing. French puts a space, and the one typographers use is
+    the narrow no-break one, which also stops a line breaking between the
+    figure and the sign. Nine call sites wrote ``f"{share:.0%}"`` and a French
+    report said `21,9%`, which is the decimal separator applied and the spacing
+    rule not — a rule nothing had written down.
+
+    Parameters
+    ----------
+    code : str or None, optional
+        A language tag; the one in force when omitted.
+
+    Returns
+    -------
+    str
+        The spacing, possibly empty.
+
+    Examples
+    --------
+    >>> percent_space("en") == ""
+    True
+    >>> percent_space("fr") == "\u202f"
+    True
+    """
+    return phrase("number.percent", language=code or current_language(), table="label") or ""
+
+
 def number(text: str) -> str:
     """Return a formatted number written the way the language in force writes it.
 
@@ -298,8 +327,9 @@ def number(text: str) -> str:
     every caller keeps the precision it chose — significant figures, a fixed
     number of decimals, scientific notation — and only the separator moves.
 
-    Nothing else is touched. A blanket substitution over a report would have
-    rewritten dates, schema versions, dotted field paths and URLs; this is
+    Two things move: the decimal separator, and the space before a per-cent
+    sign. Nothing else is touched. A blanket substitution over a report would
+    have rewritten dates, schema versions, dotted field paths and URLs; this is
     called on the digits and on nothing else.
 
     Parameters
@@ -310,22 +340,35 @@ def number(text: str) -> str:
     Returns
     -------
     str
-        The same figure, with this language's decimal separator.
+        The same figure, written this language's way.
 
     Examples
     --------
     >>> number("17.4")
     '17.4'
+    >>> number("21.9%")
+    '21.9%'
     >>> with language("fr"):
     ...     number("17.4"), number("1.087e+04"), number("not known")
     ('17,4', '1,087e+04', 'not known')
+    >>> with language("fr"):
+    ...     number("21.9%") == "21,9\u202f%"
+    True
     """
-    separator = decimal_separator()
-    if separator == "." or not text:
+    if not text:
         return text
-    # Only between digits: `2.5e-05` has one, `example.invalid` has none, and a
-    # thousands group would be a different decision in a different sentence.
-    return re.sub(r"(?<=\d)\.(?=\d)", separator, text)
+    separator = decimal_separator()
+    if separator != ".":
+        # Only between digits: `2.5e-05` has one, `example.invalid` has none,
+        # and a thousands group would be a different decision in a different
+        # sentence.
+        text = re.sub(r"(?<=\d)\.(?=\d)", separator, text)
+    spacing = percent_space()
+    if spacing:
+        # Only a sign that follows a figure. A per-cent sign is the one unit
+        # English sets tight against its number and French does not.
+        text = re.sub(rf"(?<=\d)(?<!{re.escape(spacing)})%", spacing + "%", text)
+    return text
 
 
 def plural(count: int, one: str, many: str) -> str:

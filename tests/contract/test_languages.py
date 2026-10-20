@@ -514,6 +514,8 @@ SAME_IN_BOTH: frozenset[str] = frozenset(
         "ghg.label.scope2_market",
         # "Total" is the same word in French, and the rest is a number and a unit.
         "figure.domains.total",
+        # "source" is the same word in French.
+        "report.link.source",
     }
 )
 
@@ -576,6 +578,11 @@ def test_the_french_spaces_its_punctuation_the_way_french_does() -> None:
 
     French typography puts one there and English does not. Either convention
     reads; mixing them inside one page is what a reader notices.
+
+    The per-cent sign obeys the same rule and is not checked here, because no
+    catalogue entry writes one: a figure reaches a sentence already formatted,
+    and :func:`saggio.i18n.number` is where the spacing is applied. The test
+    below is the gate for that.
     """
     offenders: list[str] = []
     for name, table in every_table().items():
@@ -593,3 +600,32 @@ def test_the_french_spaces_its_punctuation_the_way_french_does() -> None:
                         )
                         break
     assert not offenders, "French wants a space before these marks:\n  " + "\n  ".join(offenders)
+
+
+@pytest.mark.parametrize("code", sorted(labels()))
+def test_every_language_says_how_it_spaces_a_per_cent_sign(code: str) -> None:
+    # The sibling of `number.decimal`, and missing for as long: nine call sites
+    # wrote f"{share:.0%}" and a French report said `21,9%`. Empty is a real
+    # answer — English sets the sign tight — so this checks the key exists, not
+    # that it says something.
+    assert "number.percent" in labels()[code], f"{code} does not say how it spaces a per-cent sign"
+
+
+def test_the_per_cent_sign_is_spaced_the_way_each_language_spaces_it() -> None:
+    """A formatted figure comes back spaced, and only where a figure precedes.
+
+    `100%` is a figure and takes the rule. A literal per-cent sign with no
+    digit before it is not a measurement and is left alone, the same discipline
+    the decimal separator keeps.
+    """
+    from saggio.i18n import language, number, percent_space
+
+    assert number("21.9%") == "21.9%", "English sets the sign tight against the figure"
+    with language("fr"):
+        narrow = percent_space()
+        assert number("21.9%") == f"21,9{narrow}%"
+        assert number("49%") == f"49{narrow}%"
+        # Already spaced, and not spaced twice.
+        assert number(f"49{narrow}%") == f"49{narrow}%"
+        # No figure before it, so nothing to space away from.
+        assert number("%") == "%"

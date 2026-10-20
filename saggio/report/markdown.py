@@ -290,12 +290,18 @@ def _equivalence_phrase(named: dict[str, Quantity]) -> str | None:
     ]
     flight = named["flight"]
     if flight.is_known():
-        route = ROUTE_LABEL.get((flight.unit or "").removeprefix("flights ").strip())
+        # `ROUTE_LABEL` says whether this is a route the package knows, and the
+        # table says what it is called — two keys per route, one for whole
+        # flights and one for a fraction of one. This composed `{route} flights`
+        # itself, so the HTML page read the route's French name from the table
+        # while this file said its English one beside it.
+        route = (flight.unit or "").removeprefix("flights ").strip()
+        known = route in ROUTE_LABEL
         fraction = float(flight.value)
-        if route and fraction >= 1.0:
-            parts.append(f"{format_number(fraction)} {route} flights")
-        elif route and fraction >= 0.005:
-            parts.append(f"{fraction:.0%} of a {route} flight")
+        if known and fraction >= 1.0:
+            parts.append(f"{format_number(fraction)} {_label(f'equivalence.flights.{route}')}")
+        elif known and fraction >= 0.005:
+            parts.append(f"{localised(f'{fraction:.0%}')} {_label(f'equivalence.flight.{route}')}")
     return " · ".join(parts)
 
 
@@ -427,16 +433,17 @@ def _felt_size_lines(costs: object, *, per: str = "unit") -> list[str]:
     phrase = _equivalence_phrase(named)
     if not phrase:
         return []
-    lead = f"A million {per}s emit about" if scale == "million" else f"One {per} emits about"
-    note = (
-        "estimated restatements of the location-based figure"
-        if both_scope_two_methods(costs)
-        else "estimated restatements"
+    # Four sentences the table already held, and this built them from `per` and
+    # `scale` by string arithmetic — so the two reports could word one sentence
+    # differently, which is the whole reason this file reads the table at all.
+    lead = _label(f"equivalence.{per}.{scale}")
+    note = _label(
+        "equivalence.note.located" if both_scope_two_methods(costs) else "equivalence.note"
     )
-    return [
-        f"*{lead} {phrase} — {note}, [Green Algorithms]({GREEN_ALGORITHMS_SOURCE}) coefficients.*",
-        "",
-    ]
+    # The note names Green Algorithms and this adds the link: the words are the
+    # table's, the markup is this renderer's.
+    linked = note.replace("Green Algorithms", f"[Green Algorithms]({GREEN_ALGORITHMS_SOURCE})", 1)
+    return [f"*{lead} {phrase} — {linked}.*", ""]
 
 
 def _label(key: str) -> str:
@@ -595,9 +602,9 @@ def _source_cell(quantity: Quantity) -> str:
     """
     if not quantity.source_url:
         return "—"
-    link = f"[source]({_safe_url(quantity.source_url)})"
+    link = f"[{say('report.link.source')}]({_safe_url(quantity.source_url)})"
     if quantity.retrieved_date:
-        return f"{link}, read {quantity.retrieved_date}"
+        return f"{link}, {say('report.read_on', date=quantity.retrieved_date)}"
     return link
 
 
@@ -629,7 +636,10 @@ def _header(model: CostModel) -> list[str]:
     weakest = overall_status(model)
     if weakest:
         lines += [
-            say("report.weakest", status=weakest, meaning=status_meaning(weakest)),
+            # The emphasis and the backticks are this renderer's now: they used
+            # to live inside the translated value, where the HTML page could not
+            # use them and wrote its own copy of the sentence instead.
+            f"**{say('report.weakest', status=f'`{weakest}`')}** " + status_meaning(weakest),
             "",
         ]
     updated = model.data.get("date_updated")
@@ -908,7 +918,7 @@ def _inventory_section(model: CostModel) -> list[str]:
         where = placed[key]
         raw = costs.get(key)
         quantity = Quantity.from_mapping(raw) if looks_like_quantity(raw) else None
-        heading = where.label if not where.is_open else say("report.not_placed")
+        heading = where.label if not where.is_open else f"**{say('report.not_placed')}**"
         link = f"[{heading}]({where.source_url})" if where.source_url else heading
         rows.append(
             [
@@ -1055,7 +1065,8 @@ def _models_section(model: CostModel) -> list[str]:
             continue
         name = _escape(entry.get("model"))
         where = entry.get("detected_at")
-        heading = f"### `{name}`" + (f" — found at `{_escape(where)}`" if where else "")
+        found = say("report.found_at", where=f"`{_escape(where)}`") if where else ""
+        heading = f"### `{name}`" + (f" — {found}" if found else "")
         lines += [heading, ""]
         if entry.get("provider"):
             lines += [f"Vendor: {_escape(entry['provider'])}.", ""]

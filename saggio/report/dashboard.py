@@ -38,6 +38,7 @@ import json
 from typing import Any, Final
 
 from ..i18n import languages as language_codes
+from ..i18n import plural, say
 from ..model.cost_model import CostModel
 from ..model.quantity import Quantity, looks_like_quantity
 from ..model.validate import overall_status
@@ -50,6 +51,7 @@ from .html import (
     _fill,
     _heading,
     _logo_data_uri,
+    _node,
     _table,
     translations,
 )
@@ -57,14 +59,10 @@ from .markdown import format_quantity
 
 #: The cost columns every row shows, in reading order. These are the canonical
 #: dimensions; a model's own extra dimensions belong on its own report page,
-#: where their definitions sit next to them.
-_COLUMNS: Final[list[tuple[str, str]]] = [
-    ("money", "Money"),
-    ("time", "Time"),
-    ("energy", "Energy"),
-    ("carbon", "Carbon"),
-    ("water", "Water"),
-]
+#: where their definitions sit next to them. Keys only: each carried an English
+#: label beside it, which `dashboard.column.*` already said and nothing read
+#: once the table stopped taking words for a keyed column.
+_COLUMNS: Final[tuple[str, ...]] = ("money", "time", "energy", "carbon", "water")
 
 
 def _project_name(model: CostModel, ordinal: int) -> str:
@@ -92,7 +90,7 @@ def _project_name(model: CostModel, ordinal: int) -> str:
     """
     project = model.data.get("project")
     name = project.get("name") if isinstance(project, dict) else None
-    return str(name) if name else f"unnamed project {ordinal + 1}"
+    return str(name) if name else say("dashboard.project.unnamed", ordinal=ordinal + 1)
 
 
 def _cost_cell(costs: dict[str, Any], key: str) -> str:
@@ -162,7 +160,7 @@ def _rows(models: list[CostModel]) -> list[str]:
             unit_name = unit.get("name") if isinstance(unit, dict) else None
             costs = scenario.get("costs")
             costs = costs if isinstance(costs, dict) else {}
-            cells = "".join(_cost_cell(costs, key) for key, _ in _COLUMNS)
+            cells = "".join(_cost_cell(costs, key) for key in _COLUMNS)
             rows.append(
                 f"<tr><td>{_escape(label)}</td>"
                 f'<td class="muted">{_escape(unit_name) or "—"}</td>'
@@ -206,7 +204,7 @@ def render_dashboard(models: list[CostModel | dict[str, Any]]) -> str:
     ValueError: A dashboard needs at least one cost model.
     """
     if not models:
-        raise ValueError("A dashboard needs at least one cost model.")
+        raise ValueError(say("dashboard.needs_a_model"))
     wrapped = [
         model if isinstance(model, CostModel) else CostModel.from_mapping(model) for model in models
     ]
@@ -218,26 +216,33 @@ def render_dashboard(models: list[CostModel | dict[str, Any]]) -> str:
         ]
     )
     table = _table(
-        ["Project", "Unit of work", "Weakest"] + [label for _, label in _COLUMNS],
         _rows(wrapped),
         i18n_keys=[
             "dashboard.column.project",
             "dashboard.column.unit",
             "dashboard.column.weakest",
-            *(f"dashboard.column.{key}" for key, _ in _COLUMNS),
+            *(f"dashboard.column.{key}" for key in _COLUMNS),
         ],
         widths=[20, 17, 10, 11, 10, 11, 11, 10],
     )
 
     count = len(wrapped)
-    title = f"Cost of running {count} project" + ("s" if count > 1 else "")
+    # `+ "s"` was an English pluralisation rule living in the renderer, and the
+    # two languages do not even agree about zero.
+    # `plural` returns the count with the form it chose, so the sentence takes
+    # one argument and not two.
+    title = say(
+        "dashboard.title",
+        projects=plural(count, say("dashboard.project.one"), say("dashboard.project.many")),
+    )
     body = "".join(
         [
             f"<h1>{_escape(title)}</h1>",
-            '<p class="muted" data-i18n="dashboard.lede">Every committed cost model, '
-            "side by side. Each project defines its own unit of work, so the costs "
-            "below are per that project's unit and the rows do not compare with each "
-            "other; how well founded each model is compares exactly.</p>",
+            # Hardcoded English until now, because escaping its apostrophe made
+            # the server and the language button write two spellings of it. The
+            # escaper for a text node leaves quotes alone, so it can read the
+            # table like every other node on the page.
+            _node("p", "dashboard.lede", 'class="muted"'),
             # The dashboard's own keys, not the single-report ones: reusing
             # section.honesty would let the language script rewrite this page's
             # wording — including the "per project" caveat — even in English.

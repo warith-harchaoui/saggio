@@ -10,6 +10,74 @@ cette ligne.
 
 ## Non publié
 
+### La page cesse d'écrire sa propre copie de la table, en quatorze nœuds et un helper de tableau
+
+`report/html.py` n'avait presque pas de prose anglaise en propre. Ce qu'il avait,
+c'étaient **quatorze nœuds `data-i18n` portant chacun une seconde copie des mots
+à côté de la clé** — les quatre étiquettes du panneau what-if, ses quatre
+affichages et sa note, les six intervalles d'équivalence, la mise en garde
+d'inventaire. Elles correspondaient : rien n'échouait, et rien n'aurait échoué
+jusqu'à ce que l'une d'elles soit modifiée. `_node(tag, key)` ne prend aucun
+texte : les mots ne sont pas à l'appelant de les fournir, ce que `_heading` avait
+tranché pour les titres en #34 et que ceci tranche pour tout le reste.
+
+**Deux valeurs du catalogue portaient leur propre emphase markdown**, et c'est
+pourquoi cette page écrivait sa propre copie au lieu de lire la table.
+`report.weakest` valait « **…qui est \`{status}\`.** {meaning} » — astérisques,
+accents graves et une seconde phrase à l'intérieur d'une seule valeur traduite,
+utilisable par exactement un des deux moteurs. C'est une phrase simple
+désormais : le markdown ajoute ses astérisques, la page ajoute son `<code>`, et
+les deux prennent la signification dans `status_meaning`. Idem pour
+`report.not_placed`.
+
+**`_table` prenait une liste de mots et une liste de clés côte à côte.** C'est la
+forme même dont parle le test
+`test_every_label_the_button_swaps_says_what_the_server_wrote` — il l'a attrapée
+une fois, les deux listes en désaccord. Six appelants passaient `_label(key)`
+comme en-tête **et** comme clé ; le tableau de bord passait de l'anglais en dur.
+Une colonne à clé ne prend plus de mots, ce qui a supprimé six appels
+redondants à `_label`, les trois littéraux du tableau de bord, et la moitié
+anglaise de `_COLUMNS`, où cinq noms de colonnes siégeaient à côté des cinq clés
+qui les disaient déjà.
+
+**`markdown.py` est le troisième moteur et portait la même famille.** Son chapeau
+d'équivalence était bâti par arithmétique de chaînes — `f"A million {per}s emit
+about"` — à partir des quatre phrases que la table des étiquettes portait depuis
+toujours, et son équivalence de vol composait « {route} flights » là où la page
+lisait « vols New York–San Francisco » dans la table. Une phrase, deux rapports,
+deux formulations : exactement ce que `_label` existe pour empêcher, et sa
+docstring le dit.
+
+Un échappeur pour nœud de texte, parce que la dernière de ces copies était
+inatteignable sans lui. `_escape` échappe les apostrophes, ce qui est juste pour
+un attribut et faux pour un nœud de texte : le serveur écrivait
+« l&#x27;énergie » là où la table dit « l'énergie » — la même phrase en deux
+orthographes, rendues identiques. Neuf étiquettes françaises et deux anglaises
+portent une apostrophe, et `dashboard.lede` était codée en dur en anglais pour
+précisément cette raison. Elle lit la table maintenant.
+
+#### Trois choses que la lecture de la page dans les deux langues a trouvées, dans un fichier qu'on ne m'avait pas demandé d'ouvrir
+
+- **Un signe pour-cent collé à son chiffre.** Le français met une espace devant,
+  et neuf sites écrivaient `f"{share:.0%}"` : un rapport français disait
+  « 21,9% ». C'est la sœur du séparateur décimal, et elle manquait depuis aussi
+  longtemps : `number.percent` est une clé à côté de `number.decimal`, vide en
+  anglais et une espace fine insécable en français — celle que les typographes
+  emploient et celle qui empêche une ligne de se couper entre le chiffre et le
+  signe. Deux portes, confirmées chacune par un sabotage.
+- **Un « to » composé en Python.** `_spread_row` bâtissait `f"{low} to {high}"`,
+  là où aucune traduction ne pouvait l'atteindre, et gardait le point décimal
+  d'origine : un rapport français lisait « temps 1.31 s to 1.371 s ». Il lit
+  « temps de 1,31 s à 1,371 s » désormais.
+- **Une branche sur trois qui avait oublié de localiser.**
+  `boundary.idle_included` a trois branches ; deux passaient leurs watts par
+  `number()` et celle du milieu, non.
+
+Tout ce qui reste anglais dans ces quatre fichiers dit pourquoi en commentaire :
+un `KeyError` sur un jeton de gabarit non rempli, levé à qui modifie le
+gabarit ; une constante `NOT_KNOWN` conservée pour les appelants qui
+l'importent ; deux noms de routes et un nom propre.
+
 ### Les cinq figures, et trois de leurs phrases que les tables portaient déjà
 
 `report/figures.py` dessinait cinq images dont tous les mots étaient des

@@ -16,6 +16,12 @@
 
 en:
   number.decimal: "."
+  # What this language puts between a figure and its per-cent sign. Empty in
+  # English, a narrow no-break space in French, which is the one typographers
+  # use and the one that will not let a line break between the two. Server-side
+  # only — the what-if panel states no percentages — but it lives beside its
+  # sibling because they are one decision about how a figure is written.
+  number.percent: ""
   # Whether a count of zero takes the singular or the plural form.
   number.plural.zero: "many"
   bar.theme.light: "Switch to the light theme"
@@ -106,6 +112,7 @@ en:
 
 fr:
   number.decimal: ","
+  number.percent: "\u202f"
   number.plural.zero: "one"
   bar.theme.light: "Passer au thème clair"
   bar.theme.dark: "Passer au thème sombre"

@@ -9,6 +9,69 @@ release of that line.
 
 ## Unreleased
 
+### The page stops writing its own copy of the table, in fourteen nodes and a table helper
+
+`report/html.py` had no English prose of its own worth the name. What it had was
+**fourteen `data-i18n` nodes each carrying a second copy of the words beside the
+key** — the four what-if labels, its four readouts and its note, the six
+equivalence spans, the inventory caveat. They matched, so nothing failed, and
+nothing would have failed until one of them was edited. `_node(tag, key)` takes
+no text: the words are not the caller's to supply, which is what `_heading`
+settled for headings in #34 and what this settles for everything else.
+
+**Two catalogue values carried their own markdown emphasis**, which is why this
+page wrote its own copy of them rather than reading the table.
+`report.weakest` was `**…which is \`{status}\`.** {meaning}` — asterisks,
+backticks and a second sentence inside one translated value, usable by exactly
+one of the two renderers. It is a plain sentence now; markdown adds its
+asterisks, the page adds its `<code>`, and both get the meaning from
+`status_meaning`. Same for `report.not_placed`.
+
+**`_table` took a header list and a key list side by side.** That is the shape
+the test `test_every_label_the_button_swaps_says_what_the_server_wrote` was
+written about — it was caught once with the two lists disagreeing. Six callers
+passed `_label(key)` as the heading *and* the key; the dashboard passed literal
+English. A keyed column takes no words now, which deleted six redundant
+`_label` calls, the dashboard's three literals, and the English half of
+`_COLUMNS`, where five column names sat beside the five keys that already said
+them.
+
+**`markdown.py` is the third renderer and had the same family.** Its felt-size
+lead was built by string arithmetic — `f"A million {per}s emit about"` — from
+the four sentences the labels table has held all along, and its flight
+equivalence composed `{route} flights` while the page read `vols New York–San
+Francisco` from the table. One sentence, two reports, two wordings: the exact
+thing `_label` exists to prevent, and its docstring says so.
+
+A text-node escaper, because the last one of these was unreachable without it.
+`_escape` escapes quotes, which is right for an attribute and wrong for a text
+node, and it made the server write `l&#x27;énergie` where the table says
+`l'énergie` — the same sentence in two spellings, rendering identically. Nine
+French labels and two English ones carry an apostrophe, and `dashboard.lede`
+had been hardcoded in English for precisely this reason. It reads the table now.
+
+#### Three things reading the page in both languages found, in a file nobody asked me to open
+
+- **A per-cent sign set tight against its figure.** French puts a space there
+  and nine call sites wrote `f"{share:.0%}"`, so a French report said `21,9%`.
+  This is the decimal separator's sibling and had been missing for as long:
+  `number.percent` is a key beside `number.decimal`, empty in English and a
+  narrow no-break space in French — the one typographers use and the one that
+  will not let a line break between the figure and the sign. Two gates, both
+  confirmed against a sabotage.
+- **`to` composed in Python.** `_spread_row` built `f"{low} to {high}"`, where
+  no translation could reach it, and kept the authored decimal point: a French
+  report read `temps 1.31 s to 1.371 s`. It reads `temps de 1,31 s à 1,371 s`
+  now.
+- **One branch of three that forgot to localise.** `boundary.idle_included`
+  has three branches; two wrapped their watts in `number()` and the middle one
+  did not.
+
+Everything that remains English in these four files says why in a comment: a
+`KeyError` about an unfilled shell token, raised at whoever is editing the
+shell; a `NOT_KNOWN` constant kept for callers that import it; two route names
+and a proper noun.
+
 ### The five figures, and three of their sentences the tables already held
 
 `report/figures.py` drew five pictures whose words were all English literals.

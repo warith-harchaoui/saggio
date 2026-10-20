@@ -306,8 +306,8 @@ def idle_exclusion(
     elif idle is not None and watts is not None:
         line += say(
             "boundary.idle_included.floor_above",
-            idle=f"{idle:.1f} W",
-            watts=f"{watts:.1f} W",
+            idle=localised(f"{idle:.1f} W"),
+            watts=localised(f"{watts:.1f} W"),
         )
     elif idle is not None:
         line += say("boundary.idle_included.floor_only", idle=localised(f"{idle:.1f} W"))
@@ -505,7 +505,8 @@ def _domain_row(value: Any) -> tuple[str, str] | None:
     if not isinstance(value, Mapping) or not value:
         return None
     parts = [
-        f"{say(f'boundary.domain.{key}') if str(key) in _NAMED_DOMAINS else key} {number:g} W"
+        f"{say(f'boundary.domain.{key}') if str(key) in _NAMED_DOMAINS else key} "
+        f"{localised(f'{number:g}')} W"
         for key, raw in value.items()
         if (number := _number(raw)) is not None
     ]
@@ -550,8 +551,19 @@ def _spread_row(value: Any) -> tuple[str, str] | None:
         unit = units.get(str(key), "")
         name = say(f"boundary.spread.{key}") if str(key) in units else str(key)
         relative = _number(block.get("relative"))
-        width = f" ({relative:.0%})" if relative is not None else ""
-        parts.append(f"{name} {low:.4g} {unit} to {high:.4g} {unit}{width}".replace("  ", " "))
+        width = f" ({localised(f'{relative:.0%}')})" if relative is not None else ""
+        # `to` used to sit in this f-string, where no translation could reach
+        # it, and the two ends kept their authored decimal point: a French
+        # report read `temps 1.31 s to 1.371 s`.
+        parts.append(
+            say(
+                "boundary.spread.range",
+                name=name,
+                low=f"{localised(f'{low:.4g}')} {unit}".strip(),
+                high=f"{localised(f'{high:.4g}')} {unit}".strip(),
+                width=width,
+            )
+        )
     return (say("boundary.row.spread"), ", ".join(parts)) if parts else None
 
 

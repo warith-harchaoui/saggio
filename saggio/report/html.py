@@ -153,6 +153,10 @@ def _fill(template: str, **values: str) -> str:
 
     filled = _TOKEN_PATTERN.sub(substitute, template)
     if missing:
+        # English, and the only sentence in this module that is: a token the
+        # shell asks for and this does not supply is a packaging fault, raised
+        # at whoever is editing the shell. No reader can reach it, and a reader
+        # who could would be looking at a broken page rather than a report.
         raise KeyError(f"the report shell has unfilled tokens: {', '.join(sorted(set(missing)))}")
     return filled
 
@@ -274,22 +278,32 @@ def _quantity_cell(quantity: Quantity) -> str:
 
 
 def _table(
-    headers: list[str],
     rows: list[str],
     *,
+    headers: list[str] | None = None,
     i18n_keys: list[str] | None = None,
     widths: list[int] | None = None,
 ) -> str:
     """Wrap rows in a horizontally scrollable table.
 
+    A keyed column takes no words. It used to take both, and every caller
+    passed the key twice — six of them as ``_label(key)``, which is the same
+    string by construction, and the dashboard as literal English, which is not.
+    That is the shape the test
+    ``test_every_label_the_button_swaps_says_what_the_server_wrote`` was written
+    about: a header list and a key list, side by side, free to disagree. There
+    is nowhere left for them to disagree now.
+
     Parameters
     ----------
-    headers : list of str
-        Column headings.
     rows : list of str
         Pre-rendered ``<tr>`` markup.
+    headers : list of str or None, optional
+        Headings for the columns that have no key: a column whose words are the
+        model's, or one deliberately left blank.
     i18n_keys : list of str or None, optional
-        Translation keys for the headings, one per column.
+        Translation keys, one per column, in column order. An empty string
+        leaves that column to ``headers``.
     widths : list of int or None, optional
         Column widths as percentages. Given these, the table lays out in them
         rather than in whatever its widest cell asks for; a column of dotted
@@ -303,18 +317,24 @@ def _table(
 
     Examples
     --------
-    >>> _table(["a"], [])
+    >>> _table([], headers=["a"])
     ''
-    >>> "<colgroup>" in _table(["a"], ["<tr><td>1</td></tr>"], widths=[100])
+    >>> "<colgroup>" in _table(["<tr><td>1</td></tr>"], headers=["a"], widths=[100])
     True
+    >>> _table(["<tr></tr>"], i18n_keys=["column.notes"]).count('data-i18n="column.notes"')
+    1
     """
     if not rows:
         return ""
+    columns = max(len(i18n_keys or ()), len(headers or ()))
     cells = []
-    for index, heading in enumerate(headers):
-        key = i18n_keys[index] if i18n_keys and index < len(i18n_keys) else None
-        attribute = f' data-i18n="{key}"' if key else ""
-        cells.append(f"<th{attribute}>{_escape(heading)}</th>")
+    for index in range(columns):
+        key = i18n_keys[index] if i18n_keys and index < len(i18n_keys) else ""
+        if key:
+            cells.append(f'<th data-i18n="{key}">{_words(key)}</th>')
+            continue
+        heading = headers[index] if headers and index < len(headers) else ""
+        cells.append(f"<th>{_escape(heading)}</th>")
     if widths:
         colgroup = (
             "<colgroup>"
@@ -333,6 +353,113 @@ def _table(
         + "".join(rows)
         + "</tbody></table></div>"
     )
+
+
+def _words(key: str) -> str:
+    """Escape a label for a text node, leaving its quotes alone.
+
+    Nothing escapes a text node but ``<``, and a label is written twice — once
+    by the server and once by the language button into the same node. Escaping
+    an apostrophe made the server write ``l&#x27;énergie`` where the table says
+    ``l'énergie``: the same sentence in two spellings, which rendered
+    identically and so could only ever be caught by comparing the bytes. Nine
+    French labels and two English ones carry an apostrophe, and the dashboard's
+    lede was hardcoded in English rather than read from the table for exactly
+    this reason.
+
+    Not for attributes: those are escaped with :func:`_escape`, which keeps its
+    quotes because a quote is how you escape an attribute.
+
+    Parameters
+    ----------
+    key : str
+        A key in the report's label table.
+
+    Returns
+    -------
+    str
+        The wording, safe for a text node.
+
+    Examples
+    --------
+    >>> _words("whatif.country")
+    'Country'
+    >>> _words("figure.location.caption").endswith("scales linearly with it")
+    True
+    """
+    return html.escape(_label(key), quote=False)
+
+
+def _source_link(quantity: Quantity) -> str:
+    """Render a quantity's citation: a link, and the date it was read.
+
+    Both reports wrote these words themselves, which made two spellings of one
+    sentence free to drift — and this page said them in two places, so three.
+    The comma is the renderer's, like every other separator here; the words are
+    the table's.
+
+    Parameters
+    ----------
+    quantity : Quantity
+        The quantity, read for its source and its retrieval date.
+
+    Returns
+    -------
+    str
+        The markup, or an em dash when nothing was cited.
+
+    Examples
+    --------
+    >>> _source_link(Quantity(source_url="https://x.test", retrieved_date="2026-10-20"))
+    '<a href="https://x.test" rel="noopener">source</a>, read 2026-10-20'
+    >>> _source_link(Quantity())
+    '—'
+    """
+    if not quantity.source_url:
+        return "—"
+    link = (
+        f'<a href="{_escape(quantity.source_url)}" rel="noopener">'
+        f"{_escape(say('report.link.source'))}</a>"
+    )
+    if not quantity.retrieved_date:
+        return link
+    return link + ", " + _escape(say("report.read_on", date=quantity.retrieved_date))
+
+
+def _node(tag: str, key: str, attributes: str = "") -> str:
+    """Render an element whose words come from the table and nowhere else.
+
+    Every node on this page that carries a ``data-i18n`` attribute is written
+    twice: once by the server, and once by the language button into the same
+    node. Fourteen of them held their own English copy of the words beside the
+    key, which is the fault :func:`_heading` had in eleven headings — the two
+    copies matched, so nothing failed, and nothing would have failed until one
+    of them was edited. There is no text parameter here: the words are not the
+    caller's to supply.
+
+    Parameters
+    ----------
+    tag : str
+        The element name.
+    key : str
+        A key in the report's label table — the table this page embeds.
+    attributes : str, optional
+        Already-escaped attributes to put before ``data-i18n``.
+
+    Returns
+    -------
+    str
+        The element.
+
+    Examples
+    --------
+    >>> _node("span", "equivalence.trees")
+    '<span data-i18n="equivalence.trees">tree-months</span>'
+    >>> _node("dt", "whatif.energy")
+    '<dt data-i18n="whatif.energy">Energy</dt>'
+    """
+    before = f" {attributes}" if attributes else ""
+    return f'<{tag}{before} data-i18n="{key}">{_words(key)}</{tag}>'
 
 
 def _heading(level: int, text: str, key: str | None = None) -> str:
@@ -361,9 +488,9 @@ def _heading(level: int, text: str, key: str | None = None) -> str:
     >>> _heading(2, "ignored", "section.honesty")
     '<h2 data-i18n="section.honesty">Honesty</h2>'
     """
-    attribute = f' data-i18n="{key}"' if key else ""
-    written = _label(key) if key else text
-    return f"<h{level}{attribute}>{_escape(written)}</h{level}>"
+    if key:
+        return _node(f"h{level}", key)
+    return f"<h{level}>{_escape(text)}</h{level}>"
 
 
 def _verdict(model: CostModel) -> str:
@@ -387,21 +514,16 @@ def _verdict(model: CostModel) -> str:
     weakest = overall_status(model)
     if weakest is None:
         return ""
+    # The status is passed already wrapped: the catalogue holds the sentence and
+    # the renderer holds the tag, the same division that moved markdown's own
+    # emphasis out of `report.scenario.no_costs`. This page wrote its own copy
+    # of this sentence because the key carried `**` and backticks and was
+    # therefore unusable here; both are gone from the value now.
+    sentence = say("report.weakest", status=f"<code>{_escape(weakest)}</code>")
     return (
         f'<div class="verdict" data-status="{_escape(weakest)}">{_badge(weakest)}'
-        f"<p>This model is only as good as its weakest number, which is "
-        f"<code>{_escape(weakest)}</code>. {_escape(status_meaning(weakest))}</p></div>"
+        f"<p>{sentence} {_escape(status_meaning(weakest))}</p></div>"
     )
-
-
-#: What each lead of the felt-size sentence says in English, keyed by (what one
-#: table entry is, what the numbers restate). The i18n key follows the same pair.
-_FELT_SIZE_LEADS: Final[dict[tuple[str, str], str]] = {
-    ("unit", "one"): "One unit emits about",
-    ("unit", "million"): "A million units emit about",
-    ("run", "one"): "One run emits about",
-    ("run", "million"): "A million runs emit about",
-}
 
 
 def _felt_size_paragraph(costs: object, *, per: str = "unit") -> str:
@@ -439,39 +561,35 @@ def _felt_size_paragraph(costs: object, *, per: str = "unit") -> str:
     if not (named["tree_months"].is_known() and named["car_km"].is_known()):
         return ""
     parts = [
-        f"{format_number(named['tree_months'].value)} "
-        '<span data-i18n="equivalence.trees">tree-months</span>',
-        f"{format_number(named['car_km'].value)} "
-        '<span data-i18n="equivalence.car">km by car (EU average)</span>',
+        f"{format_number(named['tree_months'].value)} " + _node("span", "equivalence.trees"),
+        f"{format_number(named['car_km'].value)} " + _node("span", "equivalence.car"),
     ]
     flight = named["flight"]
     if flight.is_known():
         route = (flight.unit or "").removeprefix("flights ").strip()
-        label = ROUTE_LABEL.get(route)
+        known = route in ROUTE_LABEL
         fraction = float(flight.value)
-        if label and fraction >= 1.0:
+        # `ROUTE_LABEL` decides whether the route is one this package knows, and
+        # no longer what it is called: the table says that, under two keys per
+        # route, and this built the same two sentences a second time from the
+        # label and the words around it.
+        if known and fraction >= 1.0:
             parts.append(
-                f"{format_number(fraction)} "
-                f'<span data-i18n="equivalence.flights.{route}">{label} flights</span>'
+                f"{format_number(fraction)} " + _node("span", f"equivalence.flights.{route}")
             )
-        elif label and fraction >= 0.005:
-            parts.append(
-                f"{fraction:.0%} "
-                f'<span data-i18n="equivalence.flight.{route}">of a {label} flight</span>'
-            )
-    lead = _FELT_SIZE_LEADS[(per, scale)]
+        elif known and fraction >= 0.005:
+            parts.append(f"{fraction:.0%} " + _node("span", f"equivalence.flight.{route}"))
     # Which of the two scope 2 figures these kilometres came from, said only
     # where both are on the page. See :func:`~saggio.report.markdown.both_scope_two_methods`.
-    note = (
-        ("equivalence.note.located", "estimated restatements of the location-based figure")
-        if both_scope_two_methods(costs)
-        else ("equivalence.note", "estimated restatements")
-    )
+    note = "equivalence.note.located" if both_scope_two_methods(costs) else "equivalence.note"
     return (
-        f'<p class="muted equivalences"><span data-i18n="equivalence.{per}.{scale}">{lead}</span> '
+        '<p class="muted equivalences">'
+        + _node("span", f"equivalence.{per}.{scale}")
+        + " "
         + " · ".join(parts)
-        + f' — <a href="{GREEN_ALGORITHMS_SOURCE}" data-i18n="{note[0]}">'
-        f"{note[1]}, Green Algorithms coefficients</a>.</p>"
+        + " — "
+        + _node("a", note, f'href="{GREEN_ALGORITHMS_SOURCE}"')
+        + ".</p>"
     )
 
 
@@ -525,13 +643,6 @@ def _costs_section(model: CostModel, registry: DimensionRegistry) -> str:
             )
         blocks.append(
             _table(
-                [
-                    _label("column.dimension"),
-                    _label("column.value"),
-                    _label("column.status"),
-                    _label("column.derived"),
-                    _label("column.notes"),
-                ],
                 rows,
                 i18n_keys=[
                     "column.dimension",
@@ -592,7 +703,6 @@ def _projections_section(model: CostModel) -> str:
                 rows += _projection_rows(key, value)
         blocks.append(
             _table(
-                ["", _label("column.amount"), _label("column.status"), _label("column.method")],
                 rows,
                 # No key for the first column: it is deliberately blank, and a
                 # key there made the language button write "Dimension" into it.
@@ -739,29 +849,16 @@ def _assumptions_section(model: CostModel) -> str:
         if not looks_like_quantity(raw):
             continue
         quantity = Quantity.from_mapping(raw)
-        source = (
-            f'<a href="{_escape(quantity.source_url)}" rel="noopener">source</a>'
-            + (f", read {_escape(quantity.retrieved_date)}" if quantity.retrieved_date else "")
-            if quantity.source_url
-            else "—"
-        )
         rows.append(
             f"<tr><td><code>{_escape(key)}</code></td>"
             f"{_quantity_cell(quantity)}"
             f"<td>{_badge(quantity.status)}</td>"
-            f'<td class="muted">{source}</td>'
+            f'<td class="muted">{_source_link(quantity)}</td>'
             f'<td class="muted">{_escape(quantity.notes)}</td></tr>'
         )
     if not rows:
         return ""
     return _heading(2, "", "section.assumptions") + _table(
-        [
-            _label("column.assumption"),
-            _label("column.amount"),
-            _label("column.status"),
-            _label("column.provenance"),
-            _label("column.notes"),
-        ],
         rows,
         i18n_keys=[
             "column.assumption",
@@ -817,7 +914,7 @@ def _inventory_section(model: CostModel) -> str:
         where = placed[key]
         raw = costs.get(key)
         quantity = Quantity.from_mapping(raw) if looks_like_quantity(raw) else None
-        label = _escape(where.label if not where.is_open else "not placed")
+        label = _escape(where.label if not where.is_open else say("report.not_placed"))
         heading = (
             f'<a href="{_escape(where.source_url)}" rel="noopener">{label}</a>'
             if where.source_url
@@ -842,20 +939,15 @@ def _inventory_section(model: CostModel) -> str:
         whole = market_based_figure_exists(costs)
         key = "inventory.pair" if whole else "inventory.dual"
         caveat = (
-            f'<p class="muted"><strong data-i18n="{key}">{_escape(_label(key))}</strong> '
+            '<p class="muted">'
+            + _node("strong", key)
+            + " "
             + _escape(scope_two.dual_reporting)
             + "</p>"
         )
     return (
         _heading(2, "", "section.inventory")
         + _table(
-            [
-                _label("column.cost"),
-                _label("column.value"),
-                _label("column.status"),
-                _label("column.protocol"),
-                _label("column.why"),
-            ],
             rows,
             i18n_keys=[
                 "column.cost",
@@ -904,7 +996,8 @@ def _services_section(model: CostModel) -> str:
             f"<td><code>{_escape(entry.get('evidence'))}</code></td>"
             f"{_quantity_cell(quantity)}"
             + (
-                f'<td><a href="{_escape(pricing)}" rel="noopener">prices</a></td>'
+                f'<td><a href="{_escape(pricing)}" rel="noopener">'
+                f"{_escape(say('report.link.prices'))}</a></td>"
                 if pricing
                 else "<td>—</td>"
             )
@@ -914,13 +1007,6 @@ def _services_section(model: CostModel) -> str:
         _heading(2, "", "section.services")
         + f'<p class="lede">{_escape(say("report.services.lede"))}</p>'
         + _table(
-            [
-                _label("column.service"),
-                _label("column.found_at"),
-                _label("column.evidence"),
-                _label("column.value"),
-                _label("column.where_to_price"),
-            ],
             rows,
             i18n_keys=[
                 "column.service",
@@ -974,32 +1060,15 @@ def _models_section(model: CostModel) -> str:
                 if not looks_like_quantity(raw):
                     continue
                 quantity = Quantity.from_mapping(raw)
-                source = (
-                    f'<a href="{_escape(quantity.source_url)}" rel="noopener">source</a>'
-                    + (
-                        f", read {_escape(quantity.retrieved_date)}"
-                        if quantity.retrieved_date
-                        else ""
-                    )
-                    if quantity.source_url
-                    else "—"
-                )
                 rows.append(
                     f"<tr><td><code>{_escape(key)}</code></td>"
                     f"{_quantity_cell(quantity)}"
                     f"<td>{_badge(quantity.status)}</td>"
                     f"<td><code>{_escape(quantity.source_kind or '—')}</code></td>"
-                    f'<td class="muted">{source}</td></tr>'
+                    f'<td class="muted">{_source_link(quantity)}</td></tr>'
                 )
         blocks.append(
             _table(
-                [
-                    _label("column.rate"),
-                    _label("column.amount"),
-                    _label("column.status"),
-                    _label("column.provenance"),
-                    _label("column.source"),
-                ],
                 rows,
                 i18n_keys=[
                     "column.rate",
@@ -1060,7 +1129,7 @@ def _measurement_section(model: CostModel) -> str:
         for label, value in measurement_rows(measurement, skip=("power_by_domain",))
     ]
     if rows:
-        blocks.append(_table(["", ""], rows, widths=[30, 70]))
+        blocks.append(_table(rows, headers=["", ""], widths=[30, 70]))
     split = measurement.get("power_by_domain")
     if isinstance(split, dict) and split:
         # The only split in this report that is measured rather than modelled:
@@ -1081,12 +1150,15 @@ def _measurement_section(model: CostModel) -> str:
         ]
         blocks.append(
             _table(
-                [
+                entries,
+                # From the message table rather than the label table, so these
+                # three do not follow the language button: the rows beneath them
+                # are a profile, read in whatever language the report was made.
+                headers=[
                     say("report.measurement.function"),
                     say("report.measurement.cumulative"),
                     say("report.measurement.calls"),
                 ],
-                entries,
             )
         )
     warnings = measurement.get("warnings")
@@ -1163,24 +1235,26 @@ def _whatif_section(model: CostModel, *, overlay: Any = None) -> str:
     return (
         # S608 reads the words "What if" as the start of a SQL clause. There is no
         # database anywhere in this package.
-        _heading(2, "", "section.whatif")  # noqa: S608
+        _heading(2, "", "section.whatif")
         + '<div class="card whatif-card"><div class="whatif">'
-        + '<div><label for="whatif-country" data-i18n="whatif.country">Country</label>'
-        f'<select id="whatif-country">{country_options}</select></div>'
-        + '<div><label for="whatif-provider" data-i18n="whatif.provider">Provider</label>'
-        f'<select id="whatif-provider">{provider_options}</select></div>'
-        + '<div><label for="whatif-machine" data-i18n="whatif.machine">Machine</label>'
-        f'<select id="whatif-machine"><option value="">{_escape(here)}</option>{parts}</select>'
+        + "<div>"
+        + _node("label", "whatif.country", 'for="whatif-country"')
+        + f'<select id="whatif-country">{country_options}</select></div>'
+        + "<div>"
+        + _node("label", "whatif.provider", 'for="whatif-provider"')
+        + f'<select id="whatif-provider">{provider_options}</select></div>'
+        + "<div>"
+        + _node("label", "whatif.machine", 'for="whatif-machine"')
+        + f'<select id="whatif-machine"><option value="">{_escape(here)}</option>{parts}</select>'
         "</div>"
         + "</div>"
         + '<dl class="readout">'
-        + '<div><dt data-i18n="whatif.energy">Energy</dt><dd id="whatif-energy">—</dd></div>'
-        + '<div><dt data-i18n="whatif.carbon">Carbon</dt><dd id="whatif-carbon">—</dd></div>'
-        + '<div><dt data-i18n="whatif.money">Electricity</dt><dd id="whatif-money">—</dd></div>'
-        + '<div><dt data-i18n="whatif.water">Water</dt><dd id="whatif-water">—</dd></div>'
+        + "".join(
+            "<div>" + _node("dt", f"whatif.{name}") + f'<dd id="whatif-{name}">—</dd></div>'
+            for name in ("energy", "carbon", "money", "water")
+        )
         + "</dl>"
-        + '<p class="muted" id="whatif-basis" data-i18n="whatif.note">Recomputed in your '
-        "browser from the energy this model already states. Nothing is sent anywhere.</p>"
+        + _node("p", "whatif.note", 'class="muted" id="whatif-basis"')
         + (f"<figure>{panel}</figure>" if panel else "")
         + "</div>"
     )
@@ -1215,7 +1289,7 @@ def _mapping_section(key: str, mapping: object) -> str:
     ]
     if not rows:
         return ""
-    return _heading(2, "", key) + _table(["", ""], rows)
+    return _heading(2, "", key) + _table(rows, headers=["", ""])
 
 
 def _list_section(key: str, items: object) -> str:
