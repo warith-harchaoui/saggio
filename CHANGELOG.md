@@ -9,6 +9,56 @@ release of that line.
 
 ## Unreleased
 
+### The five figures, and three of their sentences the tables already held
+
+`report/figures.py` drew five pictures whose words were all English literals.
+Six catalogue keys and three reused ones, and the module has none left.
+
+**Three were second copies, found before a line was written.** The overview
+figure's title *was* `dashboard.honesty` — "How well founded each model is",
+word for word, which the labels table had carried all along. The honesty bar's
+empty-model sentence *was* `report.no_numbers`. And `_DOMAIN_LABEL` held all
+four subsystem names that `boundary.domain.*` already carried and the
+measurement table already read, differing only in a capital letter. That is the
+#30 and #34 family again, two layers on: a duplicate survives because both
+copies are English and both are right.
+
+**A figure's title switches live; its description does not, and that is the
+rule.** A `<title>` is fixed wording, so it carries `data-i18n` and the browser
+rewrites it in place — `querySelectorAll` reaches inside SVG, and the words come
+from the table rather than from an argument, so the sentence the server writes
+and the sentence the button writes cannot differ. A `<desc>` is composed from
+the model, so it is written in the language in force at render time. The same
+split as the rest of the page. The one caption that states a measured total is
+two `<tspan>`s for this reason: the button swaps the words without eating the
+number.
+
+**The button now switches 6.9% of a report**, up from 5.4%, and the four pages
+that quote the figure say so.
+
+Three defects that only reading both languages side by side found:
+
+- **A colon composed in Python.** Three figures built their hover text as
+  `f"{name}: {value}"`, so French read `Cœurs processeur: 18,50 W`. The French
+  typography check could not see it: that check reads the catalogue, and this
+  separator was in the source. It is `figure.tooltip` now, one key and four
+  uses, and the honesty overview's description had the same literal.
+- **Numbers that never reached the separator.** `location_impact` wrote
+  `{value:g}` straight into three places, so a French report said `48.2`.
+- **An apostrophe that made one caption two strings.** `_escape` escaped
+  quotes, so the server wrote `model&#x27;s` where the table says `model's` —
+  the same words in two spellings, one of which the button would overwrite with
+  the other. Quotes are left alone now: every call site in that module is a
+  text node between a `>` and a `<`, where nothing escapes but `<`. The page
+  rendered identically either way, which is why only a test found it, and it is
+  also why `dashboard.lede` is hardcoded in the dashboard rather than read from
+  the table — the next entry's problem.
+
+Country names stay as the grid catalogue spells them, so a French report says
+`Germany`. Translating them means a translated catalogue column for
+thirty-eight rows that each cite a source, which is a decision about data and
+not about this module.
+
 ### A run is an `exécution`, not a `course`
 
 `course` is a footrace or an errand. A computation that runs is an `exécution`,

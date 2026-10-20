@@ -214,7 +214,7 @@ and a translation that renames an argument. Where the inventory placements had
 moved on 2026-10-19 — the first module — **11% of a static report** came out in
 French.
 
-**What the button alone does not switch, measured.** It exchanges **5.4%** of the
+**What the button alone does not switch, measured.** It exchanges **6.9%** of the
 visible text on a rendered report. The structure moves:
 headings, column names, the what-if labels, the equivalence sentences. The
 substance does not: the notes, the methods, the caveats and the refusals are

@@ -10,6 +10,61 @@ cette ligne.
 
 ## Non publié
 
+### Les cinq figures, et trois de leurs phrases que les tables portaient déjà
+
+`report/figures.py` dessinait cinq images dont tous les mots étaient des
+littéraux anglais. Six clés de catalogue et trois réemployées, et il n'en reste
+aucun.
+
+**Trois étaient des secondes copies, trouvées avant d'écrire une ligne.** Le
+titre de la figure d'aperçu **était** `dashboard.honesty` — « La solidité de
+chaque modèle », mot pour mot, que la table des étiquettes portait depuis
+toujours. La phrase de la barre d'honnêteté pour un modèle vide **était**
+`report.no_numbers`. Et `_DOMAIN_LABEL` portait les quatre noms de sous-systèmes
+que `boundary.domain.*` portait déjà et que la table de mesure lisait déjà, à une
+majuscule près. C'est de nouveau la famille de #30 et #34, deux couches plus
+loin : un doublon survit parce que les deux copies sont anglaises et que les deux
+ont raison.
+
+**Le titre d'une figure change à chaud, sa description non, et c'est la règle.**
+Un `<title>` est une formulation fixe : il porte donc `data-i18n` et le
+navigateur le réécrit sur place — `querySelectorAll` atteint l'intérieur d'un
+SVG, et les mots viennent de la table et non d'un argument, si bien que la phrase
+que le serveur écrit et celle que le bouton écrit ne peuvent pas différer. Un
+`<desc>` est composé depuis le modèle : il s'écrit dans la langue en vigueur au
+rendu. Même partage que dans le reste de la page. L'unique légende qui énonce un
+total mesuré est faite de deux `<tspan>` pour cette raison : le bouton change les
+mots sans manger le nombre.
+
+**Le bouton change désormais 6,9 % d'un rapport**, contre 5,4 %, et les quatre
+pages qui citent le chiffre le disent.
+
+Trois défauts que seule la lecture des deux langues côte à côte a trouvés :
+
+- **Un deux-points composé en Python.** Trois figures construisaient leur
+  infobulle en `f"{name}: {value}"` : le français lisait « Cœurs processeur:
+  18,50 W ». La vérification de typographie française ne pouvait pas le voir :
+  elle lit le catalogue, et ce séparateur était dans le source. C'est
+  `figure.tooltip` désormais, une clé et quatre emplois — la description de la
+  figure d'aperçu portait le même littéral.
+- **Des nombres qui n'atteignaient jamais le séparateur.** `location_impact`
+  écrivait `{value:g}` directement à trois endroits : un rapport français disait
+  « 48.2 ».
+- **Une apostrophe qui faisait deux chaînes d'une légende.** `_escape` échappait
+  les apostrophes : le serveur écrivait `model&#x27;s` là où la table dit
+  `model's` — les mêmes mots en deux orthographes, dont l'une que le bouton
+  aurait remplacée par l'autre. Les apostrophes sont laissées tranquilles
+  maintenant : chaque appel de ce module est un nœud de texte entre un `>` et un
+  `<`, où rien n'échappe sauf `<`. La page se rendait pareil dans les deux cas, et
+  c'est pourquoi seul un test l'a trouvé — c'est aussi pourquoi `dashboard.lede`
+  est codée en dur dans le tableau de bord au lieu d'être lue dans la table : le
+  problème de l'entrée suivante.
+
+Les noms de pays restent orthographiés comme le catalogue du réseau les écrit :
+un rapport français dit « Germany ». Les traduire voudrait dire une colonne de
+catalogue traduite sur trente-huit lignes qui citent chacune une source, ce qui
+est une décision sur des données et non sur ce module.
+
 ### Une *run* est une « exécution », pas une « course »
 
 « Course » est une épreuve de vitesse ou une commission. Un calcul qui tourne est

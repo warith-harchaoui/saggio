@@ -220,7 +220,7 @@ que rien n'atteint, et une traduction qui renomme un argument. Au 2026-10-19, le
 premier module passé — les placements d'inventaire — faisait sortir **11 % d'un
 rapport statique** en français.
 
-**Ce que le bouton seul ne change pas, mesuré.** Il échange **5,4 %** du texte
+**Ce que le bouton seul ne change pas, mesuré.** Il échange **6,9 %** du texte
 visible d'un rapport produit. L'ossature
 bouge : titres, noms de colonnes, étiquettes du panneau what-if, phrases
 d'équivalence. La substance, non : les notes, les méthodes, les mises en garde

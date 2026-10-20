@@ -1512,6 +1512,28 @@ cli.refresh.grid.citation: >-
   les lignes citeront {source}, où un lecteur peut les vérifier.
 cli.refresh.grid.wrote: "{count} ligne(s) écrite(s) dans {path}."
 
+# --- Ce qu'une figure dit à un lecteur qui ne la voit pas (report/figures.py)
+#
+# La description accessible d'une figure, non son titre : un `<title>` porte un
+# attribut `data-i18n` et le bouton de langue le change dans le navigateur,
+# tandis qu'un `<desc>` est composé depuis le modèle et s'écrit dans la langue
+# en vigueur au rendu. Même partage que dans le reste de la page : le mobilier
+# change, ce que dit le modèle ne change pas.
+
+# L'infobulle d'une figure : un nom et une valeur. Le séparateur est une clé
+# parce que le français met une espace devant un deux-points, et que celui-ci
+# se compose en Python, là où la vérification de typographie ne voit rien.
+figure.tooltip: "{name} : {value}"
+
+figure.chain.no_status: "sans statut"
+figure.chain.derived: "{node} est {status} et vient de {inputs}."
+figure.chain.nothing_derived: "Rien dans ce modèle ne dérive de quoi que ce soit."
+figure.location.description: >-
+  Intensité carbone du réseau en gCO2e par kWh : {listed}.
+figure.domains.description: >-
+  {listed}, {total} W au total, chacun lu sur son propre compteur.
+figure.domains.total: "Total {total} W."
+
 # --- Ce que couvrent les compteurs propres d'une puce Apple
 #     (analyze/apple.py, power/soc.py)
 

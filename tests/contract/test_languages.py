@@ -512,6 +512,8 @@ SAME_IN_BOTH: frozenset[str] = frozenset(
         "column.service",
         "ghg.label.scope2_location",
         "ghg.label.scope2_market",
+        # "Total" is the same word in French, and the rest is a number and a unit.
+        "figure.domains.total",
     }
 )
 

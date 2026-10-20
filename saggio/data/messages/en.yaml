@@ -1388,6 +1388,27 @@ cli.refresh.grid.citation: >-
   rows will cite {source}, which is where a reader can check them.
 cli.refresh.grid.wrote: "Wrote {count} row(s) to {path}."
 
+# --- What a figure says to a reader who cannot see it (report/figures.py)
+#
+# The accessible description of a figure, not its title: a `<title>` carries a
+# `data-i18n` attribute and the language button switches it in the browser,
+# while a `<desc>` is composed from the model and is written in the language in
+# force at render time. Same split as the rest of the page — the furniture
+# switches, what the model says does not.
+
+# A figure's tooltip, which is a name and a value. The separator is a key
+# because French puts a space before a colon and this one is composed in
+# Python, where the catalogue's typography check cannot see it.
+figure.tooltip: "{name}: {value}"
+
+figure.chain.no_status: "no status"
+figure.chain.derived: "{node} is {status} and comes from {inputs}."
+figure.chain.nothing_derived: "Nothing in this model derives from anything else."
+figure.location.description: "Grid carbon intensity in gCO2e per kWh: {listed}."
+figure.domains.description: >-
+  {listed}, {total} W in total, each read from its own counter.
+figure.domains.total: "Total {total} W."
+
 # --- What an Apple chip's own counters cover (analyze/apple.py, power/soc.py)
 
 apple.soc_scope: >-

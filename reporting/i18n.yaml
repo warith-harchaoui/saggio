@@ -40,6 +40,15 @@ en:
   section.whatif: "What if it ran somewhere else"
   section.exclusions: "Not counted"
   section.rules: "Rules this model follows"
+  # What each figure is called, and the two captions a reader needs under one.
+  # The overview figure's own title is `dashboard.honesty`, which already said
+  # these words: the figure held a second copy until this read the table.
+  figure.honesty.title: "How well founded this model is"
+  figure.chain.title: "How each number was derived"
+  figure.location.title: "How the location moves the carbon"
+  figure.domains.title: "Where the measured power went"
+  figure.location.caption: "gCO2e per kWh of grid electricity (lower is better) — this model's carbon scales linearly with it"
+  figure.domains.caption: "Measured, not modelled: each row is its own counter."
   whatif.country: "Country"
   whatif.provider: "Provider"
   whatif.machine: "Machine"
@@ -120,6 +129,16 @@ fr:
   section.whatif: "Et si le code tournait ailleurs"
   section.exclusions: "Non compté"
   section.rules: "Les règles que ce modèle suit"
+  # Comment s'appelle chaque figure, et les deux légendes qu'un lecteur attend
+  # sous l'une d'elles. Le titre de la figure d'aperçu est `dashboard.honesty`,
+  # qui disait déjà ces mots : la figure en portait une seconde copie jusqu'à
+  # ce que celle-ci lise la table.
+  figure.honesty.title: "La solidité de ce modèle"
+  figure.chain.title: "Comment chaque chiffre a été obtenu"
+  figure.location.title: "Ce que le lieu change au carbone"
+  figure.domains.title: "Où est passée la puissance mesurée"
+  figure.location.caption: "gCO2e par kWh d'électricité du réseau (plus bas vaut mieux) — le carbone de ce modèle lui est proportionnel"
+  figure.domains.caption: "Mesuré, non modélisé : chaque ligne est son propre compteur."
   whatif.country: "Pays"
   whatif.provider: "Fournisseur"
   whatif.machine: "Machine"
