@@ -922,15 +922,15 @@ project.machine.unknown_precision: >-
   {precision} n'est pas une précision que ce paquet sait chercher. Connues :
   {known}.
 project.machine.unknown_accelerator: >-
-  Absent du catalogue matériel : {missing}. Accélérateurs connus : {known}.
-  Ajoutez le manquant avec `saggio catalog add gpu`.
+  Pas au catalogue matériel : {missing}. Accélérateurs connus : {known}. Ajoutez le
+  manquant avec `saggio catalog add gpu`.
 project.machine.no_throughput: >-
-  Le catalogue n'a pas de {column} pour {missing} : il n'y a donc aucun rapport
-  en {precision} par quoi mettre à l'échelle. Deux puces ne gardent pas le même
-  rapport d'une précision à l'autre, si bien que mettre ceci à l'échelle avec le
-  chiffre d'une autre précision énoncerait autre chose que ce qui est demandé.
-  Ajoutez-le avec `saggio catalog add gpu {first} --field {column}=...` depuis la
-  fiche technique du fabricant, ou mesurez sur la cible.
+  Le catalogue n'a pas de {column} pour {missing} : il n'existe donc aucun rapport
+  {precision} par lequel mettre à l'échelle. Deux puces ne gardent pas le même rapport
+  d'une précision à l'autre : mettre cette durée à l'échelle avec le chiffre d'une autre
+  précision énoncerait donc autre chose que ce qu'on demande. Renseignez cette colonne
+  d'après la fiche technique du fabricant, avec `saggio catalog add gpu {first} --field
+  {column}=...`, ou mesurez sur la cible.
 project.machine.declared_memory_bound: >-
   Le travail a été déclaré limité par la mémoire et le catalogue n'a pas de
   {column} pour l'une de ces puces. Ajoutez les lignes de bande passante avant
@@ -942,74 +942,71 @@ project.machine.basis.compute: >-
 project.machine.basis.bandwidth: >-
   le rapport des bandes passantes mémoire, {target} / {source} Go/s
 project.machine.basis.compute_bound: >-
-  {basis}, le travail ayant été lu comme limité par l'arithmétique
+  {basis}, le travail ayant été tenu pour limité par l'arithmétique
 project.machine.basis.memory_bound: >-
-  {basis}, le travail ayant été lu comme limité par la mémoire plutôt que par
+  {basis}, le travail ayant été tenu pour limité par la mémoire plutôt que par
   l'arithmétique
 project.machine.basis.slower: >-
   le plus lent des deux rapports ({basis}), rien n'ayant établi lequel de
   l'arithmétique et de la mémoire limite ce travail
 
 project.machine.assumption.half_precisions: >-
-  Le FP16 et le BF16 sont mis à l'échelle par la même colonne du catalogue,
-  parce que les fabricants n'annoncent pour ces puces qu'un seul débit dense de
-  cœurs tensoriels couvrant les deux.
+  Le FP16 et le BF16 sont mis à l'échelle par la même colonne du catalogue, parce que,
+  pour ces puces, les fabricants n'annoncent qu'un seul débit dense de cœurs tensoriels,
+  couvrant les deux.
 project.machine.assumption.same_share: >-
   Les deux accélérateurs atteignent sur ce travail une part comparable de leur
   propre débit de crête.
 project.machine.assumption.enough_memory: >-
-  La cible a assez de mémoire pour tenir le même jeu de travail, ce que le
+  La cible a assez de mémoire pour contenir le même ensemble de travail, ce que le
   catalogue peut démentir mais ne peut pas confirmer.
 project.machine.assumption.one_accelerator: >-
   Un seul accélérateur, avec la même taille de lot et le même parallélisme que
   ceux mesurés.
 project.machine.assumption.between: >-
-  Le travail est limité par l'arithmétique ({compute}x) ou par la bande passante
-  mémoire ({bandwidth}x), et tombe entre les deux.
+  Le travail est limité par l'arithmétique ({compute}x) ou par la bande passante mémoire
+  ({bandwidth}x), et se situe entre les deux.
 
 project.machine.limit.less_memory: >-
-  {target} a {target_memory} Go de mémoire contre {source_memory} Go sur
-  {source}. Rien ici ne sait quelle part la course mesurée en a utilisée : c'est
-  donc une durée pour une course qui pourrait ne pas démarrer du tout. Vérifiez
-  le jeu de travail avant de citer le chiffre.
+  {target} a {target_memory} Go de mémoire contre {source_memory} Go sur {source}. Rien
+  ici ne sait quelle part la course mesurée en a utilisée : c'est donc une durée pour
+  une course qui pourrait ne pas démarrer du tout. Vérifiez l'ensemble de travail avant
+  de citer le chiffre.
 project.machine.limit.datasheet: >-
   Le débit de crête et la bande passante de crête sont des chiffres de fiche
   technique, pas des mesures. Une vraie course n'atteint qu'une fraction de l'un
   comme de l'autre, et cette fraction diffère selon la puce.
 project.machine.limit.not_accelerator_bound: >-
-  Un travail limité par le stockage, par le chargeur de données ou par le
-  processeur hôte ne gagnera rien à l'un ou l'autre rapport, et peut-être rien du
-  tout.
+  Un travail limité par le stockage, par le chargeur de données ou par le processeur
+  hôte ne suivra ni l'un ni l'autre rapport, et peut n'y gagner rien du tout.
 project.machine.limit.multi_accelerator: >-
   La montée en charge sur plusieurs accélérateurs, l'interconnexion et le coût
   des communications ne sont pas modélisés ici.
 project.machine.limit.no_bracket: >-
-  Le catalogue n'a pas de {column} pour l'une de ces puces : rien n'encadre donc
-  ceci par le bas. C'est le bout de l'intervalle où l'arithmétique limite : une
-  borne haute sur l'accélération, et donc une borne basse sur ce que coûte la
-  course.
+  Le catalogue n'a pas de {column} pour l'une de ces puces : rien n'encadre donc le
+  chiffre par le bas. C'est l'extrémité de l'intervalle où l'arithmétique limite : une
+  borne haute sur l'accélération, et donc une borne basse sur ce que coûte la course.
 
 project.machine.bound.best: >-
-  Au mieux : chaque partie de la course gagne les {ratio}x entiers.
+  Au mieux : chaque partie de la course obtient la totalité du facteur {ratio}x.
 
 project.processor.unknown_processor: >-
-  Absent du catalogue matériel : {missing}. Processeurs connus : {known}.
-  Ajoutez le manquant avec `saggio catalog add cpu`.
+  Pas au catalogue matériel : {missing}. Processeurs connus : {known}. Ajoutez le
+  manquant avec `saggio catalog add cpu`.
 project.processor.different_benchmarks: >-
-  {source} est noté contre {source_benchmark} et {target} contre
-  {target_benchmark}. Deux indices ne forment un rapport que s'ils notent le même
-  banc d'essai, passé de la même façon ; renotez l'un contre le banc de l'autre
-  avant de projeter.
+  {source} est noté au banc {source_benchmark} et {target} au banc {target_benchmark}.
+  Deux indices ne forment un rapport que s'ils viennent du même banc d'essai, passé de
+  la même façon ; renotez l'un au banc de l'autre avant de projeter.
 project.processor.no_scores: >-
-  Le catalogue n'a ni {single} ni {throughput} pour {source} comme pour {target}
-  : il n'y a donc aucun rapport par quoi mettre à l'échelle. Contrairement à un
+  Le catalogue n'a ni {single} ni {throughput}, ni pour {source} ni pour {target} : il
+  n'existe donc aucun rapport par lequel mettre à l'échelle. Contrairement à un
   accélérateur, un processeur n'annonce aucun chiffre de crête digne d'être mis à
-  l'échelle — la fréquence et le nombre de cœurs n'en donnent pas, parce que le
-  travail fait par cycle diffère d'une puce à l'autre. Un indice publié, lui, en
-  donne un : prenez le SPECrate2017_int_base d'un résultat sur spec.org, divisez
-  par le nombre de sockets pour comparer une puce à une autre socket pour socket,
-  et notez de quel banc d'essai il s'agissait dans `{benchmark}`, afin que rien
-  ne soit jamais divisé par l'indice d'autre chose.
+  l'échelle — la fréquence et le nombre de cœurs n'en donnent pas, parce que le travail
+  fait par cycle diffère d'une puce à l'autre. Un indice publié, lui, en donne un :
+  prenez le SPECrate2017_int_base d'un résultat sur spec.org, divisez-le par le nombre
+  de sockets pour que deux puces se comparent socket à socket, et inscrivez dans
+  `{benchmark}` de quel banc d'essai il s'agit, afin que rien ne soit jamais divisé par
+  l'indice d'autre chose.
 
 project.processor.basis.only_single: >-
   le rapport des indices mono-fil, le seul que le catalogue puisse soutenir
@@ -1049,16 +1046,17 @@ project.processor.assumption.same_surroundings: >-
 
 project.processor.limit.one_result: >-
   Un indice publié est un résultat, sur un système, avec un compilateur et un jeu
-  d'options. Un autre résultat pour la même puce peut en différer d'un cinquième,
-  et un travail dissemblable du banc d'essai bien davantage.
+  d'options. Un autre résultat pour la même puce peut en différer d'un cinquième, et un
+  travail qui ne ressemble pas à celui du banc d'essai, bien davantage.
 project.processor.limit.not_processor_bound: >-
-  Un travail limité par le stockage, par le réseau ou par un verrou ne suivra
-  aucun des deux rapports, et peut-être ne gagnera rien du tout.
+  Un travail limité par le stockage, par le réseau ou par un verrou ne suivra aucun des
+  deux rapports, et peut n'y gagner rien du tout.
 project.processor.limit.no_bracket: >-
-  Un seul des deux indices est au catalogue pour ces puces : rien n'encadre donc
-  ceci. Ajoutez l'autre avant de le citer comme un intervalle.
+  Un seul des deux indices est au catalogue pour ces puces : rien n'encadre donc le
+  chiffre. Ajoutez l'autre avant de le citer comme un intervalle.
 
-project.processor.bound.best: "Au mieux : la course gagne les {ratio}x entiers."
+project.processor.bound.best: >-
+  Au mieux : la course obtient la totalité du facteur {ratio}x.
 
 project.hardware.bound.worst: "Au pire dans l'encadrement : {ratio}x."
 project.hardware.notes: >-
@@ -1398,7 +1396,7 @@ cli.power.drew: "Sur {seconds}, cette machine a tiré {watts} ({joules}) via {so
 # --- Ce que rapporte une relecture du catalogue à sa source (catalog/refresh/*.py)
 
 refresh.not_a_file: >-
-  {path} n'est pas là. Ceci modifie un catalogue ; ceci ne le crée pas.
+  {path} n'existe pas. Cette commande modifie un catalogue ; elle n'en crée pas.
 
 refresh.grid.no_key: >-
   Pas de clé d'API Ember. Renseignez {variable}, ou passez --api-key. Ember en
@@ -1411,15 +1409,15 @@ refresh.grid.refused_fallback: >-
   d'exploitation. Substituer l'une à l'autre changerait le sens de chaque modèle
   déjà déposé sans rien changer à la confiance que chacun d'eux affiche.
 refresh.grid.no_iso3: >-
-  aucun code ISO 3166-1 alpha-3 au dossier pour cette clé : la source ne peut
-  donc pas être interrogée à son sujet. Ajoutez-en un à ISO3_OF_ISO2.
+  aucun code ISO 3166-1 alpha-3 enregistré pour cette clé : la source ne peut donc pas
+  être interrogée à son sujet. Ajoutez-en un à ISO3_OF_ISO2.
 refresh.grid.no_answer: "Ember n'a pas répondu : {error}"
 refresh.grid.unreadable_shape: >-
-  Ember a répondu sous une forme que ceci ne reconnaît pas. Le catalogue est
-  intact ; rien ici ne devinera le contenu d'une réponse qu'il ne sait pas lire.
+  Ember a répondu sous une forme non reconnue. Le catalogue est intact ; rien ici ne
+  devinera le contenu d'une réponse illisible.
 refresh.grid.no_figure: "la source n'a renvoyé aucun chiffre pour ce pays."
 refresh.grid.dataset_unreadable: >-
-  Le jeu de données publié par Ember ne s'est pas lu : {error}
+  Le jeu de données publié par Ember n'a pas pu être lu : {error}
 refresh.grid.dataset_no_country: >-
   le jeu de données publié ne porte aucune intensité pour ce pays.
 refresh.grid.dataset_no_country_year: >-
@@ -1430,24 +1428,22 @@ refresh.grid.columns_gone: >-
   comme un rafraîchissement n'ayant rien trouvé à changer.
 
 refresh.embodied.accelerators_refused: >-
-  Cette source ne détient qu'un archétype de GPU générique, pas des données par
-  modèle : elle répond 575,1 kgCO2e pour toutes les cartes, d'une GTX 1080 Ti à
-  une H100, soit trois fois et demie le chiffre vérifié par NVIDIA elle-même pour
-  une H100. Un nombre qui arrive en portant le nom du modèle demandé, et qui est
-  le même pour tous les modèles, vaut moins que pas de nombre du tout. Les
-  empreintes d'accélérateurs sont saisies à la main depuis une empreinte carbone
-  produit publiée, une carte à la fois.
-refresh.embodied.no_vendor_name: "aucun nom de fabricant au dossier pour cette clé."
+  Cette source ne détient qu'un archétype de GPU générique, et non des données par
+  modèle : elle répond 575,1 kgCO2e pour toutes les cartes, d'une GTX 1080 Ti à une
+  H100, soit trois fois et demie le chiffre vérifié par NVIDIA elle-même pour une H100.
+  Un nombre qui arrive en portant le nom du modèle demandé, et qui est le même pour tous
+  les modèles, vaut moins que pas de nombre du tout. Les empreintes d'accélérateurs sont
+  saisies à la main d'après une empreinte carbone produit publiée, une carte à la fois.
+refresh.embodied.no_vendor_name: "aucun nom de fabricant enregistré pour cette clé."
 refresh.embodied.no_answer: "la source n'a pas répondu : {error}"
 refresh.embodied.substituted: >-
   la source a répondu au sujet de {answered}, et non de {asked}. Elle substitue
   le nom le plus proche qu'elle détient sans le dire.
 refresh.embodied.wrong_die: >-
-  la surface de die sur laquelle elle a calculé n'est pas celle de cette puce :
-  {die}. L'empreinte est fonction du die, si bien qu'un die par défaut est une
-  empreinte par défaut portant le nom de cette puce.
-refresh.embodied.no_footprint: >-
-  la réponse ne portait aucune empreinte que ceci sache lire.
+  la surface de die d'après laquelle elle a calculé n'est pas celle de cette puce :
+  {die}. L'empreinte est fonction du die, si bien qu'un die par défaut est une empreinte
+  par défaut portant le nom de cette puce.
+refresh.embodied.no_footprint: "la réponse ne portait aucune empreinte lisible."
 
 refresh.tariffs.no_browser: >-
   Aucun navigateur sans interface n'a répondu, et cette page écrit son tableau
@@ -1457,9 +1453,9 @@ refresh.tariffs.not_published: "la source ne publie aucun tarif sous ce nom."
 
 refresh.timezones.no_answer: "La base des fuseaux horaires n'a pas répondu : {error}"
 refresh.timezones.unknown_zones: >-
-  {zones} ne sont pas des fuseaux que la base publie. Rien n'est apposé : marquer
-  une liste comme vérifiée quand la vérification n'a pas abouti serait la faute
-  même de ce paquet, en miniature.
+  Ce ne sont pas des fuseaux que la base publie : {zones}. Rien n'a été inscrit :
+  marquer une liste comme vérifiée quand la vérification n'a pas abouti serait, en
+  miniature, la faute même que ce paquet dénonce.
 
 # --- Ce que les verbes de catalogue impriment (cli/commands.py, moitié rafraîchissement)
 
@@ -1478,8 +1474,7 @@ cli.refresh.nothing_moved: >-
 cli.refresh.left_alone: "{key} : laissé tel quel — {reason}"
 cli.refresh.refused: "{key} : refusé — {reason}"
 cli.refresh.read_only: >-
-  Lecture seule. Passez --write CHEMIN pour appliquer ceci à un fichier de
-  catalogue.
+  Lecture seule. Passez --write CHEMIN pour l'appliquer à un fichier de catalogue.
 
 cli.refresh.embodied.heading: "{source} — {found} processeur(s) sur {total}"
 cli.refresh.embodied.row: "{key} : {value} kgCO2e — {matched}, die {die} mm2"
@@ -1494,15 +1489,15 @@ cli.refresh.timezones.heading: >-
 cli.refresh.timezones.unknown_version: "inconnue"
 cli.refresh.timezones.unknown: "{key} : {zones} — la base ne publie aucun fuseau de ce nom"
 cli.refresh.timezones.all_known: >-
-  tous les fuseaux au dossier sont des fuseaux que la base publie.
+  tous les fuseaux enregistrés sont des fuseaux que la base publie.
 cli.refresh.timezones.read_only: >-
-  Lecture seule. Passez --write CHEMIN pour apposer la version sur chaque ligne.
+  Lecture seule. Passez --write CHEMIN pour inscrire la version sur chaque ligne.
 cli.refresh.timezones.not_stamped: >-
-  Certains fuseaux ne sont pas dans la base. Rien n'a été apposé ; marquer une
-  liste comme vérifiée quand la vérification n'a pas abouti serait la faute même
-  de ce paquet, en miniature.
+  Certains fuseaux ne sont pas dans la base. Rien n'a été inscrit : marquer une liste
+  comme vérifiée quand la vérification n'a pas abouti serait, en miniature, la faute
+  même que ce paquet dénonce.
 cli.refresh.timezones.stamped: >-
-  Version apposée sur {count} ligne(s) de fuseau dans {path}.
+  Version inscrite sur {count} ligne(s) de fuseau dans {path}.
 
 cli.refresh.prices.heading: "{source} — {count} pays{when}"
 cli.refresh.prices.collected: ", relevé : {when}"
@@ -1515,10 +1510,9 @@ cli.refresh.grid.heading: >-
   {source} — {count} pays, année de données la plus récente {year}
 cli.refresh.grid.row: "{key} : {was} -> {now} gCO2e/kWh"
 cli.refresh.grid.behind: >-
-  {key} : la source s'arrête à {year}, c'est donc ce que cette ligne dira être
+  {key} : la source s'arrête à {year} : c'est donc l'année que cette ligne annoncera
 cli.refresh.grid.citation: >-
-  les lignes citeront {source}, qui est l'endroit où un lecteur peut les
-  vérifier.
+  les lignes citeront {source}, où un lecteur peut les vérifier.
 cli.refresh.grid.wrote: "{count} ligne(s) écrite(s) dans {path}."
 
 # --- Ce que couvrent les compteurs propres d'une puce Apple

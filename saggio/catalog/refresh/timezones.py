@@ -208,7 +208,13 @@ def apply_timezone_check(path: Path, check: TimezoneCheck) -> int:
     if not path.is_file():
         raise FileNotFoundError(say("refresh.not_a_file", path=path))
     if not check.ok:
-        raise ValueError(say("refresh.timezones.unknown_zones", zones=check.unknown))
+        # Named row by row rather than as the mapping's own repr: a reader who is
+        # about to go and look these up should not have to read Python to find
+        # out which they are.
+        named = "; ".join(
+            f"{key}: {', '.join(zones)}" for key, zones in sorted(check.unknown.items())
+        )
+        raise ValueError(say("refresh.timezones.unknown_zones", zones=named))
     lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
     written = 0
     out: list[str] = []

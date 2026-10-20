@@ -1333,9 +1333,9 @@ refresh.tariffs.not_published: "the source published no tariff under that name."
 
 refresh.timezones.no_answer: "The timezone database did not answer: {error}"
 refresh.timezones.unknown_zones: >-
-  {zones} are not zones the database publishes. Nothing is stamped: marking a
-  list as checked when it did not check out would be this package's own mistake,
-  in miniature.
+  These are not zones the database publishes: {zones}. Nothing is stamped: marking a
+  list as checked when it did not check out would be, in miniature, the very mistake
+  this package objects to.
 
 # --- What the catalogue verbs print (cli/commands.py, the refresh half)
 
@@ -1367,9 +1367,9 @@ cli.refresh.timezones.all_known: "every zone on file is one the database publish
 cli.refresh.timezones.read_only: >-
   Read-only. Pass --write PATH to stamp the release onto each row.
 cli.refresh.timezones.not_stamped: >-
-  Some zones are not in the database. Nothing was stamped; a list marked as
-  checked when it did not check out would be this package's own mistake, in
-  miniature.
+  Some zones are not in the database. Nothing was stamped: marking a list as checked
+  when it did not check out would be, in miniature, the very mistake this package
+  objects to.
 cli.refresh.timezones.stamped: "Stamped {count} timezone row(s) in {path}."
 
 cli.refresh.prices.heading: "{source} — {count} country(ies){when}"

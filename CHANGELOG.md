@@ -9,6 +9,54 @@ release of that line.
 
 ## Unreleased
 
+### Reading the ninety-six French sentences as French, not as translations
+
+Thirty-five of the ninety-six entries this round added were rewritten after
+reading them aloud against nothing — not against the English. What a check can
+see is an absence: a dropped clause, a forgotten translation, a missing space.
+What it cannot see is a sentence that is correct, complete, and audibly a
+translation. These were the latter.
+
+The classes, each with its tell:
+
+- **Calques of an English preposition.** *by quoi mettre à l'échelle* for "to
+  scale by" (French wants `par lequel`); *noté contre* for "scored against"
+  (`noté au banc`); *saisies depuis* for "entered from" (`d'après`); *tombe entre
+  les deux* for "lands between" (`se situe entre`); *lu comme limité* for "read
+  as bound" (`tenu pour limité` — and "read as" is deliberately weaker than
+  "declared", which `tenu pour` keeps and `lu comme` loses).
+- **Pronouns with no antecedent.** English "this" can point at the situation;
+  French `ceci` and `l'` need a noun. *rien ne l'encadre* became *rien n'encadre
+  le chiffre*; *Renseignez-la*, four clauses after its antecedent, became
+  *Renseignez cette colonne*; *Ceci modifie un catalogue ; ceci ne le crée pas*
+  became *Cette commande modifie un catalogue ; elle n'en crée pas*.
+- **A sentence that contradicted itself in French only.** "will not gain from
+  either ratio, and may gain nothing at all" distinguishes not following the
+  ratio from gaining no speed-up; `ne gagnera rien à … et peut-être rien du
+  tout` collapses the two and says the same thing twice. Now `ne suivra ni l'un
+  ni l'autre rapport, et peut n'y gagner rien du tout`.
+- **An adjective that does not agree with what follows it.** `Absent du
+  catalogue : 'A100', 'H100'` — singular adjective, plural list. `Pas au
+  catalogue` has no agreement to get wrong.
+- **A term of art translated rather than used.** "working set" is `ensemble de
+  travail`, not `jeu de travail`. `au dossier` for "on file" is a filing-cabinet
+  metaphor French does not use for a data row: `enregistré`.
+
+Two findings that were not about French:
+
+- **A message printed a Python dict.** `apply_timezone_check` raised
+  `{'FR': ['Europe/Paris-old']} are not zones the database publishes` — the
+  mapping's own `repr`, in both languages, at a reader who is about to go look
+  these up. It names them row by row now, and the list moved behind the colon
+  in English too, where it had been reading as the sentence's subject.
+- **A sentence claimed more than it meant.** "this package's own mistake, in
+  miniature" is about the mistake this package exists to object to; both
+  languages now say so rather than leaving it to be inferred.
+
+One term left alone and worth a human's opinion: `course` for *run*, used across
+the whole catalogue since the projection work. It is consistent, and changing it
+is a catalogue-wide rename, not a proofread.
+
 ### Refreshing a catalogue, in the reader's language, and the two sentences that stay English
 
 The four refresh modules and the verbs that print them — grid, hardware,

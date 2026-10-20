@@ -10,6 +10,58 @@ cette ligne.
 
 ## Non publié
 
+### Lire les quatre-vingt-seize phrases françaises comme du français, pas comme des traductions
+
+Trente-cinq des quatre-vingt-seize entrées ajoutées ce tour ont été réécrites
+après les avoir lues à voix haute contre rien — pas contre l'anglais. Ce qu'une
+porte sait voir, c'est une absence : une clause perdue, une traduction oubliée,
+une espace manquante. Ce qu'elle ne voit pas, c'est une phrase correcte,
+complète, et audiblement traduite. C'étaient celles-là.
+
+Les classes, chacune avec son indice :
+
+- **Calques d'une préposition anglaise.** « par quoi mettre à l'échelle » pour
+  *to scale by* (le français veut « par lequel ») ; « noté contre » pour *scored
+  against* (« noté au banc ») ; « saisies depuis » pour *entered from*
+  (« d'après ») ; « tombe entre les deux » pour *lands between* (« se situe
+  entre ») ; « lu comme limité » pour *read as bound* (« tenu pour limité » — et
+  *read as* est volontairement plus faible que *declared*, ce que « tenu pour »
+  garde et « lu comme » perd).
+- **Pronoms sans antécédent.** L'anglais *this* peut désigner la situation ; le
+  français « ceci » et « l' » demandent un nom. « rien ne l'encadre » devient
+  « rien n'encadre le chiffre » ; « Renseignez-la », à quatre propositions de son
+  antécédent, devient « Renseignez cette colonne » ; « Ceci modifie un
+  catalogue ; ceci ne le crée pas » devient « Cette commande modifie un
+  catalogue ; elle n'en crée pas ».
+- **Une phrase qui ne se contredisait qu'en français.** *will not gain from
+  either ratio, and may gain nothing at all* distingue ne pas suivre le rapport
+  de n'accélérer en rien ; « ne gagnera rien à … et peut-être rien du tout »
+  confond les deux et dit deux fois la même chose. Désormais « ne suivra ni l'un
+  ni l'autre rapport, et peut n'y gagner rien du tout ».
+- **Un adjectif qui ne s'accorde pas avec ce qui suit.** « Absent du catalogue :
+  'A100', 'H100' » — adjectif au singulier, liste au pluriel. « Pas au
+  catalogue » n'a aucun accord à rater.
+- **Un terme consacré traduit au lieu d'être employé.** *working set* se dit
+  « ensemble de travail », pas « jeu de travail ». « au dossier » pour *on file*
+  est une métaphore de classeur que le français n'applique pas à une ligne de
+  données : « enregistré ».
+
+Deux trouvailles qui ne portaient pas sur le français :
+
+- **Un message imprimait un dictionnaire Python.** `apply_timezone_check` levait
+  « {'FR': ['Europe/Paris-old']} ne sont pas des fuseaux que la base publie » — la
+  `repr` du dictionnaire, dans les deux langues, à un lecteur qui s'apprête à
+  aller les chercher. Les fuseaux sont nommés ligne par ligne, et la liste est
+  passée derrière le deux-points en anglais aussi, où elle se lisait comme le
+  sujet de la phrase.
+- **Une phrase revendiquait plus qu'elle ne disait.** « la faute même de ce
+  paquet, en miniature » parle de la faute que ce paquet existe pour dénoncer ;
+  les deux langues le disent maintenant au lieu de le laisser deviner.
+
+Un terme laissé tel quel et qui mérite l'avis d'un humain : « course » pour *run*,
+employé dans tout le catalogue depuis le chantier des projections. Il est
+cohérent, et le changer serait un renommage de catalogue, pas une relecture.
+
 ### Rafraîchir un catalogue dans la langue du lecteur, et les deux phrases qui restent en anglais
 
 Les quatre modules de rafraîchissement et les verbes qui les impriment — grid,
