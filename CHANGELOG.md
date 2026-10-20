@@ -11,24 +11,28 @@ release of that line.
 
 ### The thousands separator we never had, and four recommendations we already beat
 
-A guide to Python i18n, read against what this package does. One of its
+A guide to internationalisation in Python — i18n, the numeronym for the word,
+being eighteen letters between its first and last — read against what this
+package does. One of its
 recommendations named a defect that was measurably here; the rest named problems
 this package does not have, and one named a limit of mine that turned out not to
 exist.
 
-**Taken: grouping.** The guide files it under `babel.format_number` and CLDR
-locale data. We had simply omitted it: a French report read `10870,6 s` and
+**Taken: grouping.** The guide files it under `babel.format_number` and the
+Common Locale Data Repository (CLDR), the Unicode Consortium's database of how
+each language writes dates, numbers and names. We had simply omitted it: a French report read `10870,6 s` and
 `3638 mois-arbre` — the decimal separator applied and the grouping rule never
 written down, the same omission the per-cent space was in the last entry.
 `number.group` is the third sibling of `number.decimal` and `number.percent`: a
 comma in English, a narrow no-break space in French, which is the convention the
-Imprimerie nationale and ISO 31-0 both give and the one that will not let a line
+Imprimerie nationale and the International Organization for Standardization's
+ISO 31-0 both give and the one that will not let a line
 break inside a figure. The browser applies it too, and a gate pins that both do.
 
 **Audited before it was switched on**, because a year written `2 025` is exactly
 the failure `number`'s docstring warns about: no call site passes a year, a
 schema version or an identifier through it. The four-digit figures in a report
-that are *not* measurements — `2025`, `7742`, `9000` — come from a URL, a
+that are *not* measurements — `2025`, `7742`, `9000` — come from a web address, a
 processor's model name and a fixture's, and none of them goes near the
 formatter. The ones that do are watts, seconds, shares, ratios, sizes and
 counts, and all of them group.
@@ -58,16 +62,17 @@ the new number.
   written, every written key must be reachable, and the count of prose literals
   is pinned to what the docs quote. A gate beats a tool somebody remembers to
   run.
-- **`format_date` and `format_currency`** — our dates are ISO and our amounts
-  carry the ISO code. For a provenance record that is deliberate and better:
+- **`format_date` and `format_currency`** — our dates follow ISO 8601
+  (`2026-10-20`) and our amounts carry the three-letter currency code of ISO
+  4217 (`EUR`), both from the same standards body as above. For a provenance record that is deliberate and better:
   unambiguous, sortable, checkable. Written down as a choice now rather than
   left to look like an omission.
 
 #### A limit of ours that was a misdiagnosis
 
 `gettext_lazy` answers "fixed at import", and this repository has recorded for
-five iterations that the HTTP route descriptions are fixed at import because
-FastAPI builds its OpenAPI schema before a language is in force. **Measured:
+five iterations that the web interface's route descriptions are fixed at import
+because FastAPI builds its interface description before a language is in force. **Measured:
 `create_app()` is a function, and calling it under `language("fr")` returns the
 same English summary** — because those twenty-nine strings are plain literals
 that were never passed through `say()`. Nothing is blocked by FastAPI.
@@ -80,12 +85,12 @@ which is a design decision rather than a wall.
 #### Three limits of ours that are real, and bite at the third language
 
 Not today's problem with two, and named so the third does not find them by
-surprise: **pluralisation is not CLDR** (`plural(count, one, many)` plus a
-zero-form key is right for English and French and wrong for Polish's four forms
-and Arabic's six); **collation is not CLDR** (`sort_key` folds accents, which is
-right for French and wrong for Swedish, where å ä ö sort after z); and **the
-locale data is hand-written** — three keys we maintain where CLDR has them for
-seven hundred locales.
+surprise: **pluralisation does not follow the repository's rules**
+(`plural(count, one, many)` plus a zero-form key is right for English and French
+and wrong for Polish's four forms and Arabic's six); **sorting does not either**
+(`sort_key` folds accents, which is right for French and wrong for Swedish,
+where å ä ö sort after z); and **the locale data is hand-written** — three keys
+we maintain where the repository has them for seven hundred locales.
 
 Adopting Babel as a *locale-data* dependency — plural categories, grouping,
 collation — without touching the catalogue or the gates is the move if a third

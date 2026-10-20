@@ -12,19 +12,23 @@ cette ligne.
 
 ### Le séparateur de milliers que nous n'avions pas, et quatre recommandations déjà dépassées
 
-Un guide d'i18n Python, lu contre ce que fait ce paquet. Une de ses
+Un guide d'internationalisation en Python — i18n, le numéronyme du mot anglais
+*internationalisation*, dix-huit lettres entre la première et la dernière — lu
+contre ce que fait ce paquet. Une de ses
 recommandations nommait un défaut mesurablement présent ici ; les autres
 nommaient des problèmes que ce paquet n'a pas, et une nommait une limite de mon
 cru qui n'existait pas.
 
-**Pris : le groupement.** Le guide le range sous `babel.format_number` et les
-données CLDR. Nous l'avions tout bonnement omis : un rapport français écrivait
+**Pris : le groupement.** Le guide le range sous `babel.format_number` et le
+Common Locale Data Repository (CLDR) — « dépôt commun de données de locale », la
+base du consortium Unicode qui recense comment chaque langue écrit ses dates,
+ses nombres et ses noms. Nous l'avions tout bonnement omis : un rapport français écrivait
 « 10870,6 s » et « 3638 mois-arbre » — le séparateur décimal appliqué et la
 règle de groupement jamais écrite, la même omission que l'espace avant le
 pour-cent à l'entrée précédente. `number.group` est la troisième sœur de
 `number.decimal` et `number.percent` : virgule en anglais, espace fine
 insécable en français, la convention que donnent l'Imprimerie nationale comme
-l'ISO 31-0, et celle qui interdit une coupure de ligne à l'intérieur d'un
+la norme ISO 31-0 de l'Organisation internationale de normalisation, et celle qui interdit une coupure de ligne à l'intérieur d'un
 chiffre. Le navigateur l'applique aussi, et une porte épingle que les deux le
 font.
 
@@ -32,8 +36,8 @@ font.
 exactement la faute contre laquelle la docstring de `number` met en garde :
 aucun site d'appel ne lui passe une année, une version de schéma ni un
 identifiant. Les nombres de quatre chiffres d'un rapport qui ne sont **pas** des
-mesures — 2025, 7742, 9000 — viennent d'une URL, du nom d'un processeur et de
-celui d'une fixture, et aucun n'approche le formateur. Ceux qui y passent sont
+mesures — 2025, 7742, 9000 — viennent d'une adresse web, du nom d'un processeur
+et de celui d'une fixture, et aucun n'approche le formateur. Ceux qui y passent sont
 des watts, des secondes, des parts, des rapports, des tailles et des comptes, et
 tous se groupent.
 
@@ -63,16 +67,18 @@ test l'a dit en nommant le nouveau nombre.
   clé demandée par le code doit être écrite, toute clé écrite doit être
   atteignable, et le compte de littéraux de prose est épinglé à ce que citent
   les docs. Une porte vaut mieux qu'un outil qu'on pense à lancer.
-- **`format_date` et `format_currency`** — nos dates sont ISO et nos montants
-  portent le code ISO. Pour un enregistrement de provenance, c'est délibéré et
+- **`format_date` et `format_currency`** — nos dates suivent la norme ISO 8601
+  (`2026-10-20`) et nos montants portent le code de devise à trois lettres de la
+  norme ISO 4217, du même organisme que ci-dessus. Pour un enregistrement de provenance, c'est délibéré et
   meilleur : non ambigu, triable, vérifiable. Écrit comme un choix désormais,
   plutôt que laissé à l'apparence d'un oubli.
 
 #### Une limite de notre cru qui était un mauvais diagnostic
 
 `gettext_lazy` répond à « fixé à l'import », et ce dépôt note depuis cinq
-itérations que les descriptions de routes HTTP sont fixées à l'import parce que
-FastAPI construit son OpenAPI avant qu'une langue soit en vigueur. **Mesuré :
+itérations que les descriptions de routes de l'interface web sont fixées à
+l'import parce que FastAPI construit sa description d'interface avant qu'une
+langue soit en vigueur. **Mesuré :
 `create_app()` est une fonction, et l'appeler sous `language("fr")` rend le même
 résumé anglais** — parce que ces vingt-neuf chaînes sont des littéraux qui n'ont
 jamais été passés par `say()`. Rien n'est bloqué par FastAPI.
@@ -88,10 +94,10 @@ Pas le problème du jour avec deux, et nommées pour que la troisième ne les
 découvre pas par surprise : **la pluralisation n'est pas CLDR**
 (`plural(count, one, many)` plus une clé de forme zéro est juste pour l'anglais
 et le français, faux pour les quatre formes du polonais et les six de l'arabe) ;
-**la collation n'est pas CLDR** (`sort_key` replie les accents, juste pour le
-français et faux pour le suédois, où å ä ö se trient après z) ; et **les données
-de locale sont écrites à la main** — trois clés que nous maintenons là où CLDR
-les a pour sept cents locales.
+**le tri ne suit pas les règles du dépôt non plus** (`sort_key` replie les
+accents, juste pour le français et faux pour le suédois, où å ä ö se trient
+après z) ; et **les données de locale sont écrites à la main** — trois clés que
+nous maintenons là où le dépôt les a pour sept cents locales.
 
 Adopter Babel comme dépendance de *données de locale* — catégories de pluriel,
 groupement, collation — sans toucher au catalogue ni aux portes, voilà le geste
