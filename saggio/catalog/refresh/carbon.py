@@ -27,6 +27,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Final
 
+from ...i18n import say
+
 #: Where a machine reads the figures. Not what a row cites: asked without a key
 #: it answers ``{"detail": "No API key set"}`` and HTTP 403, so a reader who
 #: followed it from a catalogue row would be shown no number at all -- the same
@@ -74,21 +76,12 @@ EMBER_KEY_VARIABLE: Final[str] = "EMBER_API_KEY"
 #: What the catalogue column means, and therefore what the source must mean too.
 #: Written here because it is the one fact that decides whether a dataset may be
 #: used at all, and it is easy to lose between a column name and an API field.
+#: English, and not in the message catalogue: this is a definition of a column,
+#: read by whoever maintains the catalogue, and nothing prints it to a reader.
 OPERATING_EMISSIONS: Final[str] = (
     "annual average operating emissions of the national grid, in gCO2e per kWh — "
     "not lifecycle, which includes building the generating plant and is a larger "
     "number for every low-carbon grid"
-)
-
-
-#: The series that is reachable without a key and must not be used. Named so the
-#: next person to look for a shortcut finds the reason rather than the shortcut.
-_REFUSED_FALLBACK: Final[str] = (
-    "Our World in Data's carbon-intensity-electricity series is reachable without "
-    "a key and is Ember-derived, but its own metadata calls it lifecycle carbon "
-    "intensity. This column is operating emissions. Substituting one for the "
-    "other would change what every committed model means without changing how "
-    "trustworthy any of them looks."
 )
 
 
@@ -249,10 +242,13 @@ def missing_key_message() -> str:
     >>> "lifecycle" in missing_key_message()
     True
     """
-    return (
-        f"No Ember API key. Set {EMBER_KEY_VARIABLE}, or pass --api-key. Ember issues "
-        "one free at https://ember-energy.org/data/ — this package will not refresh "
-        f"from anywhere else. {_REFUSED_FALLBACK}"
+    # The second sentence names the key-less series that looks equivalent and
+    # is not, so that the next person to look for a shortcut finds the reason
+    # rather than the shortcut.
+    return say(
+        "refresh.grid.no_key",
+        variable=EMBER_KEY_VARIABLE,
+        refused=say("refresh.grid.refused_fallback"),
     )
 
 
@@ -304,10 +300,7 @@ def fetch_grid(
     for code in keys:
         iso3 = ISO3_OF_ISO2.get(code.upper())
         if iso3 is None:
-            skipped[code] = (
-                "no ISO 3166-1 alpha-3 code on file for this key, so the source "
-                "cannot be asked about it. Add one to ISO3_OF_ISO2."
-            )
+            skipped[code] = say("refresh.grid.no_iso3")
         else:
             wanted[iso3] = code.upper()
 
@@ -340,14 +333,11 @@ def fetch_grid(
         with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
             payload = json.loads(response.read().decode("utf-8"))
     except (urllib.error.URLError, TimeoutError, ValueError) as exc:
-        raise RuntimeError(f"Ember did not answer: {exc}") from exc
+        raise RuntimeError(say("refresh.grid.no_answer", error=exc)) from exc
 
     records = payload.get("data") if isinstance(payload, dict) else payload
     if not isinstance(records, list):
-        raise RuntimeError(
-            "Ember answered in a shape this does not recognise. The catalogue is "
-            "untouched; nothing here will guess at a response it cannot read."
-        )
+        raise RuntimeError(say("refresh.grid.unreadable_shape"))
 
     latest: dict[str, tuple[int, float]] = {}
     for record in records:
@@ -365,7 +355,7 @@ def fetch_grid(
 
     for code in wanted.values():
         if code not in latest:
-            skipped[code] = "the source returned no figure for this country."
+            skipped[code] = say("refresh.grid.no_figure")
 
     # One year per country, not one year for the refresh. Ember does not publish
     # every country up to the same year -- Ukraine's series stops in 2022 while
@@ -442,10 +432,7 @@ def fetch_grid_public(
     for code in keys:
         iso3 = ISO3_OF_ISO2.get(code.upper())
         if iso3 is None:
-            skipped[code] = (
-                "no ISO 3166-1 alpha-3 code on file for this key, so the source "
-                "cannot be asked about it. Add one to ISO3_OF_ISO2."
-            )
+            skipped[code] = say("refresh.grid.no_iso3")
         else:
             wanted[iso3] = code.upper()
 
@@ -462,11 +449,7 @@ def fetch_grid_public(
             needed = {"ISO 3 code", "Year", "Electricity source", EMBER_INTENSITY_COLUMN}
             absent = sorted(needed - columns)
             if absent:
-                raise RuntimeError(
-                    f"Ember's published dataset no longer has {', '.join(absent)}. "
-                    "The catalogue is untouched: a refresh that silently found "
-                    "nothing would print as a refresh that found nothing to change."
-                )
+                raise RuntimeError(say("refresh.grid.columns_gone", columns=", ".join(absent)))
             for record in reader:
                 if record.get("Electricity source") != EMBER_TOTAL_ROW:
                     continue
@@ -487,14 +470,14 @@ def fetch_grid_public(
                 if code not in latest or found_year > latest[code][0]:
                     latest[code] = (found_year, value)
     except (urllib.error.URLError, TimeoutError, UnicodeDecodeError, csv.Error) as exc:
-        raise RuntimeError(f"Ember's published dataset did not read: {exc}") from exc
+        raise RuntimeError(say("refresh.grid.dataset_unreadable", error=exc)) from exc
 
     for code in wanted.values():
         if code not in latest:
             skipped[code] = (
-                f"the published dataset carries no intensity for this country in {year}."
+                say("refresh.grid.dataset_no_country_year", year=year)
                 if year is not None
-                else "the published dataset carries no intensity for this country."
+                else say("refresh.grid.dataset_no_country")
             )
 
     found_years = {code: found for code, (found, _) in latest.items()}
@@ -579,9 +562,7 @@ def apply_grid(path: Path, refresh: GridRefresh) -> int:
     True
     """
     if not path.is_file():
-        raise FileNotFoundError(
-            f"{path} is not there. This edits a catalogue; it does not create one."
-        )
+        raise FileNotFoundError(say("refresh.not_a_file", path=path))
     lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
     written = 0
     current: str | None = None

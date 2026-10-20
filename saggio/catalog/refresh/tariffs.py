@@ -27,6 +27,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Final
 
+from ...i18n import say
+
 #: Where the electricity tariffs come from. One page, one method, one unit: the
 #: residential price including the cost of power, distribution, transmission and
 #: all taxes, in US dollars per kilowatt-hour, for every country at once. The
@@ -247,11 +249,7 @@ def fetch_prices(
         return PriceRefresh(rows={}, skipped={}, source=PRICE_SOURCE)
     document = _rendered(PRICE_SOURCE, timeout=timeout)
     if not document:
-        raise RuntimeError(
-            "No headless browser answered, and that page writes its table with a "
-            "script rather than serving it. Install Chrome or Chromium; nothing "
-            "here will guess at a tariff."
-        )
+        raise RuntimeError(say("refresh.tariffs.no_browser"))
     table: dict[str, float] = {}
     for block in _PRICE_ROW.findall(document):
         cells = [_TAG.sub("", cell).strip() for cell in _PRICE_CELL.findall(block)]
@@ -270,7 +268,7 @@ def fetch_prices(
         if label in table:
             rows[key] = table[label]
         else:
-            skipped[key] = "the source published no tariff under that name."
+            skipped[key] = say("refresh.tariffs.not_published")
     return PriceRefresh(
         rows=rows,
         skipped=skipped,
@@ -321,9 +319,7 @@ def apply_prices(path: Path, refresh: PriceRefresh) -> int:
     True
     """
     if not path.is_file():
-        raise FileNotFoundError(
-            f"{path} is not there. This edits a catalogue; it does not create one."
-        )
+        raise FileNotFoundError(say("refresh.not_a_file", path=path))
     lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
     written = 0
     current: str | None = None

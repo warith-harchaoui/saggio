@@ -50,9 +50,9 @@ from ..auditor import AuditOptions, audit, audit_git_url
 from ..catalog.refresh import (
     EMBER_KEY_VARIABLE,
     EMBODIED_METHOD_URL,
-    GPU_REFUSAL,
     PRICE_CROSSCHECK,
     PRICE_CROSSCHECK_RATE,
+    accelerators_refused,
     apply_embodied,
     apply_grid,
     apply_prices,
@@ -931,7 +931,7 @@ def catalog_add(args: argparse.Namespace) -> int:
     for pair in args.field or []:
         name, _, raw = str(pair).partition("=")
         if not name or not raw:
-            osh.error(f"--field expects name=value, got {pair!r}.")
+            osh.error(say("cli.catalog.bad_field", pair=repr(pair)))
             return USAGE
         # int first, then float, so 400 stays an int but 2.5e-06 — the natural
         # spelling for a per-token price — lands as a number rather than as the
@@ -948,7 +948,7 @@ def catalog_add(args: argparse.Namespace) -> int:
     except ValueError as exc:
         osh.error(str(exc))
         return USAGE
-    osh.info(f"Added {args.key} to {written}. It is usable straight away.")
+    osh.info(say("cli.catalog.added", key=args.key, path=written))
     return OK
 
 
@@ -1040,10 +1040,7 @@ def _refresh_embodied(args: argparse.Namespace) -> int:
     2
     """
     if getattr(args, "column", "carbon") not in ("embodied", "all"):
-        osh.error(
-            "The hardware catalogue has one refreshable column: `--column embodied`. "
-            "Everything else there is a datasheet figure a person reads."
-        )
+        osh.error(say("cli.refresh.one_column"))
         return USAGE
 
     rows = Catalog.bundled("hardware").rows("cpus")
@@ -1060,24 +1057,40 @@ def _refresh_embodied(args: argparse.Namespace) -> int:
                     for key, (value, matched, die) in refresh.rows.items()
                 },
                 "refused": refresh.refused,
-                "accelerators": GPU_REFUSAL,
+                "accelerators": accelerators_refused(),
             },
             as_json=True,
         )
     else:
-        print(f"{refresh.source} — {len(refresh.rows)} of {len(rows)} processor(s)")
+        print(
+            say(
+                "cli.refresh.embodied.heading",
+                source=refresh.source,
+                found=len(refresh.rows),
+                total=len(rows),
+            )
+        )
         for key, (value, matched, die) in sorted(refresh.rows.items()):
-            print(f"  {key}: {value} kgCO2e — {matched}, die {die} mm2")
+            print(
+                "  "
+                + say(
+                    "cli.refresh.embodied.row",
+                    key=key,
+                    value=localised(f"{value:g}"),
+                    matched=matched,
+                    die=die,
+                )
+            )
         for key, why in sorted(refresh.refused.items()):
-            print(f"  {key}: refused — {why}")
-        print(f"  method, so a reader can judge rather than take: {EMBODIED_METHOD_URL}")
-        print(f"  accelerators: {GPU_REFUSAL}")
+            print("  " + say("cli.refresh.refused", key=key, reason=why))
+        print("  " + say("cli.refresh.embodied.method", url=EMBODIED_METHOD_URL))
+        print("  " + say("cli.refresh.embodied.accelerators", reason=accelerators_refused()))
         if args.write is None:
-            print("Read-only. Pass --write PATH to apply this to a catalogue file.")
+            print(say("cli.refresh.read_only"))
 
     if args.write is not None:
         written = apply_embodied(Path(args.write), refresh)
-        print(f"Wrote {written} processor footprint(s) to {args.write}.")
+        print(say("cli.refresh.embodied.wrote", count=written, path=args.write))
     return OK
 
 
@@ -1124,25 +1137,28 @@ def _check_timezones(args: argparse.Namespace, current: dict[str, Any]) -> int:
             as_json=True,
         )
     else:
-        print(f"{check.source} — tzdb {check.version or 'unknown'}, {check.known} zone(s) checked")
+        print(
+            say(
+                "cli.refresh.timezones.heading",
+                source=check.source,
+                version=check.version or say("cli.refresh.timezones.unknown_version"),
+                count=check.known,
+            )
+        )
         for key, zones in sorted(check.unknown.items()):
-            print(f"  {key}: {', '.join(zones)} — the database publishes no such zone")
+            print("  " + say("cli.refresh.timezones.unknown", key=key, zones=", ".join(zones)))
         if check.ok:
-            print("  every zone on file is one the database publishes.")
+            print("  " + say("cli.refresh.timezones.all_known"))
         if args.write is None:
-            print("Read-only. Pass --write PATH to stamp the release onto each row.")
+            print(say("cli.refresh.timezones.read_only"))
 
     if not check.ok:
-        osh.error(
-            "Some zones are not in the database. Nothing was stamped; a list marked "
-            "as checked when it did not check out would be this package's own "
-            "mistake, in miniature."
-        )
+        osh.error(say("cli.refresh.timezones.not_stamped"))
         return INVALID
 
     if args.write is not None:
         written = apply_timezone_check(Path(args.write), check)
-        print(f"Stamped {written} timezone row(s) in {args.write}.")
+        print(say("cli.refresh.timezones.stamped", count=written, path=args.write))
     return OK
 
 
@@ -1192,22 +1208,39 @@ def _refresh_prices(args: argparse.Namespace, current: dict[str, Any]) -> int:
             as_json=True,
         )
     else:
-        when = f", collected {refresh.collected}" if refresh.collected else ""
-        print(f"{refresh.source} — {len(refresh.rows)} countries{when}")
+        when = (
+            say("cli.refresh.prices.collected", when=refresh.collected) if refresh.collected else ""
+        )
+        print(
+            say(
+                "cli.refresh.prices.heading",
+                source=refresh.source,
+                count=len(refresh.rows),
+                when=when,
+            )
+        )
         for key, (was, now) in sorted(moved.items()):
-            shown = "nothing" if was is None else f"{was}"
-            print(f"  {key}: {shown} -> {now} USD/kWh")
+            shown = say("cli.refresh.prices.nothing") if was is None else localised(f"{was:g}")
+            print(
+                "  "
+                + say(
+                    "cli.refresh.prices.row",
+                    key=key,
+                    was=shown,
+                    now=localised(f"{now:g}"),
+                )
+            )
         if not moved:
-            print("  nothing moved by more than the catalogue's own precision.")
+            print("  " + say("cli.refresh.nothing_moved"))
         for key, reason in sorted(refresh.skipped.items()):
-            print(f"  {key}: left alone — {reason}")
-        print(f"  cross-check, not the source: {PRICE_CROSSCHECK}")
+            print("  " + say("cli.refresh.left_alone", key=key, reason=reason))
+        print("  " + say("cli.refresh.prices.cross_check", source=PRICE_CROSSCHECK))
         if args.write is None:
-            print("Read-only. Pass --write PATH to apply this to a catalogue file.")
+            print(say("cli.refresh.read_only"))
 
     if args.write is not None:
         written = apply_prices(Path(args.write), refresh)
-        print(f"Wrote {written} tariff row(s) to {args.write}.")
+        print(say("cli.refresh.prices.wrote", count=written, path=args.write))
     return OK
 
 
@@ -1245,11 +1278,7 @@ def catalog_refresh(args: argparse.Namespace) -> int:
     if args.catalog == "hardware":
         return _refresh_embodied(args)
     if args.catalog != "grid":
-        osh.error(
-            f"There is no refresh for the {args.catalog} catalogue. Only `grid` and "
-            "`hardware` cite a source that answers a machine; the others are "
-            "datasheets and published rates that a person reads."
-        )
+        osh.error(say("cli.refresh.no_source", catalog=args.catalog))
         return USAGE
 
     current = Catalog.bundled("grid").rows("countries")
@@ -1299,25 +1328,37 @@ def catalog_refresh(args: argparse.Namespace) -> int:
             as_json=True,
         )
     else:
-        print(f"{refresh.source} — {len(refresh.rows)} countries, newest data year {refresh.year}")
-        for key, (was, now) in sorted(moved.items()):
-            print(f"  {key}: {was} -> {now:.1f} gCO2e/kWh")
-        if not moved:
-            print("  nothing moved by more than the catalogue's own precision.")
-        for key in behind:
-            print(
-                f"  {key}: the source stops at {refresh.years[key]}, so that is what "
-                "this row will say it is"
+        print(
+            say(
+                "cli.refresh.grid.heading",
+                source=refresh.source,
+                count=len(refresh.rows),
+                year=refresh.year,
             )
+        )
+        for key, (was, now) in sorted(moved.items()):
+            print(
+                "  "
+                + say(
+                    "cli.refresh.grid.row",
+                    key=key,
+                    was=localised(f"{was:g}") if isinstance(was, (int, float)) else was,
+                    now=localised(f"{now:.1f}"),
+                )
+            )
+        if not moved:
+            print("  " + say("cli.refresh.nothing_moved"))
+        for key in behind:
+            print("  " + say("cli.refresh.grid.behind", key=key, year=refresh.years[key]))
         for key, reason in sorted(refresh.skipped.items()):
-            print(f"  {key}: left alone — {reason}")
-        print(f"  rows will cite {refresh.citation}, which is where a reader can check them.")
+            print("  " + say("cli.refresh.left_alone", key=key, reason=reason))
+        print("  " + say("cli.refresh.grid.citation", source=refresh.citation))
         if args.write is None:
-            print("Read-only. Pass --write PATH to apply this to a catalogue file.")
+            print(say("cli.refresh.read_only"))
 
     if args.write is not None:
         written = apply_grid(Path(args.write), refresh)
-        print(f"Wrote {written} row(s) to {args.write}.")
+        print(say("cli.refresh.grid.wrote", count=written, path=args.write))
     return OK
 
 

@@ -24,6 +24,7 @@ from saggio.catalog.refresh import (
     missing_key_message,
 )
 from saggio.cli.commands import catalog_refresh
+from saggio.i18n import language
 
 # --- What it refuses to do ---------------------------------------------------
 
@@ -830,12 +831,17 @@ def test_the_accelerator_half_of_that_source_is_refused_in_words() -> None:
     # Asked for any GPU by name it answers 575.1 kgCO2e -- the same number for a
     # GTX 1080 Ti, an A100 and an H100 -- because it holds one archetype called
     # "Large GPU". That is three and a half times NVIDIA's own verified figure
-    # for an H100. The refusal is a published string so the reason travels with
-    # the decision rather than living in a commit message.
-    from saggio.catalog.refresh import GPU_REFUSAL
+    # for an H100. The refusal is published so the reason travels with the
+    # decision rather than living in a commit message -- and it is a function
+    # rather than a constant because a reader reads it, and a constant is fixed
+    # at import while the language is chosen after.
+    from saggio.catalog.refresh import accelerators_refused
 
-    assert "575.1" in GPU_REFUSAL
-    assert "archetype" in GPU_REFUSAL
+    assert "575.1" in accelerators_refused()
+    assert "archetype" in accelerators_refused()
+    with language("fr"):
+        assert "575,1" in accelerators_refused()
+        assert "archétype" in accelerators_refused()
 
 
 def test_writing_a_footprint_states_the_die_it_came_from(tmp_path: pathlib.Path) -> None:
@@ -1017,7 +1023,11 @@ def test_the_footprint_refresh_names_every_refusal_and_the_method(
     printed only the four it accepted would read as a complete answer.
     """
     import saggio.cli.commands as commands
-    from saggio.catalog.refresh import EMBODIED_METHOD_URL, GPU_REFUSAL, EmbodiedRefresh
+    from saggio.catalog.refresh import (
+        EMBODIED_METHOD_URL,
+        EmbodiedRefresh,
+        accelerators_refused,
+    )
 
     monkeypatch.setattr(
         commands,
@@ -1046,7 +1056,7 @@ def test_the_footprint_refresh_names_every_refusal_and_the_method(
     # The method, because a figure computed from a die size is a weaker claim
     # than a published one and a reader has to be able to judge which.
     assert EMBODIED_METHOD_URL in out
-    assert GPU_REFUSAL[:40] in out
+    assert accelerators_refused()[:40] in out
 
 
 def test_the_footprint_refresh_as_json_carries_the_same_refusals(

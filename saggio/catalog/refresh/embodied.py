@@ -28,6 +28,8 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
+from ...i18n import say
+
 #: Where the processor footprints come from. Boavizta publishes an open,
 #: keyless API over a crowd-sourced database of chip die sizes, and computes a
 #: cradle-to-gate footprint from the die. It is the only source found that
@@ -67,20 +69,31 @@ EMBODIED_NAME_OF_KEY: Final[dict[str, str]] = {
 _INVENTED_DIE: Final[tuple[str, ...]] = ("average value", "regression")
 
 
-#: Why the GPU half of that API is refused outright. Asked for any GPU by name
-#: it answers 575.1 kgCO2e -- the same number for a GTX 1080 Ti, an A100 and an
-#: H100 -- because it holds one archetype called "Large GPU" and no per-model
-#: data at all. Against NVIDIA's own verified 164 kgCO2e for an H100 card that
-#: is three and a half times too high, and it arrives wearing the model name
-#: that was asked for.
-GPU_REFUSAL: Final[str] = (
-    "That source holds one generic GPU archetype, not per-model data: it answers "
-    "575.1 kgCO2e for every card from a GTX 1080 Ti to an H100, which is three and "
-    "a half times NVIDIA's own verified figure for an H100. A number that arrives "
-    "wearing the model name you asked for, and is the same for every model, is "
-    "worse than no number. Accelerator footprints are entered by hand from a "
-    "published product carbon footprint, one card at a time."
-)
+def accelerators_refused() -> str:
+    """Return why the GPU half of that API is refused outright.
+
+    Asked for any GPU by name it answers 575.1 kgCO2e — the same number for a
+    GTX 1080 Ti, an A100 and an H100 — because it holds one archetype called
+    "Large GPU" and no per-model data at all. Against NVIDIA's own verified
+    164 kgCO2e for an H100 card that is three and a half times too high, and it
+    arrives wearing the model name that was asked for.
+
+    A function rather than a constant because a reader reads it, and a constant
+    is fixed at import while the language is chosen after.
+    :func:`~saggio.catalog.refresh.carbon.missing_key_message` took this shape
+    first, for the same reason.
+
+    Returns
+    -------
+    str
+        One paragraph, in the language in force.
+
+    Examples
+    --------
+    >>> "575.1" in accelerators_refused()
+    True
+    """
+    return say("refresh.embodied.accelerators_refused")
 
 
 @dataclass(frozen=True)
@@ -179,7 +192,7 @@ def fetch_embodied(keys: list[str] | tuple[str, ...], *, timeout: int = 30) -> E
     for key in keys:
         name = EMBODIED_NAME_OF_KEY.get(key)
         if not name:
-            refused[key] = "no vendor name on file for this key."
+            refused[key] = say("refresh.embodied.no_vendor_name")
             continue
         request = urllib.request.Request(  # noqa: S310 - a fixed https endpoint.
             f"{EMBODIED_CPU_API}?verbose=true&criteria=gwp",
@@ -190,29 +203,24 @@ def fetch_embodied(keys: list[str] | tuple[str, ...], *, timeout: int = 30) -> E
             with urllib.request.urlopen(request, timeout=timeout) as answer:  # noqa: S310
                 payload = json.loads(answer.read().decode("utf-8"))
         except (urllib.error.URLError, TimeoutError, ValueError) as exc:
-            refused[key] = f"the source did not answer: {exc}"
+            refused[key] = say("refresh.embodied.no_answer", error=exc)
             continue
         verbose = payload.get("verbose") or {}
         matched = str((verbose.get("name") or {}).get("value", ""))
         if not _asked_for_what_came_back(name, matched):
-            refused[key] = (
-                f"the source answered about {matched!r}, not {name!r}. It substitutes "
-                "the nearest name it holds without saying so."
+            refused[key] = say(
+                "refresh.embodied.substituted", answered=repr(matched), asked=repr(name)
             )
             continue
         die = verbose.get("die_size") or {}
         die_source = str(die.get("source", ""))
         if any(mark in die_source.lower() for mark in _INVENTED_DIE):
-            refused[key] = (
-                f"the die size it computed from is not this chip's: {die_source!r}. "
-                "The footprint is a function of the die, so a default die is a "
-                "default footprint wearing this chip's name."
-            )
+            refused[key] = say("refresh.embodied.wrong_die", die=repr(die_source))
             continue
         try:
             value = float(payload["impacts"]["gwp"]["embedded"]["value"])
         except (KeyError, TypeError, ValueError):
-            refused[key] = "the answer carried no footprint this could read."
+            refused[key] = say("refresh.embodied.no_footprint")
             continue
         found[key] = (value, matched, str(die.get("value", "unstated")))
     return EmbodiedRefresh(rows=found, refused=refused)
@@ -258,9 +266,7 @@ def apply_embodied(path: Path, refresh: EmbodiedRefresh, *, section: str = "cpus
     True
     """
     if not path.is_file():
-        raise FileNotFoundError(
-            f"{path} is not there. This edits a catalogue; it does not create one."
-        )
+        raise FileNotFoundError(say("refresh.not_a_file", path=path))
     lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
     written = 0
     current: str | None = None
@@ -282,6 +288,11 @@ def apply_embodied(path: Path, refresh: EmbodiedRefresh, *, section: str = "cpus
         if current in refresh.rows and stripped.startswith("- key:"):
             indent = " " * (len(line) - len(line.lstrip()) + 2)
             value, matched, die = refresh.rows[current]
+            # English, deliberately, and the one sentence in this module that
+            # is: it is written into a catalogue file, where its reader is
+            # whoever opens the file rather than whoever ran the refresh. A
+            # data file in the language of whoever last refreshed it would be
+            # a worse artefact than an English one.
             scope = (
                 f"One {matched} package, cradle-to-gate, computed from its die of "
                 f"{die} mm2 by {EMBODIED_CPU_API}. Excludes the use phase and, per "

@@ -10,6 +10,46 @@ cette ligne.
 
 ## Non publié
 
+### Rafraîchir un catalogue dans la langue du lecteur, et les deux phrases qui restent en anglais
+
+Les quatre modules de rafraîchissement et les verbes qui les impriment — grid,
+hardware, tarifs, fuseaux — portaient la dernière prose anglaise en dehors de la
+moitié matérielle d'`extrapolate.py` et des descriptions de routes de l'API.
+Cinquante-deux clés : vingt et une pour ce que les sources répondent et refusent,
+trente et une pour ce que la commande imprime. Il ne reste plus d'anglais destiné
+à un lecteur dans `catalog/refresh/` ni dans `cli/commands.py`.
+
+**Deux phrases restent en anglais exprès, et le code dit maintenant pourquoi.**
+`embodied_scope` est écrite **dans** un fichier de catalogue : son lecteur ouvre
+le fichier, et non le terminal de qui a rafraîchi en dernier, et un fichier de
+données dans la langue de son dernier rédacteur est un plus mauvais artefact
+qu'un fichier anglais. `OPERATING_EMISSIONS` définit ce que signifie la colonne
+carbone, se lit par qui maintient le catalogue, et rien ne l'imprime — une
+définition, pas une sortie. Les deux portent un commentaire énonçant la
+frontière, parce que la prochaine personne à ratisser les chaînes anglaises les
+trouvera et doit en trouver la raison avec elles.
+
+**Une constante ne peut pas être dans la langue du lecteur.** `GPU_REFUSAL` était
+une constante de module portant un paragraphe ; une constante est fixée à
+l'import, et la langue est choisie après. C'est `accelerators_refused()`
+désormais, à la suite de `missing_key_message()`, qui avait pris cette forme la
+première dans le même paquet pour la même raison. C'est le mur derrière lequel se
+trouvent les descriptions de routes de l'API — là, les descriptions appartiennent
+à argparse, et cela reste une limite réelle.
+
+Deux fautes que la lecture de la sortie a attrapées, antérieures toutes les deux :
+
+- « 1 countries ». Les autres en-têtes de ce verbe disaient déjà « zone(s) » et
+  « processor(s) » ; les deux en-têtes de pays disent maintenant
+  « country(ies) ».
+- « collected March 2026 » devenait « relevé en March 2026 » en français. Le mois
+  est moissonné sur la page et reste anglais pour tout lecteur : aucune des deux
+  langues ne met plus de préposition devant — un deux-points fait le travail.
+
+Chaque chiffre que ces verbes impriment passe par le séparateur décimal en
+vigueur : empreintes, tarifs, intensités. « 575.1 kgCO2e » se lit
+« 575,1 kgCO2e » en français, à l'intérieur du paragraphe qui le refuse.
+
 ### La moitié matérielle d'une projection, et les trois fautes de français que l'anglais n'avait pas
 
 `project_to_machine` et `project_to_processor` portaient la dernière prose

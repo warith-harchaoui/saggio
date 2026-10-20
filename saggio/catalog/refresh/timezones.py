@@ -23,6 +23,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Final
 
+from ...i18n import say
+
 #: Where the timezone names come from. The IANA Time Zone Database is the
 #: authority every operating system ships, it is in the public domain, and it is
 #: versioned, so a row can say which release it was checked against rather than
@@ -113,7 +115,7 @@ def _iana_zones(timeout: int) -> tuple[set[str], str]:
             with urllib.request.urlopen(request, timeout=timeout) as answer:  # noqa: S310
                 pages[name] = answer.read().decode("utf-8")
         except (urllib.error.URLError, TimeoutError, ValueError) as exc:
-            raise RuntimeError(f"The timezone database did not answer: {exc}") from exc
+            raise RuntimeError(say("refresh.timezones.no_answer", error=exc)) from exc
 
     names: set[str] = set()
     for line in pages["zones"].splitlines():
@@ -204,15 +206,9 @@ def apply_timezone_check(path: Path, check: TimezoneCheck) -> int:
     True
     """
     if not path.is_file():
-        raise FileNotFoundError(
-            f"{path} is not there. This edits a catalogue; it does not create one."
-        )
+        raise FileNotFoundError(say("refresh.not_a_file", path=path))
     if not check.ok:
-        raise ValueError(
-            f"{check.unknown} are not zones the database publishes. Nothing is "
-            "stamped: marking a list as checked when it did not check out would be "
-            "this package's own mistake, in miniature."
-        )
+        raise ValueError(say("refresh.timezones.unknown_zones", zones=check.unknown))
     lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
     written = 0
     out: list[str] = []

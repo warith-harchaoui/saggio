@@ -9,6 +9,42 @@ release of that line.
 
 ## Unreleased
 
+### Refreshing a catalogue, in the reader's language, and the two sentences that stay English
+
+The four refresh modules and the verbs that print them — grid, hardware,
+tariffs, timezones — held the last English prose outside the hardware half of
+`extrapolate.py` and the API's route descriptions. Fifty-two keys: twenty-one
+for what the sources answer and refuse, thirty-one for what the command prints.
+`catalog/refresh/` and `cli/commands.py` have no reader-facing English left.
+
+**Two sentences stay English on purpose, and now say why in the code.**
+`embodied_scope` is written *into* a catalogue file: a reader opens the file,
+not the terminal of whoever last ran the refresh, and a data file in the
+language of its last writer is a worse artefact than an English one.
+`OPERATING_EMISSIONS` defines what the carbon column means, is read by whoever
+maintains the catalogue, and nothing prints it — a definition, not output. Both
+carry a comment stating the boundary, because the next person to sweep for
+English strings will find them and should find the reason with them.
+
+**A constant cannot be in the reader's language.** `GPU_REFUSAL` was a module
+constant holding a paragraph; a constant is fixed at import and the language is
+chosen after. It is `accelerators_refused()` now, following
+`missing_key_message()`, which took that shape first in the same package for
+the same reason. This is the same wall the API's route descriptions are behind —
+there, the descriptions are argparse's to own, so it stays a real limit.
+
+Two faults reading the output caught, both pre-existing:
+
+- `1 countries`. The other headings in this verb already said `zone(s)` and
+  `processor(s)`; the two country headings now say `country(ies)`.
+- `collected March 2026` became *relevé en March 2026* in French. The month is
+  scraped from the page and is English for every reader, so neither language
+  puts a preposition in front of it now — a colon does the work.
+
+Every figure these verbs print goes through the decimal separator in force:
+footprints, tariffs, intensities. `575.1 kgCO2e` reads `575,1 kgCO2e` in French,
+inside the paragraph that refuses it.
+
 ### The hardware half of a projection, and the three French faults English never had
 
 `project_to_machine` and `project_to_processor` held the last English prose in

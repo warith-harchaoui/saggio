@@ -1395,6 +1395,132 @@ cli.power.reads: "lit : {path}"
 cli.power.nothing_measured: "Sur {seconds} : rien mesuré. {scope}"
 cli.power.drew: "Sur {seconds}, cette machine a tiré {watts} ({joules}) via {sources}."
 
+# --- Ce que rapporte une relecture du catalogue à sa source (catalog/refresh/*.py)
+
+refresh.not_a_file: >-
+  {path} n'est pas là. Ceci modifie un catalogue ; ceci ne le crée pas.
+
+refresh.grid.no_key: >-
+  Pas de clé d'API Ember. Renseignez {variable}, ou passez --api-key. Ember en
+  délivre une gratuitement sur https://ember-energy.org/data/ — ce paquet ne
+  rafraîchira depuis aucune autre source. {refused}
+refresh.grid.refused_fallback: >-
+  La série carbon-intensity-electricity d'Our World in Data est accessible sans
+  clé et dérive d'Ember, mais ses propres métadonnées l'appellent intensité
+  carbone en cycle de vie. Cette colonne, elle, porte les émissions
+  d'exploitation. Substituer l'une à l'autre changerait le sens de chaque modèle
+  déjà déposé sans rien changer à la confiance que chacun d'eux affiche.
+refresh.grid.no_iso3: >-
+  aucun code ISO 3166-1 alpha-3 au dossier pour cette clé : la source ne peut
+  donc pas être interrogée à son sujet. Ajoutez-en un à ISO3_OF_ISO2.
+refresh.grid.no_answer: "Ember n'a pas répondu : {error}"
+refresh.grid.unreadable_shape: >-
+  Ember a répondu sous une forme que ceci ne reconnaît pas. Le catalogue est
+  intact ; rien ici ne devinera le contenu d'une réponse qu'il ne sait pas lire.
+refresh.grid.no_figure: "la source n'a renvoyé aucun chiffre pour ce pays."
+refresh.grid.dataset_unreadable: >-
+  Le jeu de données publié par Ember ne s'est pas lu : {error}
+refresh.grid.dataset_no_country: >-
+  le jeu de données publié ne porte aucune intensité pour ce pays.
+refresh.grid.dataset_no_country_year: >-
+  le jeu de données publié ne porte aucune intensité pour ce pays en {year}.
+refresh.grid.columns_gone: >-
+  Le jeu de données publié par Ember n'a plus {columns}. Le catalogue est intact :
+  un rafraîchissement qui n'aurait silencieusement rien trouvé s'afficherait
+  comme un rafraîchissement n'ayant rien trouvé à changer.
+
+refresh.embodied.accelerators_refused: >-
+  Cette source ne détient qu'un archétype de GPU générique, pas des données par
+  modèle : elle répond 575,1 kgCO2e pour toutes les cartes, d'une GTX 1080 Ti à
+  une H100, soit trois fois et demie le chiffre vérifié par NVIDIA elle-même pour
+  une H100. Un nombre qui arrive en portant le nom du modèle demandé, et qui est
+  le même pour tous les modèles, vaut moins que pas de nombre du tout. Les
+  empreintes d'accélérateurs sont saisies à la main depuis une empreinte carbone
+  produit publiée, une carte à la fois.
+refresh.embodied.no_vendor_name: "aucun nom de fabricant au dossier pour cette clé."
+refresh.embodied.no_answer: "la source n'a pas répondu : {error}"
+refresh.embodied.substituted: >-
+  la source a répondu au sujet de {answered}, et non de {asked}. Elle substitue
+  le nom le plus proche qu'elle détient sans le dire.
+refresh.embodied.wrong_die: >-
+  la surface de die sur laquelle elle a calculé n'est pas celle de cette puce :
+  {die}. L'empreinte est fonction du die, si bien qu'un die par défaut est une
+  empreinte par défaut portant le nom de cette puce.
+refresh.embodied.no_footprint: >-
+  la réponse ne portait aucune empreinte que ceci sache lire.
+
+refresh.tariffs.no_browser: >-
+  Aucun navigateur sans interface n'a répondu, et cette page écrit son tableau
+  par un script au lieu de le servir. Installez Chrome ou Chromium ; rien ici ne
+  devinera un tarif.
+refresh.tariffs.not_published: "la source ne publie aucun tarif sous ce nom."
+
+refresh.timezones.no_answer: "La base des fuseaux horaires n'a pas répondu : {error}"
+refresh.timezones.unknown_zones: >-
+  {zones} ne sont pas des fuseaux que la base publie. Rien n'est apposé : marquer
+  une liste comme vérifiée quand la vérification n'a pas abouti serait la faute
+  même de ce paquet, en miniature.
+
+# --- Ce que les verbes de catalogue impriment (cli/commands.py, moitié rafraîchissement)
+
+cli.catalog.bad_field: "--field attend nom=valeur, reçu {pair}."
+cli.catalog.added: "{key} ajouté à {path}. C'est utilisable tout de suite."
+
+cli.refresh.one_column: >-
+  Le catalogue matériel n'a qu'une colonne rafraîchissable : `--column embodied`.
+  Tout le reste y est un chiffre de fiche technique qu'une personne lit.
+cli.refresh.no_source: >-
+  Il n'y a pas de rafraîchissement pour le catalogue {catalog}. Seuls `grid` et
+  `hardware` citent une source qui répond à une machine ; les autres sont des
+  fiches techniques et des tarifs publiés qu'une personne lit.
+cli.refresh.nothing_moved: >-
+  rien n'a bougé de plus que la précision propre du catalogue.
+cli.refresh.left_alone: "{key} : laissé tel quel — {reason}"
+cli.refresh.refused: "{key} : refusé — {reason}"
+cli.refresh.read_only: >-
+  Lecture seule. Passez --write CHEMIN pour appliquer ceci à un fichier de
+  catalogue.
+
+cli.refresh.embodied.heading: "{source} — {found} processeur(s) sur {total}"
+cli.refresh.embodied.row: "{key} : {value} kgCO2e — {matched}, die {die} mm2"
+cli.refresh.embodied.method: >-
+  la méthode, pour qu'un lecteur juge au lieu de croire : {url}
+cli.refresh.embodied.accelerators: "accélérateurs : {reason}"
+cli.refresh.embodied.wrote: >-
+  {count} empreinte(s) de processeur écrite(s) dans {path}.
+
+cli.refresh.timezones.heading: >-
+  {source} — tzdb {version}, {count} fuseau(x) vérifié(s)
+cli.refresh.timezones.unknown_version: "inconnue"
+cli.refresh.timezones.unknown: "{key} : {zones} — la base ne publie aucun fuseau de ce nom"
+cli.refresh.timezones.all_known: >-
+  tous les fuseaux au dossier sont des fuseaux que la base publie.
+cli.refresh.timezones.read_only: >-
+  Lecture seule. Passez --write CHEMIN pour apposer la version sur chaque ligne.
+cli.refresh.timezones.not_stamped: >-
+  Certains fuseaux ne sont pas dans la base. Rien n'a été apposé ; marquer une
+  liste comme vérifiée quand la vérification n'a pas abouti serait la faute même
+  de ce paquet, en miniature.
+cli.refresh.timezones.stamped: >-
+  Version apposée sur {count} ligne(s) de fuseau dans {path}.
+
+cli.refresh.prices.heading: "{source} — {count} pays{when}"
+cli.refresh.prices.collected: ", relevé : {when}"
+cli.refresh.prices.row: "{key} : {was} -> {now} USD/kWh"
+cli.refresh.prices.nothing: "rien"
+cli.refresh.prices.cross_check: "recoupement, et non la source : {source}"
+cli.refresh.prices.wrote: "{count} ligne(s) de tarif écrite(s) dans {path}."
+
+cli.refresh.grid.heading: >-
+  {source} — {count} pays, année de données la plus récente {year}
+cli.refresh.grid.row: "{key} : {was} -> {now} gCO2e/kWh"
+cli.refresh.grid.behind: >-
+  {key} : la source s'arrête à {year}, c'est donc ce que cette ligne dira être
+cli.refresh.grid.citation: >-
+  les lignes citeront {source}, qui est l'endroit où un lecteur peut les
+  vérifier.
+cli.refresh.grid.wrote: "{count} ligne(s) écrite(s) dans {path}."
+
 # --- Ce que couvrent les compteurs propres d'une puce Apple
 #     (analyze/apple.py, power/soc.py)
 
