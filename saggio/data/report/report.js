@@ -131,9 +131,22 @@
     /* The same rule the renderer follows: a figure is written the way the
        language in force writes it, and the separator moves between digits and
        nowhere else. These panels recompute in the browser, so the server's
-       formatter cannot do it for them. */
+       formatter cannot do it for them. A contract test renders a figure both
+       ways and refuses a disagreement, because two halves of one page writing
+       one number differently is worse than either convention. */
     var point = translated("number.decimal", ".");
-    return point === "." ? written : written.replace(/(\d)\.(\d)/g, "$1" + point + "$2");
+    if (point !== ".") {
+      written = written.replace(/(\d)\.(\d)/g, "$1" + point + "$2");
+    }
+    var group = translated("number.group", "");
+    /* The whole part only, and never inside an exponent: `1.906e+04` has four
+       digits after its `e` and they are not a quantity. */
+    if (group && written.indexOf("e") < 0) {
+      written = written.replace(/^(-?)(\d{4,})/, function (all, sign, digits) {
+        return sign + digits.replace(/\B(?=(\d{3})+(?!\d))/g, group);
+      });
+    }
+    return written;
   }
 
   function recompute() {
