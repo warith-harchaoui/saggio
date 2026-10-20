@@ -72,10 +72,7 @@ THROUGHPUT_PRECISIONS: Final[frozenset[str]] = frozenset(THROUGHPUT_COLUMNS)
 #: Said when a half-precision workload is scaled by the BF16 column. NVIDIA and
 #: AMD quote one dense tensor-core rate covering both for the parts in this
 #: catalogue; a part where they differ needs its own column before it is added.
-_HALF_PRECISIONS_SHARE_A_COLUMN: Final[str] = (
-    "FP16 and BF16 are scaled by the same catalogue column, because the vendors "
-    "quote one dense tensor-core rate covering both for these parts."
-)
+_HALF_PRECISIONS_SHARE_A_COLUMN: Final[str] = "project.machine.assumption.half_precisions"
 
 #: The catalogue column holding peak memory bandwidth, which is the other half of
 #: what limits a workload and the half that a peak-FLOP/s ratio ignores.
@@ -218,8 +215,101 @@ def _refusal(unit: str | None, currency: str | None, reason: str) -> Projection:
     """
     return Projection(
         quantity=Quantity(unit=unit, currency=currency, status=TODO, notes=reason),
-        method="Refused.",
+        method=say("project.refused"),
         refused=True,
+    )
+
+
+def _quoted(keys: list[str]) -> str:
+    """Return catalogue keys as one quoted list, for a sentence to name them.
+
+    Joined with a comma rather than with *and*, because a conjunction is a word
+    and this has to read in every language the catalogue is written in. The
+    sentences that take this carry the grammar; this carries only the keys.
+
+    Parameters
+    ----------
+    keys : list of str
+        Catalogue keys, in the order the caller found them missing.
+
+    Returns
+    -------
+    str
+        The keys, quoted, comma-separated.
+
+    Examples
+    --------
+    >>> _quoted(["A100", "H100"])
+    "'A100', 'H100'"
+    """
+    return ", ".join(repr(key) for key in keys)
+
+
+def _hardware_notes(source_key: str, target_key: str, ratio: float, basis: str) -> str:
+    """Return what a projected quantity says about where it came from.
+
+    Shared by the accelerator and the processor projections, which say the same
+    thing because they did the same thing: one division, by a ratio that names
+    itself.
+
+    Parameters
+    ----------
+    source_key, target_key : str
+        Catalogue keys of the part measured and the part projected onto.
+    ratio : float
+        The speed-up the runtime was divided by.
+    basis : str
+        A phrase naming where that ratio came from, already in the reader's
+        language.
+
+    Returns
+    -------
+    str
+        One sentence.
+
+    Examples
+    --------
+    >>> _hardware_notes("A100", "H100", 2.0, "the peak ratio")
+    'Scaled from A100 to H100 by 2.00x, taken from the peak ratio.'
+    """
+    return say(
+        "project.hardware.notes",
+        source=source_key,
+        target=target_key,
+        ratio=localised(f"{ratio:.2f}"),
+        basis=basis,
+    )
+
+
+def _hardware_method(source_key: str, target_key: str, ratio: float, basis: str) -> str:
+    """Return the arithmetic a hardware projection performed, written out.
+
+    Parameters
+    ----------
+    source_key, target_key : str
+        Catalogue keys of the part measured and the part projected onto.
+    ratio : float
+        The speed-up the runtime was divided by.
+    basis : str
+        A phrase naming where that ratio came from, already in the reader's
+        language.
+
+    Returns
+    -------
+    str
+        One sentence.
+
+    Examples
+    --------
+    >>> _hardware_method("A100", "H100", 2.0, "the peak ratio")
+    'Runtime on H100 = runtime on A100 / 2.00, where 2.00 is the peak ratio.'
+    """
+    return say(
+        "project.hardware.method",
+        source=source_key,
+        target=target_key,
+        ratio=localised(f"{ratio:.2f}"),
+        basis=basis,
     )
 
 
@@ -454,30 +544,32 @@ def project_to_machine(
     True
     """
     if not runtime.is_known():
-        return _refusal(
-            runtime.unit, None, "The runtime carries no number, so there is nothing to project."
-        )
+        return _refusal(runtime.unit, None, say("project.no_runtime"))
 
     column = THROUGHPUT_COLUMNS.get(precision.lower())
     if column is None:
-        listed = ", ".join(sorted(THROUGHPUT_PRECISIONS))
         return _refusal(
             runtime.unit,
             None,
-            f"{precision} is not a precision this package knows how to look up. Known: {listed}.",
+            say(
+                "project.machine.unknown_precision",
+                precision=precision,
+                known=", ".join(sorted(THROUGHPUT_PRECISIONS)),
+            ),
         )
 
     catalog = overlay_catalog if overlay_catalog is not None else Catalog.load("hardware")
     rows = catalog.rows("gpus")
     missing = [key for key in (source_key, target_key) if key not in rows]
     if missing:
-        listed = ", ".join(sorted(rows))
         return _refusal(
             runtime.unit,
             None,
-            f"{' and '.join(repr(key) for key in missing)} not in the hardware catalogue. "
-            f"Known accelerators: {listed}. Add the missing one with "
-            "`saggio catalog add gpu`.",
+            say(
+                "project.machine.unknown_accelerator",
+                missing=_quoted(missing),
+                known=", ".join(sorted(rows)),
+            ),
         )
 
     source_row, target_row = rows[source_key], rows[target_key]
@@ -492,12 +584,13 @@ def project_to_machine(
         return _refusal(
             runtime.unit,
             None,
-            f"The catalogue has no {column} for {' and '.join(repr(key) for key in without)}, "
-            f"so there is no {precision} ratio to scale by. Two chips do not keep the same "
-            "ratio across precisions, so scaling this by another precision's figure would be "
-            f"a different claim than the one asked for. Add it with `saggio catalog add gpu "
-            f"{without[0]} --field {column}=...` from the vendor datasheet, or measure on "
-            "the target.",
+            say(
+                "project.machine.no_throughput",
+                column=column,
+                missing=_quoted(without),
+                precision=precision,
+                first=without[0],
+            ),
         )
 
     compute_speedup = float(target_throughput) / float(source_throughput)
@@ -510,39 +603,41 @@ def project_to_machine(
     )
 
     assumptions = [
-        "Both accelerators reach a similar share of their own peak on this workload.",
-        "The target has enough memory to hold the same working set, which the "
-        "catalogue can contradict but cannot confirm.",
-        "One accelerator, and the same batch size and parallelism as were measured.",
+        say("project.machine.assumption.same_share"),
+        say("project.machine.assumption.enough_memory"),
+        say("project.machine.assumption.one_accelerator"),
     ]
     if precision.lower() in {"fp16", "float16"}:
-        assumptions.insert(0, _HALF_PRECISIONS_SHARE_A_COLUMN)
+        assumptions.insert(0, say(_HALF_PRECISIONS_SHARE_A_COLUMN))
     source_memory = source_row.get(MEMORY_COLUMN)
     target_memory = target_row.get(MEMORY_COLUMN)
     limits = []
     if source_memory and target_memory and float(target_memory) < float(source_memory):
         limits.append(
-            f"{target_key} has {float(target_memory):g} GB of memory against "
-            f"{float(source_memory):g} GB on {source_key}. Nothing here knows how "
-            "much of it the measured run used, so this is a duration for a run that may "
-            "not start at all. Check the working set before quoting the figure."
+            say(
+                "project.machine.limit.less_memory",
+                target=target_key,
+                target_memory=localised(f"{float(target_memory):g}"),
+                source_memory=localised(f"{float(source_memory):g}"),
+                source=source_key,
+            )
         )
     limits += [
-        "Peak throughput and peak bandwidth are datasheet figures, not benchmarks. "
-        "A real run reaches a fraction of either, and the fraction differs by chip.",
-        "A workload bound by storage, by the data loader, or by the host processor "
-        "will not gain from either ratio, and may gain nothing at all.",
-        "Multi-accelerator scaling, interconnect, and communication overhead are "
-        "not modelled here.",
+        say("project.machine.limit.datasheet"),
+        say("project.machine.limit.not_accelerator_bound"),
+        say("project.machine.limit.multi_accelerator"),
     ]
 
-    compute_basis = (
-        f"the peak {precision} throughput ratio, "
-        f"{target_throughput:g} / {source_throughput:g} TFLOP/s"
+    compute_basis = say(
+        "project.machine.basis.compute",
+        precision=precision,
+        target=localised(f"{target_throughput:g}"),
+        source=localised(f"{source_throughput:g}"),
     )
-    bandwidth_basis = (
-        "the memory bandwidth ratio, "
-        f"{float(target_bandwidth or 0):g} / {float(source_bandwidth or 0):g} GB/s"
+    bandwidth_basis = say(
+        "project.machine.basis.bandwidth",
+        target=localised(f"{float(target_bandwidth or 0):g}"),
+        source=localised(f"{float(source_bandwidth or 0):g}"),
     )
 
     if bandwidth_speedup is None:
@@ -554,56 +649,55 @@ def project_to_machine(
             return _refusal(
                 runtime.unit or "s",
                 None,
-                f"the workload was declared memory-bound and the catalogue has no "
-                f"{BANDWIDTH_COLUMN} for one of these parts; add the bandwidth rows "
-                "before projecting a memory-bound run",
+                say("project.machine.declared_memory_bound", column=BANDWIDTH_COLUMN),
             )
         chosen = compute_speedup
         basis = compute_basis
         bounds = None
         limits.insert(
             0,
-            f"The catalogue has no {BANDWIDTH_COLUMN} for one of these parts, so nothing "
-            "brackets this from below. It is the compute-bound end of the range: an upper "
-            "bound on the speed-up, and therefore a lower bound on what the run costs.",
+            say("project.machine.limit.no_bracket", column=BANDWIDTH_COLUMN),
         )
     else:
         fastest_speedup = max(compute_speedup, bandwidth_speedup)
         slowest_speedup = min(compute_speedup, bandwidth_speedup)
         if compute_bound is True:
             chosen = compute_speedup
-            basis = f"{compute_basis}, the workload having been read as bound by arithmetic"
+            basis = say("project.machine.basis.compute_bound", basis=compute_basis)
         elif compute_bound is False:
             chosen = bandwidth_speedup
-            basis = (
-                f"{bandwidth_basis}, the workload having been read as bound by memory "
-                "rather than by arithmetic"
-            )
+            basis = say("project.machine.basis.memory_bound", basis=bandwidth_basis)
         else:
             chosen = slowest_speedup
             slower = compute_basis if compute_speedup <= bandwidth_speedup else bandwidth_basis
-            basis = (
-                f"the slower of the two ratios ({slower}), nothing having established "
-                "which of arithmetic and memory limits this workload"
-            )
+            basis = say("project.machine.basis.slower", basis=slower)
         bounds = (
             Quantity(
                 value=float(runtime.value) / fastest_speedup,
                 unit=runtime.unit or "s",
                 status=_cap(weakest(runtime.status, ESTIMATED)),
-                notes=f"Best case: every part of the run gains the full {fastest_speedup:.2f}x.",
+                notes=say(
+                    "project.machine.bound.best",
+                    ratio=localised(f"{fastest_speedup:.2f}"),
+                ),
             ),
             Quantity(
                 value=float(runtime.value) / slowest_speedup,
                 unit=runtime.unit or "s",
                 status=_cap(weakest(runtime.status, ESTIMATED)),
-                notes=f"Worst case within the bracket: {slowest_speedup:.2f}x.",
+                notes=say(
+                    "project.hardware.bound.worst",
+                    ratio=localised(f"{slowest_speedup:.2f}"),
+                ),
             ),
         )
         assumptions.insert(
             0,
-            f"The workload is limited by arithmetic ({compute_speedup:.2f}x) or by memory "
-            f"bandwidth ({bandwidth_speedup:.2f}x), and lands between the two.",
+            say(
+                "project.machine.assumption.between",
+                compute=localised(f"{compute_speedup:.2f}"),
+                bandwidth=localised(f"{bandwidth_speedup:.2f}"),
+            ),
         )
 
     return Projection(
@@ -613,14 +707,9 @@ def project_to_machine(
             status=_cap(weakest(runtime.status, ESTIMATED)),
             source_url=target_row.get("source_url"),
             retrieved_date=target_row.get("retrieved_date"),
-            notes=(
-                f"Scaled from {source_key} to {target_key} by {chosen:.2f}x, taken from {basis}."
-            ),
+            notes=_hardware_notes(source_key, target_key, chosen, basis),
         ),
-        method=(
-            f"Runtime on {target_key} = runtime on {source_key} / {chosen:.2f}, "
-            f"where {chosen:.2f} is {basis}."
-        ),
+        method=_hardware_method(source_key, target_key, chosen, basis),
         assumptions=tuple(assumptions),
         limits=tuple(limits),
         bounds=bounds,
@@ -730,20 +819,20 @@ def project_to_processor(
     66.67
     """
     if not runtime.is_known():
-        return _refusal(
-            runtime.unit, None, "The runtime carries no number, so there is nothing to project."
-        )
+        return _refusal(runtime.unit, None, say("project.no_runtime"))
 
     catalog = overlay_catalog if overlay_catalog is not None else Catalog.load("hardware")
     rows = catalog.rows("cpus")
     missing = [key for key in (source_key, target_key) if key not in rows]
     if missing:
-        listed = ", ".join(sorted(rows))
         return _refusal(
             runtime.unit,
             None,
-            f"{' and '.join(repr(key) for key in missing)} not in the hardware catalogue. "
-            f"Known processors: {listed}. Add the missing one with `saggio catalog add cpu`.",
+            say(
+                "project.processor.unknown_processor",
+                missing=_quoted(missing),
+                known=", ".join(sorted(rows)),
+            ),
         )
 
     source_row, target_row = rows[source_key], rows[target_key]
@@ -755,10 +844,13 @@ def project_to_processor(
         return _refusal(
             runtime.unit,
             None,
-            f"{source_key} is scored against {source_benchmark!r} and {target_key} "
-            f"against {target_benchmark!r}. Two scores are a ratio only when they "
-            "are scores of the same benchmark, run the same way; re-score one of "
-            "them against the other's before projecting.",
+            say(
+                "project.processor.different_benchmarks",
+                source=source_key,
+                source_benchmark=repr(source_benchmark),
+                target=target_key,
+                target_benchmark=repr(target_benchmark),
+            ),
         )
 
     ratios = _processor_ratios(source_row, target_row)
@@ -766,35 +858,28 @@ def project_to_processor(
         return _refusal(
             runtime.unit,
             None,
-            f"The catalogue has no {SINGLE_THREAD_COLUMN} and no {THROUGHPUT_COLUMN} "
-            f"for both {source_key!r} and {target_key!r}, so there is no ratio to "
-            "scale by. Unlike an accelerator, a processor publishes no peak figure "
-            "worth scaling by — clock speed and core count do not give one, because "
-            "the work done per cycle differs between parts. A published benchmark "
-            "does: take SPECrate2017_int_base from a result on spec.org, divide it "
-            "by the number of sockets so two parts are compared one socket against "
-            "one socket, and record which benchmark it was in "
-            f"`{BENCHMARK_COLUMN}` so nothing is ever divided by a score of "
-            "something else.",
+            say(
+                "project.processor.no_scores",
+                single=SINGLE_THREAD_COLUMN,
+                throughput=THROUGHPUT_COLUMN,
+                source=repr(source_key),
+                target=repr(target_key),
+                benchmark=BENCHMARK_COLUMN,
+            ),
         )
 
     chosen, basis, assumption = _choose_processor_ratio(
         ratios, parallelism=parallelism, source_row=source_row
     )
     assumptions = [
-        "Both processors reach a similar share of their own benchmark score on "
-        "this workload, which is a stronger assumption for a benchmark than for a "
-        "datasheet and still an assumption.",
-        "The same memory, storage, and interconnect around both parts.",
+        say("project.processor.assumption.same_share"),
+        say("project.processor.assumption.same_surroundings"),
     ]
     if assumption:
         assumptions.insert(0, assumption)
     limits = [
-        "A published benchmark score is one result on one system, with one "
-        "compiler and one set of options. Another result for the same part can "
-        "differ by a fifth, and a workload unlike the benchmark's by more.",
-        "A workload bound by storage, by the network, or by a lock will not "
-        "follow either ratio and may gain nothing at all.",
+        say("project.processor.limit.one_result"),
+        say("project.processor.limit.not_processor_bound"),
     ]
 
     bounds = None
@@ -805,21 +890,17 @@ def project_to_processor(
                 value=float(runtime.value) / fastest,
                 unit=runtime.unit or "s",
                 status=_cap(weakest(runtime.status, ESTIMATED)),
-                notes=f"Best case: the run gains the full {fastest:.2f}x.",
+                notes=say("project.processor.bound.best", ratio=localised(f"{fastest:.2f}")),
             ),
             Quantity(
                 value=float(runtime.value) / slowest,
                 unit=runtime.unit or "s",
                 status=_cap(weakest(runtime.status, ESTIMATED)),
-                notes=f"Worst case within the bracket: {slowest:.2f}x.",
+                notes=say("project.hardware.bound.worst", ratio=localised(f"{slowest:.2f}")),
             ),
         )
     else:
-        limits.insert(
-            0,
-            "Only one of the two scores is in the catalogue for these parts, so "
-            "nothing brackets this. Add the other before quoting it as a range.",
-        )
+        limits.insert(0, say("project.processor.limit.no_bracket"))
 
     return Projection(
         quantity=Quantity(
@@ -828,12 +909,9 @@ def project_to_processor(
             status=_cap(weakest(runtime.status, ESTIMATED)),
             source_url=target_row.get("source_url"),
             retrieved_date=target_row.get("retrieved_date"),
-            notes=f"Scaled from {source_key} to {target_key} by {chosen:.2f}x, taken from {basis}.",
+            notes=_hardware_notes(source_key, target_key, chosen, basis),
         ),
-        method=(
-            f"Runtime on {target_key} = runtime on {source_key} / {chosen:.2f}, "
-            f"where {chosen:.2f} is {basis}."
-        ),
+        method=_hardware_method(source_key, target_key, chosen, basis),
         assumptions=tuple(assumptions),
         limits=tuple(limits),
         bounds=bounds,
@@ -902,8 +980,8 @@ def _choose_processor_ratio(
     """
     if len(ratios) == 1:
         name, ratio = next(iter(ratios.items()))
-        which = "single-threaded" if name == "single" else "all-core throughput"
-        return ratio, f"the {which} score ratio, the only one the catalogue can support", None
+        only = "only_single" if name == "single" else "only_throughput"
+        return ratio, say(f"project.processor.basis.{only}"), None
 
     single, throughput = ratios["single"], ratios["throughput"]
     cores = source_row.get(CORES_COLUMN)
@@ -911,31 +989,28 @@ def _choose_processor_ratio(
     if parallelism is not None and parallelism <= SINGLE_THREAD_CEILING:
         return (
             single,
-            f"the single-threaded score ratio, the run having kept {parallelism:.1f} "
-            "cores busy on average",
-            "The projected run is as single-threaded as the measured one was.",
+            say("project.processor.basis.single", parallelism=localised(f"{parallelism:.1f}")),
+            say("project.processor.assumption.still_single"),
         )
     if parallelism is not None and cores and parallelism >= SATURATION_SHARE * float(cores):
         return (
             throughput,
-            f"the all-core throughput score ratio, the run having kept {parallelism:.1f} "
-            f"of {float(cores):g} cores busy on average",
-            f"The projected run spreads across the target's cores as it did across "
-            f"the source's {float(cores):g}, which a part with many more cores may "
-            "not let it do.",
+            say(
+                "project.processor.basis.throughput",
+                parallelism=localised(f"{parallelism:.1f}"),
+                cores=localised(f"{float(cores):g}"),
+            ),
+            say("project.processor.assumption.spreads", cores=localised(f"{float(cores):g}")),
         )
 
     slower = min(single, throughput)
-    which = "single-threaded" if slower == single else "all-core throughput"
-    if parallelism is None:
-        measured = "nothing having measured how many cores the run kept busy"
-    else:
-        measured = (
-            f"the run having kept {parallelism:.1f} cores busy, which is neither "
-            "one core nor most of them"
+    which = "slower_single" if slower == single else "slower_throughput"
+    measured = (
+        say("project.processor.measured.none")
+        if parallelism is None
+        else say(
+            "project.processor.measured.between",
+            parallelism=localised(f"{parallelism:.1f}"),
         )
-    return (
-        slower,
-        f"the slower of the two ratios (the {which} one), {measured}",
-        None,
     )
+    return slower, say(f"project.processor.basis.{which}", measured=measured), None

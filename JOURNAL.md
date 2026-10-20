@@ -10,6 +10,50 @@ cette ligne.
 
 ## Non publié
 
+### La moitié matérielle d'une projection, et les trois fautes de français que l'anglais n'avait pas
+
+`project_to_machine` et `project_to_processor` portaient la dernière prose
+anglaise d'`estimate/extrapolate.py` — quarante-sept chaînes, plus aucune
+aujourd'hui. Quarante-quatre clés de catalogue : vingt pour la projection sur
+accélérateur, dix-neuf pour le processeur, trois que les deux partagent parce
+qu'elles disent la même chose, et deux partagées avec la projection de tranche
+déjà traduite (« Refusé. », et la durée qui ne porte aucun nombre).
+
+Pas une traduction mais une réécriture, parce que les phrases étaient assemblées
+à partir de fragments. La formule qui nomme d'où vient un rapport — « le plus
+lent des deux rapports (le rapport des bandes passantes mémoire, 3350 / 1555
+Go/s) » — est construite à un endroit et encastrée à quatre autres, et l'anglais
+ne se soucie pas de ce qui s'encastre dans quoi. Le français si, et c'est en
+lisant la sortie qu'on a vu trois fautes qu'aucune vérification n'aurait pu
+trouver :
+
+- **« pris de » + « le plus lent… »** n'est pas du français : « de » + « le » se
+  contracte en « du ». La phrase d'accueil dit désormais « d'après », qui prend
+  n'importe quel article sans le changer — la solution est de choisir une
+  préposition qui ne s'infléchit pas, non de l'infléchir.
+- **« les mêmes taille de lot et parallélisme »** ne s'accorde pas. Chaque nom
+  porte maintenant son propre déterminant.
+- **« toute la course »** pour *every part of the run* est une affirmation plus
+  faible que celle qui est faite : qu'aucune de ses étapes ne reste en deçà du
+  rapport.
+
+Deux refus ont changé de forme pour être traduisibles du tout. « 'A100' and
+'H100' not in the catalogue » joignait ses clés par une conjonction, et une
+conjonction est un mot ; les clés sont désormais nommées après un deux-points et
+jointes par une virgule, comme toutes les autres listes de ce paquet l'étaient
+déjà. C'était la seule conjonction traduite du code, et il n'y en a plus.
+
+Quatre fragments ne sont pas devenus des arguments, parce qu'un groupe nominal nu
+déposé dans une phrase est précisément là où ce qui précède dérape : « mono-fil »
+et « débit tous cœurs » ont chacun leur phrase entière aux deux endroits où ils
+paraissent. Huit clés au lieu de quatre, et aucune grammaire assemblée à
+l'exécution.
+
+Chaque nombre que ces deux fonctions impriment passe maintenant par le séparateur
+décimal en vigueur : rapports, nombres de cœurs, tailles de mémoire, débits.
+« 2.15x » se lit « 2,15x » en français, comme le reste du rapport le faisait
+déjà.
+
 ### Trois choses qu'une machine peut vérifier dans une traduction, et le défaut qu'elles ont trouvé
 
 Aucun test ne lit une phrase française pour la juger — une relecture humaine

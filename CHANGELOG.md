@@ -9,6 +9,44 @@ release of that line.
 
 ## Unreleased
 
+### The hardware half of a projection, and the three French faults English never had
+
+`project_to_machine` and `project_to_processor` held the last English prose in
+`estimate/extrapolate.py` — forty-seven strings, now none. Forty-four catalogue
+keys: twenty for the accelerator projection, nineteen for the processor, three
+the two share because they say the same thing, and two shared with the slice
+projection that was already translated (`Refused.`, and the runtime that carries
+no number).
+
+Not a translation but a rewrite, because the sentences were assembled from
+fragments. A phrase naming where a ratio came from — *the slower of the two
+ratios (the memory bandwidth ratio, 3350 / 1555 GB/s)* — is built in one place
+and embedded in four others, and English does not care what is embedded in what.
+French does, and reading the output caught three faults no check could have:
+
+- **`pris de` + `le plus lent…`** is not French: `de` + `le` contracts to `du`.
+  The host sentence now says `d'après`, which takes any article unchanged —
+  the fix is to pick a preposition that does not inflect, not to inflect it.
+- **`les mêmes taille de lot et parallélisme`** does not agree. Each noun
+  carries its own determiner now.
+- **`toute la course`** for *every part of the run* is a weaker claim than the
+  one being made: that no stage of it falls short of the ratio.
+
+Two refusals changed shape to be translatable at all. `'A100' and 'H100' not in
+the catalogue` joined its keys with a conjunction, which is a word; they are now
+named after a colon and joined with a comma, the way every other list in this
+package already was. The `and` was the only translated conjunction in the
+codebase, and there is none now.
+
+Four fragments did not become arguments, because a bare noun phrase dropped into
+a sentence is where the above goes wrong: *single-threaded* and *all-core
+throughput* each got their own whole sentence in both of the two places they
+appear. Eight keys instead of four, and no grammar assembled at runtime.
+
+Every number the two functions print now goes through the decimal separator in
+force: ratios, core counts, memory sizes, throughputs. `2.15x` reads `2,15x` in
+French, as the rest of the report already did.
+
 ### Three things a machine can check in a translation, and the one fault they found
 
 No test reads a French sentence and judges it — a human reviewer is still owed

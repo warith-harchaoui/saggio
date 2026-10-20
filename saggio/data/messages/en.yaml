@@ -848,6 +848,145 @@ project.scaled.limit.range: >-
   is about {whole} at the same scale, which is {times} times the largest size
   actually run.
 
+# --- Projecting onto another machine (estimate/extrapolate.py, hardware half)
+
+project.refused: "Refused."
+project.no_runtime: "The runtime carries no number, so there is nothing to project."
+
+project.machine.unknown_precision: >-
+  {precision} is not a precision this package knows how to look up. Known:
+  {known}.
+project.machine.unknown_accelerator: >-
+  Not in the hardware catalogue: {missing}. Known accelerators: {known}. Add the
+  missing one with `saggio catalog add gpu`.
+project.machine.no_throughput: >-
+  The catalogue has no {column} for {missing}, so there is no {precision} ratio
+  to scale by. Two chips do not keep the same ratio across precisions, so
+  scaling this by another precision's figure would be a different claim than the
+  one asked for. Add it with `saggio catalog add gpu {first} --field
+  {column}=...` from the vendor datasheet, or measure on the target.
+project.machine.declared_memory_bound: >-
+  The workload was declared memory-bound and the catalogue has no {column} for
+  one of these parts. Add the bandwidth rows before projecting a memory-bound
+  run.
+
+project.machine.basis.compute: >-
+  the peak {precision} throughput ratio, {target} / {source} TFLOP/s
+project.machine.basis.bandwidth: >-
+  the memory bandwidth ratio, {target} / {source} GB/s
+project.machine.basis.compute_bound: >-
+  {basis}, the workload having been read as bound by arithmetic
+project.machine.basis.memory_bound: >-
+  {basis}, the workload having been read as bound by memory rather than by
+  arithmetic
+project.machine.basis.slower: >-
+  the slower of the two ratios ({basis}), nothing having established which of
+  arithmetic and memory limits this workload
+
+project.machine.assumption.half_precisions: >-
+  FP16 and BF16 are scaled by the same catalogue column, because the vendors
+  quote one dense tensor-core rate covering both for these parts.
+project.machine.assumption.same_share: >-
+  Both accelerators reach a similar share of their own peak on this workload.
+project.machine.assumption.enough_memory: >-
+  The target has enough memory to hold the same working set, which the catalogue
+  can contradict but cannot confirm.
+project.machine.assumption.one_accelerator: >-
+  One accelerator, and the same batch size and parallelism as were measured.
+project.machine.assumption.between: >-
+  The workload is limited by arithmetic ({compute}x) or by memory bandwidth
+  ({bandwidth}x), and lands between the two.
+
+project.machine.limit.less_memory: >-
+  {target} has {target_memory} GB of memory against {source_memory} GB on
+  {source}. Nothing here knows how much of it the measured run used, so this is
+  a duration for a run that may not start at all. Check the working set before
+  quoting the figure.
+project.machine.limit.datasheet: >-
+  Peak throughput and peak bandwidth are datasheet figures, not benchmarks. A
+  real run reaches a fraction of either, and the fraction differs by chip.
+project.machine.limit.not_accelerator_bound: >-
+  A workload bound by storage, by the data loader, or by the host processor will
+  not gain from either ratio, and may gain nothing at all.
+project.machine.limit.multi_accelerator: >-
+  Multi-accelerator scaling, interconnect, and communication overhead are not
+  modelled here.
+project.machine.limit.no_bracket: >-
+  The catalogue has no {column} for one of these parts, so nothing brackets this
+  from below. It is the compute-bound end of the range: an upper bound on the
+  speed-up, and therefore a lower bound on what the run costs.
+
+project.machine.bound.best: "Best case: every part of the run gains the full {ratio}x."
+
+project.processor.unknown_processor: >-
+  Not in the hardware catalogue: {missing}. Known processors: {known}. Add the
+  missing one with `saggio catalog add cpu`.
+project.processor.different_benchmarks: >-
+  {source} is scored against {source_benchmark} and {target} against
+  {target_benchmark}. Two scores are a ratio only when they are scores of the
+  same benchmark, run the same way; re-score one of them against the other's
+  before projecting.
+project.processor.no_scores: >-
+  The catalogue has no {single} and no {throughput} for both {source} and
+  {target}, so there is no ratio to scale by. Unlike an accelerator, a processor
+  publishes no peak figure worth scaling by — clock speed and core count do not
+  give one, because the work done per cycle differs between parts. A published
+  benchmark does: take SPECrate2017_int_base from a result on spec.org, divide
+  it by the number of sockets so two parts are compared one socket against one
+  socket, and record which benchmark it was in `{benchmark}` so nothing is ever
+  divided by a score of something else.
+
+project.processor.basis.only_single: >-
+  the single-threaded score ratio, the only one the catalogue can support
+project.processor.basis.only_throughput: >-
+  the all-core throughput score ratio, the only one the catalogue can support
+project.processor.basis.single: >-
+  the single-threaded score ratio, the run having kept {parallelism} cores busy
+  on average
+project.processor.basis.throughput: >-
+  the all-core throughput score ratio, the run having kept {parallelism} of
+  {cores} cores busy on average
+project.processor.basis.slower_single: >-
+  the slower of the two ratios (the single-threaded one), {measured}
+project.processor.basis.slower_throughput: >-
+  the slower of the two ratios (the all-core throughput one), {measured}
+project.processor.measured.none: >-
+  nothing having measured how many cores the run kept busy
+project.processor.measured.between: >-
+  the run having kept {parallelism} cores busy, which is neither one core nor
+  most of them
+
+project.processor.assumption.still_single: >-
+  The projected run is as single-threaded as the measured one was.
+project.processor.assumption.spreads: >-
+  The projected run spreads across the target's cores as it did across the
+  source's {cores}, which a part with many more cores may not let it do.
+project.processor.assumption.same_share: >-
+  Both processors reach a similar share of their own benchmark score on this
+  workload, which is a stronger assumption for a benchmark than for a datasheet
+  and still an assumption.
+project.processor.assumption.same_surroundings: >-
+  The same memory, storage, and interconnect around both parts.
+
+project.processor.limit.one_result: >-
+  A published benchmark score is one result on one system, with one compiler and
+  one set of options. Another result for the same part can differ by a fifth,
+  and a workload unlike the benchmark's by more.
+project.processor.limit.not_processor_bound: >-
+  A workload bound by storage, by the network, or by a lock will not follow
+  either ratio and may gain nothing at all.
+project.processor.limit.no_bracket: >-
+  Only one of the two scores is in the catalogue for these parts, so nothing
+  brackets this. Add the other before quoting it as a range.
+
+project.processor.bound.best: "Best case: the run gains the full {ratio}x."
+
+project.hardware.bound.worst: "Worst case within the bracket: {ratio}x."
+project.hardware.notes: >-
+  Scaled from {source} to {target} by {ratio}x, taken from {basis}.
+project.hardware.method: >-
+  Runtime on {target} = runtime on {source} / {ratio}, where {ratio} is {basis}.
+
 # --- What an audit writes into the model it builds (auditor/build.py)
 
 audit.no_country: >-
