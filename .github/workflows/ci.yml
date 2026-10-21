@@ -1,4 +1,5 @@
-# Continuous integration, deliberately small — and one job larger than it was.
+# Continuous integration, deliberately small — and one job that stopped doing
+# the other job's work.
 #
 # This used to be four jobs — two operating systems times two Python versions —
 # and it had not gone green in twenty-five consecutive runs. A gate that is
@@ -21,7 +22,26 @@
 # and been found by a user. The runner is Apple Silicon, which is the hardware
 # that code is for.
 #
-# What is still not covered, said plainly rather than quietly dropped:
+# Why that runner no longer runs the whole suite. It was running all of it and
+# taking the longest of any job to do so — a hundred and five seconds against
+# Linux's fifty-nine, for the same two thousand four hundred tests on the same
+# commit — and nearly all of those tests are arithmetic over catalogues and
+# prose, which cannot come out differently because the operating system
+# underneath is different. So the second runner now runs the part of the suite
+# whose answer is a property of the machine: the measuring subsystem's own
+# doctests, which call the chip's library for real, every unit test, and the
+# integration tests over an audit, which include the two that compare what this
+# machine says it can measure against what it then measured. Linux still runs
+# everything. Measured rather than assumed: the selection is two fifths of the
+# suite's running time and the whole of its platform-dependent half.
+#
+# What this trades away, said plainly rather than quietly dropped: a defect that
+# is macOS-only *and* lives outside the measuring subsystem — an encoding, a path
+# separator, a shell quoting rule — now reaches Linux's verdict only. The
+# subprocess layer is the one place that could plausibly hold such a thing, and
+# it is in `tests/unit/test_run.py`, which the macOS cell runs.
+#
+# What is still not covered:
 #
 #   - Only the floor of the supported range is run. `requires-python` is
 #     ">=3.10,<3.14"; 3.10 is the version most likely to reject something, so it
@@ -34,8 +54,8 @@
 # is not the fault of whoever changed a docstring, so it opens the question on a
 # schedule instead of failing a pull request. The list of supported platforms is
 # still pinned to `saggio.analyze.capability.SUPPORTED_PLATFORMS` by a contract
-# test, so this file dropping an OS cannot silently change what the package
-# claims to support.
+# test, so this file dropping an operating system cannot silently change what the
+# package claims to support.
 
 name: checks
 
@@ -43,8 +63,9 @@ on:
   push:
     branches: [main, master]
   pull_request:
-  # Run it on demand, on any ref. Added while bringing macOS back: a CI change
-  # that can only be tested by merging it is a CI change nobody tests.
+  # Run it on demand, on any ref. Added while bringing macOS back: a continuous
+  # integration change that can only be tested by merging it is a change nobody
+  # tests.
   workflow_dispatch:
   schedule:
     # Monday morning, to ask whether the catalogue numbers still hold.
@@ -70,19 +91,37 @@ jobs:
           - os: ubuntu-latest
             label: Linux, Python 3.10
             lint: true
+            # Empty means the whole suite: `testpaths` in pyproject.toml is
+            # `["tests", "saggio"]`, and one cell has to run all of it.
+            tests: ""
           - os: macos-latest
             label: macOS (Apple Silicon), Python 3.10
             # Linting twice tells you nothing twice: ruff reads the same files
             # and reaches the same verdict. This cell is here for the counters.
             lint: false
+            # Everything whose answer depends on the machine underneath: the
+            # measuring subsystem's doctests, which read IOReport for real, the
+            # unit tests, and the audit integration tests — the last of which
+            # hold the two probes that compare the capability report against a
+            # real run. Anything dropped here, Linux has already run on this
+            # same commit.
+            tests: saggio/analyze tests/unit tests/integration/test_audit.py
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.10"
-          cache: pip
+      # uv resolves and installs this package's eleven development dependencies
+      # in about three seconds against pip's sixteen, and caches the wheels
+      # across runs itself -- which is why `cache: pip` is gone from the step
+      # above rather than kept beside a second cache doing the same job.
+      # `--system` is what points it at the interpreter chosen there instead of
+      # making a virtual environment nothing would activate.
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
       - name: Install
-        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+        run: uv pip install --system -e ".[dev]"
       - name: Lint
         if: matrix.lint
         run: ruff check .
@@ -101,10 +140,10 @@ jobs:
         # so the documentation cannot drift away from the code.
         #
         # `-n auto` spreads the suite across the runner's cores. It is not a
-        # shortcut past anything: every test still runs. It is what keeps the
-        # job short as the suite grows, which is the only way a gate stays one
+        # shortcut past anything: every test selected still runs. It is what keeps
+        # the job short as the suite grows, which is the only way a gate stays one
         # somebody waits for rather than one they learn to ignore.
-        run: python -m pytest -n auto
+        run: python -m pytest -n auto ${{ matrix.tests }}
 
   freshness:
     name: catalogue freshness
@@ -112,13 +151,17 @@ jobs:
     if: github.event_name == 'schedule'
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.10"
-          cache: pip
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      # Four runtime dependencies and none of the development ones: this job
+      # reads a catalogue and asks how old it is.
       - name: Install
-        run: python -m pip install --upgrade pip && python -m pip install -e .
+        run: uv pip install --system -e .
       # `--within 21` rather than the bare command. Without it this step prints
       # "every catalogue row is within its refresh window" every Monday until
       # the week they expire, and then fails -- which is notice after the fact.

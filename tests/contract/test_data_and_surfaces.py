@@ -325,22 +325,35 @@ def test_ci_runs_only_on_platforms_the_package_supports() -> None:
         _repository_root().joinpath(".github", "workflows", "ci.yml").read_text(encoding="utf-8")
     )
     runner_of_platform = {"linux": "ubuntu-latest", "darwin": "macos-latest"}
+    allowed = set(runner_of_platform.values())
     assert set(SUPPORTED_PLATFORMS) == set(runner_of_platform), (
         "a platform was added or removed; teach this test which runner it maps to"
     )
 
+    # The leading "- " of a matrix `include:` entry is stripped before matching,
+    # and a bare `os: macos-latest` is read as well as the bracketed list form.
+    # Without both, this saw `runs-on: ${{ matrix.os }}` and nothing else: the
+    # runners were declared one line lower, as `- os: macos-latest`, and the
+    # check that exists to stop a runner coming back could not see a runner.
     runners: set[str] = set()
     for line in workflow.splitlines():
-        stripped = line.strip()
+        stripped = line.strip().removeprefix("- ")
         if stripped.startswith("runs-on:"):
             runners.add(stripped.split(":", 1)[1].strip())
         elif stripped.startswith("os:"):
-            inside = re.search(r"\[([^\]]+)\]", stripped)
+            value = stripped.split(":", 1)[1].strip()
+            inside = re.search(r"\[([^\]]+)\]", value)
             if inside:
                 runners.update(name.strip() for name in inside.group(1).split(","))
+            elif value:
+                runners.add(value)
     assert runners, "the workflow declares no runner at all"
+    assert allowed <= runners, (
+        f"the workflow declares {sorted(runners)}, which does not include every "
+        f"runner this test knows how to read -- the shapes it parses have drifted "
+        f"away from the shapes the file uses"
+    )
 
-    allowed = set(runner_of_platform.values())
     stray = {name for name in runners if not name.startswith("${{") and name not in allowed}
     assert not stray, (
         f"the workflow runs on {sorted(stray)}, which the package does not support "
@@ -354,8 +367,12 @@ def test_no_job_runs_on_a_platform_that_was_excluded() -> None:
     workflow = (
         _repository_root().joinpath(".github", "workflows", "ci.yml").read_text(encoding="utf-8")
     )
+    # Same leading "- " as above: a matrix `include:` entry is where a runner is
+    # actually named, so a filter that cannot see one is a filter against nothing.
     runner_lines = [
-        line for line in workflow.splitlines() if line.strip().startswith(("os:", "runs-on:"))
+        line
+        for line in workflow.splitlines()
+        if line.strip().removeprefix("- ").startswith(("os:", "runs-on:"))
     ]
     assert runner_lines, "the workflow declares no runners in a shape this can read"
     assert not any("windows" in line.lower() for line in runner_lines)
