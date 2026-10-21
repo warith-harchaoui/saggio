@@ -45,8 +45,9 @@
 #
 #   - Only the floor of the supported range is run. `requires-python` is
 #     ">=3.10,<3.14"; 3.10 is the version most likely to reject something, so it
-#     is the one worth the slot. macOS runs the same floor, so the matrix is two
-#     cells rather than four.
+#     is the one worth the slot, and uv fetches it on both runners rather than
+#     either taking whatever the image ships. macOS runs the same floor, so the
+#     matrix is two cells rather than four.
 #   - No runner has an accelerator. The NVIDIA and AMD paths are exercised by
 #     fakes in the suite and by nothing here.
 #
@@ -108,20 +109,26 @@ jobs:
             tests: saggio/analyze tests/unit tests/integration/test_audit.py
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.10"
-      # uv resolves and installs this package's eleven development dependencies
-      # in about three seconds against pip's sixteen, and caches the wheels
-      # across runs itself -- which is why `cache: pip` is gone from the step
-      # above rather than kept beside a second cache doing the same job.
-      # `--system` is what points it at the interpreter chosen there instead of
-      # making a virtual environment nothing would activate.
+      # uv supplies the interpreter as well as the packages, which is why
+      # `actions/setup-python` is gone. Measured on the run that introduced it:
+      # setting up Python took one second on Linux, where 3.10 is already in
+      # the image, and twenty-five on the Apple Silicon runner, where it is not
+      # and had to be fetched and built into place -- a third of that job spent
+      # before a test ran. uv fetches a standalone build instead and caches it
+      # with the wheels, and the eleven development dependencies land in about
+      # three seconds against pip's sixteen.
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
+          python-version: "3.10"
+      # The environment goes on the path for the steps below, so `saggio`,
+      # `ruff` and `pytest` are the ones just installed rather than whatever the
+      # runner image happens to carry.
       - name: Install
-        run: uv pip install --system -e ".[dev]"
+        run: |
+          uv venv
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          uv pip install -e ".[dev]"
       - name: Lint
         if: matrix.lint
         run: ruff check .
@@ -152,16 +159,17 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.10"
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
+          python-version: "3.10"
       # Four runtime dependencies and none of the development ones: this job
       # reads a catalogue and asks how old it is.
       - name: Install
-        run: uv pip install --system -e .
+        run: |
+          uv venv
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          uv pip install -e .
       # `--within 21` rather than the bare command. Without it this step prints
       # "every catalogue row is within its refresh window" every Monday until
       # the week they expire, and then fails -- which is notice after the fact.
