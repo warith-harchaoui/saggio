@@ -1449,6 +1449,13 @@ apple.unknown_layout: >-
   This Apple chip publishes energy channels under names this package does not
   recognise, so nothing was measured rather than something guessed. Reporting the
   channel names in an issue is enough to add the part.
+apple.silent_counters: >-
+  This Mac's reporting library loads, and the energy group behind it holds no
+  channel for the processor cores, so nothing was measured rather than something
+  guessed. Two machines answer this way: one whose chip is reached through a
+  hypervisor, which keeps the counters with the host, and one whose channel names
+  this package has not been taught to read. Reporting the names in an issue
+  separates them.
 soc.figure_covers: "The figure covers {scope}, read from the {channels} counters."
 soc.figure_covers_both: >-
   The figure covers {scope} and {memory}, read from the {channels} counters.

@@ -8,6 +8,9 @@ summed, which are refused as a double count, and how a unit label becomes joules
 
 from __future__ import annotations
 
+import pytest
+
+from saggio.analyze import apple
 from saggio.analyze.apple import (
     _JOULES_PER_UNIT,
     SocEnergy,
@@ -17,6 +20,7 @@ from saggio.analyze.apple import (
     unavailable_reason,
 )
 from saggio.analyze.power import _soc_reading
+from saggio.i18n import say
 
 
 def test_the_rollup_is_preferred_over_the_clusters_it_rolls_up() -> None:
@@ -100,3 +104,44 @@ def test_availability_and_its_reason_agree() -> None:
     # Either the counters answer, or there is a sentence saying why not. Never
     # both, and never neither.
     assert available() == (unavailable_reason() is None) or not available()
+
+
+def test_a_library_that_loads_is_not_a_counter_that_answers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Availability is a reading that came back, not a successful library load.
+
+    These were the same answer for as long as availability meant "the library
+    loaded", and they are not the same answer on every Mac. One machine loads
+    ``libIOReport.dylib``, publishes an energy group with no channel for the
+    processor cores behind it, and so comes back unmeasured from every run --
+    while the capability report said the counters read. Nothing compared the two
+    claims until a test did, and then the report was the half that was wrong: a
+    capability report is a promise about the next run, so the only honest way to
+    make it is to have taken one.
+    """
+    monkeypatch.setattr(apple, "_counters_answer", lambda: False)
+    assert not apple.available()
+
+
+def test_a_mac_whose_counters_stay_silent_is_not_told_it_is_an_unknown_chip(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Three refusals on a Mac, and each one names a different machine.
+
+    An Intel Mac, a chip whose channel names this package has never seen, and a
+    chip that publishes no energy channel at all are three situations with three
+    remedies. Collapsing the third into "Not an Apple Silicon Mac." -- which is
+    what it said while availability was a library load -- tells the reader of an
+    Apple Silicon runner something they can see is false, and the one thing they
+    could have done about it (report the channel names) goes unsaid.
+    """
+    monkeypatch.setattr(apple.osh, "macos", lambda: True)
+    monkeypatch.setattr(apple.platform, "machine", lambda: "arm64")
+    monkeypatch.setattr(apple, "_load", lambda: (object(), object()))
+    monkeypatch.setattr(apple, "_counters_answer", lambda: False)
+    assert unavailable_reason() == say("apple.silent_counters")
+
+    # And the chip nobody has taught this to read still gets its own sentence.
+    monkeypatch.setattr(apple, "_load", lambda: None)
+    assert unavailable_reason() == say("apple.unknown_layout")

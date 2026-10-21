@@ -1577,6 +1577,13 @@ apple.unknown_layout: >-
   Cette puce Apple publie ses canaux d'énergie sous des noms que ce paquet ne
   reconnaît pas : rien n'a donc été mesuré plutôt que quelque chose deviné.
   Signaler les noms de canaux dans un ticket suffit à ajouter la pièce.
+apple.silent_counters: >-
+  La bibliothèque de relevé de ce Mac se charge, et le groupe d'énergie qu'elle
+  publie ne porte aucun canal pour les cœurs processeur : rien n'a donc été
+  mesuré plutôt que quelque chose deviné. Deux machines répondent ainsi : celle
+  dont la puce est atteinte à travers un hyperviseur, qui garde les compteurs
+  pour l'hôte, et celle dont ce paquet n'a pas appris à lire les noms de canaux.
+  Signaler ces noms dans un ticket permet de les distinguer.
 soc.figure_covers: "Le chiffre couvre {scope}, lu sur les compteurs {channels}."
 soc.figure_covers_both: >-
   Le chiffre couvre {scope} et {memory}, lus sur les compteurs {channels}.

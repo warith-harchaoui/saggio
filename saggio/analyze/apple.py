@@ -45,6 +45,7 @@ Warith Harchaoui
 from __future__ import annotations
 
 import ctypes
+import functools
 import platform
 from dataclasses import dataclass
 from typing import Any, Final
@@ -129,6 +130,7 @@ _MEMORY_SCOPE_KEY: Final[str] = "apple.soc_memory_scope"
 _MODEL_NOTE_KEY: Final[str] = "apple.soc_model_note"
 _INTEL_MAC_KEY: Final[str] = "apple.intel_mac"
 _UNKNOWN_LAYOUT_KEY: Final[str] = "apple.unknown_layout"
+_SILENT_COUNTERS_KEY: Final[str] = "apple.silent_counters"
 
 
 def soc_scope() -> str:
@@ -290,20 +292,51 @@ def _to_string(core: Any, reference: int | None) -> str | None:
     return buffer.value.decode("utf-8", errors="replace")
 
 
-def available() -> bool:
-    """Return whether this machine's energy counters can be read.
+@functools.lru_cache(maxsize=1)
+def _counters_answer() -> bool:
+    """Return whether a pair of samples comes back with the processor's energy.
+
+    Which channels a chip publishes is a property of the machine rather than of
+    the moment, so the question is asked once per process. The pair is taken back
+    to back: what is being asked is whether the channels are there, not what they
+    drew, and the library computes its own difference either way.
 
     Returns
     -------
     bool
-        ``True`` on an Apple Silicon Mac whose reporting library loads.
+        ``True`` when a reading assembled from what came back.
+
+    Examples
+    --------
+    >>> _counters_answer() in (True, False)
+    True
+    """
+    meter = SocMeter.start()
+    return meter is not None and meter.stop() is not None
+
+
+def available() -> bool:
+    """Return whether this machine's energy counters can be read.
+
+    Asked by opening a subscription and reading a pair of samples, rather than by
+    checking that the library loads. Those are different answers on at least one
+    machine: ``libIOReport.dylib`` loads, the energy group behind it holds no
+    channel for the processor cores, and so every run comes back unmeasured while
+    this said the counters read. A capability report is a promise about the next
+    run, and the only way to keep it is to have taken one.
+
+    Returns
+    -------
+    bool
+        ``True`` on an Apple Silicon Mac that answered with the channels this
+        package knows how to add up.
 
     Examples
     --------
     >>> available() in (True, False)
     True
     """
-    return _load() is not None
+    return _counters_answer()
 
 
 def unavailable_reason() -> str | None:
@@ -327,6 +360,8 @@ def unavailable_reason() -> str | None:
         return say(_INTEL_MAC_KEY)
     if _load() is None:
         return say(_UNKNOWN_LAYOUT_KEY)
+    if not _counters_answer():
+        return say(_SILENT_COUNTERS_KEY)
     return None
 
 
