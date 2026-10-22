@@ -1213,9 +1213,7 @@ That table is written by a script rather than served, so the refresh renders the
 page in a headless browser; with no browser installed it says so and stops
 rather than guessing.
 
-The more authoritative body for Europe is [Eurostat](https://ec.europa.eu/eurost
-at/api/dissemination/statistics/1.0/data/nrg_pc_204?format=JSON&lang=EN&nrg_cons
-=KWH2500-4999&tax=I_TAX&currency=EUR&unit=KWH&lastTimePeriod=1), which was read
+The more authoritative body for Europe is [Eurostat](https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?format=JSON&lang=EN&nrg_cons=KWH2500-4999&tax=I_TAX&currency=EUR&unit=KWH&lastTimePeriod=1), which was read
 — as a **check**, not as the source. It publishes in euros and for Europe only,
 so taking it would have meant a second source for the exchange rate, a
 conversion going stale daily, and eighteen rows that could not be compared with

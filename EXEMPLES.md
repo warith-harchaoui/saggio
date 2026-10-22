@@ -1212,9 +1212,7 @@ table est écrite par un script plutôt que servie, donc le rafraîchissement re
 la page dans un navigateur sans interface ; sans navigateur installé, il le dit
 et s'arrête au lieu de deviner.
 
-L'institution qui fait le plus autorité en Europe est [Eurostat](https://ec.euro
-pa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?format=JSON&lang
-=EN&nrg_cons=KWH2500-4999&tax=I_TAX&currency=EUR&unit=KWH&lastTimePeriod=1), qui
+L'institution qui fait le plus autorité en Europe est [Eurostat](https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?format=JSON&lang=EN&nrg_cons=KWH2500-4999&tax=I_TAX&currency=EUR&unit=KWH&lastTimePeriod=1), qui
 a été lue — comme **contre-test**, pas comme source. Elle publie en euros et
 pour l'Europe seulement : la retenir aurait imposé une seconde source pour le
 taux de change, une conversion qui périme chaque jour, et dix-huit lignes

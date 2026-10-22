@@ -444,12 +444,18 @@ def test_no_link_target_is_broken_across_a_line(page: str) -> None:
     written across seven pages in one session and the relative-link check saw
     one, because the other eleven were absolute addresses it does not resolve.
 
-    This looks at the shape instead of the destination, so it covers both.
+    This looks at the shape instead of the destination, so it covers both. It
+    reads from the opener to the closing paren rather than demanding exactly
+    one line break between them: the first version of this check asked for one,
+    and walked past two destinations a wrap had cut into *three* pieces. A
+    query string is long enough to need two breaks, which is precisely where
+    the addresses worth citing live.
     """
     text = (ROOT / page).read_text(encoding="utf-8")
     broken = [
-        match.group(0).replace("\n", "\\n")[:80]
-        for match in re.finditer(r"\]\([^)\s]*\n[^)\s]*\)", text)
+        match.group(1).replace("\n", "\\n")[:80]
+        for match in re.finditer(r"\]\(([^)]*?)\)", text, re.S)
+        if "\n" in match.group(1)
     ]
     assert not broken, (
         f"{page} has a link target split across a line break: {broken}. "
