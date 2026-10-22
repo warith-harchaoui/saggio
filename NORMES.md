@@ -27,7 +27,7 @@ SCI = (E × I + M) par R
 
 | Terme | Ce que c'est | D'où il vient ici |
 |---|---|---|
-| **E** | L'énergie tirée par l'exécution | Mesurée sur les compteurs de la machine quand elle veut bien les donner, estimée depuis une puissance sourcée sinon. Voir [`MESURER.md`](MESURER.md). |
+| **E** | L'énergie tirée par l'exécution | Mesurée sur les compteurs de la machine quand elle veut bien les donner, estimée à partir d'une puissance sourcée sinon. Voir [`MESURER.md`](MESURER.md). |
 | **I** | L'intensité carbone de cette électricité | `assumptions.grid_carbon_intensity`, depuis le catalogue de réseaux, par pays, liée au lieu. |
 | **M** | Le carbone émis pour fabriquer le matériel | `scenarios[].costs.embodied_carbon`. Nouveau, et le sujet de cette page. |
 | **R** | L'unité fonctionnelle | `unit_of_work`. La première chose qu'un audit demande et celle par laquelle tout le reste est divisé. |
@@ -74,9 +74,9 @@ sa frontière en toutes lettres à côté du nombre :
 Les deux sortes de ligne ne sont pas de la même force, si bien que le tableau
 les tient séparées plutôt que de les moyenner sous un même mot. Les
 accélérateurs sont publiés par le fabricant, démontés et pesés, ou modélisés par
-le concepteur de la pièce depuis des paramètres que personne d'autre n'a. Les
-processeurs sont **calculés depuis la taille du die par un modèle publié** —
-chose plus faible, et la raison pour laquelle la méthode est liée et pas
+le concepteur de la pièce à partir de paramètres que personne d'autre n'a. Les
+processeurs sont **calculés à partir de la taille du die par un modèle publié**
+— chose plus faible, et la raison pour laquelle la méthode est liée et pas
 seulement le chiffre.
 
 **Les quatre autres générations de TPU de cet article ne sont pas là, pour une
@@ -137,6 +137,14 @@ Ce jeu de données est un **contre-test, pas une source**, pour la même raison
 qu'Eurostat l'est pour les tarifs : c'est un modèle paramétrique, et un modèle
 est une affirmation plus faible qu'un démontage ou une déclaration constructeur
 vérifiée. Rien du catalogue n'en provient.
+
+
+
+
+
+
+
+
 
 
 
@@ -303,9 +311,10 @@ moitié.
   [jeu de données](https://doi.org/10.5281/zenodo.20321644) de 174 cartes NVIDIA
   (CC-BY-4.0) — utilisé ici pour recouper les chiffres d'accélérateurs, jamais
   pour en fournir un.
-- [Méthode processeur de Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/)
-  — comment une empreinte est calculée depuis une taille de die, ce que citent
-  les quatre lignes processeur.
+- [Méthode processeur de
+  Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) — comment
+  une empreinte est calculée à partir d'une taille de die, ce que citent les
+  quatre lignes processeur.
 - [Lignes directrices UE pour les fournisseurs de modèles à usage général](https://digital-strategy.ec.europa.eu/en/faqs/guidelines-obligations-general-purpose-ai-providers) · [SCI for AI et conformité au règlement IA](https://greensoftware.foundation/policy/research/sci-ai-eu-ai-act/)
 - [Green Algorithms](https://doi.org/10.1002/advs.202100707) — l'arithmétique opérationnelle, extraite dans [`skills/saggio/references/green-algorithms.md`](skills/saggio/references/green-algorithms.md).
 

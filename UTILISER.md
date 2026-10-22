@@ -199,15 +199,15 @@ et dans quelle langue elles ont été lues.
 une seule définition, pour la même raison que la ligne de commande attache
 `--language` à chaque verbe depuis un seul endroit : une surface qui propose une
 langue sur certaines routes et pas sur d'autres est une surface dont il faut se
-rappeler la forme. Les outils d'agent sont engendrés depuis ces routes : sept
-d'entre eux prennent donc l'argument sans que personne l'ait écrit deux fois.
-Les quatre autres — la santé, les deux lecteurs de catalogue, le rapport de
-fraîcheur — répondent par des données, pas par de la prose.
-`saggio.languages()` est ce depuis quoi tous sont construits —
-une interface qui propose un sélecteur interroge donc la bibliothèque au lieu de
-figer une liste qui se périme. Une étiquette dans laquelle rien n'est écrit
-retombe sur l'anglais et le dit dans les notes, car un audit ne doit pas échouer
-pour une histoire de langue.
+rappeler la forme. Les outils d'agent sont engendrés à partir de ces routes :
+sept d'entre eux prennent donc l'argument sans que personne l'ait écrit deux
+fois. Les quatre autres — la santé, les deux lecteurs de catalogue, le rapport
+de fraîcheur — répondent par des données, pas par de la prose.
+`saggio.languages()` est ce sur quoi tous sont bâtis — une interface qui propose
+un sélecteur interroge donc la bibliothèque au lieu de figer une liste qui se
+périme. Une étiquette dans laquelle rien n'est écrit retombe sur l'anglais et le
+dit dans les notes, car un audit ne doit pas échouer pour une histoire de
+langue.
 
 **Les phrases du moteur passent dans un catalogue de messages**, module par
 module, pour que `--language fr` les rende aussi et pas seulement l'ossature.

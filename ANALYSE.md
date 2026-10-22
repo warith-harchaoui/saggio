@@ -211,7 +211,7 @@ possède jamais un wattage.
   désaccords consignés plutôt que résolus en silence. C'est ce qui fait d'une
   tranche plafonnée une *fraction* et non une supposition.
 - **Quels services payants sont appelés, et à quelle ligne** : une preuve avec
-  un fichier et un numéro de ligne, tarifée depuis un catalogue sourcé.
+  un fichier et un numéro de ligne, tarifée d'après un catalogue sourcé.
 - **Des comptes d'opérations analytiques, là où l'arithmétique est publiée.**
   Pour un transformeur, le calcul total d'entraînement s'approche par
   `FLOPs ≈ c · N · D` sur les paramètres et les jetons, avec `c` [entre 5 et 8,
@@ -356,7 +356,7 @@ lit que O(log n) cellules.
 
 **[BigO(Bench)](https://arxiv.org/abs/2503.15242)** (2025) porte la même idée à
 Python, à l'échelle : un outillage qui infère la complexité en temps et en
-espace d'une fonction Python arbitraire depuis des mesures de profilage, en
+espace d'une fonction Python quelconque à partir de mesures de profilage, en
 faisant varier les entrées et en ajustant des courbes candidates, utilisé pour
 annoter 3 105 problèmes et 1 190 250 solutions. Son constat compagnon est une
 mise en garde contre le raccourci : les modèles de langage sont nettement plus

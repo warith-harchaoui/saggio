@@ -65,10 +65,11 @@ intensity".*
 appelées », « ce que ce projet dépense par exécution », « où part le coût ».
 *"Audit this repo for running cost", "which paid APIs does this call".*
 
-**Projeter.** « Combien ça coûterait sur un H100 », « extrapole depuis cette
-exécution », « si on passait sur GCP (Google Cloud Platform) », « ce que coûterait l'entraînement
-complet », « et si on tournait en Suède », « le coût à un million de requêtes par
-jour ». *"What would this cost on an H100", "cost at a million requests a day".*
+**Projeter.** « Combien ça coûterait sur un H100 », « extrapole à partir de
+cette exécution », « si on passait sur GCP (Google Cloud Platform) », « ce que
+coûterait l'entraînement complet », « et si on tournait en Suède », « le coût à
+un million de requêtes par jour ». *"What would this cost on an H100", "cost at
+a million requests a day".*
 
 **Déclarer et se conformer, qui est la même question par l'autre bout.** « Sous
 quel scope tombe notre logiciel », « notre calcul en cloud, c'est du scope 2 ou du

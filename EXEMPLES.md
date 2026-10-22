@@ -170,8 +170,8 @@ jamais un chiffre — `confidence: low` et `evidence_source` le disent sur la
 ligne elle-même.
 
 `saggio audit --help` liste les langues. En ajouter une, c'est deux fichiers de
-traduction et pas une ligne de code ; `saggio.languages()` est ce depuis quoi
-chaque surface est construite.
+traduction et pas une ligne de code ; `saggio.languages()` est ce sur quoi
+chaque surface est bâtie.
 
 ### Depuis l'environnement
 
@@ -409,6 +409,22 @@ portent les champs. Avant que le coefficient soit un champ, les observations
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Sur une machine qui ne publie aucun compteur, il n'y a rien à passer : la ligne de
 base rend « non mesuré » immédiatement au lieu de regarder pendant une seconde un
 instrument qui n'existe pas.
@@ -481,6 +497,22 @@ Aucun profil par fonction n'est pris quand `--repeat` dépasse un : le profileur
 change ce qui est chronométré ; une série avec une exécution profilée au milieu
 d'exécutions ordinaires rapporterait un écart que le profileur y aurait mis. Une
 fois pour le profil, plusieurs fois pour l'écart.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1080,6 +1112,38 @@ calme si vous voulez un intervalle de puissance assez serré pour arbitrer dessu
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Les catalogues
 ### Lire l'empreinte produit d'un constructeur
 
@@ -1124,6 +1188,22 @@ En HTTP, la même lecture est sur `POST /catalog/read-pcf`, **fermée sauf si
 par le client est le même risque que cloner, barré à part parce qu'un exploitant
 qui laisse le serveur lire un PDF n'a pas pour autant accepté qu'il clone un
 dépôt.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -90,8 +90,8 @@ Ce que l'outil fait à la place : il porte le second chiffre comme une dimension
 êtes seul à détenir. Un audit d'une machine que vous exploitez livre
 `assumptions.market_carbon_intensity` **ouverte**, cette liste de courses dans
 ses notes. Énoncez le facteur — avec le document d'où il vient et la date à
-laquelle vous l'avez lu — et le chiffre est calculé depuis la même énergie que
-le premier, posé à côté de lui, étiqueté de la méthode qui l'a produit, et
+laquelle vous l'avez lu — et le chiffre est calculé à partir de la même énergie
+que le premier, posé à côté de lui, étiqueté de la méthode qui l'a produit, et
 surveillé de la même façon pour la dérive. Laissez-la ouverte et les rapports
 impriment la liste de courses plutôt qu'un nombre plausible.
 

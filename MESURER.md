@@ -175,9 +175,9 @@ dans le rapport. Les frontières méritent d'être énoncées une fois, claireme
   sur une exécution, contre le repos de cette même machine, ils sont exactement
   le bon instrument — et c'est tout ce que ce paquet leur demande.
 - **Un compteur qui a franchi son plafond** une fois pendant une longue
-  exécution est déplié depuis sa plage publiée, et le chiffre porte la puissance
-  au-delà de laquelle ce redressement aurait été faux. Un compteur *remis à zéro*
-  plutôt que bouclé est refusé net.
+  exécution est déplié à partir de sa plage publiée, et le chiffre porte la
+  puissance au-delà de laquelle ce redressement aurait été faux. Un compteur
+  *remis à zéro* plutôt que bouclé est refusé net.
 
 ## Le plancher contre lequel une mesure se lit
 
@@ -398,10 +398,10 @@ par domaine était la *valeur la plus stable des trois* — plus stable que le
 total dont elle dérive, parce qu'un compteur de domaine ne bouge pas quand
 autre chose se réveille sur la machine.
 
-Tous les nombres ci-dessus sont dans le modèle : `measurement.spread`
-enregistre ce que le temps, le total, le plancher et la part attribuée ont fait
-chacun sur les exécutions, pour que cette comparaison se refasse depuis le
-fichier plutôt que de se croire ici.
+Tous les nombres ci-dessus sont dans le modèle : `measurement.spread` enregistre
+ce que le temps, le total, le plancher et la part attribuée ont fait chacun sur
+les exécutions, pour que cette comparaison se refasse sur le fichier plutôt que
+de se croire ici.
 
 **Ce que les coûts utilisent reste le total au compteur.** Non parce qu'il est
 meilleur — c'est l'avant-dernier en stabilité — mais parce que c'est le seul
