@@ -5,13 +5,13 @@
 The rule this page serves: **nowhere an acronym that is not spelled out and
 explained before it is used.** Each page expands the ones it leans on at their
 first appearance, because a reader landing on one page has not read another.
-This page is the whole vocabulary in one place, and a contract test reads it:
-an initialism a page uses and does not expand is a failing build, and an
-initialism this page defines that no page uses is removed from it.
+This page is the whole vocabulary in one place, read by a contract test: an
+initialism a page uses and does not expand is a failing build; an initialism
+this page defines that no page uses is removed from it.
 
-Some of these are French, some English, and a few are neither — `ISO` is not
-the initials of the International Organization for Standardization, and that is
-noted where it appears below.
+Some of these are French, some English, a few neither — `ISO` is not the
+initials of the International Organization for Standardization, which is noted
+where it appears below.
 
 ## Reporting and accounting
 

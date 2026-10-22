@@ -113,9 +113,9 @@ carbon cost in CI".*
 - **L'optimisation de code pour elle-même.** « Rends cette fonction plus rapide »
   est une question de profilage. Cet outil profile une tranche pour attribuer un
   coût, mais il ne réécrit pas votre code.
-- **L'achat de matériel.** « Quel GPU (graphics processing unit) acheter » demande du carbone incorporé, une
-  durée de vie et un taux d'utilisation, qu'aucun de ces trois cet outil ne
-  modélise.
+- **L'achat de matériel.** « Quel GPU (graphics processing unit) acheter »
+  demande du carbone incorporé, une durée de vie et un taux d'utilisation, dont
+  cet outil ne modélise aucun.
 
 ## Ce qu'il refusera, à voix haute
 

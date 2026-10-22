@@ -314,32 +314,35 @@ Being honest about the gaps, since that is the whole premise of the tool.
   number the costs use: the whole one. Scaphandre, PowerAPI and Kepler go
   further and model a per-process and per-container draw; this package records
   the bracket and refuses to pick inside it. On a shared box that is still the
-  gap that matters most. - **Two platforms, not three.** Linux and macOS, both
-  reading real counters — powercap zones by name, `IOReport` on Apple Silicon,
-  NVML (NVIDIA Management Library) and the `amdgpu` / `i915` / `xe` sysfs
-  interfaces for the accelerator. Windows is out of scope rather than
-  unfinished: it offers no unprivileged processor energy counter, no machine-
-  wide processor-time total, and no POSIX (Portable Operating System Interface)
-  resource accounting, so every figure there would be an estimate. Narrower than
-  the tools above it in this table, and narrow on purpose. - **A counter is not
-  the wall.** Fans, storage, network and the power supply sit outside RAPL and
-  NVML by construction, and the gap is not a constant that could be added back:
-  measured against physical meters it is a slope of about 1.17, varying per
-  node. Every figure here is the scope it names, never the machine. - **No
-  continuous monitoring.** One bounded slice, once. If you want a time series,
-  this is the wrong shape of tool. - **Embodied carbon is implemented and barely
-  catalogued.** The arithmetic is there — the four terms of the International
-  Organization for Standardization and International Electrotechnical
-  Commission's joint standard, ISO/IEC 21031, amortised over calendar time — and
-  so are eight footprints: four accelerators out of 25 rows and four processors
-  out of 12. Everything else reports `TODO`. The lifetime is still yours to
-  state, because how long a card stays in service is a fact about a fleet rather
-  than about a part. See [`STANDARDS.md`](STANDARDS.md) for the table and the
-  eight refusals. - **The catalogues are small.** They cover the common
-  accelerators and the larger grids. Beyond that you will meet a miss, and the
-  tool will tell you which row to add. - **Projection between machines is a
-  datasheet ratio.** Peak throughput is not a benchmark. Real speedups are
-  smaller, and the projection says so in its limits rather than in a footnote.
+  gap that matters most.
+- **Two platforms, not three.** Linux and macOS, both reading real counters —
+  powercap zones by name, `IOReport` on Apple Silicon, NVML (NVIDIA Management Library) and the `amdgpu` /
+  `i915` / `xe` sysfs interfaces for the accelerator. Windows is out of scope
+  rather than unfinished: it offers no unprivileged processor energy counter, no
+  machine-wide processor-time total, and no POSIX (Portable Operating System Interface) resource accounting, so every
+  figure there would be an estimate. Narrower than the tools above it in this
+  table, and narrow on purpose.
+- **A counter is not the wall.** Fans, storage, network and the power supply sit
+  outside RAPL and NVML by construction, and the gap is not a constant that could
+  be added back: measured against physical meters it is a slope of about 1.17,
+  varying per node. Every figure here is the scope it names, never the machine.
+- **No continuous monitoring.** One bounded slice, once. If you want a time series,
+  this is the wrong shape of tool.
+- **Embodied carbon is implemented and barely catalogued.** The arithmetic is
+  there — the four terms of the International Organization for Standardization
+  and International Electrotechnical Commission's joint standard, ISO/IEC 21031,
+  amortised over calendar time — and so
+  are eight footprints: four accelerators out of 25 rows and four processors out
+  of 12. Everything else reports `TODO`. The lifetime is still yours to state,
+  because how long a card stays in service is a fact about a fleet rather than
+  about a part. See [`STANDARDS.md`](STANDARDS.md) for the table and the eight
+  refusals.
+- **The catalogues are small.** They cover the common accelerators and the larger
+  grids. Beyond that you will meet a miss, and the tool will tell you which row to
+  add.
+- **Projection between machines is a datasheet ratio.** Peak throughput is not a
+  benchmark. Real speedups are smaller, and the projection says so in its limits
+  rather than in a footnote.
 
 ## Where it is worth choosing
 

@@ -2,26 +2,26 @@
 
 🇫🇷 Français · [🇬🇧 BOUNDARIES.md](BOUNDARIES.md)
 
-Deux entreprises ont publié en 2026 un chiffre carbone pour une inférence, et
-les deux chiffres sont séparés de plus d'un ordre de grandeur. L'un est
-market-based et compte la capacité au repos de la flotte ; l'autre est
-location-based et compte la fabrication du matériel, selon la méthode Frugal AI
-de l'Association française de normalisation (AFNOR).
+Deux entreprises ont publié en 2026 un chiffre carbone pour une inférence. Les
+deux sont séparés de plus d'un ordre de grandeur. L'un est market-based et
+compte la capacité au repos de la flotte ; l'autre est location-based et compte
+la fabrication du matériel, selon la méthode Frugal AI de l'Association
+française de normalisation (AFNOR).
 
 | | Chiffre | Frontière | Méthode |
 |---|---|---|---|
 | [Google, prompt texte Gemini médian](https://cloud.google.com/blog/products/infrastructure/measuring-the-environmental-impact-of-ai-inference) | 0,24 Wh, **0,03 gCO2e**, 0,26 mL d'eau | accélérateur, hôte, surcharge du centre de données **et capacité machine au repos** | électricité **market-based** |
 | Mistral, réponse moyenne de 400 jetons | **1,14 gCO2e** | l'infrastructure de service **et la fabrication du matériel** | **location-based**, AFNOR Frugal AI |
 
-Environ un facteur trente-huit, et **aucune des deux n'esquive**. L'une compte
-l'électricité qu'un contrat a payée et la capacité réservée pour vous servir ;
-l'autre compte la moyenne du réseau et les usines. Elles répondent à deux
-questions différentes qui partagent une phrase.
+Environ un facteur trente-huit, sans qu'**aucune des deux n'esquive**. L'une
+compte l'électricité qu'un contrat a payée et la capacité réservée pour vous
+servir ; l'autre compte la moyenne du réseau et les usines. Elles répondent à
+deux questions différentes qui partagent une phrase.
 
 C'est toute la proposition de ce paquet, démontrée par quelqu'un d'autre : **un
 chiffre sans sa frontière n'est pas un chiffre.** Cette page prend un modèle
 commité dans ce dépôt et montre ce que son nombre devient sous chaque frontière
-— y compris les deux qu'il refuse de produire, et ce que chaque refus
+— y compris les deux qu'il refuse de produire, avec ce que chaque refus
 demanderait.
 
 ## Le modèle
@@ -72,9 +72,9 @@ que personne hors de votre parc ne peut vous dire, **fait varier la réponse d'u
 facteur deux**. Un chiffre qui l'omet n'est pas un chiffre prudent : c'est un
 autre chiffre.
 
-Les durées de vie publiées se groupent entre trois et six ans, et c'est
-pourquoi ce paquet n'en choisit aucune pour vous et tient
-`assumptions.hardware_lifetime` ouvert jusqu'à ce que quelqu'un l'énonce.
+Les durées de vie publiées se groupent entre trois et six ans : c'est pourquoi
+ce paquet n'en choisit aucune pour vous et tient `assumptions.hardware_lifetime`
+ouvert jusqu'à ce que quelqu'un l'énonce.
 
 ## Cinq questions à poser à tout chiffre publié
 

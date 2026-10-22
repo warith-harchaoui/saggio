@@ -94,8 +94,9 @@ gets more expensive", "track the carbon cost in CI (continuous integration)", "i
 - **Code optimisation on its own.** "Make this function faster" is a profiling
   question. This tool profiles a slice to attribute cost, but it does not rewrite
   your code.
-- **Hardware purchasing.** "Which GPU (graphics processing unit) should we buy" needs embodied carbon,
-  lifetime, and utilisation, none of which this tool models.
+- **Hardware purchasing.** "Which GPU (graphics processing unit) should we buy"
+  needs embodied carbon, a lifetime and a utilisation rate, none of which this
+  tool models.
 
 ## What it will refuse, out loud
 

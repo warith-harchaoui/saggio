@@ -332,35 +332,36 @@ Autant être honnête sur les manques, puisque c'est toute la prémisse de l'out
   utilisent : le nombre entier. Scaphandre, PowerAPI et Kepler vont plus loin et
   modélisent une consommation par processus et par conteneur ; ce paquet
   enregistre l'encadrement et refuse de choisir à l'intérieur. Sur une machine
-  partagée, c'est toujours le manque qui compte le plus. - **Deux plateformes,
-  pas trois.** Linux et macOS, qui lisent toutes deux de vrais compteurs — zones
-  powercap par leur nom, `IOReport` sur Apple Silicon, NVML (NVIDIA Management
-  Library) et les interfaces sysfs `amdgpu` / `i915` / `xe` pour l'accélérateur.
+  partagée, c'est toujours le manque qui compte le plus.
+- **Deux plateformes, pas trois.** Linux et macOS, qui lisent toutes deux de
+  vrais compteurs — zones powercap par leur nom, `IOReport` sur Apple Silicon,
+  NVML (NVIDIA Management Library) et les interfaces sysfs `amdgpu` / `i915` / `xe` pour l'accélérateur.
   Windows est hors périmètre plutôt qu'inachevé : il n'offre aucun compteur
   d'énergie processeur sans privilèges, aucun total de temps processeur machine,
-  et aucune comptabilité POSIX (Portable Operating System Interface) des
-  ressources — chaque chiffre y serait une estimation. Plus étroit que les
-  outils au-dessus dans ce tableau, et étroit à dessein. - **Un compteur n'est
-  pas la prise murale.** Ventilateurs, stockage, réseau et alimentation sont
-  hors RAPL et hors NVML par construction, et l'écart n'est pas une constante
-  qu'on pourrait rajouter : mesuré face à des wattmètres physiques, c'est une
-  pente d'environ 1,17, variable d'un nœud à l'autre. Chaque chiffre ici est le
-  périmètre qu'il nomme, jamais la machine. - **Pas de suivi continu.** Une
-  tranche bornée, une fois. Si vous voulez une série temporelle, ce n'est pas la
-  bonne forme d'outil. - **Le carbone incorporé est implémenté et à peine
-  catalogué.** L'arithmétique est là — les quatre termes de la norme conjointe
-  de l'Organisation internationale de normalisation et de la Commission
-  électrotechnique internationale, ISO/IEC 21031, amortis en temps calendaire —
-  et huit empreintes aussi : quatre accélérateurs sur 25 lignes et quatre
-  processeurs sur 12. Tout le reste rapporte `TODO`. La durée de vie reste à
-  vous, parce que combien de temps une carte reste en service est un fait sur un
-  parc et non sur une pièce. Voir [`NORMES.md`](NORMES.md) pour le tableau et
-  les huit refus. - **Les catalogues sont petits.** Ils couvrent les
-  accélérateurs courants et les grands réseaux électriques. Au-delà, vous
-  tomberez sur un manque, et l'outil vous dira quelle ligne ajouter. - **La
-  projection entre machines est un rapport de fiches techniques.** Le débit
-  crête n'est pas un benchmark. Les gains réels sont plus petits, et la
-  projection le dit dans ses limites plutôt que dans une note de bas de page.
+  et aucune comptabilité POSIX (Portable Operating System Interface) des ressources — chaque chiffre y serait une
+  estimation. Plus étroit que les outils au-dessus dans ce tableau, et étroit à
+  dessein.
+- **Un compteur n'est pas la prise murale.** Ventilateurs, stockage, réseau et
+  alimentation sont hors RAPL et hors NVML par construction, et l'écart n'est pas
+  une constante qu'on pourrait rajouter : mesuré face à des wattmètres physiques,
+  c'est une pente d'environ 1,17, variable d'un nœud à l'autre. Chaque chiffre ici
+  est le périmètre qu'il nomme, jamais la machine.
+- **Pas de suivi continu.** Une tranche bornée, une fois. Si vous voulez une série
+  temporelle, ce n'est pas la bonne forme d'outil.
+- **Le carbone incorporé est implémenté et à peine catalogué.** L'arithmétique est
+  là — les quatre termes de la norme conjointe de l'Organisation internationale
+  de normalisation et de la Commission électrotechnique internationale,
+  ISO/IEC 21031, amortis en temps calendaire — et huit
+  empreintes aussi : quatre accélérateurs sur 25 lignes et quatre processeurs sur
+  12. Tout le reste rapporte `TODO`. La durée de vie reste à vous, parce que
+  combien de temps une carte reste en service est un fait sur un parc et non sur
+  une pièce. Voir [`NORMES.md`](NORMES.md) pour le tableau et les huit refus.
+- **Les catalogues sont petits.** Ils couvrent les accélérateurs courants et les
+  grands réseaux électriques. Au-delà, vous tomberez sur un manque, et l'outil vous
+  dira quelle ligne ajouter.
+- **La projection entre machines est un rapport de fiches techniques.** Le débit
+  crête n'est pas un benchmark. Les gains réels sont plus petits, et la projection
+  le dit dans ses limites plutôt que dans une note de bas de page.
 
 ## Là où il vaut la peine d'être choisi
 

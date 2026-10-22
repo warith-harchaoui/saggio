@@ -2,18 +2,18 @@
 
 [🇫🇷 FRONTIERES.md](FRONTIERES.md) · 🇬🇧 English
 
-Two companies published a carbon figure for one inference in 2026, and the
-figures are more than an order of magnitude apart. One is market-based and counts
-idle fleet capacity; the other is location-based and counts the hardware's
-manufacture, under the Association française de normalisation (AFNOR) Frugal
-artificial intelligence (AI) method.
+Two companies published a carbon figure for one inference in 2026. The two are
+more than an order of magnitude apart. One is market-based and counts idle fleet
+capacity; the other is location-based and counts the hardware's manufacture,
+under the Association française de normalisation (AFNOR) Frugal artificial
+intelligence (AI) method.
 
 | | Figure | Boundary | Method |
 |---|---|---|---|
 | [Google, median Gemini text prompt](https://cloud.google.com/blog/products/infrastructure/measuring-the-environmental-impact-of-ai-inference) | 0.24 Wh, **0.03 gCO2e**, 0.26 mL water | accelerator, host, datacenter overhead, **and idle machine capacity** | **market-based** electricity |
 | Mistral, average 400-token response | **1.14 gCO2e** | the serving infrastructure **and manufacturing the hardware** | **location-based**, AFNOR Frugal AI |
 
-Roughly a factor of thirty-eight, and **neither of them is being evasive**. One
+Roughly a factor of thirty-eight, with **neither of them being evasive**. One
 counts the electricity a contract paid for and the capacity reserved to serve
 you; the other counts the grid average and the factories. They answer two
 different questions that share a sentence.
@@ -21,7 +21,7 @@ different questions that share a sentence.
 That is the whole proposition of this package, demonstrated by somebody else:
 **a figure without its boundary is not a figure.** This page takes one model
 committed in this repository and shows what its number becomes under each
-boundary — including the two it refuses to produce, and what each refusal would
+boundary — including the two it refuses to produce, with what each refusal would
 need.
 
 ## The model

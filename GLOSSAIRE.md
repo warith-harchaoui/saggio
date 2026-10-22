@@ -5,11 +5,11 @@
 La règle que cette page sert : **nulle part un sigle qui ne soit explicité et
 expliqué avant d'être employé.** Chaque page explicite ceux sur lesquels elle
 s'appuie, dès leur première apparition, parce qu'un lecteur qui arrive sur une
-page n'a pas lu les autres. Celle-ci rassemble tout le vocabulaire, et un test
-de contrat la lit : un sigle qu'une page emploie sans l'expliciter fait échouer
-la construction, et un sigle défini ici que nulle page n'emploie en est retiré.
+page n'a pas lu les autres. Celle-ci rassemble tout le vocabulaire, que lit un
+test de contrat : un sigle qu'une page emploie sans l'expliciter fait échouer la
+construction ; un sigle défini ici que nulle page n'emploie en est retiré.
 
-Certains sont français, d'autres anglais, et quelques-uns ni l'un ni l'autre —
+Certains sont français, d'autres anglais, quelques-uns ni l'un ni l'autre —
 `ISO` ne sont pas les initiales de l'Organisation internationale de
 normalisation, ce qui est signalé plus bas où le sigle paraît.
 
