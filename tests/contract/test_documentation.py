@@ -457,6 +457,89 @@ def test_no_link_target_is_broken_across_a_line(page: str) -> None:
     )
 
 
+#: Phrases that look like the debris of a spliced clause and are not. Each is
+#: correct writing that one of the rules below cannot tell from a defect, and
+#: each carries the reason, because an exemption nobody can weigh is
+#: indistinguishable from an oversight.
+READS_AS_WRITTEN: dict[str, str] = {
+    "quoi que ce soit soit": (
+        "'anything be analysed' in French. The subjunctive of etre follows the "
+        "pronoun that ends 'quoi que ce soit', so the repetition is the "
+        "sentence working rather than a verb left behind."
+    ),
+    "cette phrase ce paquet": (
+        "an inversion -- 'which part of this sentence this package handles'. "
+        "Two determiners either side of a noun is the shape of a spliced "
+        "clause, and here it is the shape of a subordinate question."
+    ),
+}
+
+#: What a sentence that stopped being a sentence looks like, mechanically.
+NOT_A_SENTENCE: dict[str, str] = {
+    r"\b(?!CODE|LINK)([A-Za-zÀ-ÿ]{3,})\s+\1\b": "a word written twice in a row",
+    r"\b(?:ce|cet|cette|ces)\s+(?!que|qu'|qui|dont|quoi|où)\w+\s+(?:ce|cet|cette|ces)\s+\w":
+        "two French determiners either side of one word",
+    r"(?:,\s*[,.]|;\s*;|\(\s*\))": "punctuation left over from a rewrite",
+}
+
+
+def _readable(page: str) -> str:
+    """A page's prose, with code and addresses reduced to one placeholder word.
+
+    Removing them outright invents punctuation -- "`a`, `b`," collapses to
+    ", ," -- so each becomes a word instead.
+    """
+    text = (ROOT / page).read_text(encoding="utf-8")
+    text = re.sub(r"```.*?```", " CODE ", text, flags=re.S)
+    text = re.sub(r"`[^`]*`", "CODE", text)
+    text = re.sub(r"\]\([^)]*\)", "]", text)
+    text = re.sub(r"https?://\S+", "LINK", text)
+    for phrase in READS_AS_WRITTEN:
+        text = text.replace(phrase, " ")
+    return re.sub(r"\s+", " ", text)
+
+
+@pytest.mark.parametrize("page", sorted({page for pair in BILINGUAL_PAIRS for page in pair}))
+def test_every_sentence_still_reads_as_one(page: str) -> None:
+    """A rewritten sentence has to still be a sentence.
+
+    Every prose probe in this repository looks for an *absence* -- an
+    initialism nobody expanded, a language with no twin, a key one table has
+    and the other does not. None of them asks whether what was written reads.
+    So a mechanical pass over prose could ship "qu'aucun de ces trois cet outil
+    ne modélise", which is not a sentence, and stay green; it did, and the page
+    carried it until somebody read the line.
+
+    What this catches is the debris such a pass leaves: a word written twice, a
+    French determiner on both sides of one word, punctuation from a clause that
+    was spliced in. What it does **not** catch is a repetition that changes
+    form -- "read by a contract test reads it" slipped past this check and was
+    found by reading. Naming that limit is the point: this is a net under one
+    class of mistake, not a proofreader.
+    """
+    text = _readable(page)
+    found = [
+        f"{why}: {match.group(0).strip()!r}"
+        for pattern, why in NOT_A_SENTENCE.items()
+        for match in re.finditer(pattern, text)
+    ]
+    assert not found, (
+        f"{page} has prose that stopped being a sentence: {found}. "
+        f"If one of these is correct writing, declare it in READS_AS_WRITTEN "
+        f"with the reason."
+    )
+
+
+def test_every_exemption_from_reading_is_still_needed() -> None:
+    """An exemption nobody needs is one that stops being read."""
+    pages = sorted({page for pair in BILINGUAL_PAIRS for page in pair} | set(HISTORIES))
+    everything = " ".join(
+        re.sub(r"\s+", " ", (ROOT / page).read_text(encoding="utf-8")) for page in pages
+    )
+    idle = sorted(phrase for phrase in READS_AS_WRITTEN if phrase not in everything)
+    assert not idle, f"READS_AS_WRITTEN declares phrases no page contains: {idle}"
+
+
 @pytest.mark.parametrize("page", sorted(HISTORIES))
 def test_a_history_points_at_the_glossary_instead(page: str) -> None:
     # Expanding at first use is the wrong rule for a file read newest-first:
