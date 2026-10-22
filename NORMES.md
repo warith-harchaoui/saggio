@@ -110,7 +110,7 @@ est de la provenance, et aucune n'est dans un champ qu'un lecteur est invité à
 suivre. Les lignes du réseau citent le [jeu de données annuel publié par
 Ember](https://ember-energy.org/data/yearly-electricity-data/), qui est la même
 série sous CC (Creative Commons)-BY-4.0, ne demande aucune clé, et a été recoupé
-pays par pays contre l'API avant d'être adopté plutôt que supposé équivalent.
+pays par pays avec l'API avant d'être adopté plutôt que supposé équivalent.
 
 **Le seul chiffre non constructeur a été recoupé avec un chiffre indépendant.**
 Le nombre de l'A100 vient d'un démontage avec analyse élémentaire primaire ; un
@@ -137,6 +137,10 @@ Ce jeu de données est un **contre-test, pas une source**, pour la même raison
 qu'Eurostat l'est pour les tarifs : c'est un modèle paramétrique, et un modèle
 est une affirmation plus faible qu'un démontage ou une déclaration constructeur
 vérifiée. Rien du catalogue n'en provient.
+
+
+
+
 
 
 

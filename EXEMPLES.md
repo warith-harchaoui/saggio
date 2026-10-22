@@ -376,11 +376,11 @@ le même repos :
 saggio audit . --country FR --run --baseline 0 --scaling-steps 3 -o cost_of_running.yaml
 ```
 
-**L'ajustement qu'elle écrit peut être vérifié contre ses propres preuves.** Le
-bloc conserve les tailles et les secondes sur lesquelles il a été ajusté,
-l'exposant comme quantité et — depuis qu'il a cessé de ne vivre que dans la
-phrase de méthode — le coefficient, le `a` de `y = a · x^b`. Avec les quatre, un
-lecteur refait le calcul :
+**L'ajustement qu'elle écrit se vérifie sur ses propres preuves.** Le bloc
+conserve les tailles et les secondes sur lesquelles il a été ajusté, l'exposant
+comme quantité et — depuis qu'il a cessé de ne vivre que dans la phrase de
+méthode — le coefficient, le `a` de `y = a · x^b`. Avec les quatre, un lecteur
+refait le calcul :
 
 ```
 taille  25 : l'ajustement prédit 0,072682 s, 0,073587 s observé   (1,2 %)
@@ -392,6 +392,14 @@ Un test de contrat fait exactement cela sur chaque modèle commité. Un second
 exige que les deux nombres épelés par la phrase de méthode soient ceux que
 portent les champs. Avant que le coefficient soit un champ, les observations
 étaient conservées pour une vérification que personne ne pouvait faire.
+
+
+
+
+
+
+
+
 
 
 
@@ -473,6 +481,14 @@ Aucun profil par fonction n'est pris quand `--repeat` dépasse un : le profileur
 change ce qui est chronométré ; une série avec une exécution profilée au milieu
 d'exécutions ordinaires rapporterait un écart que le profileur y aurait mis. Une
 fois pour le profil, plusieurs fois pour l'écart.
+
+
+
+
+
+
+
+
 
 
 
@@ -1048,6 +1064,22 @@ calme si vous voulez un intervalle de puissance assez serré pour arbitrer dessu
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Les catalogues
 ### Lire l'empreinte produit d'un constructeur
 
@@ -1092,6 +1124,14 @@ En HTTP, la même lecture est sur `POST /catalog/read-pcf`, **fermée sauf si
 par le client est le même risque que cloner, barré à part parce qu'un exploitant
 qui laisse le serveur lire un PDF n'a pas pour autant accepté qu'il clone un
 dépôt.
+
+
+
+
+
+
+
+
 
 
 
@@ -1179,25 +1219,27 @@ parce que sans clé l'API répond à un lecteur par un HTTP 403 plutôt que par 
 chiffre, et une citation que personne ne peut suivre n'est pas une citation.
 
 Rien d'autre n'est substitué. Il existe une alternative tentante — Our World in
-Data publie une série *dérivée* d'Ember par un CSV (comma-separated values) stable, sans clé — et elle est
-fausse : sa propre métadonnée l'appelle intensité carbone *de cycle de vie*, là
-où cette colonne est l'émission *opératoire*. Échanger l'une contre l'autre
-changerait en silence le sens de chaque modèle commité, sans rien changer à la
-confiance qu'il inspire. La commande refuse et le dit, plutôt que de le faire
-discrètement. Le jeu publié par Ember n'est pas cet échange, et il a été recoupé
-pays par pays contre l'API avant d'être adopté plutôt que supposé équivalent.
+Data publie une série *dérivée* d'Ember par un CSV (comma-separated values)
+stable, sans clé — et elle est fausse : sa propre métadonnée l'appelle intensité
+carbone *de cycle de vie*, là où cette colonne est l'émission *opératoire*.
+Échanger l'une contre l'autre changerait en silence le sens de chaque modèle
+commité, sans rien changer à la confiance qu'il inspire. La commande refuse et
+le dit, plutôt que de le faire discrètement. Le jeu publié par Ember n'est pas
+cet échange, et il a été recoupé pays par pays avec l'API avant d'être adopté
+plutôt que supposé équivalent.
 
-**La colonne fuseaux** est vérifiée plutôt que remplacée, contre la [base de
-données des fuseaux de l'Internet Assigned Numbers Authority (IANA)](https://data.iana.org/time-zones/tzdb/zone1970.tab)
-qui définit ces noms — celle que livre chaque système d'exploitation, dans le
-domaine public, et versionnée : la ligne note donc la version à laquelle elle
-correspond (`timezones_tzdb_version: "2026e"`) et pas seulement le jour où
-quelqu'un a regardé. La liste n'est pas réécrite : la base dit quels fuseaux
-existent, pas lesquels un pays utilise au sens où ce catalogue l'entend, et le
-catalogue porte exprès des noms de compatibilité comme `Europe/Kiev` ou
-`Asia/Calcutta` parce que c'est ce qu'une vraie machine rapporte. Un fuseau que
-la base ne publie sous aucun nom fait échouer la commande au lieu d'être
-corrigé : c'est une question, pas une correction.
+**La colonne fuseaux** est vérifiée plutôt que remplacée, par rapport à la [base
+de données des fuseaux de l'Internet Assigned Numbers Authority
+(IANA)](https://data.iana.org/time-zones/tzdb/zone1970.tab) qui définit ces noms
+— celle que livre chaque système d'exploitation, dans le domaine public, et
+versionnée : la ligne note donc la version à laquelle elle correspond
+(`timezones_tzdb_version: "2026e"`) et pas seulement le jour où quelqu'un a
+regardé. La liste n'est pas réécrite : la base dit quels fuseaux existent, pas
+lesquels un pays utilise au sens où ce catalogue l'entend, et le catalogue porte
+exprès des noms de compatibilité comme `Europe/Kiev` ou `Asia/Calcutta` parce
+que c'est ce qu'une vraie machine rapporte. Un fuseau que la base ne publie sous
+aucun nom fait échouer la commande au lieu d'être corrigé : c'est une question,
+pas une correction.
 
 Chaque colonne a aussi son horloge. Un tarif et un mix électrique bougent tous
 les mois ; une liste de fuseaux est publiée quelques fois par an. La redemander

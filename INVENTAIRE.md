@@ -92,7 +92,7 @@ Ce que l'outil fait à la place : il porte le second chiffre comme une dimension
 ses notes. Énoncez le facteur — avec le document d'où il vient et la date à
 laquelle vous l'avez lu — et le chiffre est calculé depuis la même énergie que
 le premier, posé à côté de lui, étiqueté de la méthode qui l'a produit, et
-surveillé contre la dérive de la même façon. Laissez-la ouverte et les rapports
+surveillé de la même façon pour la dérive. Laissez-la ouverte et les rapports
 impriment la liste de courses plutôt qu'un nombre plausible.
 
 Voici la ligne que `saggio audit` écrit sur une machine que vous exploitez, non
@@ -180,8 +180,8 @@ La moitié utile de toute revendication de conformité est celle qui échoue.
 - **Pas de fin de vie, ni de comptabilité biogénique ou d'absorptions.** Les
   empreintes matérielles publiées vont du berceau à la sortie d'usine et
   excluent la phase d'usage et l'élimination ; cet outil rapporte ce qu'elles
-  couvrent et pas un gramme de plus. Rien n'est compensé contre des absorptions
-  ou des crédits, ce qui est aussi ce que les normes exigent : du brut.
+  couvrent et pas un gramme de plus. Rien n'est compensé par des absorptions ni
+  par des crédits, ce qui est aussi ce que les normes exigent : du brut.
 - **Le scope 3 catégorie 1 d'un cloud est un modèle, pas une facture.** Là où
   votre fournisseur publie un chiffre par client, c'est ce chiffre qui fait foi
   et celui-ci qui est un recoupement. La plupart ne publient rien à cette
@@ -193,7 +193,7 @@ La moitié utile de toute revendication de conformité est celle qui échoue.
   en donne le tableau et les refus.
 - **Ce n'est pas une opinion d'assurance**, et aucun outil ne l'est.
 
-## Les règles contre lesquelles ceci est écrit
+## Les règles au regard desquelles ceci est écrit
 
 Les dates et la numérotation bougent ; celles-ci ont été vérifiées le
 2026-10-14.

@@ -217,8 +217,8 @@ vous a été facturé, ce qui est exactement une dimension d'une question, aprè
 
 Les outils ci-dessus répondent à une question d'ingénierie. Ceux qui doivent
 *déclarer* un chiffre carbone en utilisent un tout autre jeu, dont aucun ne
-figure dans le tableau en tête de page — délibérément, parce que les noter
-contre la niche de cet outil serait une comparaison peu flatteuse sur une
+figure dans le tableau en tête de page — délibérément, parce que les noter à
+l'aune de la niche de cet outil serait une comparaison peu flatteuse sur une
 question qu'ils ne cherchent pas à traiter.
 
 ### Les plateformes de comptabilité carbone

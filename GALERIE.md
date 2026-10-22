@@ -532,7 +532,7 @@ coller une durée dans du YAML laisse périmé tout ce qui en découle.
   énoncé où le code tourne vraiment.
 - **Tous les chiffres de catalogue ici sont des semences.** Les puissances, le
   tarif et l'intensité carbone portent un `source_url` et une `retrieved_date`,
-  sans qu'aucun ait été vérifié contre la page qu'il nomme.
+  sans qu'aucun ait été confronté à la page qu'il nomme.
 
 ## Régénérer toute la galerie
 
@@ -552,5 +552,5 @@ saggio render examples/airflow.yaml -f md -o examples/airflow.md
 ```
 
 Les nombres ne reviendront pas identiques. Ces dépôts changent, comme change le
-catalogue contre lequel on les lit. C'est tout l'intérêt de commiter un modèle à
-côté du code qu'il décrit : quand il bouge, `diff` le dit.
+catalogue à la lumière duquel on les lit. C'est tout l'intérêt de commiter un
+modèle à côté du code qu'il décrit : quand il bouge, `diff` le dit.

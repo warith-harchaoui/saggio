@@ -206,7 +206,7 @@ conda activate env-for-saggio
 # Partir d'un exemple travaillé, ou d'un squelette où tout est laissé ouvert.
 saggio init --template annotated -o cost_of_running.yaml
 
-# Le vérifier contre le schéma et les règles d'honnêteté.
+# Le confronter au schéma et aux règles d'honnêteté.
 saggio validate cost_of_running.yaml
 
 # Lire un dépôt et en écrire le modèle.

@@ -334,7 +334,7 @@ meilleure que sa visibilité ne le laisse croire.
 empirique*. On exécute un programme sur des charges couvrant plusieurs ordres de
 grandeur, on décrit chaque charge par des **traits** numériques choisis — nombre
 d'enregistrements, taille de fichier, nombre de nœuds — et l'outil ajuste le
-compte d'exécutions de chaque bloc de base contre chaque trait par un modèle
+compte d'exécutions de chaque bloc de base sur chaque trait par un modèle
 linéaire `y = a + bx` et une loi de puissance `y = a·x^b`, en rapportant le R²
 de l'ajustement. Les blocs dont les coûts varient ensemble sont regroupés en
 **grappes**, si bien que la sortie tient en une poignée de comportements
@@ -347,12 +347,12 @@ Demetrescu et Finocchi, PLDI 2012) supprime le besoin de choisir des traits. Son
 idée est la *read memory size* : le nombre de cellules mémoire distinctes qu'une
 invocation lit pour la première fois. Pour une routine qui lit son entrée au
 moins une fois, la RMS approche la vraie taille d'entrée à un facteur constant
-près, si bien que le profileur peut tracer le coût contre la taille d'entrée,
-automatiquement, pour chaque routine. Les auteurs sont tout aussi clairs sur ses
-échecs : la RMS compte des cellules distinctes, donc un calcul dont le coût est
-piloté par une *valeur* plutôt que par de la mémoire lue (la factorielle naïve
-de `n`) lui est invisible, et une recherche dichotomique ne lit que O(log n)
-cellules.
+près, si bien que le profileur peut tracer le coût en fonction de la taille
+d'entrée, automatiquement, pour chaque routine. Les auteurs sont tout aussi
+clairs sur ses échecs : la RMS compte des cellules distinctes, donc un calcul
+dont le coût est piloté par une *valeur* plutôt que par de la mémoire lue (la
+factorielle naïve de `n`) lui est invisible, et une recherche dichotomique ne
+lit que O(log n) cellules.
 
 **[BigO(Bench)](https://arxiv.org/abs/2503.15242)** (2025) porte la même idée à
 Python, à l'échelle : un outillage qui infère la complexité en temps et en
