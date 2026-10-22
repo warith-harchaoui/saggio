@@ -5,18 +5,18 @@
 A cost model is produced by an engineer and read by somebody else: a
 sustainability team that has to file it, a finance reviewer who has to budget
 against it, an auditor who has to believe it. Most of those readers will never
-install a Python package, and some of them will ask the question in French to an
+install a Python package; some of them will ask the question in French to an
 agent rather than to a terminal.
 
-So the engine is reachable five ways, and this page is what each one is for.
+So the engine is reachable five ways. This page is what each one is for.
 
 ## The rule the five follow
 
 **The library is the engine. Everything else is an adapter.** A surface parses a
-request, calls one public function, and formats what comes back. That is the
-whole of its job.
+request, calls one public function, formats what comes back. That is the whole
+of its job.
 
-Two consequences, and both are checked by tests rather than left to discipline:
+Two consequences, both checked by tests rather than left to discipline:
 
 - **A surface may do nothing the library cannot.** Anything it could do on its
   own would be a capability every library caller is locked out of, reachable only
@@ -42,13 +42,13 @@ print(saggio.placed_model(result.model)["placements"])
 ```
 
 Everything the other four surfaces do is in `saggio.__all__`, and a test fails
-the build if a name in it stops existing. The reference is
+the build when a name in it stops existing. The reference is
 [`docs/api.md`](docs/api.md), generated from the docstrings.
 
 ## 2. The command line
 
-For a person at a terminal, and for continuous integration, which is the same
-caller with no hands.
+For a person at a terminal, and for continuous integration — the same caller
+with no hands.
 
 ```bash
 pip install saggio
@@ -58,11 +58,11 @@ saggio render cost_of_running.yaml -f html -o cost_of_running.html
 saggio diff cost_of_running.yaml /tmp/now.yaml --threshold 10
 ```
 
-This is the only surface that will run your code, and only with consent recorded
+This is the only surface that will run your code, and only on a consent recorded
 once by a person who was asked. That is not an accident of where the feature
 landed: measuring executes a slice of a repository with the permissions of
-whoever started the process, and a terminal is the one place there is somebody to
-ask.
+whoever started the process, and a terminal is the one place there is somebody
+to ask.
 
 ## 3. The HTTP application programming interface (API)
 
@@ -74,7 +74,7 @@ pip install "saggio[api]"
 uvicorn saggio.api.app:app --host 127.0.0.1 --port 8000
 ```
 
-The interactive documentation is then at `/docs`, and the routes are:
+The interactive documentation is then at `/docs`. The routes:
 
 | Route | What it answers |
 |---|---|
@@ -121,9 +121,9 @@ uvicorn saggio.api.mcp:app --host 127.0.0.1 --port 8000
 ```
 
 The tools are generated from the application's own OpenAPI document. A tool's
-name is the route's identifier, its description is the route's docstring, and its
-arguments are the request model's fields. Nothing is written twice, so nothing
-can drift: a hand-written wrapper would be a second description of the same
+name is the route's identifier, its description is the route's docstring, its
+arguments the request model's fields. Nothing is written twice, so nothing can
+drift: a hand-written wrapper would be a second description of the same
 endpoint, free to disagree with the first, and the disagreement would surface as
 an agent confidently telling somebody the wrong scope.
 
@@ -132,18 +132,18 @@ route for it.
 
 ## 5. The skill
 
-For Claude, or any agent that reads
-[Agent Skills](https://code.claude.com/docs/en/skills). It lives in
-[`skills/saggio/`](skills/saggio/SKILL.md) and it is not a wrapper around the
+For Claude, or any agent that reads [Agent
+Skills](https://code.claude.com/docs/en/skills). It lives in
+[`skills/saggio/`](skills/saggio/SKILL.md), and is not a wrapper around the
 other four: it is the method, written down. Which question to ask before
 auditing, which numbers an agent may never write from memory, how to report a
 figure with its status, and when to say that another tool is the right answer.
 
-Its triggers are the part most worth getting right, because a skill that does not
-load is a skill that does not exist. [`TRIGGERS.md`](TRIGGERS.md) lists the
+Its triggers are the part most worth getting right, because a skill that does
+not load is a skill that does not exist. [`TRIGGERS.md`](TRIGGERS.md) lists the
 phrasings that should reach it, in both the engineer's vocabulary and the
-sustainability team's, and the ones that should not. The evals beside the skill
-pin both halves.
+sustainability team's, the ones that should not. The evals beside the skill pin
+both halves.
 
 ## What a surface may not do
 
@@ -152,8 +152,8 @@ pin both halves.
 - **Keep its own copy of a payload.** The shape a surface returns is the shape
   the library produced.
 - **Lower a refusal.** A number the library will not state is not a number an
-  HTTP route may state, and a consent the command line asks for is not a consent
-  a server may assume.
+  HTTP route may state; a consent the command line asks for is not a consent a
+  server may assume.
 
 ## What a surface may decide for itself
 
@@ -166,16 +166,16 @@ pin both halves.
 
 ## The language all five answer in
 
-A reader's language is not presentation, and the two halves of it are not the
-same problem.
+A reader's language is not presentation, and its two halves are not the same
+problem.
 
-**The interface.** Every label on the HTML (HyperText Markup Language) report comes from one translation
-file, and the page carries a language button built from whatever that file
-contains, so a reader switches language in their browser with no network and no
-second file to ship.
+**The interface.** Every label on the HTML (HyperText Markup Language) report
+comes from one translation file, and the page carries a language button built
+from whatever that file contains, so a reader switches language in their browser
+with no network and no second file to ship.
 
 **The prose.** One sentence of a cost model is not read from a file: a local
-model is asked what shape of work the repository does, and it writes the answer
+model is asked what shape of work the repository does, then writes the answer
 into the `analysis` block. That sentence is the one thing that can arrive in the
 wrong language, and the surfaces take the language the same way:
 
@@ -187,10 +187,10 @@ saggio audit . --country FR --language fr -o cost_of_running.yaml
 saggio.audit(".", options=saggio.AuditOptions(country="FR", language="fr"))
 ```
 
-**The question.** Before an audit runs a line of somebody's code it asks, and it
-asks in the same language: a person who cannot read the terms has not been asked.
-`saggio consent grant --language fr` prints them too, and the recorded decision
-says which terms were agreed to and in which language they were read.
+**The question.** Before an audit runs a line of somebody's code it asks, in the
+same language: a person who cannot read the terms has not been asked. `saggio
+consent grant --language fr` prints them too, and the recorded decision names
+which terms were agreed to and in which language they were read.
 
 **Every route that answers with prose takes a `language` field**, from one
 definition, for the same reason the command line attaches `--language` to every
@@ -230,7 +230,7 @@ evidence.
 
 **A language is not a country.** `--language fr` says how to write a sentence
 and nothing about where the code runs: French is written on a dozen different
-grids, and reading `--country FR` out of it would put a number in the model that
+grids, so reading `--country FR` out of it would put a number in the model that
 nobody established.
 
 **Adding a language** means adding a top-level code to two files —
@@ -241,13 +241,13 @@ generated inside it in another is one deliverable in two languages.
 
 What you do **not** write is how the language handles a figure. The decimal
 separator, the digit grouping, the space before a per-cent sign, which plural
-form a count takes, how a list is joined, and the name of every country come
-from the Common Locale Data Repository — the Unicode Consortium's database of
-such things, read through Babel. Four of those were kept here by hand until
+form a count takes, how a list is joined, the name of every country: all of it
+comes from the Common Locale Data Repository — the Unicode Consortium's database
+of such things, read through Babel. Four of those were kept here by hand until
 2026-10-20 and two were wrong, which is the argument for not keeping them: the
 space before a French per-cent sign is the no-break space and this had the
-narrow one, and the plural rule covered two languages and would have broken on
-a third.
+narrow one, and the plural rule covered two languages and would have broken on a
+third.
 
 One thing the database does not carry is collation, so sorting a list of names
 is still done in this package and says so where it is done: it folds accents,
@@ -259,5 +259,5 @@ letters another one accents.
 Write the function in the library first, with its docstring example. Then the
 adapter, which should be short enough to read in one screen. Then the contract
 test that says the new surface answers what the library answers. If the adapter
-is growing logic, the logic is in the wrong place, and the fix is to move it down
-rather than to test it twice.
+is growing logic, the logic is in the wrong place, and the fix is to move it
+down rather than to test it twice.

@@ -3,7 +3,7 @@
 🇫🇷 Français · [🇬🇧 CONTRIBUTING.md](CONTRIBUTING.md)
 
 Merci de regarder. Les contributions les plus utiles à ce projet sont petites et
-précises, et trois d'entre elles ne demandent pas une ligne de Python.
+précises. Trois d'entre elles ne demandent pas une ligne de Python.
 
 ## Les trois contributions les plus faciles, et les plus précieuses
 
@@ -32,21 +32,21 @@ Cela l'écrit dans votre propre surcouche, où elle fonctionne immédiatement. P
 la proposer en amont, recopiez la ligne dans le fichier correspondant sous
 `saggio/data/` et ouvrez une pull request.
 
-**Une ligne sans source ni date ne sera pas fusionnée.** Non par formalisme, mais
-parce qu'un catalogue de chiffres non sourcés est du folklore, et que ce paquet
-existe pour être l'inverse de ça. Mettez le lien : la fiche technique du
-constructeur, la page du régulateur, le rapport de durabilité de l'hébergeur.
-« Tout le monde sait qu'un A100 fait 400 watts » n'est pas une source.
+**Une ligne sans source ni date ne sera pas fusionnée.** Non par formalisme,
+mais parce qu'un catalogue de chiffres non sourcés est du folklore, ce dont ce
+paquet existe pour être l'inverse. Mettez le lien : la fiche technique du
+constructeur, la page du régulateur, le rapport de durabilité de l'hébergeur. «
+Tout le monde sait qu'un A100 fait 400 watts » n'est pas une source.
 
 **Et une empreinte de fabrication demande une chose de plus : ce dont elle est
-l'empreinte.** C'est le champ qu'on attend d'un outil, et c'est celui qu'un
-outil ne peut pas remplir. Les fiches PCF (empreinte carbone produit) de NVIDIA énoncent, dans une prose
-qu'un analyseur trouverait du premier coup, que l'empreinte du berceau à la
-sortie d'usine d'une carte de base HGX H100 est de 1 312 kgCO2e — 2 274 pour une
-HGX B200. L'unité de ce catalogue est **un accélérateur**. Le diviseur est sur
-une autre page, dans un tableau de spécifications qui dit *« Form Factor: 8x
-NVIDIA H100 SXM »*, et savoir qu'il faut diviser vient du schéma, pas du
-document.
+l'empreinte.** C'est le champ qu'on attend d'un outil, et celui qu'un outil ne
+peut pas remplir. Les fiches PCF (empreinte carbone produit) de NVIDIA énoncent,
+dans une prose qu'un analyseur trouverait du premier coup, que l'empreinte du
+berceau à la sortie d'usine d'une carte de base HGX H100 est de 1 312 kgCO2e — 2
+274 pour une HGX B200. L'unité de ce catalogue est **un accélérateur**. Le
+diviseur est sur une autre page, dans un tableau de spécifications qui dit *«
+Form Factor: 8x NVIDIA H100 SXM »*, et savoir qu'il faut diviser vient du
+schéma, pas du document.
 
 Une ligne portant `embodied_kgco2e: 1312` sous la clé `H100` serait fausse d'un
 facteur huit et paraîtrait impeccable : une vraie URL (Uniform Resource Locator) constructeur, une vraie
@@ -63,9 +63,9 @@ n'en a pas.
 
 ### Un chiffre qui est faux
 
-Si une valeur de `saggio/data/` est fausse ou a vieilli, dites-le, et dites ce
+Si une valeur de `saggio/data/` est fausse ou a vieilli, dites-le, avec ce
 qu'elle devrait être et où vous l'avez lu. Les corrections sont ce qu'il y a de
-plus précieux ici, et elles sont les bienvenues même sans correctif.
+plus précieux ici, bienvenues même sans correctif.
 
 ### Une langue
 
@@ -81,11 +81,12 @@ de premier niveau dans chacun :
   littéralement et une clé traduite est une réponse que ce paquet jette.
 
 Puis `python3 reporting/sync.py`, pour que la copie empaquetée des ressources du
-rapport corresponde à celle d'origine, et les tests. Des tests de contrat
+rapport corresponde à celle d'origine, puis les tests. Des tests de contrat
 refusent une langue que seul l'un des deux fichiers porte, et une langue à qui
 manque une clé que la table anglaise possède. Rien d'autre ne change : le bouton
-de langue du rapport, `saggio audit --language`, le champ HTTP (HyperText Transfer Protocol) et l'outil
-d'agent sont tous construits depuis ce que ces fichiers contiennent.
+de langue du rapport, `saggio audit --language`, le champ HTTP (HyperText
+Transfer Protocol) et l'outil d'agent sont tous construits depuis ce que ces
+fichiers contiennent.
 
 ## Modifier le code
 
@@ -100,8 +101,8 @@ ruff format --check .
 ```
 
 Les trois doivent passer. La suite de tests exécute les doctests en plus des
-tests : un exemple de docstring qui cesse d'être vrai fait échouer le build, et
-c'est précisément pour ça qu'on les écrit.
+tests : un exemple de docstring qui cesse d'être vrai fait échouer le build, ce
+qui est précisément pourquoi on les écrit.
 
 ### Ce qu'une modification doit apporter
 
@@ -144,8 +145,8 @@ reporting/   Ce dont le rapport HTML est fait : la coquille du document avec les
 
 Les dépendances ne pointent que dans un sens : `cli` peut importer `report`,
 `report` peut importer `model`, et rien dans `model` n'importe quoi que ce soit
-au-dessus. Une modification qui demande une exception à cela est une modification
-qui demande d'abord une conversation.
+au-dessus. Une modification qui demande une exception à cela est une
+modification qui demande d'abord une conversation.
 
 `reporting/` est hors du paquet parce que ses fichiers s'éditent comme une feuille
 de style, un script et une coquille HTML, pas comme du Python. Le rendu les lit via
@@ -179,7 +180,7 @@ python docs/check_links.py
 ```
 
 Il suit chaque lien que le dépôt demande à un lecteur de suivre — dans les pages
-et dans les lignes de catalogue, à côté des nombres dont elles répondent — et
+et dans les lignes de catalogue, à côté des nombres dont elles répondent — puis
 trie les réponses au lieu de les réduire à un succès ou un échec. Un 403 de
 Legifrance ou de ResearchGate est un filtre anti-robot, pas un document mort, et
 le dire mort serait le pire mensonge. Seul un serveur affirmant qu'il n'a aucun
@@ -193,11 +194,11 @@ un hôte peut-être simplement lent aujourd'hui.
 
 Un lien qui *illustre une commande* plutôt que de répondre d'un nombre doit
 vivre sur un domaine réservé à la documentation (`example.invalid` et le reste
-de la Request for Comments (RFC) 2606), et le vérificateur les saute par règle. Ce n'est pas un
-confort : une source inventée sur le domaine d'un vrai constructeur est
-indiscernable d'une source périmée, ce qui est le pire qu'une citation puisse
-être. Quatre pages portaient `nvidia.com/en-us/data-center/h300/` pour une carte
-graphique qui n'existe pas.
+de la Request for Comments (RFC) 2606), que le vérificateur saute par règle. Ce
+n'est pas un confort : une source inventée sur le domaine d'un vrai constructeur
+est indiscernable d'une source périmée, ce qui est le pire qu'une citation
+puisse être. Quatre pages portaient `nvidia.com/en-us/data-center/h300/` pour
+une carte graphique qui n'existe pas.
 
 ## Modifier le schéma
 
@@ -207,8 +208,8 @@ valider.
 
 - Ajouter un champ facultatif : très bien, incrémentez le mineur.
 - Ajouter un champ obligatoire, en renommer un, ou changer ce qu'une valeur veut
-  dire : c'est un incrément majeur, et il lui faut une raison qui vaille de casser
-  tous les modèles déjà versionnés.
+  dire : c'est un incrément majeur, qui demande une raison valant de casser tous
+  les modèles déjà versionnés.
 
 Si vous ajoutez un champ, ajoutez-le aussi au gabarit annoté, pour qu'un lecteur le
 rencontre avec une phrase disant à quoi il sert.

@@ -8,8 +8,7 @@ budgéter dessus, un auditeur qui doit y croire. La plupart de ces lectrices et
 lecteurs n'installeront jamais un paquet Python, et certains poseront la question
 en français à un agent plutôt qu'à un terminal.
 
-Le moteur s'atteint donc par cinq surfaces, et cette page dit à quoi sert
-chacune.
+Le moteur s'atteint donc par cinq surfaces. Cette page dit à quoi sert chacune.
 
 ## La règle que les cinq suivent
 
@@ -42,14 +41,14 @@ print(saggio.overall_status(result.model))
 print(saggio.placed_model(result.model)["placements"])
 ```
 
-Tout ce que font les quatre autres surfaces est dans `saggio.__all__`, et un test
-casse la construction si un nom de cette liste cesse d'exister. La référence est
-[`docs/api.md`](docs/api.md), engendrée à partir des docstrings.
+Tout ce que font les quatre autres surfaces est dans `saggio.__all__`, et un
+test casse la construction dès qu'un nom de cette liste cesse d'exister. La
+référence est [`docs/api.md`](docs/api.md), engendrée à partir des docstrings.
 
 ## 2. La ligne de commande
 
-Pour une personne devant un terminal, et pour l'intégration continue, qui est le
-même appelant sans les mains.
+Pour une personne devant un terminal, et pour l'intégration continue — le même
+appelant sans les mains.
 
 ```bash
 pip install saggio
@@ -59,11 +58,11 @@ saggio render cost_of_running.yaml -f html -o cost_of_running.html
 saggio diff cost_of_running.yaml /tmp/now.yaml --threshold 10
 ```
 
-C'est la seule surface qui exécutera votre code, et seulement avec un
-consentement enregistré une fois par quelqu'un à qui on l'a demandé. Ce n'est pas
-un hasard de rangement : mesurer exécute une tranche d'un dépôt avec les
-permissions de qui a lancé le processus, et un terminal est le seul endroit où il
-y a quelqu'un à qui demander.
+C'est la seule surface qui exécutera votre code, et seulement sur un
+consentement enregistré une fois par quelqu'un à qui on l'a demandé. Ce n'est
+pas un hasard de rangement : mesurer exécute une tranche d'un dépôt avec les
+permissions de qui a lancé le processus, et un terminal est le seul endroit où
+il y a quelqu'un à qui demander.
 
 ## 3. L'interface de programmation applicative (API) HTTP
 
@@ -75,7 +74,7 @@ pip install "saggio[api]"
 uvicorn saggio.api.app:app --host 127.0.0.1 --port 8000
 ```
 
-La documentation interactive est alors en `/docs`, et les routes sont :
+La documentation interactive est alors en `/docs`. Les routes :
 
 | Route | Ce qu'elle répond |
 |---|---|
@@ -134,9 +133,9 @@ de route pour cela.
 
 ## 5. Le skill
 
-Pour Claude, ou tout agent qui lit les
-[Agent Skills](https://code.claude.com/docs/en/skills). Il vit dans
-[`skills/saggio/`](skills/saggio/SKILL.md) et ce n'est pas une enveloppe autour
+Pour Claude, ou tout agent qui lit les [Agent
+Skills](https://code.claude.com/docs/en/skills). Il vit dans
+[`skills/saggio/`](skills/saggio/SKILL.md), et n'est pas une enveloppe autour
 des quatre autres : c'est la méthode, écrite. Quelle question poser avant
 d'auditer, quels nombres un agent ne doit jamais écrire de mémoire, comment
 rapporter un chiffre avec son statut, et quand dire qu'un autre outil est la
@@ -155,7 +154,7 @@ qui ne le doivent pas. Les évaluations à côté du skill fixent les deux moiti
 - **Garder sa propre copie d'une charge utile.** La forme qu'une surface renvoie
   est celle que la bibliothèque a produite.
 - **Abaisser un refus.** Un nombre que la bibliothèque refuse d'écrire n'est pas
-  un nombre qu'une route HTTP peut écrire, et un consentement que la ligne de
+  un nombre qu'une route HTTP peut écrire ; un consentement que la ligne de
   commande demande n'est pas un consentement qu'un serveur peut supposer.
 
 ## Ce qu'une surface décide pour elle-même
@@ -169,18 +168,18 @@ qui ne le doivent pas. Les évaluations à côté du skill fixent les deux moiti
 
 ## La langue dans laquelle les cinq répondent
 
-La langue d'un lecteur n'est pas de la présentation, et ses deux moitiés ne sont
-pas le même problème.
+La langue d'un lecteur n'est pas de la présentation, et ses deux moitiés ne
+posent pas le même problème.
 
-**L'interface.** Chaque étiquette du rapport HTML (HyperText Markup Language) vient d'un seul fichier de
-traduction, et la page porte un bouton de langue construit depuis ce que ce
-fichier contient : un lecteur change de langue dans son navigateur, sans réseau
-et sans second fichier à livrer.
+**L'interface.** Chaque étiquette du rapport HTML (HyperText Markup Language)
+vient d'un seul fichier de traduction, dont la page tire un bouton de langue
+construit sur ce qu'il contient : un lecteur change de langue dans son
+navigateur, sans réseau et sans second fichier à livrer.
 
 **La prose.** Une phrase du modèle de coût n'est pas lue dans un fichier : on
-demande à un modèle local quelle forme de travail fait le dépôt, et il écrit sa
-réponse dans le bloc `analysis`. C'est la seule phrase qui peut arriver dans la
-mauvaise langue, et les surfaces prennent la langue de la même façon :
+demande à un modèle local quelle forme de travail fait le dépôt, puis il écrit
+sa réponse dans le bloc `analysis`. C'est la seule phrase qui peut arriver dans
+la mauvaise langue, et les surfaces prennent la langue de la même façon :
 
 ```bash
 saggio audit . --country FR --language fr -o cost_of_running.yaml
@@ -237,8 +236,8 @@ un cadre français autour de preuves anglaises.
 
 **Une langue n'est pas un pays.** `--language fr` dit comment écrire une phrase
 et rien sur l'endroit où le code tourne : le français s'écrit sur une douzaine
-de réseaux électriques différents, et en déduire `--country FR` mettrait dans le
-modèle un nombre que personne n'a établi.
+de réseaux électriques différents, si bien qu'en déduire `--country FR` mettrait
+dans le modèle un nombre que personne n'a établi.
 
 **Ajouter une langue**, c'est ajouter un code de premier niveau à deux fichiers
 — `reporting/i18n.yaml` pour les étiquettes et `saggio/data/prompts.yaml` pour
@@ -257,8 +256,8 @@ un pour-cent français est l'espace insécable et nous avions la fine, et la rè
 du pluriel couvrait deux langues et aurait cassé à la troisième.
 
 Ce que le dépôt ne porte pas, c'est la collation : trier une liste de noms se
-fait donc encore dans ce paquet, et le dit là où ça se fait — par repliement des
-accents, ce qui est juste pour le français et faux pour une langue dont
+fait donc encore dans ce paquet, qui le dit là où ça se fait — par repliement
+des accents, ce qui est juste pour le français et faux pour une langue dont
 l'alphabet finit par des lettres qu'une autre accentue.
 
 ## Ajouter une sixième

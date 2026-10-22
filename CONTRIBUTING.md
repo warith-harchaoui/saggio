@@ -2,10 +2,10 @@
 
 [🇫🇷 CONTRIBUER.md](CONTRIBUER.md) · 🇬🇧 English
 
-Thank you for looking. The most useful contributions to this project are small and
-specific, and three of them need no Python at all.
+Thank you for looking. The most useful contributions to this project are small
+and specific. Three of them need no Python at all.
 
-## The three easiest, and most valuable, contributions
+## The three easiest contributions, and the most valuable
 
 ### A catalogue row
 
@@ -31,38 +31,38 @@ That writes it to your own overlay, where it works immediately. To offer it
 upstream, copy the row into the matching file under
 `saggio/data/` and open a pull request.
 
-**A row without a source and a date will not be merged.** Not because of process,
-but because a catalogue of unsourced numbers is folklore, and this package exists
-to be the opposite of that. Link the vendor datasheet, the regulator's page, the
-provider's own sustainability report. "Everyone knows an A100 is 400 watts" is not
-a source.
+**A row without a source and a date will not be merged.** Not because of
+process, but because a catalogue of unsourced numbers is folklore, which this
+package exists to be the opposite of. Link the vendor datasheet, the regulator's
+page, the provider's own sustainability report. "Everyone knows an A100 is 400
+watts" is not a source.
 
 **And a manufacturing footprint needs one thing more: what one of it is.** This
-is the field people expect a tool to fill in for them, and it is the one a tool
-cannot. NVIDIA's PCF (product carbon footprint) summaries state, in prose a parser would find on the first
-try, that the cradle-to-gate footprint of an HGX H100 baseboard is 1,312 kgCO2e
-— 2,274 for an HGX B200. This catalogue's unit is **one accelerator**. The
-divisor is on a different page, in a spec table reading *"Form Factor: 8x NVIDIA
-H100 SXM"*, and the knowledge that it is needed at all comes from the schema
-rather than from the document.
+is the field people expect a tool to fill in for them, and the one a tool
+cannot. NVIDIA's PCF (product carbon footprint) summaries state, in prose a
+parser would find on the first try, that the cradle-to-gate footprint of an HGX
+H100 baseboard is 1,312 kgCO2e — 2,274 for an HGX B200. This catalogue's unit is
+**one accelerator**. The divisor is on a different page, in a spec table reading
+*"Form Factor: 8x NVIDIA H100 SXM"*, and the knowledge that it is needed at all
+comes from the schema rather than from the document.
 
 A row carrying `embodied_kgco2e: 1312` under the key `H100` would be wrong by a
-factor of eight and would look impeccable: a real vendor URL (Uniform Resource Locator), a real date, a
-number genuinely printed in the document. That is the worst output this package
-can produce, and it is why **there is no verb that reads a PCF and proposes a
-row**. Reading the number is the easy half; knowing what one unit of the
-destination is, and writing down that you divided, is the half that has to be
-done by somebody who can be asked why.
+factor of eight and would look impeccable: a real vendor URL (Uniform Resource
+Locator), a real date, a number genuinely printed in the document. That is the
+worst output this package can produce, and it is why **there is no verb that
+reads a PCF and proposes a row**. Reading the number is the easy half; knowing
+what one unit of the destination is, and writing down that you divided, is the
+half that has to be done by somebody who can be asked why.
 
-So `embodied_scope` is required, and it has to begin by naming one unit — *"One
-SXM 40GB card…"*, *"One of the eight GPUs on an HGX H100 baseboard: 1312
-kgCO2e… divided by eight"*. A contract test refuses a footprint without it.
+So `embodied_scope` is required, and has to begin by naming one unit — *"One SXM
+40GB card…"*, *"One of the eight GPUs on an HGX H100 baseboard: 1312 kgCO2e…
+divided by eight"*. A contract test refuses a footprint without it.
 
 ### A number that is wrong
 
-If a figure in `saggio/data/` is wrong or has gone stale, say so,
-and say what it should be and where you read that. Corrections are the highest
-value thing here, and they are welcome even without a patch.
+If a figure in `saggio/data/` is wrong or has gone stale, say so, with what it
+should be and where you read that. Corrections are the highest value thing here,
+welcome even without a patch.
 
 ### A language
 
@@ -78,10 +78,11 @@ each:
   translated key is an answer this package throws away.
 
 Then `python3 reporting/sync.py`, so the packaged copy of the report assets
-matches the authored one, and the tests. Contract tests refuse a language only
+matches the authored one, then the tests. Contract tests refuse a language only
 one of the two files has, and a language missing any key the English table has.
 Nothing else changes: the report's language button, `saggio audit --language`,
-the HTTP (HyperText Transfer Protocol) field and the agent tool are all built from what those files contain.
+the HTTP (HyperText Transfer Protocol) field and the agent tool are all built
+from what those files contain.
 
 ## Changing the code
 
@@ -135,9 +136,10 @@ reporting/   What the HTML report is made of: the document shell with the tokens
              Files of their own kind, not Python strings.
 ```
 
-The dependency direction only points one way: `cli` may import `report`, `report`
-may import `model`, and nothing in `model` imports anything above it. A change that
-needs an exception to that is a change that needs a conversation first.
+The dependency direction only points one way: `cli` may import `report`,
+`report` may import `model`, and nothing in `model` imports anything above it. A
+change that needs an exception to that is a change that needs a conversation
+first.
 
 `reporting/` sits outside the package because its files are edited as a
 stylesheet, a script and an HTML shell rather than as Python. The renderer reads
@@ -171,7 +173,7 @@ python docs/check_links.py
 ```
 
 It follows every link the repository asks a reader to follow — in the pages and
-in the catalogue rows beside the numbers they vouch for — and sorts the answers
+in the catalogue rows beside the numbers they vouch for — then sorts the answers
 rather than reducing them to pass or fail. A 403 from Legifrance or ResearchGate
 is a robot filter, not a dead document, and calling it dead would be the worse
 lie. Only a server stating that it holds no such document fails the run.
@@ -182,10 +184,10 @@ is how the Gemini pricing row was found pointing at a page Google had retired �
 and **no reply at all** means a host that may simply be slow today.
 
 A link that *illustrates a command* rather than vouching for a number belongs on
-a domain reserved for documentation (`example.invalid` and the rest of
-Request for Comments (RFC) 2606), and the checker skips those by rule. This is not a convenience: an
-invented source on a real vendor's domain is indistinguishable from a stale one,
-which is the worst a citation can be. Four pages carried
+a domain reserved for documentation (`example.invalid` and the rest of Request
+for Comments (RFC) 2606), which the checker skips by rule. This is not a
+convenience: an invented source on a real vendor's domain is indistinguishable
+from a stale one, which is the worst a citation can be. Four pages carried
 `nvidia.com/en-us/data-center/h300/` for a graphics card that does not exist.
 
 ## Changing the schema
@@ -194,8 +196,8 @@ The cost-model schema is versioned separately from the package. Within a major
 line it only grows, so a model somebody wrote last year keeps validating.
 
 - Adding an optional field: fine, bump the minor.
-- Adding a required field, renaming one, or changing what a value means: that is a
-  major bump, and it needs a reason worth breaking every committed model for.
+- Adding a required field, renaming one, or changing what a value means: that is
+  a major bump, needing a reason worth breaking every committed model for.
 
 If you add a field, add it to the annotated template too, so a reader meets it
 with a sentence explaining what it is for.
