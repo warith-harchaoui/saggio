@@ -48,14 +48,28 @@ _CONTINUED = re.compile(r"\\\s*$")
 
 
 def commands_in(document: str) -> list[tuple[int, str]]:
-    """Return every command-line invocation the document shows, with its line."""
+    """Return every command-line invocation the document shows, with its line.
+
+    Only inside a fenced code block. A command shown to a reader is in a fence:
+    of the 213 lines that matched the invocation pattern across every page, 212
+    were fenced and the one that was not was a French sentence whose wrapping
+    happened to put the word *saggio* at the start of a line. Reading prose for
+    commands means any re-wrap can invent one, and the invented one then fails
+    to parse.
+    """
     path = ROOT / document
     if not path.is_file():
         return []
     found: list[tuple[int, str]] = []
     pending: str | None = None
     pending_line = 0
+    fenced = False
     for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+            continue
+        if not fenced:
+            continue
         if pending is not None:
             pending += " " + line.strip()
             if not _CONTINUED.search(line):
