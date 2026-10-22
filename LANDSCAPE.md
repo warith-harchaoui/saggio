@@ -2,12 +2,12 @@
 
 [🇫🇷 PAYSAGE.md](PAYSAGE.md) · 🇬🇧 English
 
-Other tools in the "what does running this code cost" space, and where each of
-them is the better choice. Ratings are ⭐ (1) to ⭐⭐⭐⭐⭐ (5), scored against
-*this* tool's job: **a committed, reviewable, per-unit-of-work cost model across
-several dimensions, where every number states how far it can be trusted**. A tool
-built for a different job is not penalised for being good at that job instead; the
-score says fit to this niche, nothing more.
+Other tools in the "what does running this code cost" space, with the case where
+each of them is the better choice. Ratings are ⭐ (1) to ⭐⭐⭐⭐⭐ (5), scored
+against *this* tool's job: **a committed, reviewable, per-unit-of-work cost
+model across several dimensions, where every number states how far it can be
+trusted**. A tool built for a different job is not penalised for being good at
+that job instead; the score says fit to this niche, nothing more.
 
 Figures were checked on 2026-10-01. Projects move; if something here is out of
 date, [say so](CONTRIBUTING.md).
@@ -24,6 +24,8 @@ date, [say so](CONTRIBUTING.md).
 | Kepler | ⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐ | ⭐⭐⭐⭐ |
 | eco2AI | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐ | ⭐⭐⭐ |
 | carbontracker | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐ | ⭐⭐ |
+| EcoLogits | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐ | ⭐⭐ | ⭐ | ⭐⭐ | ⭐⭐⭐ |
+| EnergiBridge | ⭐ | ⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐ | ⭐⭐⭐⭐⭐ |
 | Cloud Carbon Footprint | ⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐ |
 | Infracost | ⭐⭐⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐ |
 | OpenCost / Kubecost | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ |
@@ -31,20 +33,20 @@ date, [say so](CONTRIBUTING.md).
 
 ## The map
 
-The same table, drawn. [standpoint](https://github.com/warith-harchaoui/standpoint)
-runs a principal component analysis over the nine ratings and lays every tool out
-along the two directions they actually differ on, orienting the map so saggio sits
-top-right. Two axes keep about 80% of what
-separates these tools: 55% horizontally, 25% vertically. The axis names are the
-machine's own reading of the loadings; what the loadings say is plainer: the
-further **right**, the more a tool produces sourced, committed, per-unit answers;
-the further **left**, the more it measures live power. The further **up**, the
-more it runs on your own machine and reads it; the further **down**, the more it
-is something you point at a bill or a form.
+The same table, drawn. [standpoint](https://github.com/warith-
+harchaoui/standpoint) runs a principal component analysis over the nine ratings
+and lays every tool out along the two directions they actually differ on,
+orienting the map so saggio sits top-right. Two axes keep about three quarters
+of what separates these tools: 55% horizontally, 25% vertically. The axis names
+are the machine's own reading of the loadings; what the loadings say is plainer:
+the further **right**, the more a tool produces sourced, committed, per-unit
+answers; the further **left**, the more it measures live power. The further
+**up**, the more it runs on your own machine and reads it; the further **down**,
+the more it is something you point at a bill or a form.
 
-<p align="center">
-  <img src="assets/landscape.png" alt="Positioning map of the twelve tools along two principal components, saggio in the top-right corner" width="720">
-</p>
+<p align="center"> <img src="assets/landscape.png" alt="Positioning map of the
+fourteen tools along two principal components, saggio in the top-right corner"
+width="720"> </p>
 
 The distances are the table's, not an opinion: two tools sit together because
 their rating rows are close. Regenerate after editing the table with
@@ -55,20 +57,22 @@ their rating rows are close. Regenerate after editing the table with
 
 ### [CodeCarbon](https://codecarbon.io/)
 
-The best known tool in the space, and the right first choice if what you want is a
-line of Python that logs the emissions of a training run while it happens. It
-tracks CPU (central processing unit), GPU (graphics processing unit), and memory through RAPL (Running Average Power Limit) and `nvidia-smi`, looks up a regional grid
-intensity, and writes a CSV (comma-separated values).
+The best known tool in the space, and the right first choice when what you want
+is a line of Python that logs the emissions of a training run while it happens.
+It tracks CPU (central processing unit), GPU (graphics processing unit), and
+memory through RAPL (Running Average Power Limit) and `nvidia-smi`, looks up a
+regional grid intensity, then writes a CSV (comma-separated values).
 
-Where it differs: CodeCarbon measures an *episode*. It answers "what did this run
-emit", not "what does one request cost", and its output is a log rather than a
-reviewed artefact. Its sampling is coarse by design, and that has a measured
-price: a 2026 study of RAPL-based tools polling at 1 kHz put CodeCarbon's own time
+Where it differs: CodeCarbon measures an *episode*. It answers "what did this
+run emit", not "what does one request cost", and its output is a log rather than
+a reviewed artefact. Its sampling is coarse by design, at a measured price: a
+2026 study of RAPL-based tools polling at 1 kHz put CodeCarbon's own time
 overhead between 5.4% and 46.8%, which is the argument for its default interval
-rather than against the tool. It emits a number whether or not the inputs justify one, which
-is the right call for telemetry and the wrong one for a figure somebody will quote
-in a report. **Use CodeCarbon when you want passive measurement of training runs.
-Use this when you want a per-unit figure you are prepared to defend.**
+rather than against the tool. It emits a number whether or not the inputs
+justify one, which is the right call for telemetry and the wrong one for a
+figure somebody will quote in a report. **Use CodeCarbon when you want passive
+measurement of training runs. Use this when you want a per-unit figure you are
+prepared to defend.**
 
 ### [Green Algorithms](https://www.green-algorithms.org/)
 
@@ -78,9 +82,9 @@ estimate of a computation that has already happened or has not happened yet, wit
 no instrumentation at all. Well sourced and clearly explained.
 
 Where it differs: it is a web form, so its answer lives in a browser tab rather
-than in your repository, and it does not measure, compare versions, or read your
-code. **Use the calculator for a quick estimate. Use this when the estimate needs
-to live next to the code and be checked again next quarter.**
+than in your repository. It does not measure, compare versions, or read your
+code. **Use the calculator for a quick estimate. Use this when the estimate
+needs to live next to the code and be checked again next quarter.**
 
 ### [Scaphandre](https://github.com/hubblo-org/scaphandre) and [PowerAPI](https://powerapi.org/) / [pyJoules](https://github.com/powerapi-ng/pyJoules)
 
@@ -90,9 +94,9 @@ Python. Both measure far better than this package does, which reads the package
 counter around a bounded slice and nothing more.
 
 Where they differ: they produce watts, not costs. There is no grid intensity, no
-tariff, no unit of work, no provenance, and no report. **Use Scaphandre or
-PowerAPI when you need real, continuous power measurement. Feed the result into a
-model like this one when you need it to mean something to a reader.**
+tariff, no unit of work, no provenance, no report. **Use Scaphandre or PowerAPI
+when you need real, continuous power measurement. Feed the result into a model
+like this one when you need it to mean something to a reader.**
 
 ### [Kepler](https://sustainable-computing.io/)
 
@@ -103,9 +107,10 @@ to read `/proc` and `/sys` instead of eBPF, dropping the `CAP_BPF` and
 takes when it prints the remedy for a root-only counter rather than acquiring the
 rights to read it.
 
-Where it differs: it is cluster infrastructure. It answers "which pods are drawing
-power right now", not "what does one unit of work cost", and it needs a cluster to
-answer anything at all. **Use Kepler for a running fleet. Use this for a codebase.**
+Where it differs: it is cluster infrastructure. It answers "which pods are
+drawing power right now", not "what does one unit of work cost", and needs a
+cluster to answer anything at all. **Use Kepler for a running fleet. Use this
+for a codebase.**
 
 ### [eco2AI](https://github.com/sb-ai-lab/Eco2AI) and [carbontracker](https://github.com/lfwa/carbontracker)
 
@@ -113,8 +118,51 @@ Both are decorator-style trackers for machine-learning training, close in spirit
 CodeCarbon. `carbontracker` additionally predicts the footprint of a full run from
 its first epochs, which is the same idea as this package's whole-run projection.
 
-Where they differ: same as CodeCarbon. Episode-shaped, log-shaped, and silent about
+Where they differ: same as CodeCarbon. Episode-shaped, log-shaped, silent about
 how well founded any particular figure is. **Use them for training telemetry.**
+
+### [EcoLogits](https://github.com/genai-impact/ecologits)
+
+Instruments calls to six generative-model providers — Anthropic, Cohere, Google
+GenAI, Hugging Face Hub, Mistral AI, OpenAI — and attaches an energy figure and
+a greenhouse-gas figure to each one. Mozilla Public License 2.0.
+
+It is the one tool here that answers the same question this package asks about a
+paid interface call, and it answers it better: this package prices such a call
+in money, from a published tariff, and says nothing at all about its energy.
+
+**The idea worth taking.** When the model behind a closed interface has an
+unknown size, EcoLogits does not pick a number — it returns a `RangeValue` with
+a `min` and a `max`, documented as a 95% approximation interval, with the
+uncertainty named: unknown model size, and the regression used to stand in for
+it. That is this package's weakest-link rule arriving at the same place from
+another direction, and it is the shape an `api_energy` dimension here would have
+to take. Recorded in [`BOUNDARIES.md`](BOUNDARIES.md) rather than built, because
+the bracket is only honest while somebody keeps the regressions current.
+
+Where it differs: no unit of work beyond the call, no committed artefact, no
+drift gate, and the figure stops at the provider's door. **Use EcoLogits when
+the generative interface is the cost. Use this when it is one line of a model
+that also has to account for the machine the calling code runs on.**
+
+### [EnergiBridge](https://github.com/tdurieux/EnergiBridge)
+
+Wraps any command and logs power, frequency, temperature, processor and graphics
+use, and memory to a comma-separated-values file. Intel, AMD and M-series
+processors; Linux, macOS **and Windows**. MIT licence.
+
+It is worth naming here precisely because it reaches the platform this package
+refuses. It gets there by shipping a kernel-mode driver on Windows —
+LibreHardwareMonitor's — which is the answer to the question
+[`MEASURING.md`](MEASURING.md) leaves open: Windows is measurable, at the price
+of installing a driver. That price is the reason this package still says no
+rather than half-working, and naming who pays it is more useful than repeating
+that it cannot be done.
+
+Where it differs: it produces a trace, not a model. No grid intensity, no
+tariff, no unit of work, no provenance on a row, no report. **Use EnergiBridge
+to get a power trace on a machine this package will not read. Feed what it
+measured into a model here when the trace has to mean something to a reader.**
 
 ### [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/)
 
@@ -122,26 +170,27 @@ Reads your cloud billing data and estimates emissions from it, with a good
 dashboard and a published, defensible methodology.
 
 Where it differs: it starts from the bill, so it can only describe what you have
-already spent, at account granularity. It cannot tell you what one inference costs,
-and it cannot tell you anything before you have run the thing. **Use it for
-organisational reporting on cloud spend. Use this for engineering decisions about
-a codebase.**
+already spent, at account granularity. It cannot tell you what one inference
+costs, nor anything at all before you have run the thing. **Use it for
+organisational reporting on cloud spend. Use this for engineering decisions
+about a codebase.**
 
 ### [Infracost](https://www.infracost.io/)
 
 The closest thing in spirit to this project, in a different domain. It reads
-Terraform, estimates what the infrastructure will cost before it is applied, and
-comments the difference on your pull request. The drift gate here is the same idea.
+Terraform, estimates what the infrastructure will cost before it is applied,
+then comments the difference on your pull request. The drift gate here is the
+same idea.
 
-Where it differs: Infracost prices declared infrastructure, not executed code. It
-is money-only, and it answers "what will this stack cost per month", not "what does
-one unit of work cost across five dimensions". **Use Infracost for infrastructure
-as code. The two answer different halves of the same question and sit happily side
-by side.**
+Where it differs: Infracost prices declared infrastructure, not executed code.
+It is money-only, answering "what will this stack cost per month", not "what
+does one unit of work cost across five dimensions". **Use Infracost for
+infrastructure as code. The two answer different halves of the same question and
+sit happily side by side.**
 
 ### [OpenCost](https://www.opencost.io/) and Kubecost
 
-Real-time cost allocation for Kubernetes, by namespace, workload, and label. The
+Real-time cost allocation for Kubernetes, by namespace, workload and label. The
 standard answer for "which team is spending what" on a cluster.
 
 Where it differs: allocation of an incurred bill, not a model of a unit of work.
@@ -156,10 +205,10 @@ were charged, which is exactly one dimension of one question, after the fact.
 ## The other side of the room: what a sustainability team already has
 
 The tools above answer an engineering question. The people who have to *file* a
-carbon figure use a different set entirely, and none of them appears in the
-table at the top of this page — deliberately, because scoring them against this
-tool's niche would be an unflattering comparison on a question they are not
-trying to answer.
+carbon figure use a different set entirely, none of which appears in the table
+at the top of this page — deliberately, because scoring them against this tool's
+niche would be an unflattering comparison on a question they are not trying to
+answer.
 
 ### Corporate carbon accounting platforms
 
@@ -167,32 +216,33 @@ trying to answer.
 [Sweep](https://www.sweep.net/), [Persefoni](https://www.persefoni.com/) and
 [Watershed](https://watershed.com/) are the system of record for a whole
 organisation's inventory: every scope, every category, the double-materiality
-workflow, and in several cases the tagged filing itself.
+workflow, in several cases the tagged filing itself.
 
 Where they differ: none of them reads your code. The figure for a piece of
-software is an *input* they cannot produce, and what reaches them instead is
-usually a cloud bill divided by something. **Use them to file. Use this to
-produce the software line they are missing** —
-[`INVENTORY.md`](INVENTORY.md) says which line that is.
+software is an *input* they cannot produce; what reaches them instead is usually
+a cloud bill divided by something. **Use them to file. Use this to produce the
+software line they are missing** — [`INVENTORY.md`](INVENTORY.md) says which
+line that is.
 
 ### Where the field publishes its measurements
 
 Not tools to choose between, and not scored above: these are the places this
-field puts its *evidence*, and they are worth knowing because they set what a
-reader expects a page of numbers to carry. Read 2026-10-18.
+field puts its *evidence*, worth knowing because they set what a reader expects
+a page of numbers to carry. Read 2026-10-18.
 
-**[Green Metrics Tool](https://github.com/green-coding-solutions/green-metrics-tool)
-and [Energy-ID](https://www.green-coding.io/products/energy-id/)**, by Green
-Coding Solutions. The tool measures energy and carbon for a software run
-through configuration-as-code, and publishes what it measured: per-run
+**[Green Metrics Tool](https://github.com/green-coding-solutions/green-metrics-
+tool) and [Energy-ID](https://www.green-coding.io/products/energy-id/)**, by
+Green Coding Solutions. The tool measures energy and carbon for a software run
+through configuration-as-code, then publishes what it measured: per-run
 [statistics pages](https://metrics.green-coding.io/), timeline views that track
-a project across commits, comparison views, a public API (application programming interface), and CI (continuous integration) badges.
-Energy-ID is the database beside it, benchmarking open-source software, CLI (command-line interface)
-tooling and language primitives on fixed machines and publishing a scorecard per
-task, each stating the machine and carrying the caveat in its own words:
-*"absolute numbers shown here are not to be taken as ground truth."* It is the
-most complete public evidence base in this field, and the closest thing to a
-gallery any of these tools has.
+a project across commits, comparison views, a public API (application
+programming interface), and CI (continuous integration) badges. Energy-ID is the
+database beside it, benchmarking open-source software, CLI (command-line
+interface) tooling and language primitives on fixed machines and publishing a
+scorecard per task, each stating the machine and carrying the caveat in its own
+words: *"absolute numbers shown here are not to be taken as ground truth."* It
+is the most complete public evidence base in this field, and the closest thing
+to a gallery any of these tools has.
 
 **[The ML.ENERGY Leaderboard](https://ml.energy/leaderboard/)** — machine learning (ML) energy —
 by the ML.ENERGY Initiative at Michigan ([arXiv:2505.06371](https://arxiv.org/abs/2505.06371)).
@@ -222,7 +272,7 @@ alone — primary energy and abiotic resource depletion beside the global warmin
 potential.
 
 This package already depends on them: the four processor footprints in the
-catalogue are computed by `BoaviztAPI`, and its GPU half is **refused by name**
+catalogue are computed by `BoaviztAPI`, whose GPU half is **refused by name**
 because it answers with one archetype for every card. Both the use and the
 refusal are set out in [`STANDARDS.md`](STANDARDS.md).
 
@@ -234,8 +284,8 @@ footprint on a fleet. Use this to put one on a request.**
 ### [Impact Framework](https://if.greensoftware.foundation/)
 
 The Green Software Foundation's manifest-driven pipeline: plugins convert
-observable metrics into environmental impacts, and it is the vehicle the SCI
-specification is usually implemented through.
+observable metrics into environmental impacts, which makes it the vehicle the
+SCI specification is usually implemented through.
 
 Where it differs: it is a computation graph you configure, not a committed
 artefact carrying a provenance contract. A manifest says how a figure was
@@ -258,53 +308,50 @@ Being honest about the gaps, since that is the whole premise of the tool.
 - **The costs still price the machine, not the process.** Every counter here
   meters *hardware*, so the wattage a cost model carries includes the browser
   beside the run. Two separations are now recorded next to it — the idle floor
-  the machine was drawing beforehand, and the run's share of the machine's
-  processor time applied to the processor's own counter — and a measured model
-  states both in the sentence attached to its power figure. What has not
-  changed is which number the costs use: the whole one. Scaphandre, PowerAPI
-  and Kepler go further and model a per-process and per-container draw; this
-  package records the bracket and refuses to pick inside it. On a shared box
-  that is still the gap that matters most.
-- **Two platforms, not three.** Linux and macOS, both reading real counters —
-  powercap zones by name, `IOReport` on Apple Silicon, NVML (NVIDIA Management Library) and the `amdgpu` /
-  `i915` / `xe` sysfs interfaces for the accelerator. Windows is out of scope
-  rather than unfinished: it offers no unprivileged processor energy counter, no
-  machine-wide processor-time total, and no POSIX (Portable Operating System Interface) resource accounting, so every
-  figure there would be an estimate. Narrower than the tools above it in this
-  table, and narrow on purpose.
-- **A counter is not the wall.** Fans, storage, network and the power supply sit
-  outside RAPL and NVML by construction, and the gap is not a constant that could
-  be added back: measured against physical meters it is a slope of about 1.17,
-  varying per node. Every figure here is the scope it names, never the machine.
-- **No continuous monitoring.** One bounded slice, once. If you want a time series,
-  this is the wrong shape of tool.
-- **Embodied carbon is implemented and barely catalogued.** The arithmetic is
-  there — the four terms of the International Organization for Standardization
-  and International Electrotechnical Commission's joint standard, ISO/IEC 21031,
-  amortised over calendar time — and so
-  are eight footprints: four accelerators out of 25 rows and four processors out
-  of 12. Everything else reports `TODO`. The lifetime is still yours to state,
-  because how long a card stays in service is a fact about a fleet rather than
-  about a part. See [`STANDARDS.md`](STANDARDS.md) for the table and the eight
-  refusals.
-- **The catalogues are small.** They cover the common accelerators and the larger
-  grids. Beyond that you will meet a miss, and the tool will tell you which row to
-  add.
-- **Projection between machines is a datasheet ratio.** Peak throughput is not a
-  benchmark. Real speedups are smaller, and the projection says so in its limits
-  rather than in a footnote.
+  the machine was drawing beforehand, the run's share of the machine's processor
+  time applied to the processor's own counter — and a measured model states both
+  in the sentence attached to its power figure. What has not changed is which
+  number the costs use: the whole one. Scaphandre, PowerAPI and Kepler go
+  further and model a per-process and per-container draw; this package records
+  the bracket and refuses to pick inside it. On a shared box that is still the
+  gap that matters most. - **Two platforms, not three.** Linux and macOS, both
+  reading real counters — powercap zones by name, `IOReport` on Apple Silicon,
+  NVML (NVIDIA Management Library) and the `amdgpu` / `i915` / `xe` sysfs
+  interfaces for the accelerator. Windows is out of scope rather than
+  unfinished: it offers no unprivileged processor energy counter, no machine-
+  wide processor-time total, and no POSIX (Portable Operating System Interface)
+  resource accounting, so every figure there would be an estimate. Narrower than
+  the tools above it in this table, and narrow on purpose. - **A counter is not
+  the wall.** Fans, storage, network and the power supply sit outside RAPL and
+  NVML by construction, and the gap is not a constant that could be added back:
+  measured against physical meters it is a slope of about 1.17, varying per
+  node. Every figure here is the scope it names, never the machine. - **No
+  continuous monitoring.** One bounded slice, once. If you want a time series,
+  this is the wrong shape of tool. - **Embodied carbon is implemented and barely
+  catalogued.** The arithmetic is there — the four terms of the International
+  Organization for Standardization and International Electrotechnical
+  Commission's joint standard, ISO/IEC 21031, amortised over calendar time — and
+  so are eight footprints: four accelerators out of 25 rows and four processors
+  out of 12. Everything else reports `TODO`. The lifetime is still yours to
+  state, because how long a card stays in service is a fact about a fleet rather
+  than about a part. See [`STANDARDS.md`](STANDARDS.md) for the table and the
+  eight refusals. - **The catalogues are small.** They cover the common
+  accelerators and the larger grids. Beyond that you will meet a miss, and the
+  tool will tell you which row to add. - **Projection between machines is a
+  datasheet ratio.** Peak throughput is not a benchmark. Real speedups are
+  smaller, and the projection says so in its limits rather than in a footnote.
 
 ## Where it is worth choosing
 
 When the number has to survive being questioned. When somebody is going to put a
 per-request carbon figure in a customer-facing document, or a per-run cost in a
-budget, and will be asked six months later where it came from. That is the case
-these tools mostly do not serve: they produce numbers, and this one produces
-numbers that come with their own audit trail and refuse to exist when they would
-have to be invented.
+budget, then is asked six months later where it came from. That is the case
+these tools mostly do not serve: they produce numbers; this one produces numbers
+that come with their own audit trail and refuse to exist when they would have to
+be invented.
 
-It is also the only tool in this table that will *measure how the cost grows with
-the size of the job*: three slices of different sizes, a fitted exponent, a
-goodness of fit, and a refusal to project at all when the fit says the slices are
+It is also the only tool in this table that will *measure how the cost grows
+with the size of the job*: three slices of different sizes, a fitted exponent, a
+goodness of fit, a refusal to project at all when the fit says the slices are
 not measuring one consistent behaviour. Every other tool here projects by the
 ratio of sizes, or does not project.

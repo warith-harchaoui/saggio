@@ -1,73 +1,85 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1224" height="946" viewBox="0 0 1224 946" role="img" aria-labelledby="sp-title sp-desc" font-family="Roboto, -apple-system, Helvetica, Arial, sans-serif"><rect width="1224" height="946" fill="#FFFFFF"/><title id="sp-title">Tools in the Quadrant</title><desc id="sp-desc">A 2D positioning map of 12 tools, Efficient to Transparent on the horizontal axis, Accessible to Robust on the vertical axis.</desc><style>.sp-dot{cursor:pointer}.sp-dot:hover circle,.sp-dot:focus circle{stroke-width:2.4}.sp-dot:hover,.sp-dot:focus{filter:brightness(1.08);outline:none}</style><line x1="200.5" y1="484.0" x2="994.5" y2="484.0" stroke="#C7C7CC" stroke-width="1.2" stroke-dasharray="2,4"/><line x1="612.0" y1="863.0" x2="612.0" y2="105.0" stroke="#C7C7CC" stroke-width="1.2" stroke-dasharray="2,4"/><text data-pole="right" x="1164.0" y="492.8" font-size="25" font-style="italic" fill="#6E6E73" text-anchor="end">Transparent</text><text data-pole="left" x="60.0" y="492.8" font-size="25" font-style="italic" fill="#6E6E73" text-anchor="start">Efficient</text><text data-pole="top" x="612.0" y="64.7" font-size="25" font-style="italic" fill="#6E6E73" text-anchor="middle">Robust</text><text data-pole="bottom" x="612.0" y="918.0" font-size="25" font-style="italic" fill="#6E6E73" text-anchor="middle">Accessible</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: saggio
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1224" height="946" viewBox="0 0 1224 946" role="img" aria-labelledby="sp-title sp-desc" font-family="Roboto, -apple-system, Helvetica, Arial, sans-serif"><title id="sp-title">Tools in the Quadrant</title><desc id="sp-desc">A 2D positioning map of 14 tools, Robust to Insightful on the horizontal axis, Accessible to Thorough on the vertical axis.</desc><style>.sp-dot{cursor:pointer}.sp-dot:hover circle,.sp-dot:focus circle{stroke-width:2.4}.sp-dot:hover,.sp-dot:focus{filter:brightness(1.08);outline:none}</style><line x1="153.5" y1="484.0" x2="1014.8" y2="484.0" stroke="#C7C7CC" stroke-width="1.2" stroke-dasharray="2,4"/><line x1="612.0" y1="864.0" x2="612.0" y2="104.0" stroke="#C7C7CC" stroke-width="1.2" stroke-dasharray="2,4"/><text data-pole="right" x="1164.0" y="492.4" font-size="24" font-style="italic" fill="#6E6E73" text-anchor="end">Insightful</text><text data-pole="left" x="60.0" y="492.4" font-size="24" font-style="italic" fill="#6E6E73" text-anchor="start">Robust</text><text data-pole="top" x="612.0" y="65.0" font-size="24" font-style="italic" fill="#6E6E73" text-anchor="middle">Thorough</text><text data-pole="bottom" x="612.0" y="917.2" font-size="24" font-style="italic" fill="#6E6E73" text-anchor="middle">Accessible</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: saggio
 role: best
-axis1: 2.80
-axis2: 1.48"><circle cx="912.0" cy="259.0" r="8.39" fill="#FF3B30" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: saggio
+axis1: 2.94
+axis2: 1.34"><circle cx="912.0" cy="259.0" r="8.21" fill="#FF3B30" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: saggio
 role: best
-axis1: 2.80
-axis2: 1.48</title></g><text x="924.5" y="264.6" font-size="16" fill="#1C1C1E" text-anchor="start">saggio</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: CodeCarbon
+axis1: 2.94
+axis2: 1.34</title></g><text x="924.5" y="264.6" font-size="16" fill="#1C1C1E" text-anchor="start">saggio</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: CodeCarbon
 role: competitor
-axis1: -1.08
-axis2: 0.94"><circle cx="495.9" cy="341.3" r="8.39" fill="#00B09A" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: CodeCarbon
+axis1: -0.97
+axis2: 0.92"><circle cx="513.3" cy="330.8" r="8.21" fill="#00B39D" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: CodeCarbon
 role: competitor
-axis1: -1.08
-axis2: 0.94</title></g><text x="508.4" y="346.9" font-size="16" fill="#1C1C1E" text-anchor="start">CodeCarbon</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Green Algorithms calculator
+axis1: -0.97
+axis2: 0.92</title></g><text x="525.8" y="336.4" font-size="16" fill="#1C1C1E" text-anchor="start">CodeCarbon</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Green Algorithms calculator
 role: competitor
-axis1: 1.94
-axis2: -0.50"><circle cx="819.7" cy="559.6" r="8.39" fill="#A1D683" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Green Algorithms calculator
+axis1: 2.17
+axis2: -0.51"><circle cx="832.8" cy="569.6" r="8.21" fill="#CCCA64" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Green Algorithms calculator
 role: competitor
-axis1: 1.94
-axis2: -0.50</title></g><text x="807.2" y="565.2" font-size="16" fill="#1C1C1E" text-anchor="end">Green Algorithms calculator</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Scaphandre
-role: worst
-axis1: -2.69
-axis2: 1.08"><circle cx="323.3" cy="320.0" r="8.39" fill="#A52A2A" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Scaphandre
-role: worst
-axis1: -2.69
-axis2: 1.08</title></g><text x="335.8" y="325.6" font-size="16" fill="#1C1C1E" text-anchor="start">Scaphandre</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: PowerAPI / pyJoules
+axis1: 2.17
+axis2: -0.51</title></g><text x="820.3" y="575.2" font-size="16" fill="#1C1C1E" text-anchor="end">Green Algorithms calculator</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Scaphandre
+role: competitor
+axis1: -2.60
+axis2: 1.02"><circle cx="347.3" cy="312.7" r="8.21" fill="#64A5ED" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Scaphandre
+role: competitor
+axis1: -2.60
+axis2: 1.02</title></g><text x="359.8" y="351.6" font-size="16" fill="#1C1C1E" text-anchor="start">Scaphandre</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: PowerAPI / pyJoules
 role: top
-axis1: -2.80
-axis2: 1.48"><circle cx="312.0" cy="259.0" r="8.39" fill="#AF52DE" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: PowerAPI / pyJoules
+axis1: -2.71
+axis2: 1.34"><circle cx="336.1" cy="259.0" r="8.21" fill="#AF52DE" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: PowerAPI / pyJoules
 role: top
-axis1: -2.80
-axis2: 1.48</title></g><text x="324.5" y="264.6" font-size="16" fill="#1C1C1E" text-anchor="start">PowerAPI / pyJoules</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Kepler
+axis1: -2.71
+axis2: 1.34</title></g><text x="348.6" y="264.6" font-size="16" fill="#1C1C1E" text-anchor="start">PowerAPI / pyJoules</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Kepler
 role: competitor
-axis1: -1.85
-axis2: 0.65"><circle cx="413.9" cy="385.7" r="8.39" fill="#718ADB" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Kepler
+axis1: -1.70
+axis2: 0.62"><circle cx="439.3" cy="379.9" r="8.21" fill="#8A7FD4" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Kepler
 role: competitor
-axis1: -1.85
-axis2: 0.65</title></g><text x="401.4" y="391.3" font-size="16" fill="#1C1C1E" text-anchor="end">Kepler</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: eco2AI
+axis1: -1.70
+axis2: 0.62</title></g><text x="426.8" y="385.5" font-size="16" fill="#1C1C1E" text-anchor="end">Kepler</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: eco2AI
 role: competitor
-axis1: -1.24
-axis2: 0.70"><circle cx="478.9" cy="377.0" r="8.39" fill="#0095BE" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: eco2AI
+axis1: -1.11
+axis2: 0.68"><circle cx="499.2" cy="369.4" r="8.21" fill="#0098B6" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: eco2AI
 role: competitor
-axis1: -1.24
-axis2: 0.70</title></g><text x="491.4" y="382.6" font-size="16" fill="#1C1C1E" text-anchor="start">eco2AI</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: carbontracker
+axis1: -1.11
+axis2: 0.68</title></g><text x="511.7" y="375.0" font-size="16" fill="#1C1C1E" text-anchor="start">eco2AI</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: carbontracker
 role: competitor
-axis1: -1.03
-axis2: 0.27"><circle cx="502.1" cy="442.6" r="8.39" fill="#BD87D6" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: carbontracker
+axis1: -0.84
+axis2: 0.18"><circle cx="526.2" cy="453.1" r="8.21" fill="#CF8CD4" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: carbontracker
 role: competitor
-axis1: -1.03
-axis2: 0.27</title></g><text x="514.6" y="448.2" font-size="16" fill="#1C1C1E" text-anchor="start">carbontracker</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Cloud Carbon Footprint
+axis1: -0.84
+axis2: 0.18</title></g><text x="513.7" y="458.7" font-size="16" fill="#1C1C1E" text-anchor="end">carbontracker</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: EcoLogits
 role: competitor
-axis1: 0.88
-axis2: -1.21"><circle cx="706.5" cy="668.0" r="8.39" fill="#F3976D" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Cloud Carbon Footprint
+axis1: 0.24
+axis2: 0.25"><circle cx="636.7" cy="441.5" r="8.21" fill="#60A760" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: EcoLogits
 role: competitor
-axis1: 0.88
-axis2: -1.21</title></g><text x="719.0" y="673.6" font-size="16" fill="#1C1C1E" text-anchor="start">Cloud Carbon Footprint</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Infracost
+axis1: 0.24
+axis2: 0.25</title></g><text x="649.2" y="447.1" font-size="16" fill="#1C1C1E" text-anchor="start">EcoLogits</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: EnergiBridge
+role: worst
+axis1: -2.94
+axis2: 1.08"><circle cx="312.0" cy="303.2" r="8.21" fill="#A52A2A" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: EnergiBridge
+role: worst
+axis1: -2.94
+axis2: 1.08</title></g><text x="324.5" y="296.3" font-size="16" fill="#1C1C1E" text-anchor="start">EnergiBridge</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Cloud Carbon Footprint
+role: competitor
+axis1: 1.10
+axis2: -1.11"><circle cx="724.0" cy="669.8" r="8.21" fill="#FB987D" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Cloud Carbon Footprint
+role: competitor
+axis1: 1.10
+axis2: -1.11</title></g><text x="736.5" y="675.4" font-size="16" fill="#1C1C1E" text-anchor="start">Cloud Carbon Footprint</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Infracost
 role: right
-axis1: 2.80
-axis2: 0.22"><circle cx="912.0" cy="450.4" r="8.39" fill="#007AFF" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Infracost
+axis1: 2.94
+axis2: 0.45"><circle cx="912.0" cy="408.7" r="8.21" fill="#007AFF" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Infracost
 role: right
-axis1: 2.80
-axis2: 0.22</title></g><text x="924.5" y="456.0" font-size="16" fill="#1C1C1E" text-anchor="start">Infracost</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: OpenCost / Kubecost
+axis1: 2.94
+axis2: 0.45</title></g><text x="924.5" y="414.3" font-size="16" fill="#1C1C1E" text-anchor="start">Infracost</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: OpenCost / Kubecost
 role: competitor
-axis1: 0.90
-axis2: -0.96"><circle cx="708.6" cy="629.8" r="8.39" fill="#C8A53F" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: OpenCost / Kubecost
+axis1: 1.05
+axis2: -0.89"><circle cx="719.3" cy="633.7" r="8.21" fill="#E0A14C" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: OpenCost / Kubecost
 role: competitor
-axis1: 0.90
-axis2: -0.96</title></g><text x="721.1" y="635.4" font-size="16" fill="#1C1C1E" text-anchor="start">OpenCost / Kubecost</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Cloud billing consoles
+axis1: 1.05
+axis2: -0.89</title></g><text x="731.8" y="639.3" font-size="16" fill="#1C1C1E" text-anchor="start">OpenCost / Kubecost</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Cloud billing consoles
 role: competitor
-axis1: 0.57
-axis2: -1.48"><circle cx="673.2" cy="709.0" r="8.39" fill="#FC98B8" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Cloud billing consoles
+axis1: 0.73
+axis2: -1.34"><circle cx="686.0" cy="709.0" r="8.21" fill="#FE9ABA" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Cloud billing consoles
 role: competitor
-axis1: 0.57
-axis2: -1.48</title></g><text x="685.7" y="714.6" font-size="16" fill="#1C1C1E" text-anchor="start">Cloud billing consoles</text><text x="612.0" y="26" font-size="18" font-weight="bold" fill="#000" text-anchor="middle">Tools in the Quadrant</text></svg>
+axis1: 0.73
+axis2: -1.34</title></g><text x="698.5" y="714.6" font-size="16" fill="#1C1C1E" text-anchor="start">Cloud billing consoles</text><text x="612.0" y="26" font-size="18" font-weight="bold" fill="#000" text-anchor="middle">Tools in the Quadrant</text></svg>

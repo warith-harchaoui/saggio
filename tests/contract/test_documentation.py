@@ -319,6 +319,12 @@ NOT_A_USE: dict[str, str] = {
         "a cited paper's title. A title is a quotation, and this page does not "
         "get to rewrite somebody else's."
     ),
+    "Mistral AI": (
+        "the company's registered name, in a list of the providers EcoLogits "
+        "instruments. A proper noun is not a use of the initialism inside it, "
+        "and writing out somebody's company name for them would be wrong on "
+        "the page before it was wrong about the acronym."
+    ),
 }
 
 
