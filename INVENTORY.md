@@ -11,8 +11,8 @@ pretend to.
 ## The gap this closes
 
 An engineering team hands a sustainability team a number: *"training this model
-emits 40 kgCO2e."* Three questions follow immediately, and ordinarily none of
-them has an answer.
+emits 40 kgCO2e."* Three questions follow immediately. Ordinarily none of them
+has an answer.
 
 1. **Whose emission is it?** Scope 2 if the machine is yours, scope 3 category 1
    if you rented it. Same code, same kilowatt-hour, different company reports it.
@@ -29,8 +29,8 @@ every rendered report carries them in a section of its own.
 ## Which scope, and why
 
 The GHG Protocol settles the scope with one fact: **who buys the electricity and
-owns the machine.** That fact is already in the model, as
-`deployment.provider`, and the providers catalogue records it as `operated_by`.
+owns the machine.** That fact is already in the model, as `deployment.provider`,
+which the providers catalogue records as `operated_by`.
 
 | Where it runs | The electricity | The hardware |
 |---|---|---|
@@ -38,7 +38,7 @@ owns the machine.** That fact is already in the model, as
 | Amazon Web Services (AWS), Google Cloud Platform (GCP), Azure, Oracle Cloud Infrastructure (OCI), a graphics processing unit (GPU) cloud | **Scope 3, category 1** — purchased goods and services | **Scope 3, category 1** — same line |
 | A provider nobody classified | *no scope* — stated as a question, never guessed | *no scope* |
 
-Three things follow from that table, and each is a thing teams routinely get
+Three things follow from that table, each of them something teams routinely get
 wrong.
 
 **Cloud compute is not your scope 2.** You bought a service. The electricity is
@@ -62,10 +62,10 @@ The carbon intensities here are national grid averages, read from
 *is* the **location-based** method, by definition — it carries no adjustment for
 any contractual claim.
 
-The **market-based** figure is a different number, and the GHG Protocol's
-[Scope 2 Guidance](https://ghgprotocol.org/scope-2-guidance) requires both
-wherever contractual instruments exist in your market. Under the European
-standards the same pair is explicit: gross scope 2 is disclosed
+The **market-based** figure is a different number, which the GHG Protocol's
+[Scope 2 Guidance](https://ghgprotocol.org/scope-2-guidance) requires alongside
+the first wherever contractual instruments exist in your market. Under the
+European standards the same pair is explicit: gross scope 2 is disclosed
 *location-based and market-based*.
 
 **This tool will never derive the market-based figure from a grid average**,
@@ -104,11 +104,11 @@ assumptions:
 ```
 
 Replace the `null` with the factor your document states, the empty `source_url`
-with that document, and the `TODO` with `estimated` or `measured`. Nothing else
-has to change: the figure, its derivation and its placement follow.
+with that document, the `TODO` with `estimated` or `measured`. Nothing else has
+to change: the figure, its derivation and its placement follow.
 
 A number that comes from a contract rather than from a catalogue is checkable in
-a different way from everything else here, and three rules follow:
+a different way from everything else here, from which three rules follow:
 
 - **It needs its document, as an error.** A missing `source_url` elsewhere is a
   warning. Here it fails validation: nobody but you holds that contract, and
@@ -116,7 +116,7 @@ a different way from everything else here, and three rules follow:
   certificate or residual-mix publication behind it, the figure is unverifiable
   by construction.
 - **It is never published alone.** A market-based figure with no location-based
-  one beside it is warned about. It is the half a contract can improve, and on
+  one beside it is warned about. It is the half a contract can improve, so on
   its own it reads better than the disclosure actually is.
 - **It does not exist on rented hardware.** The pair lives inside scope 2 and
   nowhere else. On a vendor's machine the electricity is the vendor's scope 2
@@ -124,15 +124,14 @@ a different way from everything else here, and three rules follow:
   service in category 1, where the standard draws no such pair. The audit writes
   no row there, so nobody is left holding a `TODO` that can never become true.
 
-Neither figure replaces the other, and the reports say so on the page: a
-contract changes what you are accountable for, not which electrons the grid
-delivered.
+Neither figure replaces the other, as the reports say on the page: a contract
+changes what you are accountable for, not which electrons the grid delivered.
 
 ## What an assurance provider gets
 
-Limited assurance is mostly a documentation exercise, and it is the part a
-spreadsheet of carbon figures fails hardest. Every quantity here carries four
-things, enforced rather than encouraged:
+Limited assurance is mostly a documentation exercise, and the part a spreadsheet
+of carbon figures fails hardest. Every quantity here carries four things,
+enforced rather than encouraged:
 
 | | |
 |---|---|
@@ -161,14 +160,14 @@ The useful half of any conformance claim is the part that fails.
   employee devices, no network transit, no storage at rest, no office, no travel.
   A software cost model is one input to an inventory, not an inventory.
 - **The market-based factor is yours, not ours.** The tool computes the figure,
-  places it, and holds it to a stricter provenance rule than anything else in
-  the model — but it will not invent the factor. No catalogue here carries a
+  places it, holds it to a stricter provenance rule than anything else in the
+  model — but it will not invent the factor. No catalogue here carries a
   residual mix or a supplier factor, and the freshness gate cannot re-read your
   contract when it is restated next year.
-- **No end of life, and no biogenic or removal accounting.** The published
-  hardware footprints are cradle-to-gate and exclude the use phase and disposal;
-  this tool reports what they cover and not a gram more. Nothing is netted
-  against removals or credits, which is also what the standards require: gross.
+- **No end of life, no biogenic or removal accounting.** The published hardware
+  footprints are cradle-to-gate and exclude the use phase and disposal; this
+  tool reports what they cover and not a gram more. Nothing is netted against
+  removals or credits, which is also what the standards require: gross.
 - **Scope 3 category 1 for cloud is a model, not an invoice.** Where your
   provider publishes a per-customer figure, that figure is the primary source
   and this one is a cross-check. Most publish nothing at that granularity, which
@@ -184,10 +183,13 @@ The useful half of any conformance claim is the part that fails.
 
 Dates and numbering move; these were checked on 2026-10-14.
 
-**GHG Protocol.** The [Corporate Standard](https://ghgprotocol.org/corporate-standard)
-defines the scopes, the [Scope 3 Standard](https://ghgprotocol.org/corporate-value-chain-scope-3-standard)
-the fifteen categories, and the [Scope 2 Guidance](https://ghgprotocol.org/scope-2-guidance)
-the dual-reporting requirement. The Scope 2 Guidance is itself under revision.
+**GHG Protocol.** The [Corporate
+Standard](https://ghgprotocol.org/corporate-standard) defines the scopes, the
+[Scope 3
+Standard](https://ghgprotocol.org/corporate-value-chain-scope-3-standard) the
+fifteen categories, the [Scope 2
+Guidance](https://ghgprotocol.org/scope-2-guidance) the dual-reporting
+requirement. The Scope 2 Guidance is itself under revision.
 
 **CSRD (Corporate Sustainability Reporting Directive), after the Omnibus.** The European Union's [Directive (EU) 2026/470](https://eur-lex.europa.eu/eli/dir/2026/470/oj/eng)
 was published on 26 February 2026 and entered into force on 18 March 2026. It

@@ -10,9 +10,9 @@ fera pas semblant de donner.
 
 ## L'écart que cela comble
 
-Une équipe technique transmet un nombre à une équipe RSE (responsabilité sociétale des entreprises) : *« entraîner ce
-modèle émet 40 kgCO2e »*. Trois questions suivent immédiatement, et d'ordinaire
-aucune n'a de réponse.
+Une équipe technique transmet un nombre à une équipe RSE (responsabilité
+sociétale des entreprises) : *« entraîner ce modèle émet 40 kgCO2e »*. Trois
+questions suivent immédiatement. D'ordinaire aucune n'a de réponse.
 
 1. **À qui est cette émission ?** Scope 2 si la machine est à vous, scope 3
    catégorie 1 si vous l'avez louée. Même code, même kilowattheure, et ce n'est
@@ -29,9 +29,9 @@ réponses ; chaque rapport rendu les porte dans une section à part.
 
 ## Quel scope, et pourquoi
 
-Le GHG (Greenhouse Gas) Protocol tranche le scope avec un seul fait : **qui achète l'électricité
-et possède la machine.** Ce fait est déjà dans le modèle, sous
-`deployment.provider`, et le catalogue des fournisseurs le note sous
+Le GHG (Greenhouse Gas) Protocol tranche le scope avec un seul fait : **qui
+achète l'électricité et possède la machine.** Ce fait est déjà dans le modèle,
+sous `deployment.provider`, que le catalogue des fournisseurs note sous
 `operated_by`.
 
 | Où ça tourne | L'électricité | Le matériel |
@@ -40,7 +40,7 @@ et possède la machine.** Ce fait est déjà dans le modèle, sous
 | Amazon Web Services (AWS), Google Cloud Platform (GCP), Azure, Oracle Cloud Infrastructure (OCI), un cloud GPU (graphics processing unit) | **Scope 3, catégorie 1** — biens et services achetés | **Scope 3, catégorie 1** — même ligne |
 | Un fournisseur que personne n'a classé | *aucun scope* — posé en question, jamais deviné | *aucun scope* |
 
-Trois conséquences, et chacune est une erreur que les équipes commettent
+Trois conséquences, chacune étant une erreur que les équipes commettent
 couramment.
 
 **Le cloud n'est pas votre scope 2.** Vous avez acheté un service.
@@ -66,10 +66,11 @@ Les intensités carbone ici sont des moyennes nationales de réseau, lues chez
 réseau **est** la méthode *location-based*, par définition — elle ne porte aucun
 ajustement pour un quelconque instrument contractuel.
 
-Le chiffre *market-based* est un autre nombre, et le [Scope 2 Guidance](https://ghgprotocol.org/scope-2-guidance)
-du GHG Protocol exige les deux partout où des instruments contractuels existent.
-Dans les normes européennes la paire est explicite : le scope 2 brut se publie
-*location-based et market-based*.
+Le chiffre *market-based* est un autre nombre, que le [Scope 2
+Guidance](https://ghgprotocol.org/scope-2-guidance) du GHG Protocol exige à côté
+du premier partout où des instruments contractuels existent. Dans les normes
+européennes la paire est explicite : le scope 2 brut se publie *location-based
+et market-based*.
 
 **Cet outil ne dérivera jamais le chiffre market-based d'une moyenne de
 réseau**, parce qu'il n'en découle pas. Ce nombre se construit à partir de l'une
@@ -111,20 +112,20 @@ assumptions:
 ```
 
 Remplacez le `null` par le facteur qu'énonce votre document, le `source_url`
-vide par ce document, et le `TODO` par `estimated` ou `measured`. Rien d'autre
-n'a à bouger : le chiffre, sa dérivation et son rangement suivent.
+vide par ce document, le `TODO` par `estimated` ou `measured`. Rien d'autre n'a
+à bouger : le chiffre, sa dérivation et son rangement suivent.
 
 Un nombre qui vient d'un contrat plutôt que d'un catalogue se vérifie autrement
-que tout le reste ici, et trois règles en découlent :
+que tout le reste ici, d'où trois règles :
 
-- **Il lui faut son document, et c'est une erreur.** Ailleurs, un `source_url`
+- **Il lui faut son document, sous peine d'erreur.** Ailleurs, un `source_url`
   manquant est un avertissement. Ici la validation échoue : personne d'autre que
-  vous ne détient ce contrat, et rien dans cet outil ne peut aller le lire — sans
-  l'attestation fournisseur, le certificat ou la publication de mix résiduel qui
-  le porte, le chiffre est invérifiable par construction.
+  vous ne détient ce contrat, et rien dans cet outil ne peut aller le lire —
+  sans l'attestation fournisseur, le certificat ou la publication de mix
+  résiduel qui le porte, le chiffre est invérifiable par construction.
 - **Il ne se publie jamais seul.** Un chiffre market-based sans chiffre
   location-based à côté de lui reçoit un avertissement. C'est la moitié qu'un
-  contrat peut améliorer, et seule elle se lit mieux que ne l'est la déclaration.
+  contrat peut améliorer : seule, elle se lit mieux que ne l'est la déclaration.
 - **Il n'existe pas sur du matériel loué.** La paire vit à l'intérieur du
   scope 2 et nulle part ailleurs. Sur la machine d'un fournisseur, l'électricité
   est le scope 2 du fournisseur et la paire est à lui de la publier ; ce qui vous
@@ -132,15 +133,15 @@ que tout le reste ici, et trois règles en découlent :
   paire de ce genre. L'audit n'y écrit aucune ligne, pour que personne ne reste
   avec un `TODO` qui ne pourra jamais devenir vrai.
 
-Aucun des deux chiffres ne remplace l'autre, et les rapports le disent sur la
+Aucun des deux chiffres ne remplace l'autre, comme les rapports le disent sur la
 page : un contrat change ce dont vous répondez, pas les électrons que le réseau
 a livrés.
 
 ## Ce qu'un vérificateur obtient
 
-Une assurance modérée est surtout un exercice de documentation, et c'est là
-qu'un tableur de chiffres carbone échoue le plus durement. Chaque grandeur ici
-porte quatre choses, imposées plutôt qu'encouragées :
+Une assurance modérée est surtout un exercice de documentation, là où un tableur
+de chiffres carbone échoue le plus durement. Chaque grandeur ici porte quatre
+choses, imposées plutôt qu'encouragées :
 
 | | |
 |---|---|
@@ -172,10 +173,10 @@ La moitié utile de toute revendication de conformité est celle qui échoue.
   repos, ni bureaux, ni déplacements. Un modèle de coût logiciel est une entrée
   d'un bilan, pas un bilan.
 - **Le facteur market-based est le vôtre, pas le nôtre.** L'outil calcule le
-  chiffre, le range et le tient à une règle de provenance plus stricte que tout
-  le reste du modèle — mais il n'inventera pas le facteur. Aucun catalogue ici ne
-  porte un mix résiduel ni un facteur fournisseur, et la barrière de fraîcheur ne
-  peut pas relire votre contrat quand il sera réénoncé l'an prochain.
+  chiffre, le range, le tient à une règle de provenance plus stricte que tout le
+  reste du modèle — mais il n'inventera pas le facteur. Aucun catalogue ici ne
+  porte un mix résiduel ni un facteur fournisseur, et la barrière de fraîcheur
+  ne peut pas relire votre contrat quand il sera réénoncé l'an prochain.
 - **Pas de fin de vie, ni de comptabilité biogénique ou d'absorptions.** Les
   empreintes matérielles publiées vont du berceau à la sortie d'usine et
   excluent la phase d'usage et l'élimination ; cet outil rapporte ce qu'elles
@@ -197,10 +198,13 @@ La moitié utile de toute revendication de conformité est celle qui échoue.
 Les dates et la numérotation bougent ; celles-ci ont été vérifiées le
 2026-10-14.
 
-**GHG Protocol.** Le [Corporate Standard](https://ghgprotocol.org/corporate-standard)
-définit les scopes, le [Scope 3 Standard](https://ghgprotocol.org/corporate-value-chain-scope-3-standard)
-les quinze catégories, et le [Scope 2 Guidance](https://ghgprotocol.org/scope-2-guidance)
-l'obligation de double déclaration. Le Scope 2 Guidance est lui-même en révision.
+**GHG Protocol.** Le [Corporate
+Standard](https://ghgprotocol.org/corporate-standard) définit les scopes, le
+[Scope 3
+Standard](https://ghgprotocol.org/corporate-value-chain-scope-3-standard) les
+quinze catégories, le [Scope 2
+Guidance](https://ghgprotocol.org/scope-2-guidance) l'obligation de double
+déclaration. Le Scope 2 Guidance est lui-même en révision.
 
 **CSRD (Corporate Sustainability Reporting Directive), après l'Omnibus.** Du côté de l'Union européenne, la [directive (UE) 2026/470](https://eur-lex.europa.eu/eli/dir/2026/470/oj/eng)
 a été publiée le 26 février 2026 et est entrée en vigueur le 18 mars 2026. Elle
@@ -210,11 +214,11 @@ vagues suivantes. La vague 1 est inchangée. **Si vous lisez ceci pour savoir si
 vous êtes assujetti, lisez la directive et demandez à vos conseils ; cette page
 est la documentation d'un outil, pas un conseil.**
 
-**ESRS (European Sustainability Reporting Standards) E1, et sa renumérotation.** Les scopes 1, 2 et 3 bruts relevaient de
-l'exigence de publication **E1-6** ; dans les normes amendées chaque exigence à
-partir d'E1-2 se décale de deux, et la même publication devient **E1-8**. Son
-texte énonce la paire sur laquelle cette page insiste : scope 2 *location-based
-et market-based*.
+**ESRS (European Sustainability Reporting Standards) E1, et sa renumérotation.**
+Les scopes 1, 2 et 3 bruts relevaient de l'exigence de publication **E1-6** ;
+dans les normes amendées chaque exigence à partir d'E1-2 se décale de deux, si
+bien que la même publication devient **E1-8**. Son texte énonce la paire sur
+laquelle cette page insiste : scope 2 *location-based et market-based*.
 
 **En France, à part.** Le bilan d'émissions de gaz à effet de serre de
 l'[article L. 229-25 du code de l'environnement](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000039369665)
