@@ -133,8 +133,7 @@ server rather than for the part inside it. The one open database that covers
 processors answers for a chip it does not have by substituting the nearest one
 it does — asked for an Apple M4 Max it returns an Apple M1 Max, four generations
 earlier, with no warning. Those answers are refused by name rather than
-imported. [`STANDARDS.md`](https://github.com/warith-
-harchaoui/saggio/blob/master/STANDARDS.md) has the table, the boundary of every
+imported. [`STANDARDS.md`](https://github.com/warith-harchaoui/saggio/blob/master/STANDARDS.md) has the table, the boundary of every
 figure, and the eight refusals with their reasons.
 
 **Writes reports that people read.** Markdown for a pull request. A single self-
@@ -362,8 +361,7 @@ the machine, because water usage effectiveness is defined per kilowatt-hour of I
 load and using the building figure would count the cooling twice.
 
 Hardware wattages, grid intensities, tariffs, and datacenter overheads live in
-[`saggio/data/`](https://github.com/warith-
-harchaoui/saggio/tree/master/saggio/data), one row each with its source and its
+[`saggio/data/`](https://github.com/warith-harchaoui/saggio/tree/master/saggio/data), one row each with its source and its
 date. Missing a row is a normal outcome; the tool tells you which one by name:
 
 ```bash
@@ -399,8 +397,7 @@ The dependency direction only points one way, so the command line can do nothing
 library caller cannot.
 
 The HTML report's own pieces are authored outside the package, in
-[`reporting/`](https://github.com/warith-
-harchaoui/saggio/tree/master/reporting): the document shell with the tokens the
+[`reporting/`](https://github.com/warith-harchaoui/saggio/tree/master/reporting): the document shell with the tokens the
 renderer fills, the stylesheet, the script, the translations. They are a
 stylesheet and a script there rather than strings quoted inside Python;
 `reporting/sync.py` copies them into the package that ships them, with a test
@@ -454,8 +451,7 @@ and is not, and the six things it does not cover.
 
 ## Related work
 
-[`LANDSCAPE.md`](https://github.com/warith-
-harchaoui/saggio/blob/master/LANDSCAPE.md) places this alongside CodeCarbon,
+[`LANDSCAPE.md`](https://github.com/warith-harchaoui/saggio/blob/master/LANDSCAPE.md) places this alongside CodeCarbon,
 Green Algorithms, Scaphandre, PowerAPI, Cloud Carbon Footprint and the rest of
 the field, saying honestly where each of them is the better tool — plus the
 tools a sustainability team already has, which answer a different question

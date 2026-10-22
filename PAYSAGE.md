@@ -34,8 +34,7 @@ vieilli, [dites-le](CONTRIBUTING.md).
 
 ## La carte
 
-Le même tableau, dessiné. [standpoint](https://github.com/warith-
-harchaoui/standpoint) passe une analyse en composantes principales sur les neuf
+Le même tableau, dessiné. [standpoint](https://github.com/warith-harchaoui/standpoint) passe une analyse en composantes principales sur les neuf
 notes et dispose chaque outil le long des deux directions qui les distinguent
 vraiment, en orientant la carte pour que saggio soit en haut à droite. Deux axes
 gardent environ les trois quarts de ce qui sépare ces outils : 55 %
@@ -242,8 +241,7 @@ Pas des outils entre lesquels choisir, et pas notés plus haut : ce sont les
 endroits où ce domaine met ses *preuves*, bons à connaître parce qu'ils fixent
 ce qu'un lecteur attend d'une page de chiffres. Lu le 2026-10-18.
 
-**[Green Metrics Tool](https://github.com/green-coding-solutions/green-metrics-
-tool) et [Energy-ID](https://www.green-coding.io/products/energy-id/)**, par
+**[Green Metrics Tool](https://github.com/green-coding-solutions/green-metrics-tool) et [Energy-ID](https://www.green-coding.io/products/energy-id/)**, par
 Green Coding Solutions. L'outil mesure l'énergie et le carbone d'une exécution
 logicielle par configuration-as-code, puis publie ce qu'il a mesuré : des [pages
 de statistiques](https://metrics.green-coding.io/) par exécution, des vues

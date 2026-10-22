@@ -33,8 +33,7 @@ date, [say so](CONTRIBUTING.md).
 
 ## The map
 
-The same table, drawn. [standpoint](https://github.com/warith-
-harchaoui/standpoint) runs a principal component analysis over the nine ratings
+The same table, drawn. [standpoint](https://github.com/warith-harchaoui/standpoint) runs a principal component analysis over the nine ratings
 and lays every tool out along the two directions they actually differ on,
 orienting the map so saggio sits top-right. Two axes keep about three quarters
 of what separates these tools: 55% horizontally, 25% vertically. The axis names
@@ -230,8 +229,7 @@ Not tools to choose between, and not scored above: these are the places this
 field puts its *evidence*, worth knowing because they set what a reader expects
 a page of numbers to carry. Read 2026-10-18.
 
-**[Green Metrics Tool](https://github.com/green-coding-solutions/green-metrics-
-tool) and [Energy-ID](https://www.green-coding.io/products/energy-id/)**, by
+**[Green Metrics Tool](https://github.com/green-coding-solutions/green-metrics-tool) and [Energy-ID](https://www.green-coding.io/products/energy-id/)**, by
 Green Coding Solutions. The tool measures energy and carbon for a software run
 through configuration-as-code, then publishes what it measured: per-run
 [statistics pages](https://metrics.green-coding.io/), timeline views that track

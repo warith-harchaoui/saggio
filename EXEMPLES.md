@@ -1219,8 +1219,7 @@ a été lue — comme **contre-test**, pas comme source. Elle publie en euros et
 pour l'Europe seulement : la retenir aurait imposé une seconde source pour le
 taux de change, une conversion qui périme chaque jour, et dix-huit lignes
 incomparables avec les vingt autres. Converties au [taux de référence de la
-Banque centrale européenne](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-
-daily.xml), les deux concordent à 7 % en médiane sur les dix-huit pays couverts
+Banque centrale européenne](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml), les deux concordent à 7 % en médiane sur les dix-huit pays couverts
 par les deux, et divergent de plus de 15 % pour six : Finlande, Roumanie,
 Pologne, Norvège, Suède et Italie. C'est une différence de méthode, pas une
 erreur de l'une ou de l'autre — Eurostat moyenne un semestre par tranche de

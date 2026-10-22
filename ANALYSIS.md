@@ -245,8 +245,7 @@ prediction of its cost.
 Limit) zones by name on Linux, `IOReport` on Apple Silicon, NVML (NVIDIA
 Management Library) through the NVIDIA driver, `amdgpu` / `i915` / `xe` through
 sysfs. The reference study for how far any of this can be trusted is [Jay,
-Ostapenco, Lefèvre, Trystram, Orgerie and Fichel, CCGrid 2023](https://perso.ens
--lyon.fr/laurent.lefevre/pdf/CCGRID2023_Ostapenco_Jay_Lefevre.pdf), which
+Ostapenco, Lefèvre, Trystram, Orgerie and Fichel, CCGrid 2023](https://perso.ens-lyon.fr/laurent.lefevre/pdf/CCGRID2023_Ostapenco_Jay_Lefevre.pdf), which
 compared nine software power meters — CarbonTracker, CodeCarbon, Energy Scope,
 Experiment Impact Tracker, `perf`, PowerAPI, Scaphandre, Green Algorithms and ML
 (machine learning) CO2 Impact — against high-precision physical meters on

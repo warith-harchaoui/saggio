@@ -446,8 +446,7 @@ appelants. La surface HTTP n'exécute le code de personne, parce qu'à travers u
 réseau il n'y a personne à qui demander un consentement ; elle ne clone un dépôt
 que là où l'exploitant l'a permis.
 
-[`UTILISER.md`](https://github.com/warith-
-harchaoui/saggio/blob/master/UTILISER.md) dit tout : à quoi sert chaque surface,
+[`UTILISER.md`](https://github.com/warith-harchaoui/saggio/blob/master/UTILISER.md) dit tout : à quoi sert chaque surface,
 ce qu'aucune n'a le droit de faire, comment en ajouter une sixième.
 
 ## Contribuer

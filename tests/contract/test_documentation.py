@@ -420,6 +420,29 @@ def test_every_initialism_is_written_out_before_it_is_used(page: str) -> None:
     )
 
 
+@pytest.mark.parametrize("page", sorted({page for pair in BILINGUAL_PAIRS for page in pair}))
+def test_no_link_target_is_broken_across_a_line(page: str) -> None:
+    """A Markdown link destination cannot contain a newline.
+
+    Re-wrapping a paragraph is how these appear: a long address, or a word with
+    a hyphen in it, lands at the wrap point and the destination is cut in two.
+    The link renders as literal text and goes nowhere. Twelve of them were
+    written across seven pages in one session and the relative-link check saw
+    one, because the other eleven were absolute addresses it does not resolve.
+
+    This looks at the shape instead of the destination, so it covers both.
+    """
+    text = (ROOT / page).read_text(encoding="utf-8")
+    broken = [
+        match.group(0).replace("\n", "\\n")[:80]
+        for match in re.finditer(r"\]\([^)\s]*\n[^)\s]*\)", text)
+    ]
+    assert not broken, (
+        f"{page} has a link target split across a line break: {broken}. "
+        "A destination has to sit on one line, even past eighty columns."
+    )
+
+
 @pytest.mark.parametrize("page", sorted(HISTORIES))
 def test_a_history_points_at_the_glossary_instead(page: str) -> None:
     # Expanding at first use is the wrong rule for a file read newest-first:

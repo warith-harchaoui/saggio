@@ -258,8 +258,7 @@ comme une prédiction de son coût.
 (Running Average Power Limit) par leur nom sous Linux, `IOReport` sur Apple
 Silicon, NVML (NVIDIA Management Library) via le pilote NVIDIA, `amdgpu` /
 `i915` / `xe` via sysfs. L'étude de référence sur la confiance à accorder à tout
-cela est [Jay, Ostapenco, Lefèvre, Trystram, Orgerie et Fichel, CCGrid 2023](htt
-ps://perso.ens-lyon.fr/laurent.lefevre/pdf/CCGRID2023_Ostapenco_Jay_Lefevre.pdf)
+cela est [Jay, Ostapenco, Lefèvre, Trystram, Orgerie et Fichel, CCGrid 2023](https://perso.ens-lyon.fr/laurent.lefevre/pdf/CCGRID2023_Ostapenco_Jay_Lefevre.pdf)
 , qui compare neuf wattmètres logiciels — CarbonTracker, CodeCarbon, Energy
 Scope, Experiment Impact Tracker, `perf`, PowerAPI, Scaphandre, Green Algorithms
 et ML (machine learning) CO2 Impact — à des wattmètres physiques de haute
