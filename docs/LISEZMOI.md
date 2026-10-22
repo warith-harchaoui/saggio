@@ -34,8 +34,8 @@ main sauf [`api.md`](api.md), qui est dérivé des docstrings.
 | [`../skills/saggio/references/inventory.md`](../skills/saggio/references/inventory.md) | Que peut dire un agent aux personnes qui doivent déclarer le chiffre ? (en anglais) |
 | [`../JOURNAL.md`](../JOURNAL.md) | Qu'est-ce qui a changé, et est-ce que ça me concerne ? |
 
-Le schéma et la taxonomie vivent sous `skills/` parce qu'un agent les lit aussi,
-et qu'une seule copie partagée par deux lecteurs ne peut pas diverger d'elle-même.
+Le schéma et la taxonomie vivent sous `skills/` parce qu'un agent les lit aussi
+: une seule copie partagée par deux lecteurs ne peut pas diverger d'elle-même.
 
 ## Travailler sur le paquet
 

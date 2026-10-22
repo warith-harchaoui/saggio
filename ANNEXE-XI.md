@@ -18,7 +18,7 @@ Là où la consommation n'est pas connue, le règlement autorise explicitement u
 estimation **à partir du calcul utilisé**.
 
 Cette autorisation est toute la méthode de ce paquet, inscrite dans la loi : la
-puissance multipliée par le temps donne l'énergie, et là où la puissance n'a
+puissance multipliée par le temps donne l'énergie ; là où la puissance n'a
 jamais été mesurée, un chiffre sourcé prend sa place, étiqueté comme une
 estimation et non comme une lecture.
 
@@ -66,12 +66,12 @@ ce qu'il est.
 
 ## Ce qu'il ne fait pas, dit franchement
 
-- **Ce n'est pas un dossier, et ce n'est pas un conseil.** Savoir si tel modèle
-  est assujetti, et ce que l'annexe XI exige d'autre, relève du règlement et de
-  vos conseils. Ce paquet produit un artefact dont une ligne a besoin.
+- **Ce n'est ni un dossier, ni un conseil.** Savoir si tel modèle est assujetti,
+  et ce que l'annexe XI exige d'autre, relève du règlement et de vos conseils.
+  Ce paquet produit un artefact dont une ligne a besoin.
 - **Il couvre une unité de travail sur une machine.** Un entraînement sur un
   cluster n'est couvert que si la mesure a eu lieu sur ce cluster ; sinon les
-  chiffres décrivent la machine qui a fait la lecture, et le modèle le dit dans
+  chiffres décrivent la machine qui a fait la lecture, ce que le modèle dit dans
   `deployment.machine_provenance`.
 - **Il documente l'énergie, pas le reste de l'annexe.** Les données, le droit
   d'auteur, les choix de conception et les évaluations sont ailleurs dans le

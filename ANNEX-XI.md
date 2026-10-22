@@ -16,8 +16,8 @@ or estimated energy consumption**. Where the consumption is not known, the Act
 explicitly permits an estimate **from the compute used**.
 
 That permission is the whole of this package's method, written into law: power
-multiplied by time is energy, and where the power was never metered a sourced
-figure stands in, labelled as an estimate rather than as a reading.
+multiplied by time is energy; where the power was never metered a sourced figure
+stands in, labelled as an estimate rather than as a reading.
 
 **The dates, because they are the reason to care now.** The documentation duty
 has applied to models placed on the market since 2 August 2025. The Commission
@@ -62,12 +62,12 @@ is.
 
 ## What it does not do, said plainly
 
-- **It is not a filing, and it is not advice.** Whether a given model is in
-  scope, and what else Annex XI asks of it, is for the regulation and your
-  advisers. This package produces one artefact that one line of it needs.
+- **It is not a filing, nor is it advice.** Whether a given model is in scope,
+  and what else Annex XI asks of it, is for the regulation and your advisers.
+  This package produces one artefact that one line of it needs.
 - **It covers one unit of work on one machine.** A training run on a cluster is
   only covered if the measurement happened on that cluster; otherwise the
-  figures describe the machine that did the reading, and the model says so in
+  figures describe the machine that did the reading, which the model says in
   `deployment.machine_provenance`.
 - **It documents energy, not the rest of the annex.** Data, copyright, design
   choices and evaluations are elsewhere in the same document and not here.

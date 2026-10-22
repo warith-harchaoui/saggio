@@ -35,7 +35,7 @@ hand except [`api.md`](api.md), which is derived from the docstrings.
 | [`../CHANGELOG.md`](../CHANGELOG.md) | What changed, and does it affect me? |
 
 The schema and taxonomy references live under `skills/` because an agent reads
-them too, and one copy that two readers share cannot drift from itself.
+them too: one copy that two readers share cannot drift from itself.
 
 ## Working on the package
 
