@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 import shlex
 from collections import Counter
+from functools import cache
 from pathlib import Path
 
 import pytest
@@ -278,8 +279,166 @@ BILINGUAL_PAIRS: list[tuple[str, str]] = [
     ("CHANGELOG.md", "JOURNAL.md"),
     ("TRIGGERS.md", "DECLENCHEURS.md"),
     ("USING.md", "UTILISER.md"),
+    ("GLOSSARY.md", "GLOSSAIRE.md"),
     ("docs/README.md", "docs/LISEZMOI.md"),
 ]
+
+#: Where the repository's vocabulary is declared, English half first. Read by the
+#: gate below rather than listed in it, so a contributor adds an initialism in
+#: the place a reader looks it up.
+GLOSSARIES: dict[str, str] = {"en": "GLOSSARY.md", "fr": "GLOSSAIRE.md"}
+
+#: The two files where "expand it at its first use" is the wrong rule, and the
+#: reason. They are append-only and read newest-first, so the first use of an
+#: initialism sits in the oldest entry at the bottom — the one place a reader
+#: starting at the top will never reach. They carry a link to the glossary in
+#: their first lines instead, which the gate below checks.
+HISTORIES: dict[str, str] = {
+    "CHANGELOG.md": "append-only and read newest-first; links the glossary instead",
+    "JOURNAL.md": "the French half of the same, and the same reason",
+}
+
+
+#: Phrases that contain an initialism without being a use of it, each with the
+#: reason it is here. Declared rather than discovered, because a gate written
+#: without this list signals the whole repository and teaches everyone to ignore
+#: it -- and because the remedy it would otherwise demand is to edit somebody
+#: else's proper noun, or, in the first entry below, to assert something untrue.
+#:
+#: Being on this list is not an exemption from the rule. It is a statement that
+#: the rule does not apply, because no reader meets an undecoded initialism
+#: here: they meet a name.
+NOT_A_USE: dict[str, str] = {
+    "Resource Aware ML": (
+        "RaML's own name. Its ML is the functional-language family OCaml belongs "
+        "to, not machine learning -- the row beside it says 'first-order "
+        "functional programs'. Expanding it to the glossary's sense would make "
+        "the page state something false."
+    ),
+    "Static Analysis of Energy Consumption for LLVM IR Programs": (
+        "a cited paper's title. A title is a quotation, and this page does not "
+        "get to rewrite somebody else's."
+    ),
+}
+
+
+def _prose_of(page: str) -> str:
+    """Return a page's prose: no code, no link targets, no web addresses.
+
+    An initialism inside a command is not prose a reader decodes, and neither
+    is one inside the path of a link they click, nor one inside a name or a
+    cited title -- see :data:`NOT_A_USE`.
+    """
+    text = (ROOT / page).read_text(encoding="utf-8")
+    text = re.sub(r"```.*?```", " ", text, flags=re.S)
+    text = re.sub(r"`[^`]*`", " ", text)
+    text = re.sub(r"\]\([^)]*\)", "] ", text)
+    text = re.sub(r"https?://\S+", " ", text)
+    for phrase in NOT_A_USE:
+        text = text.replace(phrase, " ")
+    return text
+
+
+def test_every_declared_name_is_actually_on_a_page() -> None:
+    """A list of exemptions nobody needs is a list that stops being read.
+
+    Each entry here was put there to let one real page through. When the phrase
+    leaves the documentation, the entry has to leave this list with it, or the
+    next reader cannot tell which entries are load-bearing.
+    """
+    pages = sorted({page for pair in BILINGUAL_PAIRS for page in pair} | set(HISTORIES))
+    everything = " ".join((ROOT / page).read_text(encoding="utf-8") for page in pages)
+    idle = sorted(phrase for phrase in NOT_A_USE if phrase not in everything)
+    assert not idle, f"NOT_A_USE declares phrases no page contains: {idle}"
+
+
+def test_every_declared_name_says_why() -> None:
+    # An exemption without a reason is indistinguishable from an oversight, and
+    # the whole point of declaring these is that somebody can disagree with one.
+    unexplained = sorted(phrase for phrase, why in NOT_A_USE.items() if len(why.split()) < 8)
+    assert not unexplained, f"these are exempted without a reason anybody can weigh: {unexplained}"
+
+
+@cache
+def declared_initialisms(code: str) -> dict[str, str]:
+    """Return the initialisms a glossary declares, with how it writes each out.
+
+    Parsed from the page rather than listed here: the page is what a reader
+    opens, and two copies of a vocabulary is the defect this repository keeps
+    finding in its own prose.
+    """
+    declared: dict[str, str] = {}
+    for line in (ROOT / GLOSSARIES[code]).read_text(encoding="utf-8").splitlines():
+        found = re.match(r"\|\s*\*\*([A-Z][A-Z0-9]*)\*\*\s*\|\s*([^|]*?)\s*\|", line)
+        if found and found.group(2) not in {"", "—"}:
+            declared[found.group(1)] = found.group(2)
+    return declared
+
+
+@pytest.mark.parametrize("page", sorted({page for pair in BILINGUAL_PAIRS for page in pair}))
+def test_every_initialism_is_written_out_before_it_is_used(page: str) -> None:
+    """A reader meets a word they can decode, or they meet an explanation.
+
+    The rule in one line: nowhere an initialism that is not spelled out and
+    explained before it is used. Each page stands alone for it, because a
+    reader landing on one has not read the others.
+
+    What counts as spelled out: the written-out form appears on the same line
+    as the first use or before it. That accepts both shapes — *Common Locale
+    Data Repository (CLDR)* and *CLDR (Common Locale Data Repository)* — and a
+    glossary row, where the two sit side by side.
+    """
+    if page in HISTORIES:
+        pytest.skip(HISTORIES[page])
+    code = "fr" if page in {french for _, french in BILINGUAL_PAIRS} else "en"
+    declared = declared_initialisms(code)
+    prose = _prose_of(page)
+    unexplained = []
+    for acronym, written in declared.items():
+        first = re.search(rf"(?<![A-Za-z0-9]){re.escape(acronym)}(?![A-Za-z0-9])", prose)
+        if first is None:
+            continue
+        line_end = prose.find("\n", first.end())
+        before = prose[: line_end if line_end != -1 else len(prose)]
+        if written.lower() not in re.sub(r"\s+", " ", before).lower():
+            unexplained.append(acronym)
+    assert not unexplained, (
+        f"{page} uses these without writing them out first: {sorted(unexplained)}. "
+        f"The written-out form is in {GLOSSARIES[code]}."
+    )
+
+
+@pytest.mark.parametrize("page", sorted(HISTORIES))
+def test_a_history_points_at_the_glossary_instead(page: str) -> None:
+    # Expanding at first use is the wrong rule for a file read newest-first:
+    # the first use is at the bottom, in the entry nobody scrolls to. A link in
+    # the opening lines is the rule that serves the reader here.
+    opening = "\n".join((ROOT / page).read_text(encoding="utf-8").splitlines()[:12])
+    code = "fr" if page == "JOURNAL.md" else "en"
+    assert GLOSSARIES[code] in opening, (
+        f"{page} is exempt from expanding at first use and has to link {GLOSSARIES[code]}"
+    )
+
+
+def test_the_glossary_declares_nothing_nobody_uses() -> None:
+    # The other direction, and the one that rots: a vocabulary page grows
+    # entries for words the repository stopped using, and a reader trusts it
+    # less for every one of them.
+    pages = sorted({page for pair in BILINGUAL_PAIRS for page in pair} | set(HISTORIES))
+    for code, glossary in GLOSSARIES.items():
+        used = set()
+        for page in pages:
+            if (page in {french for _, french in BILINGUAL_PAIRS}) != (code == "fr"):
+                continue
+            prose = _prose_of(page)
+            used |= {
+                acronym
+                for acronym in declared_initialisms(code)
+                if re.search(rf"(?<![A-Za-z0-9]){re.escape(acronym)}(?![A-Za-z0-9])", prose)
+            }
+        idle = sorted(set(declared_initialisms(code)) - used)
+        assert not idle, f"{glossary} declares what no {code} page uses: {idle}"
+
 
 #: Pages written once on purpose, each with the reason, so that adding a new page
 #: is a decision about both languages rather than an oversight in one.
