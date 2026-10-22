@@ -540,6 +540,59 @@ def test_every_exemption_from_reading_is_still_needed() -> None:
     assert not idle, f"READS_AS_WRITTEN declares phrases no page contains: {idle}"
 
 
+#: The output formats the front pages promise a reader, and the renderer that
+#: has to exist for each promise to be true. The pair is here rather than in
+#: the test body so that adding a format to the prose and forgetting the code
+#: is a one-line conflict rather than a sentence nobody re-reads.
+PROMISED_OUTPUTS: dict[str, tuple[str, str]] = {
+    "Markdown": ("render_markdown", "Markdown"),
+    "HTML": ("render_html", "HTML"),
+    "Word": ("render_office", "docx"),
+    "PDF": ("render_office", "pdf"),
+}
+
+
+@pytest.mark.parametrize("page", ["README.md", "LISEZMOI.md"])
+def test_the_front_page_promises_only_what_ships(page: str) -> None:
+    """A reader meets the outputs on the front page before anything else.
+
+    This exists because the front page undersold for at least one release: it
+    said "reports rendered from it" while the package already shipped a
+    Portable Document Format report through md2star and a web page that
+    recomputes in the browser. Nobody noticed until a reader said it would be
+    better if those existed.
+
+    Every gate here asks whether the documentation is complete, bilingual,
+    spelled out or well linked. None asked whether it describes what the code
+    actually does, which is the one thing a front page is for.
+    """
+    import saggio.report as report
+
+    prose = _readable(page)
+    for word, (function, flavour) in PROMISED_OUTPUTS.items():
+        if word not in prose:
+            continue
+        assert hasattr(report, function), (
+            f"{page} promises {word}, but saggio.report has no {function}. "
+            f"Either the renderer went away or the sentence has to."
+        )
+        if function == "render_office":
+            assert flavour in report.OFFICE_FORMATS, (
+                f"{page} promises {word}, but {flavour!r} is not in "
+                f"OFFICE_FORMATS ({sorted(report.OFFICE_FORMATS)})."
+            )
+
+
+def test_both_front_pages_promise_the_same_outputs() -> None:
+    """A format offered in one language and not the other is a broken promise."""
+    english = {w for w in PROMISED_OUTPUTS if w in _readable("README.md")}
+    french = {w for w in PROMISED_OUTPUTS if w in _readable("LISEZMOI.md")}
+    assert english == french, (
+        f"README.md promises {sorted(english)}, LISEZMOI.md promises "
+        f"{sorted(french)}. The pair has to offer a reader the same thing."
+    )
+
+
 @pytest.mark.parametrize("page", sorted(HISTORIES))
 def test_a_history_points_at_the_glossary_instead(page: str) -> None:
     # Expanding at first use is the wrong rule for a file read newest-first:
