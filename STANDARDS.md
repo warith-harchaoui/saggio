@@ -2,13 +2,13 @@
 
 [🇫🇷 NORMES.md](NORMES.md) · 🇬🇧 English
 
-There is an international standard for the thing this package produces, and it
-has been one since 2024. The **Software Carbon Intensity** specification — the
+There is an international standard for the thing this package produces, and has
+been since 2024. The **Software Carbon Intensity** specification — the
 International Organization for Standardization and International
-Electrotechnical Commission's [ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/),
-written by the Green Software Foundation — asks for emissions *per functional unit of
-work*, with the boundary declared, no offsets, and a location-based grid
-intensity.
+Electrotechnical Commission's [ISO/IEC
+21031:2024](https://greensoftware.foundation/standards/sci/), written by the
+Green Software Foundation — asks for emissions *per functional unit of work*,
+with the boundary declared, no offsets, and a location-based grid intensity.
 
 That is not a shape this package was adapted to. It is the shape it was built
 in, before anybody here had read the specification: a cost model is per unit of
@@ -32,10 +32,10 @@ SCI = (E × I + M) per R
 | **R** | The functional unit | `unit_of_work`. The first thing an audit asks and the thing every other number is divided by. |
 
 `E × I` is the `carbon` dimension this package has always reported. `M` is the
-`embodied_carbon` dimension beside it. The score is their sum, and
-`saggio.software_carbon_intensity` will add them — refusing when either half is
-open, because reporting one of them under the name of a standard would
-understate it with the standard's authority.
+`embodied_carbon` dimension beside it. The score is their sum, which
+`saggio.software_carbon_intensity` will add — refusing when either half is open,
+because reporting one of them under the name of a standard would understate it
+with the standard's authority.
 
 ## M, and what it costs to not have it
 
@@ -70,42 +70,44 @@ the boundary in words beside the number:
 | Core i9-13900K | 14.2 | Cradle-to-gate, from a 257 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 | Ryzen 9 7950X | 14.34 | Cradle-to-gate, from a 264 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 
-The two kinds of row are not the same strength of claim, and the table keeps
-them apart rather than averaging them into one word. The accelerators are
+The two kinds of row are not the same strength of claim, so the table keeps them
+apart rather than averaging them into one word. The accelerators are
 vendor-published, torn down and weighed, or modelled by the part's own designer
 from parameters nobody outside has. The processors are **computed from the
 chip's die size by a published model** — a weaker thing, and the reason the
 method is linked rather than only the figure.
 
-**The four other TPU generations in that paper are not here, and the reason is a
-column rather than a doubt.** It publishes a footprint for v4i, v5e, v6e and v5p
-as well, and they would be as good as the v4 row. What it does not publish is a
-power figure of the kind every row here carries: `tdp_w` is a datasheet rating,
-and what the paper gives is a *measured mean across a production fleet* — a
-better number for estimating energy, and a different quantity. Putting one under
-the other's name would make the column mean two things, which is the substitution
+**The four other TPU generations in that paper are not here, for a reason that
+is a column rather than a doubt.** It publishes a footprint for v4i, v5e, v6e
+and v5p as well, each as good as the v4 row. What it does not publish is a power
+figure of the kind every row here carries: `tdp_w` is a datasheet rating, and
+what the paper gives is a *measured mean across a production fleet* — a better
+number for estimating energy, and a different quantity. Putting one under the
+other's name would make the column mean two things, which is the substitution
 this package spends its time refusing. Those four need a published rating, or a
 column of their own.
 
 **What a `source_url` is, and what it is not.** It exists so a reader can check
 the figure beside it, which means it has to be something a person can open. Two
-of the sources here are APIs, and they behave differently when a reader follows
-the link rather than a program: Boavizta answers **19.0 kgCO2e** — the default
-for an unnamed chip, and the exact figure this package refuses on import — while
-Ember answers HyperText Transfer Protocol (HTTP) 403 and `{"detail":"No API key set"}`. Four processor rows
-cited the first, so anybody who clicked saw a number with nothing to do with the
-processor on that row.
+of the sources here are APIs, which behave differently when a reader follows the
+link rather than a program: Boavizta answers **19.0 kgCO2e** — the default for
+an unnamed chip, and the exact figure this package refuses on import — while
+Ember answers HyperText Transfer Protocol (HTTP) 403 and `{"detail":"No API key
+set"}`. Four processor rows cited the first, so anybody who clicked saw a number
+with nothing to do with the processor on that row.
 
-Thirty-eight grid rows cited the second, and that one took three more iterations
-to fix, because this page had already noticed it and talked itself out of it:
+Thirty-eight grid rows cited the second, which took three more iterations to
+fix, because this page had already noticed it and talked itself out of it:
 *unhelpful but true*. It is not true. A citation is a claim that the figure can
 be checked there, and no figure can be checked at a 403 — the row was asserting
 something about a page that does not exist for the reader. Both are now named in
 the scope or in prose, where naming an endpoint is provenance of method, and
 neither is in a field a reader is invited to follow. The grid rows cite [Ember's
-published yearly dataset](https://ember-energy.org/data/yearly-electricity-data/),
-which is the same series under CC (Creative Commons)-BY-4.0, needs no key, and was checked against
-the API (application programming interface) country by country before it was adopted rather than assumed equivalent.
+published yearly
+dataset](https://ember-energy.org/data/yearly-electricity-data/), which is the
+same series under CC (Creative Commons)-BY-4.0, needs no key, and was checked
+against the API (application programming interface) country by country before it
+was adopted rather than assumed equivalent.
 
 **The one non-vendor figure here has been checked against an independent one.**
 The A100 number comes from a teardown with primary elemental analysis; a
@@ -134,6 +136,7 @@ than a teardown or a verified vendor disclosure. Nothing in the catalogue comes
 from it.
 
 
+
 The eight remaining processors are refused rather than filled. Four are refused
 because that source answers about a chip it was not asked about: asked for an
 Apple M4 Max it returns an Apple M1 Max, four generations earlier, with no
@@ -156,7 +159,7 @@ footprint for it — which is not the same as it having been free to build.
 
 The useful half of a conformance claim is the part that fails.
 
-**The lifespan is yours, and it ships open.** Every one of those footprints is
+**The lifespan is yours, and ships open.** Every one of those footprints is
 cradle-to-gate and explicitly excludes the use phase. The vendor has given the
 numerator and deliberately withheld the denominator, because how long a card
 stays in service is a fact about a fleet rather than about a part. So
@@ -167,12 +170,12 @@ than assumed.
 
 **End of life is excluded, because the sources exclude it.** The footprints stop
 at the factory gate. Recycling and disposal are real and are not in these
-numbers, and the report says so rather than letting the omission pass as a zero.
+numbers, which the report says rather than letting the omission pass as a zero.
 
 **The board, the memory, the network and the storage are not counted.** They all
 had to be made too. None of them is in the catalogue, so none of them is in the
-figure, and the figure says which part it covers. The processor is counted now
-where one is on file, and only then: a machine with an accelerator reports the
+figure, which says which part it covers. The processor is counted now where one
+is on file, and only then: a machine with an accelerator reports the
 accelerator, a machine without one reports its processor if that chip is known,
 and otherwise reports `TODO`. Nothing is added across parts, because no source
 here covers two of them under one boundary.
@@ -184,11 +187,11 @@ embodied carbon onto the hours that did work — gives a larger number and is no
 what the standard says. This package follows the standard, and every figure it
 produces carries a note saying which convention it used.
 
-Three things the specification requires that were already true here, and are
-worth naming because they are the ones tools most often get wrong: **no
-offsets** are subtracted anywhere; the intensity is **location-based**, from
-where the code runs, never a market instrument; and the **boundary is
-declared** on every quantity rather than in a footnote.
+Three things the specification requires that were already true here, worth
+naming because they are the ones tools most often get wrong: **no offsets** are
+subtracted anywhere; the intensity is **location-based**, from where the code
+runs, never a market instrument; and the **boundary is declared** on every
+quantity rather than in a footnote.
 
 ## What the regulations ask, which is less
 
@@ -213,17 +216,19 @@ The Green Software Foundation has mapped one onto the other in
 
 The recast Energy Efficiency Directive goes the other way: under Article 12,
 Member States must make operators of data centres above 500 kW report their
-energy and water performance, and the Commission publishes what comes back.
-[COM(2026) 500 final](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf),
+energy and water performance, which the Commission then publishes. [COM(2026)
+500
+final](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf),
 of 21 September 2026, is the first such assessment.
 
-For 2024 it gives a Union-wide **PUE (power usage effectiveness) of 1.36**, energy-weighted over the 681
-data centres whose figure passed the quality review, and a **WUE (water usage effectiveness) of 0.58**
-litres per kilowatt-hour over the 458 that reported water above zero. Both are
-in the catalogue as the `on-prem-eu` provider, and the second one matters more
-than it looks: water was a `TODO` on every self-run model this package wrote,
-because *"On-premises publishes no water usage effectiveness"*. For a room
-inside the Union, that sentence is no longer true.
+For 2024 it gives a Union-wide **PUE (power usage effectiveness) of 1.36**,
+energy-weighted over the 681 data centres whose figure passed the quality
+review, with a **WUE (water usage effectiveness) of 0.58** litres per
+kilowatt-hour over the 458 that reported water above zero. Both are in the
+catalogue as the `on-prem-eu` provider, and the second one matters more than it
+looks: water was a `TODO` on every self-run model this package wrote, because
+*"On-premises publishes no water usage effectiveness"*. For a room inside the
+Union, that sentence is no longer true.
 
 **What the report says about itself**, carried in the row rather than left for a
 reader to find: only about 36% of the data centres in scope reported at all,
@@ -231,13 +236,13 @@ reader to find: only about 36% of the data centres in scope reported at all,
 excludes dry-cooled rooms and therefore overstates the typical one.
 
 **And what cannot be put in a catalogue.** National averages are in the report —
-they range from 1.15 to 1.66 — but only as labels on a bar chart, and the four
+they range from 1.15 to 1.66 — but only as labels on a bar chart; and the four
 Member States with fewer than three reporting facilities are flagged by the
 Commission itself as possibly unrepresentative. Transcribing a figure off a
 chart is how a number stops being able to say where it came from, so none of
 them is here. Facility-level figures are not available at all, and will not be:
-Article 5(5) of Delegated Regulation (EU (European Union)) 2024/1364 requires the database to be
-anonymised.
+Article 5(5) of Delegated Regulation (EU (European Union)) 2024/1364 requires
+the database to be anonymised.
 
 ## Doing it
 
@@ -260,7 +265,7 @@ assumptions:
 
 Leave it open and the embodied figure stays open, the SCI score stays open with
 it, and the report says which of the four terms is missing. That is the whole
-design: a standard you half-satisfy, and know exactly which half.
+design: a standard you half-satisfy, knowing exactly which half.
 
 ## Sources
 
@@ -270,9 +275,9 @@ design: a standard you half-satisfy, and know exactly which half.
 - *More than Carbon: Cradle-to-Grave environmental impacts of GenAI training on the NVIDIA A100 GPU*, [arXiv:2509.00093](https://arxiv.org/abs/2509.00093).
 - *Life-Cycle Emissions of AI Hardware: A Cradle-To-Grave Approach and
   Generational Trends*, [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) —
-  Google's own LCA (life-cycle assessment) of five TPU generations, ISO 14040/14044, and the first
-  published manufacturing figure for an AI accelerator by the people who
-  designed it. The TPU v4 row comes from its Table 1.
+  Google's own LCA (life-cycle assessment) of five TPU generations, ISO
+  14040/14044, the first published manufacturing figure for an AI accelerator by
+  the people who designed it. The TPU v4 row comes from its Table 1.
 - [Ember's yearly electricity data](https://ember-energy.org/data/yearly-electricity-data/)
   (CC-BY-4.0) — the grid carbon intensities, and what the 38 grid rows cite.
 - *The Rising Unsustainability of AI Graphics Cards Production*,

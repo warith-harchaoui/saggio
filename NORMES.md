@@ -33,10 +33,10 @@ SCI = (E × I + M) par R
 | **R** | L'unité fonctionnelle | `unit_of_work`. La première chose qu'un audit demande et celle par laquelle tout le reste est divisé. |
 
 `E × I` est la dimension `carbon` que ce paquet a toujours rapportée. `M` est la
-dimension `embodied_carbon` à côté. Le score est leur somme, et
-`saggio.software_carbon_intensity` les additionne — en refusant quand l'une des
-deux moitiés est ouverte, parce que rapporter l'une d'elles sous le nom d'une
-norme la sous-estimerait avec l'autorité de la norme.
+dimension `embodied_carbon` à côté. Le score est leur somme, que
+`saggio.software_carbon_intensity` additionne — en refusant quand l'une des deux
+moitiés est ouverte, parce que rapporter l'une d'elles sous le nom d'une norme
+la sous-estimerait avec l'autorité de la norme.
 
 ## M, et ce que coûte son absence
 
@@ -71,44 +71,46 @@ sa frontière en toutes lettres à côté du nombre :
 | Core i9-13900K | 14,2 | Du berceau à la sortie d'usine, depuis un die de 257 mm² | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 | Ryzen 9 7950X | 14,34 | Du berceau à la sortie d'usine, depuis un die de 264 mm² | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 
-Les deux sortes de ligne ne sont pas de la même force, et le tableau les tient
-séparées plutôt que de les moyenner sous un même mot. Les accélérateurs sont
-publiés par le fabricant, démontés et pesés, ou modélisés par le concepteur de la
-pièce depuis des paramètres que personne d'autre n'a. Les processeurs sont
-**calculés depuis la taille du die par un modèle publié** — chose plus faible, et
-la raison pour laquelle la méthode est liée et pas seulement le chiffre.
+Les deux sortes de ligne ne sont pas de la même force, si bien que le tableau
+les tient séparées plutôt que de les moyenner sous un même mot. Les
+accélérateurs sont publiés par le fabricant, démontés et pesés, ou modélisés par
+le concepteur de la pièce depuis des paramètres que personne d'autre n'a. Les
+processeurs sont **calculés depuis la taille du die par un modèle publié** —
+chose plus faible, et la raison pour laquelle la méthode est liée et pas
+seulement le chiffre.
 
-**Les quatre autres générations de TPU de cet article ne sont pas là, et la
-raison est une colonne, pas un doute.** Il publie aussi une empreinte pour les
-v4i, v5e, v6e et v5p, et elles vaudraient la ligne v4. Ce qu'il ne publie pas,
-c'est une puissance de la sorte que porte chaque ligne ici : `tdp_w` est une
-valeur de fiche technique, et ce que l'article donne est une *moyenne mesurée sur
-une flotte de production* — meilleur nombre pour estimer une énergie, et une
-autre grandeur. Mettre l'un sous le nom de l'autre ferait dire deux choses à la
-colonne, ce qui est précisément la substitution que ce paquet passe son temps à
-refuser. Ces quatre-là attendent une valeur publiée, ou une colonne à elles.
+**Les quatre autres générations de TPU de cet article ne sont pas là, pour une
+raison qui est une colonne, pas un doute.** Il publie aussi une empreinte pour
+les v4i, v5e, v6e et v5p, qui vaudraient toutes la ligne v4. Ce qu'il ne publie
+pas, c'est une puissance de la sorte que porte chaque ligne ici : `tdp_w` est
+une valeur de fiche technique, et ce que l'article donne est une *moyenne
+mesurée sur une flotte de production* — meilleur nombre pour estimer une
+énergie, et une autre grandeur. Mettre l'un sous le nom de l'autre ferait dire
+deux choses à la colonne, ce qui est précisément la substitution que ce paquet
+passe son temps à refuser. Ces quatre-là attendent une valeur publiée, ou une
+colonne à elles.
 
 **Ce qu'est un `source_url`, et ce qu'il n'est pas.** Il existe pour qu'un
 lecteur vérifie le chiffre d'à côté, donc il doit être ouvrable par un humain.
-Deux des sources ici sont des API (interface de programmation applicative),
-et elles se comportent autrement quand un
-lecteur suit le lien plutôt qu'un programme : Boavizta répond **19,0 kgCO2e** —
-la valeur par défaut d'une puce anonyme, et le chiffre exact que ce paquet refuse
-à l'import — tandis qu'Ember répond HyperText Transfer Protocol (HTTP) 403 et `{"detail":"No API key set"}`.
-Quatre lignes processeur citaient la première : qui cliquait voyait un nombre
-sans rapport avec le processeur de la ligne.
+Deux des sources ici sont des API (interface de programmation applicative), qui
+se comportent autrement quand un lecteur suit le lien plutôt qu'un programme :
+Boavizta répond **19,0 kgCO2e** — la valeur par défaut d'une puce anonyme, et le
+chiffre exact que ce paquet refuse à l'import — tandis qu'Ember répond HyperText
+Transfer Protocol (HTTP) 403 et `{"detail":"No API key set"}`. Quatre lignes
+processeur citaient la première : qui cliquait voyait un nombre sans rapport
+avec le processeur de la ligne.
 
-Trente-huit lignes du réseau citaient la seconde, et celle-là a mis trois
-itérations de plus à être réparée, parce que cette page l'avait déjà remarquée et
-s'en était dissuadée elle-même : *inutile mais vrai*. Ce n'est pas vrai. Une
-citation affirme que le chiffre est vérifiable là, et rien n'est vérifiable à un
-403 — la ligne affirmait quelque chose d'une page qui n'existe pas pour le
-lecteur. Les deux sont désormais nommées dans la portée ou en prose, où nommer un
-endpoint est de la provenance, et aucune n'est dans un champ qu'un lecteur est
-invité à suivre. Les lignes du réseau citent le [jeu de données annuel publié par
+Trente-huit lignes du réseau citaient la seconde, qui a mis trois itérations de
+plus à être réparée, parce que cette page l'avait déjà remarquée et s'en était
+dissuadée elle-même : *inutile mais vrai*. Ce n'est pas vrai. Une citation
+affirme que le chiffre est vérifiable là, et rien n'est vérifiable à un 403 — la
+ligne affirmait quelque chose d'une page qui n'existe pas pour le lecteur. Les
+deux sont désormais nommées dans la portée ou en prose, où nommer un endpoint
+est de la provenance, et aucune n'est dans un champ qu'un lecteur est invité à
+suivre. Les lignes du réseau citent le [jeu de données annuel publié par
 Ember](https://ember-energy.org/data/yearly-electricity-data/), qui est la même
-série sous CC (Creative Commons)-BY-4.0, ne demande aucune clé, et a été recoupé pays par pays
-contre l'API avant d'être adopté plutôt que supposé équivalent.
+série sous CC (Creative Commons)-BY-4.0, ne demande aucune clé, et a été recoupé
+pays par pays contre l'API avant d'être adopté plutôt que supposé équivalent.
 
 **Le seul chiffre non constructeur a été recoupé avec un chiffre indépendant.**
 Le nombre de l'A100 vient d'un démontage avec analyse élémentaire primaire ; un
@@ -135,6 +137,9 @@ Ce jeu de données est un **contre-test, pas une source**, pour la même raison
 qu'Eurostat l'est pour les tarifs : c'est un modèle paramétrique, et un modèle
 est une affirmation plus faible qu'un démontage ou une déclaration constructeur
 vérifiée. Rien du catalogue n'en provient.
+
+
+
 
 
 Les huit processeurs restants sont refusés plutôt que remplis. Quatre parce que
@@ -171,17 +176,16 @@ qui est précisément pourquoi la question est posée au lieu d'être supposée.
 
 **La fin de vie est exclue, parce que les sources l'excluent.** Les empreintes
 s'arrêtent à la porte de l'usine. Recyclage et mise au rebut sont réels et ne
-sont pas dans ces nombres, et le rapport le dit au lieu de laisser l'omission
+sont pas dans ces nombres, ce que le rapport dit au lieu de laisser l'omission
 passer pour un zéro.
 
 **La carte, la mémoire, le réseau et le stockage ne sont pas comptés.** Ils ont
 tous dû être fabriqués aussi. Aucun n'est au catalogue, donc aucun n'est dans le
-chiffre, et le chiffre dit quelle pièce il couvre. Le processeur est compté
-désormais, là où il y en a un au fichier, et seulement là : une machine avec
-accélérateur rapporte l'accélérateur, une machine sans en rapporte son
-processeur si cette puce est connue, et sinon rapporte `TODO`. Rien n'est
-additionné entre pièces, parce qu'aucune source ici n'en couvre deux sous une
-même frontière.
+chiffre, qui dit quelle pièce il couvre. Le processeur est compté désormais, là
+où il y en a un au fichier, et seulement là : une machine avec accélérateur
+rapporte l'accélérateur, une machine sans en rapporte son processeur si cette
+puce est connue, et sinon rapporte `TODO`. Rien n'est additionné entre pièces,
+parce qu'aucune source ici n'en couvre deux sous une même frontière.
 
 **L'amortissement est en temps calendaire, pas en temps occupé.** La
 spécification définit la part de temps comme la durée sur la durée de vie
@@ -191,12 +195,11 @@ ont travaillé — donne un nombre plus grand et n'est pas ce que dit la norme. 
 paquet suit la norme, et chaque chiffre qu'il produit porte une note disant
 quelle convention il a employée.
 
-Trois exigences de la spécification qui étaient déjà vraies ici, et qu'il vaut
-la peine de nommer parce que ce sont celles que les outils ratent le plus
-souvent : **aucune compensation** n'est soustraite nulle part ; l'intensité est
-**liée au lieu**, depuis l'endroit où le code tourne, jamais un instrument de
-marché ; et la **frontière est déclarée** sur chaque quantité plutôt qu'en note
-de bas de page.
+Trois exigences de la spécification qui étaient déjà vraies ici, à nommer parce
+que ce sont celles que les outils ratent le plus souvent : **aucune
+compensation** n'est soustraite nulle part ; l'intensité est **liée au lieu**,
+depuis l'endroit où le code tourne, jamais un instrument de marché ; et la
+**frontière est déclarée** sur chaque quantité plutôt qu'en note de bas de page.
 
 ## Ce que demandent les réglementations, qui est moins
 
@@ -223,18 +226,19 @@ La Green Software Foundation a cartographié l'un sur l'autre dans
 La directive sur l'efficacité énergétique refondue va dans l'autre sens : au
 titre de l'article 12, les États membres obligent les exploitants de centres de
 données au-dessus de 500 kW à déclarer leurs performances énergétiques et
-hydriques, et la Commission publie ce qui remonte.
-[COM(2026) 500 final](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf),
+hydriques, que la Commission publie ce qui remonte. [COM(2026) 500
+final](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf),
 du 21 septembre 2026, est la première évaluation de ce type.
 
-Pour 2024, elle donne un **PUE (power usage effectiveness) de 1,36** à l'échelle de l'Union, pondéré par
-l'énergie sur les 681 centres dont la valeur a passé le contrôle qualité, et un
-**WUE (water usage effectiveness) de 0,58** litre par kilowattheure sur les 458 ayant déclaré une
-consommation d'eau non nulle. Les deux sont au catalogue sous le fournisseur
-`on-prem-eu`, et le second compte plus qu'il n'y paraît : l'eau était un `TODO`
-sur chaque modèle auto-hébergé que ce paquet a écrit, parce que *« On-premises
-publishes no water usage effectiveness »*. Pour une salle située dans l'Union,
-cette phrase n'est plus vraie.
+Pour 2024, elle donne un **PUE (power usage effectiveness) de 1,36** à l'échelle
+de l'Union, pondéré par l'énergie sur les 681 centres dont la valeur a passé le
+contrôle qualité, avec un **WUE (water usage effectiveness) de 0,58** litre par
+kilowattheure sur les 458 ayant déclaré une consommation d'eau non nulle. Les
+deux sont au catalogue sous le fournisseur `on-prem-eu`, et le second compte
+plus qu'il n'y paraît : l'eau était un `TODO` sur chaque modèle auto-hébergé que
+ce paquet a écrit, parce que *« On-premises publishes no water usage
+effectiveness »*. Pour une salle située dans l'Union, cette phrase n'est plus
+vraie.
 
 **Ce que le rapport dit de lui-même**, porté par la ligne plutôt que laissé à
 trouver : environ 36 % seulement des centres concernés ont déclaré quoi que ce
@@ -244,13 +248,13 @@ salle typique.
 
 **Et ce qui ne peut pas entrer dans un catalogue.** Les moyennes nationales sont
 dans le rapport — elles vont de 1,15 à 1,66 — mais seulement en étiquettes sur
-un diagramme en barres, et les quatre États membres comptant moins de trois
+un diagramme en barres ; et les quatre États membres comptant moins de trois
 installations déclarantes sont signalés par la Commission elle-même comme
 possiblement non représentatifs. Recopier une valeur depuis un graphique est la
 façon dont un nombre cesse de pouvoir dire d'où il vient : aucune n'est ici. Les
 valeurs par installation ne sont pas disponibles du tout, et ne le seront pas :
-l'article 5(5) du règlement délégué (UE (Union européenne)) 2024/1364 impose l'anonymisation de la
-base.
+l'article 5(5) du règlement délégué (UE (Union européenne)) 2024/1364 impose
+l'anonymisation de la base.
 
 ## Le faire
 
@@ -284,9 +288,9 @@ moitié.
 - *More than Carbon: Cradle-to-Grave environmental impacts of GenAI training on the NVIDIA A100 GPU*, [arXiv:2509.00093](https://arxiv.org/abs/2509.00093).
 - *Life-Cycle Emissions of AI Hardware: A Cradle-To-Grave Approach and
   Generational Trends*, [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) —
-  l'ACV (analyse du cycle de vie) par Google de cinq générations de TPU, ISO 14040/14044, et la première
-  publication d'une empreinte de fabrication d'accélérateur par ceux qui l'ont
-  conçu. La ligne TPU v4 vient de son tableau 1.
+  l'ACV (analyse du cycle de vie) par Google de cinq générations de TPU, ISO
+  14040/14044, la première publication d'une empreinte de fabrication
+  d'accélérateur par ceux qui l'ont conçu. La ligne TPU v4 vient de son tableau 1.
 - [Données annuelles d'électricité d'Ember](https://ember-energy.org/data/yearly-electricity-data/)
   (CC-BY-4.0) — les intensités carbone des réseaux, et ce que citent les
   38 lignes pays.
