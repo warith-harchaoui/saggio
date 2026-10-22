@@ -9,9 +9,9 @@ lire, ce que chacun couvre réellement, et ce qu'il advient du chiffre ensuite.
 
 Elle existe parce que « impossible de mesurer la puissance » n'est pas une
 réponse. Un portable sans compteur, un serveur dont le compteur est fermé à tout
-le monde sauf à root, un conteneur qui ne voit pas `/sys`, et une puce que
-personne n'a appris à ce paquet à lire sont quatre situations différentes avec
-quatre remèdes différents — et une seule est une question qui revient au lecteur.
+le monde sauf à root, un conteneur qui ne voit pas `/sys`, une puce que personne
+n'a appris à ce paquet à lire : quatre situations différentes avec quatre
+remèdes différents — et une seule est une question qui revient au lecteur.
 
 ## Sommaire
 
@@ -60,16 +60,17 @@ compteur à l'échelle de la machine.
 | macOS | `powermetrics` | les mêmes sous-systèmes | root | non utilisé par ce paquet |
 | Tout serveur | Intelligent Platform Management Interface (IPMI) / Data Center Manageability Interface (DCMI) / [Redfish](https://www.dmtf.org/standards/redfish) | le nœud entier, ventilateurs et pertes d'alimentation compris | identifiants du contrôleur | non utilisé par ce paquet |
 
-**Windows n'est pas dans ce tableau, et n'y sera pas.** Il est hors périmètre,
-délibérément et définitivement. Il ne publie aucun compteur d'énergie processeur
-indépendant du fabricant à un processus sans privilèges : l'
-[Energy Meter Interface](https://learn.microsoft.com/en-us/windows-hardware/drivers/powermeter/energy-meter-interface)
-n'existe que là où un constructeur l'a implémentée et seulement via un pilote, et
-les chiffres par application de `powercfg` sont un modèle de batterie, pas un
+**Windows n'est pas dans ce tableau, et n'y sera jamais.** Il est hors
+périmètre, délibérément et définitivement. Il ne publie aucun compteur d'énergie
+processeur indépendant du fabricant à un processus sans privilèges : l' [Energy
+Meter
+Interface](https://learn.microsoft.com/en-us/windows-hardware/drivers/powermeter/energy-meter-interface)
+n'existe que là où un constructeur l'a implémentée et seulement via un pilote,
+et les chiffres par application de `powercfg` sont un modèle de batterie, pas un
 compteur. Il ne publie aucun total de temps processeur machine que ce paquet
 puisse lire : l'attribution ci-dessous n'aurait rien par quoi diviser. Et il n'a
-pas de comptabilité POSIX (Portable Operating System Interface) des ressources, donc le temps processeur propre d'un
-enfant est indisponible aussi.
+pas de comptabilité POSIX (Portable Operating System Interface) des ressources,
+donc le temps processeur propre d'un enfant est indisponible aussi.
 
 Chacun de ces points, seul, serait survivable. Ensemble, ils signifient que
 chaque nombre que ce paquet existe pour produire serait une estimation sur cette
@@ -80,15 +81,15 @@ moitié.
 Deux lignes de ce tableau méritent une phrase chacune.
 
 **Apple Silicon.** Pendant presque toute l'histoire de ce paquet, un Mac ne
-mesurait rien, et la raison affichée était que macOS ne publie la puissance que
-par `powermetrics`, qui exige un mot de passe. La première moitié était fausse.
-Les compteurs qu'affiche `powermetrics` viennent d'`IOReport`, qui répond à un
+mesurait rien, au motif affiché que macOS ne publie la puissance que par
+`powermetrics`, qui exige un mot de passe. La première moitié était fausse. Les
+compteurs qu'affiche `powermetrics` viennent d'`IOReport`, qui répond à un
 utilisateur ordinaire, et c'est ce que lit
 [`saggio/analyze/apple.py`](saggio/analyze/apple.py). Apple ne documente ni la
-bibliothèque ni les noms de canaux ; la correspondance utilisée ici a été établie
-en lisant les canaux sur de vraies machines, comme le font
-[macmon](https://github.com/vladkens/macmon) et ses semblables — et une puce dont
-les canaux ne sont pas reconnus ne mesure rien plutôt que d'inventer.
+bibliothèque ni les noms de canaux ; la correspondance utilisée ici a été
+établie en lisant les canaux sur de vraies machines, comme le font
+[macmon](https://github.com/vladkens/macmon) et ses semblables — et une puce
+dont les canaux ne sont pas reconnus ne mesure rien plutôt que d'inventer.
 
 **La zone mémoire.** Sous Linux, `dram` est une *sous-zone* d'un paquet dans
 l'arborescence sysfs, mais son énergie n'est **pas** dans le chiffre de ce
@@ -146,10 +147,10 @@ vôtre.
 
 Sur un cluster partagé, la meilleure réponse est le plus souvent de ne rien
 ouvrir. Votre exploitant mesure déjà des nœuds entiers par le contrôleur de
-gestion, et un chiffre venu de là couvre les ventilateurs et les pertes
-d'alimentation, ce qu'aucun compteur interne à la puce ne fera jamais. Un modèle
-de coût peut porter ce chiffre comme une quantité `measured` avec sa propre
-source ; voir [EXEMPLES.md](EXEMPLES.md#mettre-la-mesure-dans-le-modèle).
+gestion, dont le chiffre couvre les ventilateurs et les pertes d'alimentation,
+ce qu'aucun compteur interne à la puce ne fera jamais. Un modèle de coût peut
+porter ce chiffre comme une quantité `measured` avec sa propre source ; voir
+[EXEMPLES.md](EXEMPLES.md#mettre-la-mesure-dans-le-modèle).
 
 ## Ce que chaque chiffre laisse de côté
 
@@ -185,7 +186,7 @@ programme. Sur un serveur partagé, cette distinction fait tout ; sur un portabl
 avec un navigateur et un indexeur qui tournent, elle fait encore l'essentiel.
 
 `saggio measure` observe donc la machine une seconde avant le début de la
-tranche, et rapporte trois chiffres au lieu d'un :
+tranche, puis rapporte trois chiffres au lieu d'un :
 
 ```
 Average power: 96.3 W (measured)
@@ -193,16 +194,16 @@ Average power: 96.3 W (measured)
   added by this slice: 77.6 W
 ```
 
-Le troisième est celui qu'il faut citer, et c'est une soustraction : elle suppose
-donc quelque chose que personne n'a vérifié, à savoir que le reste de la machine
-a continué à faire ce qu'il faisait. Cette hypothèse est écrite dans le modèle à
-côté du nombre, plutôt que laissée au lecteur.
+Le troisième est celui qu'il faut citer. C'est aussi une soustraction : elle
+suppose donc quelque chose que personne n'a vérifié, à savoir que le reste de la
+machine a continué à faire ce qu'il faisait. Cette hypothèse est écrite dans le
+modèle à côté du nombre, plutôt que laissée au lecteur.
 
 Deux cas sont dits à voix haute au lieu d'être soustraits en silence :
 
 - **La machine était déjà occupée.** Au-delà de la moitié du total, le chiffre a
-  cessé de parler de la tranche pour parler de la machine où elle a été prise, et
-  un avertissement le dit avec les deux nombres.
+  cessé de parler de la tranche pour parler de la machine où elle a été prise,
+  si bien qu'un avertissement le dit avec les deux nombres.
 - **La machine est devenue plus calme.** Si elle tirait plus avant la tranche que
   pendant, c'est que ce qui tournait par ailleurs s'est arrêté. La ligne de base
   n'a jamais été le plancher de cette tranche : aucun chiffre marginal n'en
@@ -219,7 +220,7 @@ le compteur peut donner tout de suite.
 Soustraire une ligne de base repose sur quelque chose que personne n'a vérifié :
 que le reste de la machine a continué de faire ce qu'il faisait. Il existe une
 autre façon de poser la même question, qui n'a pas besoin de cette hypothèse, et
-ce paquet la pose désormais aussi.
+que ce paquet pose désormais aussi.
 
 Tout système d'exploitation digne d'être lu tient un total courant du temps
 processeur, à l'échelle de la machine, séparé entre travail et inactivité. Lisez-le
@@ -262,9 +263,9 @@ divergent de plus de moitié, un avertissement le dit avec les deux nombres,
 parce que le produit utile de deux méthodes qui divergent est la paire, pas un
 choix :
 
-> Deux façons de séparer cette tranche de la machine divergent : soustraire la
-> ligne de base au repos donne 1,7 W, et attribuer la consommation mesurée par
-> la part de 17 % du travail processeur donne 3,4 W.
+> Deux façons de séparer cette tranche de la machine divergent : soustraire la >
+ligne de base au repos donne 1,7 W, tandis qu'attribuer la consommation mesurée
+par > la part de 17 % du travail processeur donne 3,4 W.
 
 Sur une machine occupée, la seconde est en général la meilleure des deux ; sur
 une machine calme, elles convergent.
@@ -285,8 +286,8 @@ même machine, à une minute d'intervalle :
 
 Le temps est une propriété du travail. La puissance est une propriété de la
 pièce : un compteur mesure la machine, donc tout ce qui s'est réveillé pendant
-ces cinq exécutions est dans la valeur, et rien ne pouvait l'en distinguer. Les
-deux figures portaient pourtant le même mot, `measured`, dans un système de
+ces cinq exécutions est dans la valeur, sans que rien puisse l'en distinguer.
+Les deux figures portaient pourtant le même mot, `measured`, dans un système de
 quatre états dont toute la proposition est de dire jusqu'où un nombre est
 fiable.
 
@@ -356,7 +357,7 @@ Mais son attribution découpe d'abord la puissance du nœud **par activité** :
 où la puissance active est le total mesuré dont on a soustrait la ligne de base
 au repos. Ce paquet découpe **par domaine matériel** à la place : la part
 multiplie le compteur propre des cœurs processeur, une valeur qu'un compteur a
-produite plutôt qu'une soustraction, et c'est pourquoi la valeur attribuée ne
+produite plutôt qu'une soustraction, ce qui est pourquoi la valeur attribuée ne
 peut tarifer que de l'énergie processeur.
 
 Les deux ne sont pas interchangeables, et `examples/render.yaml` dit de combien.
@@ -405,12 +406,12 @@ fichier plutôt que de se croire ici.
 **Ce que les coûts utilisent reste le total au compteur.** Non parce qu'il est
 meilleur — c'est l'avant-dernier en stabilité — mais parce que c'est le seul
 qu'un compteur ait produit. Substituer une valeur modélisée mettrait une
-estimation sous un champ qui dit `measured`, et le modèle cesserait de dire ce
-qu'il sait.
+estimation sous un champ qui dit `measured`, après quoi le modèle cesserait de
+dire ce qu'il sait.
 
 **Ce qui changerait cela**, énoncé pour qu'on puisse le contester :
 l'attribution par domaine ne tarife que l'énergie *processeur*. Sur une charge
-qui occupe un accélérateur, elle sous-estimerait gravement le coût, et c'est
+qui occupe un accélérateur, elle sous-estimerait gravement le coût, ce qui est
 l'unique raison pour laquelle elle est enregistrée à côté du total plutôt qu'à
 sa place.
 
@@ -424,12 +425,11 @@ quatre barres distinctes — la seule répartition d'un rapport saggio qui soit
 dessiner et aurait été l'image d'une hypothèse.
 ## Du compteur au coût
 
-Une puissance moyenne mesurée est le premier maillon d'une chaîne, et le reste de
-la chaîne est [Green Algorithms](https://doi.org/10.1002/advs.202100707),
-détaillé dans
-[`skills/saggio/references/green-algorithms.md`](skills/saggio/references/green-algorithms.md) :
-durée × puissance × surcoût du datacenter donne l'énergie, énergie × intensité du
-réseau donne le carbone, et chaque étape nomme les nombres dont elle vient.
+Une puissance moyenne mesurée est le premier maillon d'une chaîne, dont la suite
+est [Green Algorithms](https://doi.org/10.1002/advs.202100707), détaillé dans
+[`skills/saggio/references/green-algorithms.md`](skills/saggio/references/green-algorithms.md)
+: durée × puissance × surcoût du datacenter donne l'énergie, énergie × intensité
+du réseau donne le carbone, et chaque étape nomme les nombres dont elle vient.
 
 La mesure change le *statut* de ce qui suit, pas seulement sa valeur. Mesurez la
 durée et l'énergie devient `measured` d'elle-même ; laissez le pays non renseigné
@@ -453,11 +453,11 @@ un chiffre ouvert dans ce paquet, pas un zéro.
 ## De cette machine à une autre
 
 Une mesure porte sur la machine où elle a été prise. Deux projections en font
-autre chose, et toutes deux disent ce qu'elles ont supposé :
+autre chose, toutes deux disant ce qu'elles ont supposé :
 
 - **Vers une exécution complète**, depuis une tranche : division par la fraction
   que couvrait la tranche, lue dans votre propre configuration plutôt que
-  devinée. Défendable tant que le travail est uniforme, et l'hypothèse est écrite
+  devinée. Défendable tant que le travail est uniforme, l'hypothèse étant écrite
   dans le modèle.
 - **Vers un autre accélérateur** : pas un échange de wattages. Une puce plus
   rapide finit plus tôt, donc elle tire plus de puissance moins longtemps. La
@@ -467,12 +467,11 @@ autre chose, et toutes deux disent ce qu'elles ont supposé :
   donnent des rapports différents — 3,2 et 2,2 entre un A100 et un H100 — et
   qu'une vraie exécution tombe entre les deux. Elle refuse net quand le catalogue
   n'a pas de débit pour cette précision.
-- **Vers un autre processeur** : un processeur a *deux* vitesses, et elles ne
-  bougent pas ensemble. Un fil sur un cœur est la première ; tous les cœurs
-  occupés à la fois est la seconde. Une puce à nombreux cœurs lents gagne la
-  seconde et perd la première : « la puce la plus rapide » n'est donc pas une
-  question à une seule réponse, et les deux vitesses sont les deux bouts de
-  l'encadrement.
+- **Vers un autre processeur** : un processeur a *deux* vitesses, qui ne bougent
+  pas ensemble. Un fil sur un cœur est la première ; tous les cœurs occupés à la
+  fois est la seconde. Une puce à nombreux cœurs lents gagne la seconde et perd
+  la première : « la puce la plus rapide » n'est donc pas une question à une
+  seule réponse, et les deux vitesses sont les deux bouts de l'encadrement.
 
 Lequel des deux s'applique est la seule chose ici qui n'ait pas à être supposée.
 La mesure bas-niveau y répond déjà : secondes processeur sur secondes horloge
@@ -507,12 +506,11 @@ Une mesure que personne ne peut vérifier est difficile à défendre. Donc :
 saggio power --json
 ```
 
-affiche chaque interface, chaque état, et les chemins exacts qui seraient lus,
-pour qu'un chiffre puisse être refait à la main — `cat` le compteur, attendre,
-`cat` à nouveau, diviser. Sous macOS,
-`sudo powermetrics --samplers cpu_power -n 1` est la comparaison qu'Apple
-fournit ; ce paquet ne la lancera pas pour vous, et les chiffres doivent
-s'accorder.
+affiche chaque interface, chaque état, les chemins exacts qui seraient lus, pour
+qu'un chiffre puisse être refait à la main — `cat` le compteur, attendre, `cat`
+à nouveau, diviser. Sous macOS, `sudo powermetrics --samplers cpu_power -n 1`
+est la comparaison qu'Apple fournit ; ce paquet ne la lancera pas pour vous, et
+les chiffres doivent s'accorder.
 
 **Et le paquet vérifie cela sur lui-même, sur chaque machine où il tourne.**
 Deux tests prennent une vraie tranche et comparent le rapport de capacités à ce

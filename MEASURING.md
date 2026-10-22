@@ -3,15 +3,15 @@
 [🇫🇷 MESURER.md](MESURER.md) · 🇬🇧 English
 
 A wattage taken from a datasheet is a guess about a chip. A wattage taken from a
-counter is a fact about a run. This page is about the counters: which ones exist,
-which ones this machine will let *you* read, what each of them actually covers,
-and what happens to the number afterwards.
+counter is a fact about a run. This page is about the counters: which ones
+exist, which ones this machine will let *you* read, what each of them actually
+covers, what happens to the number afterwards.
 
 It exists because "could not measure power" is not an answer. A laptop with no
 counter, a server whose counter is closed to everyone but root, a container that
-cannot see `/sys`, and a chip nobody has taught this package to read are four
-different situations with four different remedies, and only one of them is a
-question for the reader.
+cannot see `/sys`, a chip nobody has taught this package to read: four different
+situations with four different remedies, and only one of them is a question for
+the reader.
 
 ## Contents
 
@@ -60,15 +60,16 @@ machine-wide counter.
 | macOS | `powermetrics` | the same subsystems | root | not used by this package |
 | Any server | Intelligent Platform Management Interface (IPMI) / Data Center Manageability Interface (DCMI) / [Redfish](https://www.dmtf.org/standards/redfish) | the whole node, fans and power supply losses included | controller credentials | not used by this package |
 
-**Windows is not in that table, and will not be.** It is out of scope,
+**Windows is not in that table, nor will it be.** It is out of scope,
 deliberately and for good. It publishes no vendor-neutral processor energy
-counter to an unprivileged process: the
-[Energy Meter Interface](https://learn.microsoft.com/en-us/windows-hardware/drivers/powermeter/energy-meter-interface)
+counter to an unprivileged process: the [Energy Meter
+Interface](https://learn.microsoft.com/en-us/windows-hardware/drivers/powermeter/energy-meter-interface)
 exists only where a manufacturer implemented it and only through a driver, and
 `powercfg`'s per-application figures are a battery model rather than a counter.
 It publishes no machine-wide processor-time total this package can read, so the
-attribution below has nothing to divide by. And it has no POSIX (Portable Operating System Interface) resource
-accounting, so a child process's own processor time is unavailable too.
+attribution below has nothing to divide by. And it has no POSIX (Portable
+Operating System Interface) resource accounting, so a child process's own
+processor time is unavailable too.
 
 Each of those alone would be survivable. Together they mean every number this
 package exists to produce would be an estimate on that platform, which is the
@@ -77,13 +78,13 @@ sentence, rather than half-working.
 
 Two entries in that table deserve a sentence each.
 
-**Apple Silicon.** For most of this package's history a Mac measured nothing,
-and the stated reason was that macOS publishes power only through
-`powermetrics`, which needs a password. The first half was wrong. The counters
-`powermetrics` prints come from `IOReport`, which answers an ordinary user, and
-that is what [`saggio/analyze/apple.py`](saggio/analyze/apple.py) reads. Apple
-documents neither the library nor the channel names; the mapping used here was
-established by reading the channels on real machines, in the way
+**Apple Silicon.** For most of this package's history a Mac measured nothing, on
+the stated reason that macOS publishes power only through `powermetrics`, which
+needs a password. The first half was wrong. The counters `powermetrics` prints
+come from `IOReport`, which answers an ordinary user, and that is what
+[`saggio/analyze/apple.py`](saggio/analyze/apple.py) reads. Apple documents
+neither the library nor the channel names; the mapping used here was established
+by reading the channels on real machines, in the way
 [macmon](https://github.com/vladkens/macmon) and its relatives do, and a chip
 whose channels are not recognised measures nothing rather than something
 invented.
@@ -139,10 +140,10 @@ published side channel on a machine you may share with other people is a
 judgement about who those people are, and it stays yours.
 
 On a shared cluster the better answer is usually not to open anything. Your
-operator already meters whole nodes through the baseboard controller, and a
-figure from there covers the fans and the power supply's losses, which no
-counter inside the chip ever will. A cost model can carry that figure as a
-`measured` quantity with its own source; see
+operator already meters whole nodes through the baseboard controller, whose
+figure covers the fans and the power supply's losses, which no counter inside
+the chip ever will. A cost model can carry that figure as a `measured` quantity
+with its own source; see
 [EXAMPLES.md](EXAMPLES.md#putting-the-measurement-into-the-model).
 
 ## What each figure leaves out
@@ -153,7 +154,7 @@ report. The boundaries are worth stating once, plainly:
 - **RAPL (Running Average Power Limit) package** covers cores and uncore. Not the memory unless the `dram`
   zone answered too, not a discrete accelerator, not storage, not the fans, not
   the power supply's own losses.
-- **`psys`**, where a machine publishes it, covers the whole system-on-chip, and
+- **`psys`**, where a machine publishes it, covers the whole system-on-chip and
   already contains the packages — so it is used *instead of* them, never added
   to them.
 - **Apple's counters** cover the processor cores, graphics cores, neural engine
@@ -178,7 +179,7 @@ program. On a shared server that distinction is the whole ballgame; on a laptop
 with a browser and an indexer running it is still most of it.
 
 So `saggio measure` watches the machine for a second before the slice starts,
-and reports three figures rather than one:
+then reports three figures rather than one:
 
 ```
 Average power: 96.3 W (measured)
@@ -186,7 +187,7 @@ Average power: 96.3 W (measured)
   added by this slice: 77.6 W
 ```
 
-The third is the one worth quoting, and it is a subtraction, which means it
+The third is the one worth quoting. It is also a subtraction, which means it
 assumes something nobody checked: that the rest of the machine kept doing what
 it was doing. That assumption is written into the model beside the number rather
 than left for the reader to supply.
@@ -194,7 +195,7 @@ than left for the reader to supply.
 Two cases are said out loud instead of being quietly subtracted:
 
 - **The machine was already busy.** Above half the total, the figure has stopped
-  being about the slice and started being about the machine it was taken on, and
+  being about the slice and started being about the machine it was taken on, so
   a warning says so with both numbers in it.
 - **The machine grew quieter.** If it drew more before the slice than during it,
   whatever else was running stopped. The baseline was never this slice's floor,
@@ -210,16 +211,16 @@ can say at once.
 
 Subtracting a baseline rests on something nobody checked: that the rest of the
 machine kept doing what it was doing. There is another way to ask the same
-question that does not need that assumption, and this package now asks it too.
+question that does not need that assumption, which this package now asks too.
 
 Every operating system worth reading keeps a running total of processor time,
-machine-wide, split into work and idle. Read it before the slice and after, and
-the difference is how many processor-seconds the *whole machine* spent working
-while the slice ran. The slice already knows its own, from `RUSAGE_CHILDREN`.
-The ratio is its share of the work, and multiplying the measured draw by that
-share **attributes** the draw rather than subtracting a floor from it. It is the
-same family of method [Kepler](https://sustainable-computing.io/) uses to split
-a node between pods and that `GreenAlgorithms4HPC` applies to a scheduler's
+machine-wide, split into work and idle. Read it before the slice and after: the
+difference is how many processor-seconds the *whole machine* spent working while
+the slice ran. The slice already knows its own, from `RUSAGE_CHILDREN`. The
+ratio is its share of the work, and multiplying the measured draw by that share
+**attributes** the draw rather than subtracting a floor from it. It is the same
+family of method [Kepler](https://sustainable-computing.io/) uses to split a
+node between pods and that `GreenAlgorithms4HPC` applies to a scheduler's
 accounting — but not the same arithmetic, and the difference is below.
 
 Linux publishes the totals in `/proc/stat`. macOS publishes them through the
@@ -249,12 +250,12 @@ is robust to either assumption being wrong. Where they disagree by more than
 half again, a warning says so with both numbers in it, because the useful output
 of two methods that disagree is the pair, not a pick:
 
-> Two ways of separating this slice from the machine it ran on disagree:
-> subtracting the idle baseline gives 1.7 W, and attributing the measured draw
-> by the slice's 17% share of the machine's processor work gives 3.4 W.
+> Two ways of separating this slice from the machine it ran on disagree: >
+subtracting the idle baseline gives 1.7 W, while attributing the measured draw >
+by the slice's 17% share of the machine's processor work gives 3.4 W.
 
-On a busy machine the second is usually the better of the two, and on a quiet
-one they converge.
+On a busy machine the second is usually the better of the two; on a quiet one
+they converge.
 
 ### One run bounds nothing
 
@@ -379,15 +380,15 @@ Every number above is in the model: `measurement.spread` records what the
 runtime, the total, the floor and the attributed share each did across the
 runs, so this comparison can be redone from the file rather than taken here.
 
-**What the costs still use is the metered total.** Not because it is better —
-it is the second-least stable of the three — but because it is the only one a
-meter produced. Substituting a modelled figure would put an estimate under a
-field that says `measured`, and the model would stop saying what it knows.
+**What the costs still use is the metered total.** Not because it is better — it
+is the second-least stable of the three — but because it is the only one a meter
+produced. Substituting a modelled figure would put an estimate under a field
+that says `measured`, at which point the model would stop saying what it knows.
 
 **What would change that**, stated so it can be argued with: the domain
 attribution prices *processor* energy alone. On a workload that keeps an
-accelerator busy it would understate the cost badly, and that is the single
-reason it is recorded beside the total rather than in place of it.
+accelerator busy it would understate the cost badly, which is the single reason
+it is recorded beside the total rather than in place of it.
 
 ## Where the power actually went
 
@@ -400,8 +401,8 @@ have been a picture of an assumption.
 
 ## From a counter to a cost
 
-A measured average power is the first link in a chain, and the rest of the chain
-is [Green Algorithms](https://doi.org/10.1002/advs.202100707), written out in
+A measured average power is the first link in a chain, whose remainder is [Green
+Algorithms](https://doi.org/10.1002/advs.202100707), written out in
 [`skills/saggio/references/green-algorithms.md`](skills/saggio/references/green-algorithms.md):
 runtime × power × datacentre overhead gives energy, energy × grid intensity
 gives carbon, and every step names the numbers it came from.
@@ -428,11 +429,11 @@ figure in this package, not a zero.
 ## From this machine to another
 
 A measurement is about the machine it was taken on. Two projections turn it into
-something else, and both say what they assumed:
+something else, both saying what they assumed:
 
 - **To a whole run**, from a slice: division by the fraction the slice covered,
-  which is read from your own configuration rather than guessed. Defensible while
-  the work is uniform, and the assumption is written into the model.
+  which is read from your own configuration rather than guessed. Defensible
+  while the work is uniform, with the assumption written into the model.
 - **To another accelerator**: not a swap of wattages. A faster chip finishes
   sooner, so it draws more power for less time. The projection scales runtime by
   the ratio of peak throughputs *at the precision the work runs in*, and reports
@@ -457,11 +458,12 @@ number a reader is not harmed by having believed.
 A processor also publishes no peak figure worth scaling by. Clock speed and core
 count do not give one, because the work done per cycle differs between parts, so
 the catalogue wants a *published benchmark* instead — `single_thread_score`,
-`throughput_score`, and the `benchmark` they came from. Those columns ship empty:
-filling one in means taking a result from [spec.org](https://www.spec.org/cpu2017/results/),
-dividing it by that system's socket count so two parts are compared one socket
-against one socket, and recording the URL (Uniform Resource Locator) and the date like every other row. A
-score of one benchmark is never divided by a score of another; that is refused
+`throughput_score`, the `benchmark` they came from. Those columns ship empty:
+filling one in means taking a result from
+[spec.org](https://www.spec.org/cpu2017/results/), dividing it by that system's
+socket count so two parts are compared one socket against one socket, and
+recording the URL (Uniform Resource Locator) and the date like every other row.
+A score of one benchmark is never divided by a score of another; that is refused
 by name.
 
 Peak throughput is a datasheet figure, not a benchmark. A real run reaches a
@@ -478,7 +480,7 @@ The point of a measurement nobody can check is hard to state. So:
 saggio power --json
 ```
 
-prints every interface, every state, and the exact filesystem paths that would be
+prints every interface, every state, the exact filesystem paths that would be
 read, so a figure can be reproduced by hand — `cat` the counter, wait, `cat` it
 again, divide. On macOS, `sudo powermetrics --samplers cpu_power -n 1` is the
 comparison Apple ships; this package will not run it for you, and the numbers
@@ -493,6 +495,7 @@ here whose verdict depends on the machine underneath them, and they run on
 Linux and on macOS on every push. Without them, a counter that stopped
 answering would be reported as `absent` and estimated around, quietly, for as
 long as nobody looked.
+
 
 
 If a machine's counters are not recognised — a new Apple chip renaming a channel,
