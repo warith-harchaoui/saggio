@@ -68,7 +68,7 @@ industrial tools ([aiT](https://www.absint.com/ait/), OTAWA, Heptane) live in
 hard real-time embedded systems where the hardware is simple enough and the
 annotations are worth writing.
 
-Nothing about a Python repository on a laptop with a GPU relaxes that
+Nothing about a Python repository on a laptop with a GPU (graphics processing unit) relaxes that
 constraint. It makes it worse.
 
 ### 1.2 The serious line of work: cost and complexity bounds
@@ -98,7 +98,7 @@ about an abstract cost measure — steps, allocations, ticks — not about joule
 Static **energy** analysis is not a hypothetical. [Grech, Georgiou, Pallister,
 Kerrison and Eder](https://arxiv.org/abs/1405.4565) built energy models by
 characterising the energy of each instruction in a processor's instruction set,
-then lifted the analysis to LLVM IR so that a high-level program structure could
+then lifted the analysis to LLVM IR (intermediate representation) so that a high-level program structure could
 be related to a low-level energy model. The follow-up work extends this to
 [worst-case energy consumption with data-dependent
 models](https://dl.acm.org/doi/10.1145/3078659.3078666) and examines [the value
@@ -142,7 +142,8 @@ regression models to measured energy:
 
 - static features **alone**: R² ≈ **0.005**;
 - static features **plus the logarithm of execution time**: R² = **0.46** (random
-  forest, variance threshold), MAE 2.02, MAPE 1.75%;
+  forest, variance threshold), mean absolute error (MAE) 2.02,
+  mean absolute percentage error (MAPE) 1.75%;
 - the three strongest predictors by SHAP, in order: `log_execution_time`,
   number of internal calls, cyclomatic complexity.
 
@@ -182,7 +183,7 @@ early stage — and a rule count is not a quantity. "Seventeen eco-design
 findings" is not joules, not grams, and not comparable between two repositories.
 
 Where a rule is unambiguous and cheap, the pattern worth borrowing is the one
-this package already uses for API calls: **quote the line, name the practice,
+this package already uses for API (application programming interface) calls: **quote the line, name the practice,
 and attach no number.** A finding with a file and a line number is evidence a
 reader can check. A finding with a score is a number nobody can check.
 
@@ -210,7 +211,7 @@ owns a wattage:
   never `measured`.
 - **Whether the work is compute-bound or memory-bound.** The [roofline
   model](https://docs.nersc.gov/tools/performance/roofline/) compares arithmetic
-  intensity, in FLOP per byte moved, against the machine's own ratio of peak
+  intensity, in FLOP (floating-point operation) per byte moved, against the machine's own ratio of peak
   throughput to peak bandwidth. This is not a curiosity: `saggio` already
   reports a *bracket* rather than a number when projecting onto another
   accelerator, because the compute ratio and the bandwidth ratio differ by more
@@ -220,7 +221,7 @@ The reason that last point matters is physical, and it is the single most
 useful number in this whole document. In [Horowitz's 45 nm
 figures](https://gwern.net/doc/cs/hardware/2014-horowitz-2.pdf) at 0.9 V, a
 floating-point operation costs **0.4–3.7 pJ**, a cache access **10–100 pJ**, and
-an off-chip 64-bit DRAM access **1300–2600 pJ**. Moving a word from memory costs
+an off-chip 64-bit DRAM (dynamic random-access memory) access **1300–2600 pJ**. Moving a word from memory costs
 three orders of magnitude more than multiplying it. Any static estimate built on
 operation counts alone is counting the cheap part.
 
@@ -230,7 +231,7 @@ and the [DeepSpeed flops
 profiler](https://www.deepspeed.ai/tutorials/flops-profiler/) are accurate at
 what they do, with three caveats worth carrying: a custom module needs its own
 counter or it counts as zero, DeepSpeed *assumes* the backward pass costs twice
-the forward, and token-by-token generation with a KV cache is generally out of
+the forward, and token-by-token generation with a KV (key-value) cache is generally out of
 scope. Add to that the finding that [FLOP count is poorly correlated with GPU
 latency](https://dev-discuss.pytorch.org/t/the-ideal-pytorch-flop-counter-with-torch-dispatch/505),
 and a FLOP total is best understood as a *description of the work*, not a
@@ -240,21 +241,21 @@ prediction of its cost.
 
 ### 2.1 The counters, and how far they can be trusted
 
-`saggio` reads energy counters directly: powercap/RAPL zones by name on Linux,
-`IOReport` on Apple Silicon, NVML through the NVIDIA driver, and `amdgpu` /
+`saggio` reads energy counters directly: powercap/RAPL (Running Average Power Limit) zones by name on Linux,
+`IOReport` on Apple Silicon, NVML (NVIDIA Management Library) through the NVIDIA driver, and `amdgpu` /
 `i915` / `xe` through sysfs. The reference study for how far any of this can be
 trusted is [Jay, Ostapenco, Lefèvre, Trystram, Orgerie and Fichel, CCGrid
 2023](https://perso.ens-lyon.fr/laurent.lefevre/pdf/CCGRID2023_Ostapenco_Jay_Lefevre.pdf),
 which compared nine software power meters — CarbonTracker, CodeCarbon, Energy
 Scope, Experiment Impact Tracker, `perf`, PowerAPI, Scaphandre, Green Algorithms
-and ML CO2 Impact — against high-precision physical meters on Grid'5000.
+and ML (machine learning) CO2 Impact — against high-precision physical meters on Grid'5000.
 
 What they found, in the order it matters:
 
 - **The shape is right.** Pearson correlation with the wall meter is **0.93 to
   0.956** across tools. A software power meter tracks what the machine is doing.
 - **The level is not, and the gap is not a constant.** Regressing the external
-  meter on the tools gives a slope of **1.17** on CPU benchmarks and **1.18** on
+  meter on the tools gives a slope of **1.17** on CPU (central processing unit) benchmarks and **1.18** on
   GPU benchmarks. Their conclusion: *"estimating the total power consumption
   from the power reported by the tools can't be done by only adding a constant
   offset"*, and the relation *"must be studied for each compute node
@@ -280,7 +281,7 @@ Sampling rate is not a free parameter. A [2026 study of seven RAPL-based
 tools](https://arxiv.org/pdf/2604.26815) polling at 1 kHz found time overheads
 ranging from **0.25% to 46.75%**, with CodeCarbon between **5.38% and 46.75%**
 and a measured energy overhead **exceeding 40%** in one configuration; the cause
-is system-call cost, not the counter — reading the MSR directly costs 2.4% of
+is system-call cost, not the counter — reading the MSR (model-specific register) directly costs 2.4% of
 the syscall path. At 1 Hz the same authors call the overhead negligible.
 
 The design consequence is blunt: **a fast sampler distorts the thing it
@@ -354,7 +355,7 @@ Measuring a machine is easier than measuring a process on it.
 [pyJoules](https://github.com/powerapi-ng/pyJoules) wraps a Python function in a
 decorator and is explicit that what it returns is *the whole machine's* energy
 during the window, operating system and neighbours included.
-[JoularJX](https://joular.github.io/joularjx/) attaches to the JVM and attributes
+[JoularJX](https://joular.github.io/joularjx/) attaches to the JVM (Java Virtual Machine) and attributes
 down to the method, using RAPL on Linux, `powermetrics` on macOS and a custom
 monitor on Windows. [Kepler](https://sustainable-computing.io/) attributes to
 containers and pods and recently [moved off eBPF to plain `/proc` and `/sys`
@@ -403,7 +404,7 @@ measures something other than language:
 - the "same algorithm" benchmarks differ in parallelism, vectorisation and
   third-party libraries — the C++/C regex gap of 8.9× comes from PCRE versus
   Boost, not from the languages;
-- JIT warm-up dominates short runs: first iterations up to **3×** slower, and
+- JIT (just-in-time) warm-up dominates short runs: first iterations up to **3×** slower, and
   averaging over ten or more iterations improves measured energy efficiency by
   **80%**;
 - core count dominates power, roughly **P(x) ≈ 30·log₂(x) + 242 W**, so a
@@ -436,6 +437,8 @@ shape of the source text.
 
 This is also the shape the standards have settled on. The [Software Carbon
 Intensity specification](https://greensoftware.foundation/standards/sci/), now
+the International Organization for Standardization and International
+Electrotechnical Commission's
 [ISO/IEC 21031:2024](https://greensoftware.foundation/articles/sci-specification-achieves-iso-standard-status/),
 defines a **rate** — emissions per functional unit — rather than a total, which
 is the same commitment as this package's insistence on a declared unit of work,
@@ -444,7 +447,7 @@ projects whose units differ.
 
 One last data point on how far apart honest people can be about the same
 quantity: for the energy of a single language-model query, OpenAI has stated
-about **0.34 Wh** with no measurement boundary given, Mistral and ADEME published
+about **0.34 Wh** with no measurement boundary given, Mistral and ADEME (Agence de la transition écologique) published
 **1.14 gCO2e** for a 400-token response without a Wh figure, and a 2026 analysis
 in *Joule* argues widely cited per-query figures are overstated by **4× to 20×**
 relative to production deployments, putting Llama 3.1 405B at a median 0.39 Wh.
@@ -465,7 +468,7 @@ carry.
 | Analytic FLOPs from declared parameters and tokens | `FLOPs ≈ 6·N·D` | `estimated`, with the coefficient's source | **Adopt** where the repository declares both. |
 | Roofline bracket, compute- versus memory-bound | An interval, not a number | `estimated` | **Shipped**, in the accelerator projection. |
 | Static cost-bound tools (COSTA, RaML, KoAT) | Symbolic bounds on abstract cost | n/a | **Refuse.** Program classes do not intersect what is audited here. |
-| Static energy models (WCEC on an ISA) | Joules per instruction | n/a | **Refuse.** No per-instruction model exists for the targets. |
+| Static energy models (WCEC on an instruction set architecture, ISA) | Joules per instruction | n/a | **Refuse.** No per-instruction model exists for the targets. |
 | Cyclomatic / cognitive complexity as a cost figure | A metric with R² ≈ 0.005 against energy | none | **Refuse outright.** It would look like a checked number. |
 | Rule-catalogue findings (creedengo-style) | Named practice, file, line | no number | **Adopt the shape, not the score**, if adopted at all. |
 | Complexity predicted by a language model | A class label | none | **Refuse.** A number nobody can check. |
@@ -510,7 +513,7 @@ assumption; a failed series means no projection.
 The exponent is `measured`, over the sizes that were run and nowhere else. The
 projection remains `estimated`, because it always was: a measurement of something
 smaller is not a measurement of this. [`EXAMPLES.md`](EXAMPLES.md) shows the
-command, the YAML, and the refusals.
+command, the YAML (YAML Ain't Markup Language), and the refusals.
 
 ```bash
 saggio power --seconds 5                                   # what this machine will tell you
@@ -523,7 +526,7 @@ saggio measure --units 1000 --fraction 0.01 -- python train.py --steps 100
 
 **Static bounds and worst-case analysis**
 
-- Wilhelm et al., [*The Worst-Case Execution Time Problem — Overview of Methods and Survey of Tools*](https://www.cs.fsu.edu/~whalley/papers/tecs07.pdf), ACM TECS 2008.
+- Wilhelm et al., [*The Worst-Case Execution Time Problem — Overview of Methods and Survey of Tools*](https://www.cs.fsu.edu/~whalley/papers/tecs07.pdf), ACM (Association for Computing Machinery) TECS 2008.
 - Albert et al., [*COSTA: Design and Implementation of a Cost and Termination Analyzer for Java Bytecode*](https://www.researchgate.net/publication/221047639_COSTA_Design_and_Implementation_of_a_Cost_and_Termination_Analyzer_for_Java_Bytecode).
 - Giesl et al., [*KoAT: Automatic Complexity and Termination Analysis of Integer Programs*](https://arxiv.org/pdf/2606.28542); [*Improving Automatic Complexity Analysis of Integer Programs*](https://arxiv.org/pdf/2202.01769).
 - Hoffmann et al., [Resource Aware ML and automatic amortised resource analysis](https://www.raml.co/publications/).

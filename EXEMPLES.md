@@ -81,7 +81,7 @@ saggio audit . --country FR -o cost_of_running.yaml
 ```
 
 Lire un dépôt établit ce qu'il est : ses langages, sa forme, les frameworks qu'il
-importe, la quantité de travail d'une exécution complète, et quelles API payantes
+importe, la quantité de travail d'une exécution complète, et quelles API (interface de programmation applicative) payantes
 il appelle. Tout est déterministe et cite la ligne d'où ça vient.
 
 Le code qui teste un dépôt est lu à part du code qu'il exécute. Une suite écrit
@@ -179,7 +179,7 @@ d'intégration continue :
 
 | Variable | Ce qu'elle règle |
 |---|---|
-| `SAGGIO_COUNTRY` | Le pays où le code tourne, en ISO 3166-1 alpha-2. Le renseigner ainsi est une affirmation humaine : cela compte donc comme `measured`, exactement comme `--country`. |
+| `SAGGIO_COUNTRY` | Le pays où le code tourne, en code à deux lettres de l'Organisation internationale de normalisation (ISO 3166-1 alpha-2). Le renseigner ainsi est une affirmation humaine : cela compte donc comme `measured`, exactement comme `--country`. |
 | `SAGGIO_MODEL` | Le tag du modèle Ollama pour la classification, au lieu du premier modèle préféré installé. |
 | `OLLAMA_HOST` | Où Ollama écoute, quand ce n'est pas `http://127.0.0.1:11434`. |
 
@@ -289,7 +289,7 @@ refuse d'aller chercher, délibérément. `reads` ne demande rien à personne.
 `blocked` est le cas intéressant : le compteur est là et il vous est fermé — ce
 qui, sous Linux, est le défaut depuis la 5.10, parce que l'échantillonner assez
 vite permet de reconstituer ce que calculent les autres processus : l'attaque
-PLATYPUS, CVE-2020-8694. Le remède est donc affiché plutôt qu'exécuté, avec sa
+PLATYPUS, inscrite au catalogue Common Vulnerabilities and Exposures sous CVE-2020-8694. Le remède est donc affiché plutôt qu'exécuté, avec sa
 raison à côté :
 
 ```
@@ -482,7 +482,7 @@ saggio measure --into cost_of_running.yaml --units 500 -- python predict.py --n 
   whole run: projected from the per-unit costs above
 ```
 
-C'est l'étape qu'on rate à la main. Coller une durée dans le YAML laisse l'énergie,
+C'est l'étape qu'on rate à la main. Coller une durée dans le YAML (YAML Ain't Markup Language) laisse l'énergie,
 l'argent et le carbone sur leurs anciennes valeurs, et un modèle dont l'énergie ne
 correspond plus à sa durée est pire qu'un modèle qui n'avait ni l'une ni l'autre,
 parce qu'il a l'air fini. Chaque chiffre ci-dessus est recalculé à partir des
@@ -827,7 +827,7 @@ saggio render cost_of_running.yaml -f pdf -o annexe.pdf \
 saggio render cost_of_running.yaml -f docx -o cost_of_running.docx --offline
 ```
 
-Le bloc de titre du Word et du PDF nomme **saggio** comme auteur et porte la date
+Le bloc de titre du Word et du PDF (Portable Document Format) nomme **saggio** comme auteur et porte la date
 de production du document. Ce n'est pas la date du corps : *Last updated* dit
 quand quelqu'un a modifié un nombre du modèle, le bloc de titre dit quand ce
 fichier-ci a été fabriqué. Un PDF produit aujourd'hui depuis un modèle inchangé
@@ -839,11 +839,11 @@ telle quelle (`2026-T2`, `remis le 14 mars`). Les deux valent par défaut ce qui
 réellement produit le fichier, et quand.
 
 `--offline` compte plus qu'il n'y paraît. Le convertisseur va chercher un gabarit
-de document en HTTP dès qu'aucun `--reference-doc` n'est donné : sans ce drapeau,
+de document en HTTP (HyperText Transfer Protocol) dès qu'aucun `--reference-doc` n'est donné : sans ce drapeau,
 un rendu exige une connexion et deux rendus d'un même modèle peuvent différer
 parce que le gabarit a bougé. Ce n'est pas un défaut ; cela ne doit pas être tu.
 
-La page HTML embarque sa propre feuille de style, son script, son logo et les
+La page HTML (HyperText Markup Language) embarque sa propre feuille de style, son script, son logo et les
 données de catalogue dont elle a besoin : elle s'ouvre sans aucun réseau. Son
 panneau « et si » recalcule carbone et argent pour un autre pays dans le
 navigateur, à partir de l'énergie que le modèle annonce déjà. Un modèle sans
@@ -1043,7 +1043,7 @@ le verbe montre donc les deux moitiés et l'arithmétique entre elles au lieu de
 tendre un nombre.
 
 **Trois choses qu'il ne fera pas.** Il ne prendra pas une valeur qui n'est pas
-dans une phrase : l'analyseur fait de l'OCR, donc un diagramme en barres devient
+dans une phrase : l'analyseur fait de l'OCR (reconnaissance optique de caractères), donc un diagramme en barres devient
 du texte comme le reste, et une valeur relevée sur un graphique est la seule
 chose que ce paquet refuse de porter. Il ne divisera pas par un nombre que
 personne n'a écrit — un document donnant une valeur de carte de base sans dire
@@ -1094,7 +1094,7 @@ saggio catalog freshness   # sort en 1 si quoi que ce soit a vieilli
 ```
 
 Tarifs et mix électriques périment en un mois, consommations de fiche technique en
-un an. Un seuil unique se mettrait soit à râler sur un GPU, soit à laisser passer
+un an. Un seuil unique se mettrait soit à râler sur un GPU (graphics processing unit), soit à laisser passer
 le tarif d'électricité de l'an dernier.
 
 Quand quelque chose périme vraiment, il y a de quoi y répondre au lieu de
@@ -1130,7 +1130,7 @@ apparaître. Un rafraîchissement nomme désormais les pays que la source n'a pa
 rattrapés.
 
 **La colonne carbone** vient du [jeu de données annuel publié par
-Ember](https://ember-energy.org/data/yearly-electricity-data/), sous CC-BY-4.0 et
+Ember](https://ember-energy.org/data/yearly-electricity-data/), sous CC (Creative Commons)-BY-4.0 et
 sans aucune clé. Une clé dans `EMBER_API_KEY` ou `--api-key` fait lire l'API
 d'Ember à la place — la même série par son interface machine — et l'exécution
 imprime laquelle des deux a répondu. Les lignes citent la page dans les deux cas,
@@ -1138,7 +1138,7 @@ parce que sans clé l'API répond à un lecteur par un HTTP 403 plutôt que par 
 chiffre, et une citation que personne ne peut suivre n'est pas une citation.
 
 Rien d'autre n'est substitué. Il existe une alternative tentante — Our World in
-Data publie une série *dérivée* d'Ember par un CSV stable, sans clé — et elle est
+Data publie une série *dérivée* d'Ember par un CSV (comma-separated values) stable, sans clé — et elle est
 fausse : sa propre métadonnée l'appelle intensité carbone *de cycle de vie*, là
 où cette colonne est l'émission *opératoire*. Échanger l'une contre l'autre
 changerait en silence le sens de chaque modèle commité, sans rien changer à la
@@ -1147,7 +1147,7 @@ discrètement. Le jeu publié par Ember n'est pas cet échange, et il a été re
 pays par pays contre l'API avant d'être adopté plutôt que supposé équivalent.
 
 **La colonne fuseaux** est vérifiée plutôt que remplacée, contre la [base de
-données des fuseaux de l'IANA](https://data.iana.org/time-zones/tzdb/zone1970.tab)
+données des fuseaux de l'Internet Assigned Numbers Authority (IANA)](https://data.iana.org/time-zones/tzdb/zone1970.tab)
 qui définit ces noms — celle que livre chaque système d'exploitation, dans le
 domaine public, et versionnée : la ligne note donc la version à laquelle elle
 correspond (`timezones_tzdb_version: "2026e"`) et pas seulement le jour où
@@ -1182,7 +1182,7 @@ les deux concordent à 7 % en médiane sur les dix-huit pays couverts par les de
 et divergent de plus de 15 % pour six : Finlande, Roumanie, Pologne, Norvège,
 Suède et Italie. C'est une différence de méthode, pas une erreur de l'une ou de
 l'autre — Eurostat moyenne un semestre par tranche de consommation, l'autre est
-un relevé. Les trois URL sont dans le code, pour que la comparaison puisse être
+un relevé. Les trois URL (Uniform Resource Locator) sont dans le code, pour que la comparaison puisse être
 refaite.
 
 Un pays pour lequel la source ne répond pas est laissé tel quel et nommé. Rien

@@ -10,7 +10,7 @@ saying how far it can be trusted.
   <img src="https://raw.githubusercontent.com/warith-harchaoui/saggio/master/assets/logo.png" alt="saggio logo">
 </p>
 
-The answer is a YAML file you commit next to the code, and reports rendered from
+The answer is a YAML (YAML Ain't Markup Language) file you commit next to the code, and reports rendered from
 it. The file is reviewable in a pull request, the reports are readable by people
 who will never open a terminal, and neither of them is allowed to state a number
 without saying where it came from.
@@ -93,9 +93,9 @@ would take to open the ones that do not — without ever opening them itself. Th
 size the slice covers is read from your own configuration, so projecting to a
 whole run is arithmetic rather than a guess.
 
-**Looks things up rather than assuming them.** What a GPU draws, what a kilowatt
-hour emits in Poland, what overhead a datacenter adds, where an API publishes its
-prices: sourced YAML catalogues, each row carrying the URL it came from and the
+**Looks things up rather than assuming them.** What a GPU (graphics processing unit) draws, what a kilowatt
+hour emits in Poland, what overhead a datacenter adds, where an API (application programming interface) publishes its
+prices: sourced YAML catalogues, each row carrying the URL (Uniform Resource Locator) it came from and the
 date somebody read it, each one going stale on a schedule that matches how fast
 that kind of fact actually moves.
 
@@ -116,8 +116,10 @@ baseboard emits 1,312 kgCO2e before it computes anything, and a model that
 reports only the energy is claiming that figure is zero. The `embodied_carbon`
 dimension amortises a published product carbon footprint over the share of the
 hardware's life one unit of work reserved — which completes the four terms of
-[ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/), the
-Software Carbon Intensity standard, whose shape this package already had.
+the Software Carbon Intensity standard, published jointly by the International
+Organization for Standardization and the International Electrotechnical
+Commission as [ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/),
+and whose shape this package already had.
 
 The arithmetic is complete; **the catalogue is not, and will not pretend to
 be.** Eight footprints ship: four accelerators out of 25 rows and four
@@ -133,9 +135,9 @@ refused by name rather than imported.
 the eight refusals with their reasons.
 
 **Writes reports that people read.** Markdown for a pull request. A single
-self-contained HTML page for everyone else: offline, light and dark, English and
+self-contained HTML (HyperText Markup Language) page for everyone else: offline, light and dark, English and
 French, with a panel that recomputes the model for a different country in the
-browser and a chart of how the grid would move the carbon elsewhere. Word and PDF
+browser and a chart of how the grid would move the carbon elsewhere. Word and PDF (Portable Document Format)
 through `md2star` when a document is what somebody wants, their title block
 naming what produced them and the date they were produced — which is not the
 date the model last changed, and says so. Every known carbon
@@ -164,7 +166,7 @@ pip install saggio
 
 **Linux and macOS.** Windows is out of scope, deliberately and for good: it
 publishes no vendor-neutral processor energy counter to an unprivileged process,
-no machine-wide processor-time total this package can read, and no POSIX resource
+no machine-wide processor-time total this package can read, and no POSIX (Portable Operating System Interface) resource
 accounting for a child. A tool whose whole proposition is that a number says how
 far it can be trusted should not pretend to support a platform where it could
 only ever estimate, so `import saggio` there raises rather than half-working.
@@ -289,7 +291,7 @@ answer is labelled with the model's name and marked low confidence. Every number
 comes from a file you can open or a counter you can read.
 
 It speaks your language, and says where that stops. `--language fr` is on every
-verb and on every HTTP route that answers with prose, so the validator's
+verb and on every HTTP (HyperText Transfer Protocol) route that answers with prose, so the validator's
 findings, an inventory placement's reasoning, a report's headings, the notes an
 audit writes and the question it asks before running your code all come back in
 it. Figures are written the way the language writes them: `17.4 W` in English,
@@ -353,7 +355,7 @@ money, energy multiplied by a water usage effectiveness is water.
 One distinction is kept that is easy to lose. The machine draws one amount; the
 building draws that amount multiplied by its power usage effectiveness. Carbon and
 money follow the building, because that is what the meter counts. Water follows
-the machine, because water usage effectiveness is defined per kilowatt-hour of IT
+the machine, because water usage effectiveness is defined per kilowatt-hour of IT (information technology)
 load and using the building figure would count the cooling twice.
 
 Hardware wattages, grid intensities, tariffs, and datacenter overheads live in
@@ -463,4 +465,4 @@ records where every figure came from and on what date somebody read it.
 
 ## Licence
 
-[BSD 3-Clause](https://github.com/warith-harchaoui/saggio/blob/master/LICENSE). Warith Harchaoui, Ph.D.
+Berkeley Software Distribution, [BSD 3-Clause](https://github.com/warith-harchaoui/saggio/blob/master/LICENSE). Warith Harchaoui, Ph.D.

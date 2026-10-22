@@ -3,7 +3,10 @@
 🇫🇷 Français · [🇬🇧 BOUNDARIES.md](BOUNDARIES.md)
 
 Deux entreprises ont publié en 2026 un chiffre carbone pour une inférence, et
-les deux chiffres sont séparés de plus d'un ordre de grandeur.
+les deux chiffres sont séparés de plus d'un ordre de grandeur. L'un est
+market-based et compte la capacité au repos de la flotte ; l'autre est
+location-based et compte la fabrication du matériel, selon la méthode Frugal AI
+de l'Association française de normalisation (AFNOR).
 
 | | Chiffre | Frontière | Méthode |
 |---|---|---|---|
@@ -41,7 +44,7 @@ laquelle annonce 83,76 W.
 | Frontière | Carbone par requête | Statut |
 |---|---|---|
 | Le processeur et sa mémoire seuls, location-based | 7,93e-07 gCO2e | **calculé** |
-| Plus la surcharge du bâtiment (PUE 1,5), location-based — *le défaut de ce paquet* | 1,19e-06 gCO2e | **calculé** |
+| Plus la surcharge du bâtiment (power usage effectiveness, PUE 1,5), location-based — *le défaut de ce paquet* | 1,19e-06 gCO2e | **calculé** |
 | Plus un contrat, market-based — *la forme de Google* | — | **refusé** : demande `assumptions.market_carbon_intensity` |
 | Plus la fabrication du matériel — *la forme AFNOR* | — | **refusé** : demande une empreinte pour cette machine et une durée de vie |
 
@@ -52,7 +55,8 @@ Les deux premières ne diffèrent que par la surcharge du centre de données :
 
 Ce portable n'a aucune empreinte carbone produit publiée, donc la quatrième
 ligne ci-dessus reste ouverte plutôt que devinée. Mais le catalogue porte le
-chiffre ISO 14067 de NVIDIA pour une HGX H100, **164,0 kgCO2e** par huitième de
+chiffre de l'Organisation internationale de normalisation ISO 14067 de NVIDIA
+pour une HGX H100, **164,0 kgCO2e** par huitième de
 carte, vérifié par un tiers et lu le 2026-10-01. Amorti sur les mêmes
 0,0038534 s d'exécution :
 

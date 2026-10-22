@@ -63,13 +63,14 @@ l'arrêt dans le cas général : tout outil statique correct calcule donc une
 **borne supérieure** plutôt que la réponse, et exige que des bornes de boucles
 et des profondeurs de récursion lui soient fournies à la main, sous forme de
 *flow facts*, avant de pouvoir calculer quoi que ce soit. C'est la contrainte
-fondatrice du domaine, posée dans [la synthèse WCET de Wilhelm et
+fondatrice du domaine, posée dans [la synthèse du temps d'exécution dans le pire
+cas (worst-case execution time, WCET) de Wilhelm et
 al.](https://www.cs.fsu.edu/~whalley/papers/tecs07.pdf), et c'est pourquoi les
 outils industriels ([aiT](https://www.absint.com/ait/), OTAWA, Heptane) vivent
 dans le temps réel embarqué, là où le matériel est assez simple et où les
 annotations valent la peine d'être écrites.
 
-Rien, dans un dépôt Python sur un portable équipé d'un GPU, ne relâche cette
+Rien, dans un dépôt Python sur un portable équipé d'un GPU (graphics processing unit), ne relâche cette
 contrainte. Tout l'aggrave.
 
 ### 1.2 Le travail sérieux : bornes de coût et de complexité
@@ -141,12 +142,14 @@ d'énergie sont désormais assez précises pour être citées.
 [Une étude 2026 portant sur 2 786 méthodes
 Java](https://arxiv.org/abs/2607.06124) a extrait 33 traits statiques — lignes
 de code, comptes de flot de contrôle, appels internes et externes, complexité
-cyclomatique, et quelles API standard chaque méthode touche — puis ajusté onze
+cyclomatique, et quelles API (interface de programmation applicative) standard chaque méthode touche — puis ajusté onze
 modèles de régression sur l'énergie mesurée :
 
 - traits statiques **seuls** : R² ≈ **0,005** ;
 - traits statiques **plus le logarithme du temps d'exécution** : R² = **0,46**
-  (forêt aléatoire, seuil de variance), MAE 2,02, MAPE 1,75 % ;
+  (forêt aléatoire, seuil de variance), erreur absolue moyenne
+  (mean absolute error, MAE) 2,02, erreur absolue moyenne en pourcentage
+  (mean absolute percentage error, MAPE) 1,75 % ;
 - les trois prédicteurs les plus forts selon SHAP, dans l'ordre :
   `log_execution_time`, nombre d'appels internes, complexité cyclomatique.
 
@@ -217,7 +220,7 @@ possède jamais un wattage :
   `estimated`, avec sa source, et jamais `measured`.
 - **Si le travail est limité par le calcul ou par la mémoire.** Le [modèle
   roofline](https://docs.nersc.gov/tools/performance/roofline/) compare
-  l'intensité arithmétique, en FLOP par octet déplacé, au rapport propre de la
+  l'intensité arithmétique, en FLOP (floating-point operation) par octet déplacé, au rapport propre de la
   machine entre débit crête et bande passante crête. Ce n'est pas une curiosité :
   `saggio` rapporte déjà un *encadrement* plutôt qu'un nombre lorsqu'il projette
   sur un autre accélérateur, parce que le rapport de calcul et le rapport de
@@ -227,7 +230,7 @@ La raison de ce dernier point est physique, et c'est le chiffre le plus utile de
 tout ce document. Dans [les mesures de Horowitz en 45
 nm](https://gwern.net/doc/cs/hardware/2014-horowitz-2.pdf) à 0,9 V, une
 opération flottante coûte **0,4 à 3,7 pJ**, un accès cache **10 à 100 pJ**, et
-un accès DRAM hors puce sur 64 bits **1 300 à 2 600 pJ**. Déplacer un mot depuis
+un accès DRAM (dynamic random-access memory) hors puce sur 64 bits **1 300 à 2 600 pJ**. Déplacer un mot depuis
 la mémoire coûte trois ordres de grandeur de plus que le multiplier. Toute
 estimation statique bâtie sur les seuls comptes d'opérations compte la partie
 bon marché.
@@ -240,7 +243,7 @@ DeepSpeed](https://www.deepspeed.ai/tutorials/flops-profiler/) sont exacts sur
 leur périmètre, avec trois réserves à porter : un module personnalisé a besoin
 de son propre compteur sinon il compte zéro, DeepSpeed *suppose* que la passe
 arrière coûte le double de la passe avant, et la génération jeton par jeton avec
-cache KV est généralement hors périmètre. Ajoutez le constat que [le compte de
+cache KV (key-value) est généralement hors périmètre. Ajoutez le constat que [le compte de
 FLOP est mal corrélé à la latence
 GPU](https://dev-discuss.pytorch.org/t/the-ideal-pytorch-flop-counter-with-torch-dispatch/505),
 et un total de FLOP se comprend mieux comme une *description du travail* que
@@ -250,14 +253,14 @@ comme une prédiction de son coût.
 
 ### 2.1 Les compteurs, et jusqu'où leur faire confiance
 
-`saggio` lit directement les compteurs d'énergie : les zones powercap/RAPL par
-leur nom sous Linux, `IOReport` sur Apple Silicon, NVML via le pilote NVIDIA, et
+`saggio` lit directement les compteurs d'énergie : les zones powercap/RAPL (Running Average Power Limit) par
+leur nom sous Linux, `IOReport` sur Apple Silicon, NVML (NVIDIA Management Library) via le pilote NVIDIA, et
 `amdgpu` / `i915` / `xe` via sysfs. L'étude de référence sur la confiance à
 accorder à tout cela est [Jay, Ostapenco, Lefèvre, Trystram, Orgerie et Fichel,
 CCGrid
 2023](https://perso.ens-lyon.fr/laurent.lefevre/pdf/CCGRID2023_Ostapenco_Jay_Lefevre.pdf),
 qui compare neuf wattmètres logiciels — CarbonTracker, CodeCarbon, Energy Scope,
-Experiment Impact Tracker, `perf`, PowerAPI, Scaphandre, Green Algorithms et ML
+Experiment Impact Tracker, `perf`, PowerAPI, Scaphandre, Green Algorithms et ML (machine learning)
 CO2 Impact — à des wattmètres physiques de haute précision sur Grid'5000.
 
 Ce qu'ils trouvent, par ordre d'importance :
@@ -266,7 +269,7 @@ Ce qu'ils trouvent, par ordre d'importance :
   de **0,93 à 0,956** selon l'outil. Un wattmètre logiciel suit bien ce que fait
   la machine.
 - **Le niveau, non, et l'écart n'est pas constant.** En régressant le wattmètre
-  externe sur les outils, la pente vaut **1,17** sur les tests CPU et **1,18**
+  externe sur les outils, la pente vaut **1,17** sur les tests CPU (central processing unit) et **1,18**
   sur les tests GPU. Leur conclusion : *« estimating the total power consumption
   from the power reported by the tools can't be done by only adding a constant
   offset »*, et la relation *« must be studied for each compute node
@@ -295,7 +298,7 @@ sept outils fondés sur RAPL](https://arxiv.org/pdf/2604.26815) sondant à 1 kHz
 relève des surcoûts en temps allant de **0,25 % à 46,75 %**, avec CodeCarbon
 entre **5,38 % et 46,75 %** et un surcoût énergétique mesuré **dépassant 40 %**
 dans une configuration ; la cause est le coût des appels système, pas le
-compteur — lire le MSR directement coûte 2,4 % du chemin par appel système. À
+compteur — lire le MSR (model-specific register) directement coûte 2,4 % du chemin par appel système. À
 1 Hz, les mêmes auteurs qualifient le surcoût de négligeable.
 
 La conséquence de conception est brutale : **un échantillonneur rapide déforme
@@ -378,7 +381,7 @@ Mesurer une machine est plus facile que mesurer un processus dessus.
 [pyJoules](https://github.com/powerapi-ng/pyJoules) enveloppe une fonction
 Python dans un décorateur et dit explicitement que ce qu'il rend est l'énergie
 de *toute la machine* pendant la fenêtre, système d'exploitation et voisins
-compris. [JoularJX](https://joular.github.io/joularjx/) s'attache à la JVM et
+compris. [JoularJX](https://joular.github.io/joularjx/) s'attache à la JVM (Java Virtual Machine) et
 attribue jusqu'à la méthode, via RAPL sous Linux, `powermetrics` sous macOS et
 un moniteur dédié sous Windows. [Kepler](https://sustainable-computing.io/)
 attribue aux conteneurs et aux pods et vient de [quitter eBPF pour de simples
@@ -430,7 +433,7 @@ et montre qu'il mesure autre chose que le langage :
 - les tests censés exécuter « le même algorithme » diffèrent en parallélisme, en
   vectorisation et en bibliothèques tierces — l'écart de 8,9× entre C++ et C sur
   les expressions régulières vient de PCRE contre Boost, pas des langages ;
-- l'échauffement JIT domine les exécutions courtes : premières itérations
+- l'échauffement JIT (just-in-time) domine les exécutions courtes : premières itérations
   jusqu'à **3×** plus lentes, et moyenner sur dix itérations ou plus améliore
   l'efficacité énergétique mesurée de **80 %** ;
 - le nombre de cœurs domine la puissance, environ
@@ -465,6 +468,8 @@ inférée de la forme du texte source.
 C'est aussi la forme sur laquelle les normes se sont arrêtées. La
 [spécification Software Carbon
 Intensity](https://greensoftware.foundation/standards/sci/), devenue
+la norme conjointe de l'Organisation internationale de normalisation et de la
+Commission électrotechnique internationale,
 [ISO/IEC 21031:2024](https://greensoftware.foundation/articles/sci-specification-achieves-iso-standard-status/),
 définit un **taux** — émissions par unité fonctionnelle — plutôt qu'un total :
 c'est le même engagement que l'insistance de ce paquet sur une unité de travail
@@ -474,7 +479,7 @@ coûts par unité entre projets dont les unités diffèrent.
 Un dernier point sur la distance qui peut séparer des gens honnêtes parlant de
 la même grandeur : pour l'énergie d'une seule requête à un modèle de langage,
 OpenAI annonce environ **0,34 Wh** sans donner de périmètre de mesure, Mistral
-et l'ADEME publient **1,14 gCO2e** pour une réponse de 400 jetons sans chiffre
+et l'ADEME (Agence de la transition écologique) publient **1,14 gCO2e** pour une réponse de 400 jetons sans chiffre
 en Wh, et une analyse 2026 parue dans *Joule* soutient que les chiffres par
 requête largement cités sont surestimés d'un facteur **4 à 20** face aux
 déploiements de production, plaçant Llama 3.1 405B à une médiane de 0,39 Wh.
@@ -495,7 +500,7 @@ honnêtement porter.
 | FLOPs analytiques depuis paramètres et jetons déclarés | `FLOPs ≈ 6·N·D` | `estimated`, avec la source du coefficient | **À adopter** là où le dépôt déclare les deux. |
 | Encadrement roofline, calcul contre mémoire | Un intervalle, pas un nombre | `estimated` | **Livré**, dans la projection vers un accélérateur. |
 | Outils de bornes statiques (COSTA, RaML, KoAT) | Bornes symboliques sur un coût abstrait | n/a | **Refus.** Les classes de programmes ne recoupent pas ce qui est audité ici. |
-| Modèles d'énergie statiques (WCEC sur un jeu d'instructions) | Des joules par instruction | n/a | **Refus.** Aucun modèle par instruction n'existe pour les cibles. |
+| Modèles d'énergie statiques (worst-case energy consumption, WCEC, sur un jeu d'instructions) | Des joules par instruction | n/a | **Refus.** Aucun modèle par instruction n'existe pour les cibles. |
 | Complexité cyclomatique / cognitive comme chiffre de coût | Une métrique à R² ≈ 0,005 face à l'énergie | aucun | **Refus catégorique.** Elle ressemblerait à un nombre vérifié. |
 | Constats de catalogue de règles (façon creedengo) | Pratique nommée, fichier, ligne | aucun nombre | **Reprendre la forme, pas le score**, si tant est qu'on l'adopte. |
 | Complexité prédite par un modèle de langage | Une étiquette de classe | aucun | **Refus.** Un nombre que personne ne peut vérifier. |
@@ -543,7 +548,7 @@ signifie aucune projection.
 L'exposant est `measured`, sur les tailles parcourues et nulle part ailleurs. La
 projection reste `estimated`, comme elle l'a toujours été : la mesure de quelque
 chose de plus petit n'est pas la mesure de ceci. [`EXEMPLES.md`](EXEMPLES.md)
-montre la commande, le YAML et les refus.
+montre la commande, le YAML (YAML Ain't Markup Language) et les refus.
 
 ```bash
 saggio power --seconds 5                                   # ce que cette machine acceptera de dire
@@ -556,7 +561,7 @@ saggio measure --units 1000 --fraction 0.01 -- python train.py --steps 100
 
 **Bornes statiques et analyse du pire cas**
 
-- Wilhelm et al., [*The Worst-Case Execution Time Problem — Overview of Methods and Survey of Tools*](https://www.cs.fsu.edu/~whalley/papers/tecs07.pdf), ACM TECS 2008.
+- Wilhelm et al., [*The Worst-Case Execution Time Problem — Overview of Methods and Survey of Tools*](https://www.cs.fsu.edu/~whalley/papers/tecs07.pdf), ACM (Association for Computing Machinery) TECS 2008.
 - Albert et al., [*COSTA: Design and Implementation of a Cost and Termination Analyzer for Java Bytecode*](https://www.researchgate.net/publication/221047639_COSTA_Design_and_Implementation_of_a_Cost_and_Termination_Analyzer_for_Java_Bytecode).
 - Giesl et al., [*KoAT: Automatic Complexity and Termination Analysis of Integer Programs*](https://arxiv.org/pdf/2606.28542) ; [*Improving Automatic Complexity Analysis of Integer Programs*](https://arxiv.org/pdf/2202.01769).
 - Hoffmann et al., [Resource Aware ML et analyse amortie automatique de ressources](https://www.raml.co/publications/).

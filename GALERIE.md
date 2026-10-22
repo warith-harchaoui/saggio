@@ -76,7 +76,7 @@ différence, et la ligne ci-dessus ne trouve plus rien.
 Lu comme de l'**entraînement**, et comme limité par le calcul, ce qui autorise la
 projection sur un autre accélérateur. Sept fichiers énoncent un nombre d'époques et
 se contredisent : les configurations d'entraînement disent 400 et 500, la
-configuration SSL par défaut dit 100, les scripts d'évaluation disent 10 et 30. Il
+configuration SSL (self-supervised learning) par défaut dit 100, les scripts d'évaluation disent 10 et 30. Il
 retient `configs/train/cell_dino/vitl16_boc_hpafov.yaml`, et liste les six autres.
 
 Il retenait auparavant `configs/eval/...`, une configuration d'*évaluation*, parce
@@ -195,7 +195,7 @@ sur une machine, avec le pays énoncé.
 
 | Modèle | Unité de travail | Temps | Carbone | Ce qui reste ouvert |
 |---|---|---|---|---|
-| [`render`](examples/render.yaml) · [rapport](examples/render.md) | un rapport HTML produit | 0,0272 s, mesuré | 8,34e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
+| [`render`](examples/render.yaml) · [rapport](examples/render.md) | un rapport HyperText Markup Language (HTML) produit | 0,0272 s, mesuré | 8,34e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
 | [`request`](examples/request.yaml) · [rapport](examples/request.md) | une requête `/scopes` traitée de bout en bout | 0,00385 s, mesuré | 1,19e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
 
 Les deux ont été mesurés sur un Apple M2 Max, douze cœurs, en France, en
@@ -278,7 +278,7 @@ saggio diff examples/walkthrough/1-as-read.yaml examples/walkthrough/3-measured.
 
 Les étapes deux et trois sortent de la même commande. `--into` écrit la durée
 mesurée dans le modèle et recalcule tout ce qui en découle, c'est-à-dire la partie
-que personne ne réussit à la main : coller une durée dans un fichier YAML laisse
+que personne ne réussit à la main : coller une durée dans un fichier YAML (YAML Ain't Markup Language) laisse
 l'énergie, l'argent et le carbone sur leurs anciennes valeurs, et un modèle dont
 l'énergie ne correspond plus à sa durée est pire qu'un modèle qui n'avait ni l'une
 ni l'autre, parce qu'il a l'air fini. `--units 500` dit que la commande a effectué
@@ -382,7 +382,7 @@ parce que c'est ce qu'un lecteur arrive en attendant. La lecture est dans
 [`PAYSAGE.md`](PAYSAGE.md#où-ce-domaine-publie-ses-mesures), faite le
 2026-10-18 ; voici ce qu'elle a changé ici.
 
-**Un classement.** [ML.ENERGY](https://ml.energy/leaderboard/) mesure l'énergie
+**Un classement de machine learning (ML).** [ML.ENERGY](https://ml.energy/leaderboard/) mesure l'énergie
 d'inférence de 46 modèles sur 7 tâches, 1 858 configurations sur des cartes H100
 et B200. Ses lignes se comparent parce qu'il tient la question constante : le
 matériel, la tâche, et la configuration à énergie minimale de chaque modèle.
@@ -404,7 +404,7 @@ pas la machine où le code tourne. Un chiffre qui ne dit pas quelle machine il
 décrit est un chiffre que quelqu'un déclarera contre la mauvaise.
 
 **Un catalogue d'études de cas.** La Green Software Foundation publie
-[onze études de cas SCI](https://sci-guide.greensoftware.foundation/CaseStudies/)
+[onze études de cas Software Carbon Intensity (SCI)](https://sci-guide.greensoftware.foundation/CaseStudies/)
 — CAST, UBS, NTT DATA, Microsoft, AFAS et d'autres — chacune un chiffre déclaré
 pour une vraie application. L'index porte l'organisation, une phrase et un lien ;
 le chiffre, l'unité fonctionnelle et la frontière vivent dans le document lié.
@@ -444,7 +444,7 @@ montrer. La barrière passe ici parce que rien n'a empiré ; elle échoue sur un
 coût qui a dépassé le seuil, sur un statut qui s'est affaibli même quand le
 nombre n'a pas bougé, et sur une grandeur qui a disparu.
 
-### Le même modèle, répondu en HTTP
+### Le même modèle, répondu en HyperText Transfer Protocol (HTTP)
 
 La galerie, c'est huit fichiers. Depuis la 1.5.0, ce sont aussi huit réponses
 qu'un service peut donner, ce qui est ce qu'obtient un lecteur qui n'installera
@@ -498,7 +498,7 @@ identifiants sans réserve à 17. Auditez-le vous-même avec la commande en fin 
 page pour le voir.
 
 **Un quatrième qu'elle a trouvé, refermé en ajoutant une commande.** La troisième
-étape du walkthrough devait être écrite par un script appelant l'API Python, parce
+étape du walkthrough devait être écrite par un script appelant l'interface de programmation applicative (API) Python, parce
 que rien en ligne de commande ne savait mettre une mesure dans un modèle existant :
 coller une durée dans du YAML laisse périmé tout ce qui en découle.
 `saggio measure --into` le fait désormais, et le script a disparu.

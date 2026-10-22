@@ -18,9 +18,9 @@ hand except [`api.md`](api.md), which is derived from the docstrings.
 | [`../MEASURING.md`](../MEASURING.md) | Which counters will this machine let me read, and what do they cover? |
 | [`../ANALYSIS.md`](../ANALYSIS.md) | Can reading the code, or running it, tell me its complexity and its cost? |
 | [`../STANDARDS.md`](../STANDARDS.md) | Which standard is this, and which part of it does it not yet satisfy? |
-| [`../ANNEX-XI.md`](../ANNEX-XI.md) | I have to document my model's energy consumption for the EU AI Act. What does this give me, and what does it not? |
+| [`../ANNEX-XI.md`](../ANNEX-XI.md) | I have to document my model's energy consumption for the European Union (EU) artificial intelligence (AI) Act. What does this give me, and what does it not? |
 | [`../BOUNDARIES.md`](../BOUNDARIES.md) | Why two published figures for one inference differ by thirty-eight times, and what mine becomes under each boundary? |
-| [`../INVENTORY.md`](../INVENTORY.md) | Which line of a corporate GHG inventory do these numbers go on, and what do they not cover? |
+| [`../INVENTORY.md`](../INVENTORY.md) | Which line of a corporate Greenhouse Gas (GHG) inventory do these numbers go on, and what do they not cover? |
 
 ## Reference
 
@@ -45,7 +45,7 @@ them too, and one copy that two readers share cannot drift from itself.
 | [`../CODING.md`](../CODING.md) | What style is this repository written in? |
 | [`../reporting/README.md`](../reporting/README.md) | How do I change what a report looks like? |
 
-## Regenerating the API page
+## Regenerating the application programming interface (API) page
 
 ```bash
 python docs/sync_api.py            # write it

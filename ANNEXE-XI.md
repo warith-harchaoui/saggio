@@ -1,8 +1,8 @@
-# La ligne énergie d'un dossier au titre du règlement IA
+# La ligne énergie d'un dossier au titre du règlement sur l'intelligence artificielle (IA)
 
 🇫🇷 Français · [🇬🇧 ANNEX-XI.md](ANNEX-XI.md)
 
-Cette page s'adresse au fournisseur d'un modèle d'IA à usage général qui doit
+Cette page s'adresse au fournisseur d'un modèle d'IA (intelligence artificielle) à usage général qui doit
 écrire quelle a été la consommation énergétique de son modèle. Elle dit quelle
 part de cette phrase ce paquet traite, quelle part il ne traite pas, et ce que
 la Commission est encore en train d'écrire. **Les dates et la numérotation
@@ -45,7 +45,7 @@ Deux mots de cette formule sont tout le cahier des charges de ce paquet.
 chiffre, sans quoi deux dossiers ne se lisent pas l'un contre l'autre —
 [`FRONTIERES.md`](FRONTIERES.md) montre ce qui arrive quand ce n'est pas le cas.
 *Vérifiable* veut dire que quelqu'un d'autre que l'auteur doit pouvoir le
-contrôler, ce à quoi servent une URL de source, une date de lecture et une
+contrôler, ce à quoi servent une URL (Uniform Resource Locator) de source, une date de lecture et une
 dérivation recalculable.
 
 ## Ce que ce paquet donne à un déclarant, ligne à ligne
@@ -97,4 +97,4 @@ mécanisme de fraîcheur de ce paquet existe pour empêcher.
 - [Exigences d'efficacité énergétique au titre du règlement IA](https://www.whitecase.com/insight-alert/energy-efficiency-requirements-under-eu-ai-act) — le devoir énergie de l'annexe XI, les dates et les sanctions.
 - [Consultation ciblée sur la mesure de la consommation énergétique et des émissions des modèles d'IA](https://digital-strategy.ec.europa.eu/en/consultations/targeted-consultation-measuring-energy-consumption-and-emissions-ai-models-and-systems) — ce que la Commission a demandé, et ce qu'elle compte en faire.
 - [SCI pour l'IA et la conformité au règlement IA](https://greensoftware.foundation/policy/research/sci-ai-eu-ai-act/) — la mise en correspondance par la Green Software Foundation.
-- [Annexe XI — documentation technique GPAI](https://artificialintelligenceact.eu/ai-act-explorer/) — le texte lui-même.
+- [Annexe XI — documentation technique de l'intelligence artificielle à usage général (GPAI)](https://artificialintelligenceact.eu/ai-act-explorer/) — le texte lui-même.

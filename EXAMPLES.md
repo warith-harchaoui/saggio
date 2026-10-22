@@ -17,7 +17,7 @@ arithmetic that drifts turns the build red.
 - [Reports](#reports)
 - [Which question to answer first](#which-question-to-answer-first)
 - [Which line of an inventory each cost goes on](#which-line-of-an-inventory-each-cost-goes-on)
-- [Keeping it honest in CI](#keeping-it-honest-in-ci)
+- [Keeping it honest in continuous integration](#keeping-it-honest-in-continuous-integration)
 - [The catalogues](#the-catalogues)
 - [The library](#the-library)
 - [Exit codes](#exit-codes)
@@ -175,7 +175,7 @@ or a continuous-integration job wants:
 
 | Variable | What it sets |
 |---|---|
-| `SAGGIO_COUNTRY` | The ISO 3166-1 alpha-2 country the code runs in. Stating it this way is a human assertion, so it counts as `measured`, exactly as `--country` does. |
+| `SAGGIO_COUNTRY` | The two-letter International Organization for Standardization country code (ISO 3166-1 alpha-2) the code runs in. Stating it this way is a human assertion, so it counts as `measured`, exactly as `--country` does. |
 | `SAGGIO_MODEL` | The Ollama model tag to classify with, instead of the first preferred one installed. |
 | `OLLAMA_HOST` | Where Ollama listens, when it is not `http://127.0.0.1:11434`. |
 
@@ -189,7 +189,7 @@ from either, the carbon and money figures stay open.
 
 ### Pricing the APIs it calls
 
-A price is per *model*, not per vendor: `gpt-4o` and `gpt-4o-mini` are one API at
+A price is per *model*, not per vendor: `gpt-4o` and `gpt-4o-mini` are one API (application programming interface) at
 an eightfold difference. So the audit reads the model identifier out of your code,
 with the line that names it, and looks the rates up only when you ask:
 
@@ -281,7 +281,7 @@ of the machine, not a failure. `root-only` is a counter this package will not
 reach for, on purpose. `reads` needs nothing from anybody. `blocked` is the
 interesting one: the counter is here and closed to *you*, which on Linux since
 5.10 is the default, because sampling it fast enough recovers what other
-processes are computing — the PLATYPUS attack, CVE-2020-8694. So the remedy is
+processes are computing — the PLATYPUS attack, catalogued in Common Vulnerabilities and Exposures as CVE-2020-8694. So the remedy is
 printed rather than run, with the reason beside it:
 
 ```
@@ -464,7 +464,7 @@ saggio measure --into cost_of_running.yaml --units 500 -- python predict.py --n 
   whole run: projected from the per-unit costs above
 ```
 
-This is the step people get wrong by hand. Pasting a runtime into the YAML leaves
+This is the step people get wrong by hand. Pasting a runtime into the YAML (YAML Ain't Markup Language) leaves
 the energy, the money and the carbon holding their old values, and a model whose
 energy no longer matches its runtime is worse than one that had neither, because
 it looks finished. Every figure above is recomputed from the model's own
@@ -801,7 +801,7 @@ saggio render cost_of_running.yaml -f pdf -o annexe.pdf \
 saggio render cost_of_running.yaml -f docx -o cost_of_running.docx --offline
 ```
 
-The Word and PDF title block names **saggio** as the author and carries the date
+The Word and PDF (Portable Document Format) title block names **saggio** as the author and carries the date
 the document was produced. That date is not the one in the body: *Last updated*
 is a fact about the model, when somebody last changed a number in it, and the
 title block is a fact about the file, when this copy was made. A PDF produced
@@ -813,11 +813,11 @@ to state the date verbatim (`2026-Q2`, `submitted 14 March`). Both default to
 what actually produced the file and when.
 
 `--offline` matters more than it looks. The converter fetches a branded template
-over HTTP whenever no `--reference-doc` is given, so without it a render needs a
+over HTTP (HyperText Transfer Protocol) whenever no `--reference-doc` is given, so without it a render needs a
 connection and two renders of one model can differ because the template moved.
 Neither is a defect; neither should be undeclared.
 
-The HTML page carries its own stylesheet, script, logo, and catalogue data, so it
+The HTML (HyperText Markup Language) page carries its own stylesheet, script, logo, and catalogue data, so it
 opens with no network at all. Its what-if panel recomputes carbon and money for a
 different country or provider in the browser, from the energy the model already
 states. A model with no stated energy gets no panel, because a what-if built on an
@@ -913,7 +913,7 @@ And **water has no scope**, because it is not a greenhouse gas.
 [`INVENTORY.md`](INVENTORY.md) is the long form, for the person who has to file
 it rather than the one who measured it.
 
-## Keeping it honest in CI
+## Keeping it honest in continuous integration
 
 ```yaml
 # .github/workflows/cost.yml
@@ -1010,7 +1010,7 @@ schema rather than from the document — so the verb shows both halves and the
 arithmetic between them instead of handing over a number.
 
 **Three things it will not do.** It will not take a figure that is not in a
-sentence: the parser is an OCR engine, so a bar chart becomes text like
+sentence: the parser is an OCR (optical character recognition) engine, so a bar chart becomes text like
 everything else, and a number lifted off a chart is the one thing this package
 will not carry. It will not divide by a number nobody wrote down — a document
 that gives a baseboard figure and never says how many chips the board holds is
@@ -1058,7 +1058,7 @@ saggio catalog freshness   # exits 1 when anything is stale
 ```
 
 Tariffs and grid mixes expire in a month, datasheet wattages in a year. A single
-threshold would either nag about a GPU or wave last year's electricity price
+threshold would either nag about a GPU (graphics processing unit) or wave last year's electricity price
 through.
 
 When something does go stale, there is a way to answer it rather than re-date it:
@@ -1092,14 +1092,14 @@ source has not caught up on.
 
 **The carbon column** comes from [Ember's published yearly
 dataset](https://ember-energy.org/data/yearly-electricity-data/), which is
-CC-BY-4.0 and needs no key. A key in `EMBER_API_KEY` or `--api-key` makes the
+CC (Creative Commons)-BY-4.0 and needs no key. A key in `EMBER_API_KEY` or `--api-key` makes the
 command read Ember's API instead — the same series through its machine
 interface — and the run prints which of the two answered. The rows cite the page
 either way, because without a key the API answers a reader with HTTP 403 rather
 than with the figure, and a citation nobody can follow is not a citation.
 
 Nothing else is substituted. There is one tempting alternative — Our World in
-Data publishes an Ember-*derived* series through a stable CSV with no key at
+Data publishes an Ember-*derived* series through a stable CSV (comma-separated values) with no key at
 all — and it is wrong: its own metadata calls it *lifecycle* carbon intensity,
 while this column is *operating* emissions. Swapping one for the other would
 change what every committed model means, silently, and leave every number looking
@@ -1108,7 +1108,7 @@ than quietly doing it. Ember's own published dataset is not that swap, and it wa
 checked against the API country by country before being adopted rather than
 assumed equivalent.
 
-**The timezone column** is checked rather than replaced, against the [IANA Time
+**The timezone column** is checked rather than replaced, against the [Internet Assigned Numbers Authority (IANA) Time
 Zone Database](https://data.iana.org/time-zones/tzdb/zone1970.tab) that defines
 those names — the one every operating system ships, in the public domain, and
 versioned, so a row records which release it matched (`timezones_tzdb_version:
@@ -1260,5 +1260,5 @@ if not comparison.passes():
 | `3` | Consent was declined for something the command needed. |
 | `4` | An external dependency is missing or failed. |
 
-The distinction between `1` and `2` is the one CI needs: fail the build on the
+The distinction between `1` and `2` is the one CI (continuous integration) needs: fail the build on the
 first, stop and look at the command on the second.

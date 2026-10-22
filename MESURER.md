@@ -52,13 +52,13 @@ compteur à l'échelle de la machine.
 
 | Plateforme | Interface | Couvre | Privilège | Comment c'est lu |
 |---|---|---|---|---|
-| Linux | [powercap / RAPL](https://docs.kernel.org/power/powercap/powercap.html) | les paquets processeur, la zone `psys` quand elle existe, et la zone mémoire à côté | **root par défaut depuis la 5.10** | `energy_uj` cumulé, une différence par exécution |
+| Linux | [powercap / Running Average Power Limit (RAPL)](https://docs.kernel.org/power/powercap/powercap.html) | les paquets processeur, la zone `psys` quand elle existe, et la zone mémoire à côté | **root par défaut depuis la 5.10** | `energy_uj` cumulé, une différence par exécution |
 | Linux | [hwmon `amdgpu`](https://docs.kernel.org/gpu/amdgpu/thermal.html) | la carte graphique | aucun | `power1_average` en µW, échantillonné pendant la course |
 | Linux | hwmon [`i915`](https://www.kernel.org/doc/html/latest/gpu/i915.html) / [`xe`](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-driver-intel-xe-hwmon) | la carte graphique | aucun | `energy1_input` cumulé en µJ |
 | Linux | [pilote NVIDIA](https://developer.nvidia.com/management-library-nvml), via [`nvidia-smi`](https://docs.nvidia.com/deploy/nvidia-smi/index.html) | toute la carte accélératrice | aucun | énergie cumulée quand la carte en tient, sinon puissance échantillonnée |
 | macOS, Apple Silicon | `IOReport`, la bibliothèque derrière `powermetrics` | cœurs du processeur, cœurs graphiques, moteur neuronal, mémoire | **aucun** | compteurs monotones par sous-système, une différence par exécution |
 | macOS | `powermetrics` | les mêmes sous-systèmes | root | non utilisé par ce paquet |
-| Tout serveur | IPMI / DCMI / [Redfish](https://www.dmtf.org/standards/redfish) | le nœud entier, ventilateurs et pertes d'alimentation compris | identifiants du contrôleur | non utilisé par ce paquet |
+| Tout serveur | Intelligent Platform Management Interface (IPMI) / Data Center Manageability Interface (DCMI) / [Redfish](https://www.dmtf.org/standards/redfish) | le nœud entier, ventilateurs et pertes d'alimentation compris | identifiants du contrôleur | non utilisé par ce paquet |
 
 **Windows n'est pas dans ce tableau, et n'y sera pas.** Il est hors périmètre,
 délibérément et définitivement. Il ne publie aucun compteur d'énergie processeur
@@ -68,7 +68,7 @@ n'existe que là où un constructeur l'a implémentée et seulement via un pilot
 les chiffres par application de `powercfg` sont un modèle de batterie, pas un
 compteur. Il ne publie aucun total de temps processeur machine que ce paquet
 puisse lire : l'attribution ci-dessous n'aurait rien par quoi diviser. Et il n'a
-pas de comptabilité POSIX des ressources, donc le temps processeur propre d'un
+pas de comptabilité POSIX (Portable Operating System Interface) des ressources, donc le temps processeur propre d'un
 enfant est indisponible aussi.
 
 Chacun de ces points, seul, serait survivable. Ensemble, ils signifient que
@@ -126,8 +126,9 @@ Cette règle mord sous Linux, où le compteur du processeur est `blocked` pour l
 utilisateurs ordinaires sur tout noyau à partir de la 5.10. Le noyau l'a fermé
 exprès : échantillonné assez vite, `energy_uj` permet de reconstituer ce que
 calculent les *autres* processus — l'attaque
-[PLATYPUS](https://platypusattack.com/),
-[CVE-2020-8694](https://nvd.nist.gov/vuln/detail/CVE-2020-8694). `saggio power`
+[PLATYPUS](https://platypusattack.com/), entrée Common Vulnerabilities and
+Exposures [CVE-2020-8694](https://nvd.nist.gov/vuln/detail/CVE-2020-8694).
+`saggio power`
 affiche donc le remède avec cette raison à côté, et s'arrête là :
 
 ```
@@ -155,7 +156,7 @@ source ; voir [EXEMPLES.md](EXEMPLES.md#mettre-la-mesure-dans-le-modèle).
 Chaque lecture produite par ce paquet dit ce qu'elle couvre, dans le modèle et
 dans le rapport. Les frontières méritent d'être énoncées une fois, clairement :
 
-- **Le paquet RAPL** couvre les cœurs et l'uncore. Pas la mémoire, sauf si la
+- **Le paquet RAPL (Running Average Power Limit)** couvre les cœurs et l'uncore. Pas la mémoire, sauf si la
   zone `dram` a répondu aussi ; pas un accélérateur discret ; pas le stockage ;
   pas les ventilateurs ; pas les pertes propres de l'alimentation.
 - **`psys`**, quand une machine le publie, couvre tout le système sur puce et
@@ -252,7 +253,7 @@ processeur se verrait attribuer presque rien d'une consommation qui était
 surtout celle de l'accélérateur. Là où la machine publie ses sous-systèmes
 séparément — toutes les puces Apple Silicon le font — c'est le chiffre propre du
 processeur qui est employé, et le rapport le dit. Là où elle publie un seul
-nombre couvrant un GPU, il n'y a rien à quoi appliquer la part, et aucun chiffre
+nombre couvrant un GPU (graphics processing unit), il n'y a rien à quoi appliquer la part, et aucun chiffre
 attribué n'est proposé.
 
 Les deux réponses sont rapportées ensemble à dessein. Quand elles concordent, le
@@ -350,7 +351,7 @@ Kepler v0.10 a retiré son moteur eBPF et lit désormais `/proc` et `/sys` sans
 privilèges — les deux mêmes fichiers que cette page lit, pour la même raison.
 Mais son attribution découpe d'abord la puissance du nœud **par activité** :
 
-> Workload Power = (Workload CPU Time Δ / Node CPU Time Δ) × Active Power
+> Workload Power = (Workload CPU (central processing unit) Time Δ / Node CPU Time Δ) × Active Power
 
 où la puissance active est le total mesuré dont on a soustrait la ligne de base
 au repos. Ce paquet découpe **par domaine matériel** à la place : la part
@@ -438,7 +439,9 @@ reste : une valeur dérivée ne peut jamais prétendre être mieux fondée que l
 de ses éléments.
 
 C'est aussi la forme que réclame la [spécification Software Carbon
-Intensity](https://sci.greensoftware.foundation/) — ISO/IEC 21031:2024, et
+Intensity](https://sci.greensoftware.foundation/) — la norme conjointe de
+l'Organisation internationale de normalisation et de la Commission
+électrotechnique internationale, ISO/IEC 21031:2024, et
 [SCI for AI](https://greensoftware.foundation/standards/sci-ai/) au-dessus :
 des émissions par unité fonctionnelle de travail plutôt qu'un total, avec la
 frontière déclarée. Un modèle saggio est par unité de travail par construction ;
@@ -487,7 +490,7 @@ travail fait par cycle diffère d'une puce à l'autre : le catalogue veut donc u
 dont ils viennent. Ces colonnes sont livrées vides : en remplir une, c'est
 prendre un résultat sur [spec.org](https://www.spec.org/cpu2017/results/), le
 diviser par le nombre de sockets du système pour comparer une socket à une
-socket, et consigner l'URL et la date comme pour toute autre ligne. Un score d'un
+socket, et consigner l'URL (Uniform Resource Locator) et la date comme pour toute autre ligne. Un score d'un
 benchmark n'est jamais divisé par le score d'un autre : c'est refusé nommément.
 
 Le débit crête est une donnée de fiche technique, pas un benchmark. Une vraie
@@ -531,7 +534,7 @@ le dit. Envoyer les noms de canaux suffit à ajouter la pièce ; voir
 
 **Interfaces noyau et pilotes**
 
-- [Power Capping Framework](https://docs.kernel.org/power/powercap/powercap.html) — l'ABI powercap de Linux, les zones et `energy_uj`.
+- [Power Capping Framework](https://docs.kernel.org/power/powercap/powercap.html) — l'ABI (application binary interface) powercap de Linux, les zones et `energy_uj`.
 - [Reading RAPL energy measurements from Linux](https://web.eece.maine.edu/~vweaver/projects/rapl/) — la référence de Vince Weaver sur les domaines, les plages, et ce que RAPL mesure vraiment.
 - [GPU Power/Thermal Controls and Monitoring](https://docs.kernel.org/gpu/amdgpu/thermal.html) — les attributs hwmon d'`amdgpu`.
 - [`sysfs-driver-intel-xe-hwmon`](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-driver-intel-xe-hwmon) — l'`energy1_input` d'Intel, en microjoules.

@@ -11,7 +11,7 @@ et pour un agent qui décide s'il invoque le
 Il répond à **ce que coûte l'exécution de ce code, par unité de travail, et à
 quel point on peut faire confiance à cette réponse** : argent, temps, énergie,
 carbone, eau, et toute dimension qu'une équipe enregistre, écrits dans un fichier
-YAML qui vit à côté du code et rendus en rapports.
+YAML (YAML Ain't Markup Language) qui vit à côté du code et rendus en rapports.
 
 ## Ce qu'il fait, et comment l'atteindre
 
@@ -21,7 +21,7 @@ YAML qui vit à côté du code et rendus en rapports.
 | En vérifier un contre les règles | `... validate` | `validate` |
 | Savoir à quelle question ouverte répondre d'abord | `... next` | `next_questions`, `questions_payload` |
 | En construire un depuis un dépôt | `... audit` | `audit`, `audit_git_url` |
-| Placer chaque chiffre dans un bilan GES | `... scopes` | `placement`, `placements` |
+| Placer chaque chiffre dans un bilan gaz à effet de serre (GES) | `... scopes` | `placement`, `placements` |
 | Mesurer une vraie commande | `... measure` | `run_slice` |
 | Le rapporter pour des humains | `... render` | `render_markdown`, `render_html`, `render_office` |
 | Casser un build sur une dérive | `... diff` | `compare` |
@@ -32,8 +32,10 @@ YAML qui vit à côté du code et rendus en rapports.
 ## Formulations qui doivent déclencher
 
 Les deux vocabulaires comptent, et les deux figurent ici : beaucoup d'équipes
-techniques posent la question en anglais pendant que les équipes RSE la posent en
-français, et c'est la même question.
+techniques posent la question en anglais pendant que les équipes de
+responsabilité sociétale des entreprises (RSE) la posent en français, et c'est la
+même question. Une interface de programmation applicative (API) payante revient
+dans les deux vocabulaires.
 
 **Coût d'exécution.** « Combien ça coûte de faire tourner ça ? », « coût par
 inférence », « coût par requête », « coût d'un entraînement », « combien coûte ce
@@ -55,7 +57,7 @@ carbone du réseau », « Green Algorithms », « scope 2 de cette charge de tra
 *"Carbon footprint of this model", "CO2 per inference", "green software", "grid
 intensity".*
 
-**Eau.** « Empreinte eau de cette charge en centre de données », « WUE »,
+**Eau.** « Empreinte eau de cette charge en centre de données », « WUE (water usage effectiveness) »,
 « combien d'eau de refroidissement ». *"Water footprint", "WUE".*
 
 **Auditer une base de code.** « Audite ce dépôt sur son coût d'exécution »,
@@ -64,14 +66,14 @@ appelées », « ce que ce projet dépense par exécution », « où part le co�
 *"Audit this repo for running cost", "which paid APIs does this call".*
 
 **Projeter.** « Combien ça coûterait sur un H100 », « extrapole depuis cette
-exécution », « si on passait sur GCP », « ce que coûterait l'entraînement
+exécution », « si on passait sur GCP (Google Cloud Platform) », « ce que coûterait l'entraînement
 complet », « et si on tournait en Suède », « le coût à un million de requêtes par
 jour ». *"What would this cost on an H100", "cost at a million requests a day".*
 
 **Déclarer et se conformer, qui est la même question par l'autre bout.** « Sous
 quel scope tombe notre logiciel », « notre calcul en cloud, c'est du scope 2 ou du
 scope 3 », « scope 3 catégorie 1 pour nos dépenses cloud », « il nous faut un
-chiffre défendable pour la CSRD », « ESRS E1 », « location-based et
+chiffre défendable pour la CSRD (Corporate Sustainability Reporting Directive) », « ESRS (European Sustainability Reporting Standards) E1 », « location-based et
 market-based », « ce que le vérificateur doit voir », « empreinte carbone de notre
 service », « bilan carbone du numérique », « facteur d'émission de notre
 électricité », « un chiffre défendable pour le reporting extra-financier ».
@@ -92,7 +94,7 @@ carbon cost in CI".*
 
 ## Formulations qui ne doivent *pas* déclencher
 
-- **Facturation cloud.** « Pourquoi notre facture AWS était si élevée le mois
+- **Facturation cloud.** « Pourquoi notre facture AWS (Amazon Web Services) était si élevée le mois
   dernier » est une question pour Cost Explorer. Cet outil modélise le coût d'une
   unité de travail à partir de principes premiers ; il ne lit pas de factures.
 - **Observabilité en direct.** « Quel endpoint est lent en ce moment » est une
@@ -111,7 +113,7 @@ carbon cost in CI".*
 - **L'optimisation de code pour elle-même.** « Rends cette fonction plus rapide »
   est une question de profilage. Cet outil profile une tranche pour attribuer un
   coût, mais il ne réécrit pas votre code.
-- **L'achat de matériel.** « Quel GPU acheter » demande du carbone incorporé, une
+- **L'achat de matériel.** « Quel GPU (graphics processing unit) acheter » demande du carbone incorporé, une
   durée de vie et un taux d'utilisation, qu'aucun de ces trois cet outil ne
   modélise.
 

@@ -52,13 +52,13 @@ machine-wide counter.
 
 | Platform | Interface | Covers | Privilege | How it is read |
 |---|---|---|---|---|
-| Linux | [powercap / RAPL](https://docs.kernel.org/power/powercap/powercap.html) | processor packages, the `psys` zone where present, and the memory zone beside them | **root by default since 5.10** | accumulating `energy_uj`, one difference per run |
+| Linux | [powercap / Running Average Power Limit (RAPL)](https://docs.kernel.org/power/powercap/powercap.html) | processor packages, the `psys` zone where present, and the memory zone beside them | **root by default since 5.10** | accumulating `energy_uj`, one difference per run |
 | Linux | [`amdgpu` hwmon](https://docs.kernel.org/gpu/amdgpu/thermal.html) | the graphics board | none | `power1_average` in µW, sampled across the run |
 | Linux | [`i915`](https://www.kernel.org/doc/html/latest/gpu/i915.html) / [`xe` hwmon](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-driver-intel-xe-hwmon) | the graphics board | none | accumulating `energy1_input` in µJ |
 | Linux | [NVIDIA driver](https://developer.nvidia.com/management-library-nvml), through [`nvidia-smi`](https://docs.nvidia.com/deploy/nvidia-smi/index.html) | the whole accelerator board | none | accumulated energy where the board keeps it, otherwise sampled board power |
 | macOS, Apple Silicon | `IOReport`, the library behind `powermetrics` | processor cores, graphics cores, neural engine, memory | **none** | monotonic per-subsystem counters, one difference per run |
 | macOS | `powermetrics` | the same subsystems | root | not used by this package |
-| Any server | IPMI / DCMI / [Redfish](https://www.dmtf.org/standards/redfish) | the whole node, fans and power supply losses included | controller credentials | not used by this package |
+| Any server | Intelligent Platform Management Interface (IPMI) / Data Center Manageability Interface (DCMI) / [Redfish](https://www.dmtf.org/standards/redfish) | the whole node, fans and power supply losses included | controller credentials | not used by this package |
 
 **Windows is not in that table, and will not be.** It is out of scope,
 deliberately and for good. It publishes no vendor-neutral processor energy
@@ -67,7 +67,7 @@ counter to an unprivileged process: the
 exists only where a manufacturer implemented it and only through a driver, and
 `powercfg`'s per-application figures are a battery model rather than a counter.
 It publishes no machine-wide processor-time total this package can read, so the
-attribution below has nothing to divide by. And it has no POSIX resource
+attribution below has nothing to divide by. And it has no POSIX (Portable Operating System Interface) resource
 accounting, so a child process's own processor time is unavailable too.
 
 Each of those alone would be survivable. Together they mean every number this
@@ -121,8 +121,9 @@ privileges on its own behalf is a worse problem than an estimated wattage.
 That rule has teeth on Linux, where the processor's counter is `blocked` for
 ordinary users on any kernel from 5.10 onwards. The kernel closed it on purpose:
 sampled fast enough, `energy_uj` recovers what *other* processes are computing —
-the [PLATYPUS attack](https://platypusattack.com/),
-[CVE-2020-8694](https://nvd.nist.gov/vuln/detail/CVE-2020-8694). So `saggio
+the [PLATYPUS attack](https://platypusattack.com/), Common Vulnerabilities and
+Exposures entry [CVE-2020-8694](https://nvd.nist.gov/vuln/detail/CVE-2020-8694).
+So `saggio
 power` prints the remedy with that reason beside it, and stops:
 
 ```
@@ -149,7 +150,7 @@ counter inside the chip ever will. A cost model can carry that figure as a
 Every reading this package produces says what it covers, in the model and in the
 report. The boundaries are worth stating once, plainly:
 
-- **RAPL package** covers cores and uncore. Not the memory unless the `dram`
+- **RAPL (Running Average Power Limit) package** covers cores and uncore. Not the memory unless the `dram`
   zone answered too, not a discrete accelerator, not storage, not the fans, not
   the power supply's own losses.
 - **`psys`**, where a machine publishes it, covers the whole system-on-chip, and
@@ -240,7 +241,7 @@ attributed_scope: the processor cores alone, which is the only part a share of
 an accelerator busy on almost no processor time would be attributed almost none
 of a draw that was mostly the accelerator's. Where the machine publishes its
 subsystems apart — every Apple Silicon chip does — the processor's own figure is
-used and the report says so. Where it publishes one number covering a GPU, there
+used and the report says so. Where it publishes one number covering a GPU (graphics processing unit), there
 is nothing to apply the share to, and no attributed figure is offered.
 
 The two answers are reported together on purpose. Where they agree, the figure
@@ -332,7 +333,7 @@ Kepler v0.10 removed its eBPF engine and now reads `/proc` and `/sys` without
 privileges — the same two files this page reads, for the same reason. But its
 attribution splits the node's power **by activity** before dividing it:
 
-> Workload Power = (Workload CPU Time Δ / Node CPU Time Δ) × Active Power
+> Workload Power = (Workload CPU (central processing unit) Time Δ / Node CPU Time Δ) × Active Power
 
 where active power is the measured total with the idle baseline subtracted out.
 This package splits **by hardware domain** instead: the share multiplies the
@@ -413,8 +414,10 @@ a derived value may never claim to be better founded than the worst of its
 inputs.
 
 This is also the shape the [Software Carbon Intensity
-specification](https://sci.greensoftware.foundation/) asks for — ISO/IEC
-21031:2024, and [SCI for AI](https://greensoftware.foundation/standards/sci-ai/)
+specification](https://sci.greensoftware.foundation/) asks for — the
+International Organization for Standardization and International
+Electrotechnical Commission's ISO/IEC 21031:2024, and, for artificial
+intelligence, [SCI for AI](https://greensoftware.foundation/standards/sci-ai/)
 above it: emissions per functional unit of work rather than a total, with the
 boundary disclosed. A saggio model is per unit of work by construction, and what
 it does *not* yet carry is the embodied term — the manufacturing of the hardware,
@@ -457,7 +460,7 @@ the catalogue wants a *published benchmark* instead — `single_thread_score`,
 `throughput_score`, and the `benchmark` they came from. Those columns ship empty:
 filling one in means taking a result from [spec.org](https://www.spec.org/cpu2017/results/),
 dividing it by that system's socket count so two parts are compared one socket
-against one socket, and recording the URL and the date like every other row. A
+against one socket, and recording the URL (Uniform Resource Locator) and the date like every other row. A
 score of one benchmark is never divided by a score of another; that is refused
 by name.
 
@@ -501,7 +504,7 @@ the channel names is enough to add the part; see
 
 **Kernel and driver interfaces**
 
-- [Power Capping Framework](https://docs.kernel.org/power/powercap/powercap.html) — the Linux powercap ABI, zones and `energy_uj`.
+- [Power Capping Framework](https://docs.kernel.org/power/powercap/powercap.html) — the Linux powercap ABI (application binary interface), zones and `energy_uj`.
 - [Reading RAPL energy measurements from Linux](https://web.eece.maine.edu/~vweaver/projects/rapl/) — Vince Weaver's reference on domains, ranges, and what RAPL actually measures.
 - [GPU Power/Thermal Controls and Monitoring](https://docs.kernel.org/gpu/amdgpu/thermal.html) — `amdgpu` hwmon attributes.
 - [`sysfs-driver-intel-xe-hwmon`](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-driver-intel-xe-hwmon) — Intel's `energy1_input`, in microjoules.

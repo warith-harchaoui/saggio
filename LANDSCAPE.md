@@ -57,8 +57,8 @@ their rating rows are close. Regenerate after editing the table with
 
 The best known tool in the space, and the right first choice if what you want is a
 line of Python that logs the emissions of a training run while it happens. It
-tracks CPU, GPU, and memory through RAPL and `nvidia-smi`, looks up a regional grid
-intensity, and writes a CSV.
+tracks CPU (central processing unit), GPU (graphics processing unit), and memory through RAPL (Running Average Power Limit) and `nvidia-smi`, looks up a regional grid
+intensity, and writes a CSV (comma-separated values).
 
 Where it differs: CodeCarbon measures an *episode*. It answers "what did this run
 emit", not "what does one request cost", and its output is a log rather than a
@@ -149,7 +149,7 @@ Money-first, with carbon added on. **Use OpenCost for chargeback.**
 
 ### Cloud billing consoles
 
-AWS Cost Explorer, GCP Billing, Azure Cost Management. Authoritative on what you
+AWS (Amazon Web Services) Cost Explorer, GCP (Google Cloud Platform) Billing, Azure Cost Management. Authoritative on what you
 were charged, which is exactly one dimension of one question, after the fact.
 **Use them when the question is "why was the bill that size".**
 
@@ -186,16 +186,16 @@ and [Energy-ID](https://www.green-coding.io/products/energy-id/)**, by Green
 Coding Solutions. The tool measures energy and carbon for a software run
 through configuration-as-code, and publishes what it measured: per-run
 [statistics pages](https://metrics.green-coding.io/), timeline views that track
-a project across commits, comparison views, a public API, and CI badges.
-Energy-ID is the database beside it, benchmarking open-source software, CLI
+a project across commits, comparison views, a public API (application programming interface), and CI (continuous integration) badges.
+Energy-ID is the database beside it, benchmarking open-source software, CLI (command-line interface)
 tooling and language primitives on fixed machines and publishing a scorecard per
 task, each stating the machine and carrying the caveat in its own words:
 *"absolute numbers shown here are not to be taken as ground truth."* It is the
 most complete public evidence base in this field, and the closest thing to a
 gallery any of these tools has.
 
-**[The ML.ENERGY Leaderboard](https://ml.energy/leaderboard/)**, by the
-ML.ENERGY Initiative at Michigan ([arXiv:2505.06371](https://arxiv.org/abs/2505.06371)).
+**[The ML.ENERGY Leaderboard](https://ml.energy/leaderboard/)** — machine learning (ML) energy —
+by the ML.ENERGY Initiative at Michigan ([arXiv:2505.06371](https://arxiv.org/abs/2505.06371)).
 Inference energy for generative models, measured rather than modelled: version
 3.0 reports 46 models across 7 tasks, 1,858 configurations on NVIDIA H100 and
 B200. What makes its rows comparable is what it holds constant — it compares
@@ -205,7 +205,7 @@ differences". A result worth carrying away from it: reasoning tasks cost about
 **twenty-five times** the energy per response of ordinary text conversation,
 which is a far larger term than anything a code-reading tool can see.
 
-**[The Green Software Foundation's SCI case studies](https://sci-guide.greensoftware.foundation/CaseStudies/)**.
+**[The Green Software Foundation's Software Carbon Intensity (SCI) case studies](https://sci-guide.greensoftware.foundation/CaseStudies/)**.
 Eleven published, from CAST, UBS, NTT DATA, Microsoft, AFAS and others, each a
 filed SCI figure for a real application. The index carries the organisation, a
 sentence and a link; the figure, the functional unit and the boundary are inside
@@ -266,10 +266,10 @@ Being honest about the gaps, since that is the whole premise of the tool.
   package records the bracket and refuses to pick inside it. On a shared box
   that is still the gap that matters most.
 - **Two platforms, not three.** Linux and macOS, both reading real counters —
-  powercap zones by name, `IOReport` on Apple Silicon, NVML and the `amdgpu` /
+  powercap zones by name, `IOReport` on Apple Silicon, NVML (NVIDIA Management Library) and the `amdgpu` /
   `i915` / `xe` sysfs interfaces for the accelerator. Windows is out of scope
   rather than unfinished: it offers no unprivileged processor energy counter, no
-  machine-wide processor-time total, and no POSIX resource accounting, so every
+  machine-wide processor-time total, and no POSIX (Portable Operating System Interface) resource accounting, so every
   figure there would be an estimate. Narrower than the tools above it in this
   table, and narrow on purpose.
 - **A counter is not the wall.** Fans, storage, network and the power supply sit
@@ -279,7 +279,9 @@ Being honest about the gaps, since that is the whole premise of the tool.
 - **No continuous monitoring.** One bounded slice, once. If you want a time series,
   this is the wrong shape of tool.
 - **Embodied carbon is implemented and barely catalogued.** The arithmetic is
-  there — the four terms of ISO/IEC 21031, amortised over calendar time — and so
+  there — the four terms of the International Organization for Standardization
+  and International Electrotechnical Commission's joint standard, ISO/IEC 21031,
+  amortised over calendar time — and so
   are eight footprints: four accelerators out of 25 rows and four processors out
   of 12. Everything else reports `TODO`. The lifetime is still yours to state,
   because how long a card stays in service is a fact about a fleet rather than

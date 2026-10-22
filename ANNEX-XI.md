@@ -1,8 +1,8 @@
-# The energy line of an EU AI Act filing
+# The energy line of a European Union (EU) artificial intelligence (AI) Act filing
 
 [🇫🇷 ANNEXE-XI.md](ANNEXE-XI.md) · 🇬🇧 English
 
-This page is for a provider of a general-purpose AI model who has to write down
+This page is for a provider of a general-purpose AI (artificial intelligence) model who has to write down
 what their model's energy consumption was. It says which part of that sentence
 this package answers, which part it does not, and what is still being written
 by the Commission. **Dates and numbering move; these were checked on
@@ -41,7 +41,7 @@ Two words in that phrase are the whole design brief of this package.
 two filings cannot be read against each other —
 [`BOUNDARIES.md`](BOUNDARIES.md) shows what happens when they do not.
 *Verifiable* means somebody other than the author has to be able to check it,
-which is what a source URL, a retrieval date and a re-computable derivation are
+which is what a source URL (Uniform Resource Locator), a retrieval date and a re-computable derivation are
 for.
 
 ## What this package hands a filer, line by line
@@ -92,4 +92,4 @@ prevent.
 - [Energy efficiency requirements under the EU AI Act](https://www.whitecase.com/insight-alert/energy-efficiency-requirements-under-eu-ai-act) — the Annex XI energy duty, the dates and the penalties.
 - [Targeted consultation on measuring energy consumption and emissions of AI models and systems](https://digital-strategy.ec.europa.eu/en/consultations/targeted-consultation-measuring-energy-consumption-and-emissions-ai-models-and-systems) — what the Commission asked, and what it intends to do with the answers.
 - [SCI for AI and EU AI Act environmental compliance](https://greensoftware.foundation/policy/research/sci-ai-eu-ai-act/) — the Green Software Foundation's mapping of one onto the other.
-- [Annex XI — GPAI technical documentation](https://artificialintelligenceact.eu/ai-act-explorer/) — the text itself.
+- [Annex XI — general-purpose artificial intelligence (GPAI) technical documentation](https://artificialintelligenceact.eu/ai-act-explorer/) — the text itself.

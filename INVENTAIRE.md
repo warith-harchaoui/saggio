@@ -1,4 +1,4 @@
-# Ranger ces chiffres dans un bilan GES
+# Ranger ces chiffres dans un bilan de gaz à effet de serre (GES)
 
 🇫🇷 Français · [🇬🇧 INVENTORY.md](INVENTORY.md)
 
@@ -10,7 +10,7 @@ fera pas semblant de donner.
 
 ## L'écart que cela comble
 
-Une équipe technique transmet un nombre à une équipe RSE : *« entraîner ce
+Une équipe technique transmet un nombre à une équipe RSE (responsabilité sociétale des entreprises) : *« entraîner ce
 modèle émet 40 kgCO2e »*. Trois questions suivent immédiatement, et d'ordinaire
 aucune n'a de réponse.
 
@@ -29,7 +29,7 @@ réponses ; chaque rapport rendu les porte dans une section à part.
 
 ## Quel scope, et pourquoi
 
-Le GHG Protocol tranche le scope avec un seul fait : **qui achète l'électricité
+Le GHG (Greenhouse Gas) Protocol tranche le scope avec un seul fait : **qui achète l'électricité
 et possède la machine.** Ce fait est déjà dans le modèle, sous
 `deployment.provider`, et le catalogue des fournisseurs le note sous
 `operated_by`.
@@ -37,7 +37,7 @@ et possède la machine.** Ce fait est déjà dans le modèle, sous
 | Où ça tourne | L'électricité | Le matériel |
 |---|---|---|
 | Votre serveur, votre portable | **Scope 2** | **Scope 3, catégorie 2** — biens d'équipement |
-| AWS, GCP, Azure, OCI, un cloud GPU | **Scope 3, catégorie 1** — biens et services achetés | **Scope 3, catégorie 1** — même ligne |
+| Amazon Web Services (AWS), Google Cloud Platform (GCP), Azure, Oracle Cloud Infrastructure (OCI), un cloud GPU (graphics processing unit) | **Scope 3, catégorie 1** — biens et services achetés | **Scope 3, catégorie 1** — même ligne |
 | Un fournisseur que personne n'a classé | *aucun scope* — posé en question, jamais deviné | *aucun scope* |
 
 Trois conséquences, et chacune est une erreur que les équipes commettent
@@ -78,7 +78,7 @@ de trois choses, par ordre de préférence :
 1. le facteur d'émission propre de votre fournisseur, pour le contrat que vous
    avez ;
 2. les instruments contractuels que vous détenez — garanties d'origine, RECs,
-   un PPA ;
+   un PPA (power purchase agreement) ;
 3. à défaut des deux, le **mix résiduel** de votre marché — en Europe celui que
    [publie l'Association of Issuing Bodies](https://www.aib-net.org/facts/european-residual-mix),
    qui existe précisément pour que l'électricité non revendiquée ne soit pas
@@ -145,7 +145,7 @@ porte quatre choses, imposées plutôt qu'encouragées :
 | | |
 |---|---|
 | **Un statut** | `measured`, `estimated`, `placeholder` ou `TODO`. Un chiffre dérivé ne peut jamais se prétendre mieux fondé que son entrée la plus faible, et le validateur rejette un modèle qui s'y essaie. |
-| **Sa provenance** | Une URL et la date à laquelle quelqu'un l'a lue — sur une page qu'un lecteur peut réellement ouvrir, ce qui est vérifié. |
+| **Sa provenance** | Une URL (Uniform Resource Locator) et la date à laquelle quelqu'un l'a lue — sur une page qu'un lecteur peut réellement ouvrir, ce qui est vérifié. |
 | **Sa dérivation** | Les entrées dont il vient, nommées, l'arithmétique étant recalculée à partir d'elles et refusée si elle ne se recoupe pas à un pour cent près. |
 | **Une fenêtre de fraîcheur** | Chaque colonne de catalogue périme à son propre rythme, et le garde-fou fait échouer une construction qui livrerait un chiffre que personne n'a relu. |
 
@@ -202,7 +202,7 @@ définit les scopes, le [Scope 3 Standard](https://ghgprotocol.org/corporate-val
 les quinze catégories, et le [Scope 2 Guidance](https://ghgprotocol.org/scope-2-guidance)
 l'obligation de double déclaration. Le Scope 2 Guidance est lui-même en révision.
 
-**CSRD, après l'Omnibus.** La [directive (UE) 2026/470](https://eur-lex.europa.eu/eli/dir/2026/470/oj/eng)
+**CSRD (Corporate Sustainability Reporting Directive), après l'Omnibus.** Du côté de l'Union européenne, la [directive (UE) 2026/470](https://eur-lex.europa.eu/eli/dir/2026/470/oj/eng)
 a été publiée le 26 février 2026 et est entrée en vigueur le 18 mars 2026. Elle
 restreint fortement la population déclarante — en gros, les entreprises
 au-dessus de 1 000 salariés et 450 M€ de chiffre d'affaires net — et reporte les
@@ -210,7 +210,7 @@ vagues suivantes. La vague 1 est inchangée. **Si vous lisez ceci pour savoir si
 vous êtes assujetti, lisez la directive et demandez à vos conseils ; cette page
 est la documentation d'un outil, pas un conseil.**
 
-**ESRS E1, et sa renumérotation.** Les scopes 1, 2 et 3 bruts relevaient de
+**ESRS (European Sustainability Reporting Standards) E1, et sa renumérotation.** Les scopes 1, 2 et 3 bruts relevaient de
 l'exigence de publication **E1-6** ; dans les normes amendées chaque exigence à
 partir d'E1-2 se décale de deux, et la même publication devient **E1-8**. Son
 texte énonce la paire sur laquelle cette page insiste : scope 2 *location-based
@@ -248,9 +248,9 @@ donnez à sa ligne de catalogue `operated_by: self` ou `operated_by: vendor`.
 
 - [GHG Protocol Corporate Standard](https://ghgprotocol.org/corporate-standard) · [Corporate Value Chain (Scope 3) Standard](https://ghgprotocol.org/corporate-value-chain-scope-3-standard) · [Scope 2 Guidance](https://ghgprotocol.org/scope-2-guidance)
 - [Directive (UE) 2026/470](https://eur-lex.europa.eu/eli/dir/2026/470/oj/eng) — la directive Omnibus I modifiant la CSRD.
-- [ESRS E1 amendée par l'EFRAG](https://www.efrag.org/sites/default/files/media/document/2025-12/November_2025_ESRS_E1.pdf) — où l'exigence GES est renumérotée et la paire location-based / market-based réaffirmée.
+- [ESRS E1 amendée par l'EFRAG (European Financial Reporting Advisory Group)](https://www.efrag.org/sites/default/files/media/document/2025-12/November_2025_ESRS_E1.pdf) — où l'exigence GES est renumérotée et la paire location-based / market-based réaffirmée.
 - [Article L. 229-25 du code de l'environnement](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000039369665) · [bilans-ges.ademe.fr](https://bilans-ges.ademe.fr/) — le bilan GES réglementaire français et son dépôt.
-- [Base Empreinte de l'ADEME](https://base-empreinte.ademe.fr/) — la base de facteurs d'émission française, pour les chiffres que cet outil ne porte pas.
+- [Base Empreinte de l'ADEME (Agence de la transition écologique)](https://base-empreinte.ademe.fr/) — la base de facteurs d'émission française, pour les chiffres que cet outil ne porte pas.
 - [Données annuelles d'électricité d'Ember](https://ember-energy.org/data/yearly-electricity-data/) — les intensités réseau d'ici, location-based par construction.
 - [Le mix résiduel européen de l'AIB](https://www.aib-net.org/facts/european-residual-mix) — le facteur market-based de dernier recours, pour l'électricité qu'aucun instrument ne revendique. Cet outil n'en porte rien : le chiffre est à vous de l'énoncer.
 

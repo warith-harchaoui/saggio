@@ -1,4 +1,4 @@
-# Putting these numbers in a GHG inventory
+# Putting these numbers in a Greenhouse Gas (GHG) inventory
 
 [🇫🇷 INVENTAIRE.md](INVENTAIRE.md) · 🇬🇧 English
 
@@ -35,7 +35,7 @@ owns the machine.** That fact is already in the model, as
 | Where it runs | The electricity | The hardware |
 |---|---|---|
 | Your own server, your own laptop | **Scope 2** | **Scope 3, category 2** — capital goods |
-| AWS, GCP, Azure, OCI, a GPU cloud | **Scope 3, category 1** — purchased goods and services | **Scope 3, category 1** — same line |
+| Amazon Web Services (AWS), Google Cloud Platform (GCP), Azure, Oracle Cloud Infrastructure (OCI), a graphics processing unit (GPU) cloud | **Scope 3, category 1** — purchased goods and services | **Scope 3, category 1** — same line |
 | A provider nobody classified | *no scope* — stated as a question, never guessed | *no scope* |
 
 Three things follow from that table, and each is a thing teams routinely get
@@ -73,7 +73,7 @@ because it does not follow from one. That number is built from one of three
 things, in descending order of preference:
 
 1. your supplier's own emission factor for the contract you are on;
-2. the contractual instruments you hold — guarantees of origin, RECs, a PPA;
+2. the contractual instruments you hold — guarantees of origin, RECs, a PPA (power purchase agreement);
 3. failing both, your market's **residual mix** — in Europe the one the
    [Association of Issuing Bodies publishes](https://www.aib-net.org/facts/european-residual-mix),
    which exists precisely so that unclaimed electricity is not counted as clean
@@ -137,7 +137,7 @@ things, enforced rather than encouraged:
 | | |
 |---|---|
 | **A status** | `measured`, `estimated`, `placeholder`, or `TODO`. A derived figure may never claim to be better founded than its weakest input, and the validator fails a model that tries. |
-| **Its provenance** | A URL and the date somebody read it — on a page a reader can actually open, which is checked. |
+| **Its provenance** | A Uniform Resource Locator (URL) and the date somebody read it — on a page a reader can actually open, which is checked. |
 | **Its derivation** | The inputs it came from, named, with the arithmetic re-computed from them and refused when it does not reconcile to within a percent. |
 | **A freshness window** | Each catalogue column goes stale on its own schedule, and the gate fails a build that ships a figure nobody has re-read. |
 
@@ -157,7 +157,7 @@ unverifiable, and the one this whole design exists to prevent.
 
 The useful half of any conformance claim is the part that fails.
 
-- **It is not your IT footprint.** It covers compute for one unit of work. No
+- **It is not your IT (information technology) footprint.** It covers compute for one unit of work. No
   employee devices, no network transit, no storage at rest, no office, no travel.
   A software cost model is one input to an inventory, not an inventory.
 - **The market-based factor is yours, not ours.** The tool computes the figure,
@@ -189,7 +189,7 @@ defines the scopes, the [Scope 3 Standard](https://ghgprotocol.org/corporate-val
 the fifteen categories, and the [Scope 2 Guidance](https://ghgprotocol.org/scope-2-guidance)
 the dual-reporting requirement. The Scope 2 Guidance is itself under revision.
 
-**CSRD, after the Omnibus.** [Directive (EU) 2026/470](https://eur-lex.europa.eu/eli/dir/2026/470/oj/eng)
+**CSRD (Corporate Sustainability Reporting Directive), after the Omnibus.** The European Union's [Directive (EU) 2026/470](https://eur-lex.europa.eu/eli/dir/2026/470/oj/eng)
 was published on 26 February 2026 and entered into force on 18 March 2026. It
 narrows the reporting population sharply — broadly, undertakings above 1,000
 employees and €450m net turnover — and defers the later waves. Wave 1 is
@@ -197,7 +197,7 @@ unchanged. **If you are reading this to decide whether you are in scope, read
 the directive and ask your advisers; this page is a tool's documentation, not
 advice.**
 
-**ESRS E1, and its renumbering.** Gross scopes 1, 2 and 3 were disclosure
+**ESRS (European Sustainability Reporting Standards) E1, and its renumbering.** Gross scopes 1, 2 and 3 were disclosure
 requirement **E1-6**; in the amended standards each requirement from E1-2 shifts
 by two, so the same disclosure becomes **E1-8**. Its text spells out the pair
 this page keeps insisting on: scope 2 *location-based and market-based*.
@@ -233,9 +233,9 @@ catalogue row `operated_by: self` or `operated_by: vendor`.
 
 - [GHG Protocol Corporate Standard](https://ghgprotocol.org/corporate-standard) · [Corporate Value Chain (Scope 3) Standard](https://ghgprotocol.org/corporate-value-chain-scope-3-standard) · [Scope 2 Guidance](https://ghgprotocol.org/scope-2-guidance)
 - [Directive (EU) 2026/470](https://eur-lex.europa.eu/eli/dir/2026/470/oj/eng) — the Omnibus I directive amending the CSRD.
-- [EFRAG's amended ESRS E1](https://www.efrag.org/sites/default/files/media/document/2025-12/November_2025_ESRS_E1.pdf) — where the GHG disclosure requirement is renumbered and the location-based / market-based pair is restated.
+- [ESRS E1 as amended by the European Financial Reporting Advisory Group (EFRAG)](https://www.efrag.org/sites/default/files/media/document/2025-12/November_2025_ESRS_E1.pdf) — where the GHG disclosure requirement is renumbered and the location-based / market-based pair is restated.
 - [Article L. 229-25, code de l'environnement](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000039369665) · [bilans-ges.ademe.fr](https://bilans-ges.ademe.fr/) — the French regulatory GHG report and where it is filed.
-- [ADEME Base Empreinte](https://base-empreinte.ademe.fr/) — the French emission-factor database, for the figures this tool does not carry.
+- [Base Empreinte, from the Agence de la transition écologique (ADEME)](https://base-empreinte.ademe.fr/) — the French emission-factor database, for the figures this tool does not carry.
 - [Ember's yearly electricity data](https://ember-energy.org/data/yearly-electricity-data/) — the grid intensities here, location-based by construction.
 - [The AIB's European Residual Mix](https://www.aib-net.org/facts/european-residual-mix) — the market-based factor of last resort, for electricity no instrument claims. This tool carries none of it: the figure is yours to state.
 

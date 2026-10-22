@@ -3,9 +3,10 @@
 [🇫🇷 NORMES.md](NORMES.md) · 🇬🇧 English
 
 There is an international standard for the thing this package produces, and it
-has been one since 2024. The **Software Carbon Intensity** specification —
-[ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/), written
-by the Green Software Foundation — asks for emissions *per functional unit of
+has been one since 2024. The **Software Carbon Intensity** specification — the
+International Organization for Standardization and International
+Electrotechnical Commission's [ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/),
+written by the Green Software Foundation — asks for emissions *per functional unit of
 work*, with the boundary declared, no offsets, and a location-based grid
 intensity.
 
@@ -60,10 +61,10 @@ the boundary in words beside the number:
 
 | Part | kgCO2e per device | Boundary | Source |
 |---|---|---|---|
-| A100 (SXM 40GB) | 127.6 | Cradle-to-gate, teardown LCA with primary elemental analysis | [arXiv:2509.00093](https://arxiv.org/abs/2509.00093) |
-| H100 | 164.0 | One of eight on an HGX H100 baseboard: 1,312 kg ÷ 8, ISO 14067, third-party reviewed | [NVIDIA PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) |
+| A100 (SXM 40GB) | 127.6 | Cradle-to-gate, teardown life-cycle assessment (LCA) with primary elemental analysis | [arXiv:2509.00093](https://arxiv.org/abs/2509.00093) |
+| H100 | 164.0 | One of eight on an HGX H100 baseboard: 1,312 kg ÷ 8, ISO 14067, third-party reviewed | [NVIDIA product carbon footprint (PCF) summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) |
 | B200 | 284.25 | One of eight on an HGX B200 baseboard: 2,274 kg ÷ 8, same method | [NVIDIA PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) |
-| TPU v4 | 366.0 | One chip with its HBM, cradle-to-gate, ISO 14040/14044, modelled by the designer from its own node, die and yield | [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) |
+| TPU v4 | 366.0 | One chip with its high-bandwidth memory (HBM), cradle-to-gate, ISO 14040/14044, modelled by the designer from its own node, die and yield | [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) |
 | EPYC 7742 | 40.66 | Cradle-to-gate, from a 1,600 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 | EPYC 9654 | 33.98 | Cradle-to-gate, from a 1,261 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 | Core i9-13900K | 14.2 | Cradle-to-gate, from a 257 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
@@ -91,7 +92,7 @@ the figure beside it, which means it has to be something a person can open. Two
 of the sources here are APIs, and they behave differently when a reader follows
 the link rather than a program: Boavizta answers **19.0 kgCO2e** — the default
 for an unnamed chip, and the exact figure this package refuses on import — while
-Ember answers HTTP 403 and `{"detail":"No API key set"}`. Four processor rows
+Ember answers HyperText Transfer Protocol (HTTP) 403 and `{"detail":"No API key set"}`. Four processor rows
 cited the first, so anybody who clicked saw a number with nothing to do with the
 processor on that row.
 
@@ -103,8 +104,8 @@ something about a page that does not exist for the reader. Both are now named in
 the scope or in prose, where naming an endpoint is provenance of method, and
 neither is in a field a reader is invited to follow. The grid rows cite [Ember's
 published yearly dataset](https://ember-energy.org/data/yearly-electricity-data/),
-which is the same series under CC-BY-4.0, needs no key, and was checked against
-the API country by country before it was adopted rather than assumed equivalent.
+which is the same series under CC (Creative Commons)-BY-4.0, needs no key, and was checked against
+the API (application programming interface) country by country before it was adopted rather than assumed equivalent.
 
 **The one non-vendor figure here has been checked against an independent one.**
 The A100 number comes from a teardown with primary elemental analysis; a
@@ -142,7 +143,7 @@ family average wearing the chip's name. Two are generic catalogue defaults,
 whose footprint would be a default too.
 
 Accelerators cannot be filled this way at all. The same source, asked for any
-GPU by name, answers 575.1 kgCO2e — the same number for a GTX 1080 Ti, an A100
+GPU (graphics processing unit) by name, answers 575.1 kgCO2e — the same number for a GTX 1080 Ti, an A100
 and an H100, because it holds one archetype called "Large GPU". That is three
 and a half times NVIDIA's own verified figure for an H100, and it arrives
 wearing the model name that was asked for. The refresh refuses it by name
@@ -191,7 +192,7 @@ declared** on every quantity rather than in a footnote.
 
 ## What the regulations ask, which is less
 
-The [EU AI Act](https://digital-strategy.ec.europa.eu/en/faqs/guidelines-obligations-general-purpose-ai-providers)
+The [European Union (EU) artificial intelligence (AI) Act](https://digital-strategy.ec.europa.eu/en/faqs/guidelines-obligations-general-purpose-ai-providers)
 requires providers of general-purpose AI models to document, in Annex XI, the
 computational resources used for training and the **known or estimated energy
 consumption** of the model. Where it is not known, the Act explicitly permits an
@@ -216,8 +217,8 @@ energy and water performance, and the Commission publishes what comes back.
 [COM(2026) 500 final](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf),
 of 21 September 2026, is the first such assessment.
 
-For 2024 it gives a Union-wide **PUE of 1.36**, energy-weighted over the 681
-data centres whose figure passed the quality review, and a **WUE of 0.58**
+For 2024 it gives a Union-wide **PUE (power usage effectiveness) of 1.36**, energy-weighted over the 681
+data centres whose figure passed the quality review, and a **WUE (water usage effectiveness) of 0.58**
 litres per kilowatt-hour over the 458 that reported water above zero. Both are
 in the catalogue as the `on-prem-eu` provider, and the second one matters more
 than it looks: water was a `TODO` on every self-run model this package wrote,
@@ -235,7 +236,7 @@ Member States with fewer than three reporting facilities are flagged by the
 Commission itself as possibly unrepresentative. Transcribing a figure off a
 chart is how a number stops being able to say where it came from, so none of
 them is here. Facility-level figures are not available at all, and will not be:
-Article 5(5) of Delegated Regulation (EU) 2024/1364 requires the database to be
+Article 5(5) of Delegated Regulation (EU (European Union)) 2024/1364 requires the database to be
 anonymised.
 
 ## Doing it
@@ -264,12 +265,12 @@ design: a standard you half-satisfy, and know exactly which half.
 ## Sources
 
 - [Software Carbon Intensity specification](https://sci.greensoftware.foundation/), ISO/IEC 21031:2024 · [SCI for AI](https://greensoftware.foundation/standards/sci-ai/)
-- *Report on the energy efficiency of data centres in the EU*, COM(2026) 500 final, 21 September 2026 — [Council copy, PDF](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf) · the Commission's own page redirects to [EUR-Lex](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A52026DC0500), which serves an empty body to anything that is not a browser.
+- *Report on the energy efficiency of data centres in the EU*, COM(2026) 500 final, 21 September 2026 — [Council copy, Portable Document Format (PDF)](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf) · the Commission's own page redirects to [EUR-Lex](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A52026DC0500), which serves an empty body to anything that is not a browser.
 - [NVIDIA HGX H100 PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) · [HGX B200 PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) — ISO 14067, third-party reviewed, cradle-to-gate.
 - *More than Carbon: Cradle-to-Grave environmental impacts of GenAI training on the NVIDIA A100 GPU*, [arXiv:2509.00093](https://arxiv.org/abs/2509.00093).
 - *Life-Cycle Emissions of AI Hardware: A Cradle-To-Grave Approach and
   Generational Trends*, [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) —
-  Google's own LCA of five TPU generations, ISO 14040/14044, and the first
+  Google's own LCA (life-cycle assessment) of five TPU generations, ISO 14040/14044, and the first
   published manufacturing figure for an AI accelerator by the people who
   designed it. The TPU v4 row comes from its Table 1.
 - [Ember's yearly electricity data](https://ember-energy.org/data/yearly-electricity-data/)
@@ -281,7 +282,7 @@ design: a standard you half-satisfy, and know exactly which half.
 - [Boavizta's processor method](https://doc.api.boavizta.org/Explanations/components/cpu/)
   — how a footprint is computed from a die size, which is what the four
   processor rows cite.
-- [EU AI Act guidelines for GPAI providers](https://digital-strategy.ec.europa.eu/en/faqs/guidelines-obligations-general-purpose-ai-providers) · [SCI for AI and EU AI Act compliance](https://greensoftware.foundation/policy/research/sci-ai-eu-ai-act/)
+- [EU AI Act guidelines for general-purpose artificial intelligence (GPAI) providers](https://digital-strategy.ec.europa.eu/en/faqs/guidelines-obligations-general-purpose-ai-providers) · [SCI for AI and EU AI Act compliance](https://greensoftware.foundation/policy/research/sci-ai-eu-ai-act/)
 - [Green Algorithms](https://doi.org/10.1002/advs.202100707) — the operational arithmetic, extracted in [`skills/saggio/references/green-algorithms.md`](skills/saggio/references/green-algorithms.md).
 
 ---

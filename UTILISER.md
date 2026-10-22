@@ -3,7 +3,7 @@
 🇫🇷 Français · [🇬🇧 USING.md](USING.md)
 
 Un modèle de coût est produit par une personne qui code et lu par quelqu'un
-d'autre : une équipe RSE qui doit le déclarer, un contrôle de gestion qui doit
+d'autre : une équipe RSE (responsabilité sociétale des entreprises) qui doit le déclarer, un contrôle de gestion qui doit
 budgéter dessus, un auditeur qui doit y croire. La plupart de ces lectrices et
 lecteurs n'installeront jamais un paquet Python, et certains poseront la question
 en français à un agent plutôt qu'à un terminal.
@@ -26,7 +26,7 @@ Deux conséquences, vérifiées par des tests plutôt que laissées à la discip
   placement d'un chiffre dans un inventaire de gaz à effet de serre a été
   assemblé un temps à l'intérieur de la ligne de commande, où les autres surfaces
   ne pouvaient l'atteindre qu'en le recopiant. Il vit maintenant dans
-  `placed_model`, et un test exige que la route HTTP renvoie exactement ce que
+  `placed_model`, et un test exige que la route HTTP (HyperText Transfer Protocol) renvoie exactement ce que
   renvoie la bibliothèque, champ par champ. Un paquet qui se contredirait sur la
   ligne où va un chiffre n'aurait aucune raison de trancher la question.
 
@@ -65,7 +65,7 @@ un hasard de rangement : mesurer exécute une tranche d'un dépôt avec les
 permissions de qui a lancé le processus, et un terminal est le seul endroit où il
 y a quelqu'un à qui demander.
 
-## 3. L'API HTTP
+## 3. L'interface de programmation applicative (API) HTTP
 
 Pour un navigateur, un service interne, une chaîne de reporting, ou un lecteur
 qui ne devrait rien avoir à installer.
@@ -83,7 +83,7 @@ La documentation interactive est alors en `/docs`, et les routes sont :
 | `POST /validate` | Ce modèle respecte-t-il les règles, dont celle du maillon faible ? |
 | `POST /next` | Quel champ ouvert fermerait le plus de nombres, et lesquels ? |
 | `POST /scopes` | Sur quelle ligne d'un inventaire de gaz à effet de serre va chaque chiffre ? |
-| `POST /render` | Le rapport, en Markdown ou en page HTML autonome. |
+| `POST /render` | Le rapport, en Markdown ou en page autonome HyperText Markup Language (HTML). |
 | `POST /diff` | Ce qui a bougé entre deux modèles, et si la barrière tient. |
 | `GET /catalog` et `GET /catalog/{name}` | Les faits que le paquet porte, chaque ligne avec la source d'où elle vient. |
 | `GET /freshness` | Les chiffres que personne n'a relus dans leur propre fenêtre. |
@@ -160,7 +160,7 @@ qui ne le doivent pas. Les évaluations à côté du skill fixent les deux moiti
 
 ## Ce qu'une surface décide pour elle-même
 
-- **La présentation.** Un tableau pour un terminal, du JSON pour un programme,
+- **La présentation.** Un tableau pour un terminal, du JSON (JavaScript Object Notation) pour un programme,
   une page pour un navigateur, une phrase pour un agent.
 - **Quelles capacités elle offre.** La surface HTTP n'offre pas la mesure, parce
   qu'à travers un réseau il n'y a personne à qui demander un consentement.
@@ -172,7 +172,7 @@ qui ne le doivent pas. Les évaluations à côté du skill fixent les deux moiti
 La langue d'un lecteur n'est pas de la présentation, et ses deux moitiés ne sont
 pas le même problème.
 
-**L'interface.** Chaque étiquette du rapport HTML vient d'un seul fichier de
+**L'interface.** Chaque étiquette du rapport HTML (HyperText Markup Language) vient d'un seul fichier de
 traduction, et la page porte un bouton de langue construit depuis ce que ce
 fichier contient : un lecteur change de langue dans son navigateur, sans réseau
 et sans second fichier à livrer.

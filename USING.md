@@ -24,7 +24,7 @@ Two consequences, and both are checked by tests rather than left to discipline:
 - **Two surfaces may not answer the same question differently.** The placement of
   a figure in a greenhouse-gas inventory was assembled inside the command line
   once, where the other surfaces could only have reached it by copying. It now
-  lives in `placed_model`, and a test asserts that the HTTP route returns exactly
+  lives in `placed_model`, and a test asserts that the HTTP (HyperText Transfer Protocol) route returns exactly
   what the library returns, field for field. A package that disagreed with itself
   about which line a number goes on would have no business settling the question
   at all.
@@ -64,7 +64,7 @@ landed: measuring executes a slice of a repository with the permissions of
 whoever started the process, and a terminal is the one place there is somebody to
 ask.
 
-## 3. The HTTP API
+## 3. The HTTP application programming interface (API)
 
 For a browser, an internal service, a reporting pipeline, or a reader who should
 not have to install anything.
@@ -82,7 +82,7 @@ The interactive documentation is then at `/docs`, and the routes are:
 | `POST /validate` | Does this model obey the rules, including the weakest-link rule? |
 | `POST /next` | Which open field would close the most numbers, and what would it close? |
 | `POST /scopes` | Which line of a greenhouse-gas inventory does each figure go on? |
-| `POST /render` | The report, as Markdown or as a self-contained HTML page. |
+| `POST /render` | The report, as Markdown or as a self-contained HyperText Markup Language (HTML) page. |
 | `POST /diff` | What moved between two models, and did it pass the gate? |
 | `GET /catalog` and `GET /catalog/{name}` | The facts the package carries, each row with the source it was read from. |
 | `GET /freshness` | Which figures nobody has re-read inside their own window. |
@@ -157,7 +157,7 @@ pin both halves.
 
 ## What a surface may decide for itself
 
-- **Presentation.** A table for a terminal, JSON for a program, a page for a
+- **Presentation.** A table for a terminal, JSON (JavaScript Object Notation) for a program, a page for a
   browser, a sentence for an agent.
 - **Which capabilities it offers at all.** The HTTP surface offers no measuring,
   because over a network there is nobody to ask for consent.
@@ -169,7 +169,7 @@ pin both halves.
 A reader's language is not presentation, and the two halves of it are not the
 same problem.
 
-**The interface.** Every label on the HTML report comes from one translation
+**The interface.** Every label on the HTML (HyperText Markup Language) report comes from one translation
 file, and the page carries a language button built from whatever that file
 contains, so a reader switches language in their browser with no network and no
 second file to ship.
@@ -200,7 +200,7 @@ are generated from those routes, so seven of them take the argument without
 anybody having written it twice. The four that do not — health, the two
 catalogue readers, the freshness report — answer with data rather than prose.
 `saggio.languages()` is what all of them are built from — so a
-GUI offering a picker asks the library rather than hard-coding a list that goes
+GUI (graphical user interface) offering a picker asks the library rather than hard-coding a list that goes
 stale. A tag nothing is written in falls back to English and says so in the
 notes, because an audit must not fail over a language.
 

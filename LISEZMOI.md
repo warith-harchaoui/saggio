@@ -10,7 +10,7 @@
 carbone, l'eau, et toute autre dimension que vous décidez de suivre, par unité de
 travail, chaque chiffre disant jusqu'où on peut lui faire confiance.
 
-La réponse est un fichier YAML que vous versionnez à côté du code, et des rapports
+La réponse est un fichier YAML (YAML Ain't Markup Language) que vous versionnez à côté du code, et des rapports
 qui en sont tirés. Le fichier se relit dans une pull request, les rapports se
 lisent par des gens qui n'ouvriront jamais un terminal, et ni l'un ni l'autre n'a
 le droit d'avancer un chiffre sans dire d'où il vient.
@@ -81,7 +81,7 @@ Trois propriétés en découlent, et ce sont elles qui justifient le dessin :
 ## Ce que l'outil fait
 
 **Il lit votre dépôt.** Langages, forme de la charge de travail, frameworks,
-quantité de travail d'une exécution complète, quelles API payantes vous appelez et
+quantité de travail d'une exécution complète, quelles API (interface de programmation applicative) payantes vous appelez et
 à quelle ligne. Tout est déterministe, tout cite sa preuve.
 
 **Il en exécute une tranche, si vous l'autorisez.** Avec `--run`, et après votre
@@ -96,9 +96,9 @@ pour ouvrir les autres — sans jamais les ouvrir lui-même. La part du travail 
 couvre la tranche est lue dans votre propre configuration : projeter sur une
 exécution complète relève donc de l'arithmétique, pas de la devinette.
 
-**Il cherche plutôt que de supposer.** Ce que consomme un GPU, ce qu'émet un
+**Il cherche plutôt que de supposer.** Ce que consomme un GPU (graphics processing unit), ce qu'émet un
 kilowattheure en Pologne, ce qu'ajoute un datacenter, où une API publie ses tarifs :
-des catalogues YAML sourcés, chaque ligne portant l'URL d'où elle vient et la date
+des catalogues YAML sourcés, chaque ligne portant l'URL (Uniform Resource Locator) d'où elle vient et la date
 à laquelle quelqu'un l'a lue, chacune périmant selon un délai adapté à la vitesse
 à laquelle ce genre de fait bouge vraiment.
 
@@ -120,8 +120,11 @@ HGX H100 émet 1 312 kgCO2e avant qu'elle ne calcule quoi que ce soit, et un
 modèle qui ne rapporte que l'énergie affirme que ce chiffre est zéro. La
 dimension `embodied_carbon` amortit une empreinte carbone produit publiée sur la
 part de vie du matériel qu'une unité de travail a réservée — ce qui complète les
-quatre termes d'[ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/),
-la norme Software Carbon Intensity, dont ce paquet avait déjà la forme.
+quatre termes de la norme Software Carbon Intensity, publiée conjointement par
+l'Organisation internationale de normalisation et la Commission électrotechnique
+internationale sous la référence
+[ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/), et dont ce
+paquet avait déjà la forme.
 
 L'arithmétique est complète ; **le catalogue ne l'est pas, et ne fera pas
 semblant de l'être.** Huit empreintes sont livrées : quatre accélérateurs sur 25
@@ -138,10 +141,10 @@ refusées nommément plutôt qu'importées.
 vôtre à fournir.
 
 **Il écrit des rapports qui se lisent.** Du Markdown pour une pull request. Une
-page HTML autonome pour tous les autres : hors ligne, clair et sombre, anglais et
+page HTML (HyperText Markup Language) autonome pour tous les autres : hors ligne, clair et sombre, anglais et
 français, avec un panneau qui recalcule le modèle pour un autre pays dans le
 navigateur et un graphique de ce que le réseau électrique ferait au carbone
-ailleurs. Word et PDF via `md2star` quand c'est un document qu'on attend, leur bloc de
+ailleurs. Word et PDF (Portable Document Format) via `md2star` quand c'est un document qu'on attend, leur bloc de
 titre nommant ce qui les a produits et la date de production — qui n'est pas
 celle de la dernière modification du modèle, et le dit. Chaque
 chiffre de carbone connu est aussi restitué en termes qu'un lecteur peut
@@ -170,7 +173,7 @@ pip install saggio
 **Linux et macOS.** Windows est hors périmètre, délibérément et définitivement :
 il ne publie aucun compteur d'énergie processeur indépendant du fabricant à un
 processus sans privilèges, aucun total de temps processeur machine que ce paquet
-puisse lire, et aucune comptabilité POSIX des ressources d'un enfant. Un outil
+puisse lire, et aucune comptabilité POSIX (Portable Operating System Interface) des ressources d'un enfant. Un outil
 dont toute la proposition est qu'un nombre dise jusqu'où lui faire confiance ne
 devrait pas prétendre supporter une plateforme où il ne pourrait qu'estimer :
 `import saggio` y lève une erreur au lieu de fonctionner à moitié.
@@ -296,7 +299,7 @@ confiance faible. Chaque chiffre vient d'un fichier qu'on peut ouvrir ou d'un
 compteur qu'on peut lire.
 
 Il parle votre langue, et dit où cela s'arrête. `--language fr` est sur chaque
-verbe et sur chaque route HTTP qui répond par de la prose : les constats du
+verbe et sur chaque route HTTP (HyperText Transfer Protocol) qui répond par de la prose : les constats du
 validateur, le raisonnement d'un placement d'inventaire, les titres d'un rapport,
 les notes qu'un audit écrit et la question qu'il pose avant d'exécuter votre code
 reviennent donc dedans. Les chiffres sont écrits comme la langue les écrit :
@@ -456,7 +459,7 @@ ruff format --check .
 
 ## Pour qui doit déclarer le chiffre
 
-Un modèle de coût répond à ce que coûte une unité de travail. Un bilan GES
+Un modèle de coût répond à ce que coûte une unité de travail. Un bilan GES (gaz à effet de serre)
 demande à qui est l'émission et sous quel scope elle se déclare — et la réponse
 tient à un seul fait que le modèle énonce déjà : qui exploite la machine.
 `saggio scopes` l'imprime, chaque rapport le porte, et
@@ -469,7 +472,7 @@ pas.
 [`PAYSAGE.md`](PAYSAGE.md) situe cet outil à côté de CodeCarbon, Green Algorithms,
 Scaphandre, PowerAPI, Cloud Carbon Footprint et le reste du domaine, et dit
 honnêtement là où chacun d'eux est le meilleur choix — plus les outils qu'une
-équipe RSE a déjà, qui répondent à une tout autre question.
+équipe RSE (responsabilité sociétale des entreprises) a déjà, qui répondent à une tout autre question.
 
 ## Le nom
 
@@ -482,4 +485,4 @@ chaque valeur et à quelle date quelqu'un l'a lue.
 
 ## Licence
 
-[BSD 3-Clause](LICENSE). Warith Harchaoui, Ph.D.
+[BSD 3-Clause](LICENSE) — Berkeley Software Distribution. Warith Harchaoui, Ph.D.

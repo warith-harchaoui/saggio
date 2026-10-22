@@ -2,12 +2,13 @@
 
 🇫🇷 Français · [🇬🇧 STANDARDS.md](STANDARDS.md)
 
-Il existe une norme internationale pour ce que produit ce paquet, et elle existe
-depuis 2024. La spécification **Software Carbon Intensity** —
-[ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/), écrite par
-la Green Software Foundation — demande des émissions *par unité fonctionnelle de
-travail*, avec la frontière déclarée, sans compensation, et avec une intensité
-carbone liée au lieu.
+Une norme internationale couvre ce que produit ce paquet, depuis 2024. La
+spécification **Software Carbon Intensity**, écrite par la Green Software
+Foundation et publiée conjointement par l'Organisation internationale de
+normalisation et la Commission électrotechnique internationale sous la référence
+[ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/), demande
+des émissions *par unité fonctionnelle de travail*, avec la frontière déclarée,
+sans compensation, avec une intensité carbone liée au lieu.
 
 Ce n'est pas une forme à laquelle ce paquet a été adapté. C'est la forme dans
 laquelle il a été bâti, avant que personne ici n'ait lu la spécification : un
@@ -61,10 +62,10 @@ sa frontière en toutes lettres à côté du nombre :
 
 | Pièce | kgCO2e par appareil | Frontière | Source |
 |---|---|---|---|
-| A100 (SXM 40 Go) | 127,6 | Du berceau à la sortie d'usine, ACV par démontage avec analyse élémentaire primaire | [arXiv:2509.00093](https://arxiv.org/abs/2509.00093) |
-| H100 | 164,0 | Une des huit d'une carte mère HGX H100 : 1 312 kg ÷ 8, ISO 14067, revue par un tiers | [Résumé PCF NVIDIA](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) |
+| A100 (SXM 40 Go) | 127,6 | Du berceau à la sortie d'usine, analyse du cycle de vie (ACV) par démontage avec analyse élémentaire primaire | [arXiv:2509.00093](https://arxiv.org/abs/2509.00093) |
+| H100 | 164,0 | Une des huit d'une carte mère HGX H100 : 1 312 kg ÷ 8, ISO 14067, revue par un tiers | [Résumé d'empreinte carbone produit (PCF) NVIDIA](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) |
 | B200 | 284,25 | Une des huit d'une carte mère HGX B200 : 2 274 kg ÷ 8, même méthode | [Résumé PCF NVIDIA](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) |
-| TPU v4 | 366,0 | Une puce et sa HBM, du berceau à la sortie d'usine, ISO 14040/14044, modélisée par son concepteur depuis son nœud, son die et son rendement | [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) |
+| TPU v4 | 366,0 | Une puce et sa mémoire à haute bande passante (HBM), du berceau à la sortie d'usine, ISO 14040/14044, modélisée par son concepteur depuis son nœud, son die et son rendement | [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) |
 | EPYC 7742 | 40,66 | Du berceau à la sortie d'usine, depuis un die de 1 600 mm² | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 | EPYC 9654 | 33,98 | Du berceau à la sortie d'usine, depuis un die de 1 261 mm² | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 | Core i9-13900K | 14,2 | Du berceau à la sortie d'usine, depuis un die de 257 mm² | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
@@ -89,10 +90,11 @@ refuser. Ces quatre-là attendent une valeur publiée, ou une colonne à elles.
 
 **Ce qu'est un `source_url`, et ce qu'il n'est pas.** Il existe pour qu'un
 lecteur vérifie le chiffre d'à côté, donc il doit être ouvrable par un humain.
-Deux des sources ici sont des API, et elles se comportent autrement quand un
+Deux des sources ici sont des API (interface de programmation applicative),
+et elles se comportent autrement quand un
 lecteur suit le lien plutôt qu'un programme : Boavizta répond **19,0 kgCO2e** —
 la valeur par défaut d'une puce anonyme, et le chiffre exact que ce paquet refuse
-à l'import — tandis qu'Ember répond HTTP 403 et `{"detail":"No API key set"}`.
+à l'import — tandis qu'Ember répond HyperText Transfer Protocol (HTTP) 403 et `{"detail":"No API key set"}`.
 Quatre lignes processeur citaient la première : qui cliquait voyait un nombre
 sans rapport avec le processeur de la ligne.
 
@@ -105,7 +107,7 @@ lecteur. Les deux sont désormais nommées dans la portée ou en prose, où nomm
 endpoint est de la provenance, et aucune n'est dans un champ qu'un lecteur est
 invité à suivre. Les lignes du réseau citent le [jeu de données annuel publié par
 Ember](https://ember-energy.org/data/yearly-electricity-data/), qui est la même
-série sous CC-BY-4.0, ne demande aucune clé, et a été recoupé pays par pays
+série sous CC (Creative Commons)-BY-4.0, ne demande aucune clé, et a été recoupé pays par pays
 contre l'API avant d'être adopté plutôt que supposé équivalent.
 
 **Le seul chiffre non constructeur a été recoupé avec un chiffre indépendant.**
@@ -144,7 +146,7 @@ l'empreinte une moyenne de famille portant le nom de la puce. Deux sont des
 valeurs par défaut du catalogue, dont l'empreinte serait un défaut aussi.
 
 Les accélérateurs ne peuvent pas être remplis ainsi du tout. La même source,
-interrogée sur n'importe quel GPU par son nom, répond 575,1 kgCO2e — le même
+interrogée sur n'importe quel GPU (graphics processing unit) par son nom, répond 575,1 kgCO2e — le même
 nombre pour une GTX 1080 Ti, une A100 et une H100, parce qu'elle ne tient qu'un
 archétype nommé « Large GPU ». C'est trois fois et demie le chiffre vérifié de
 NVIDIA pour une H100, et il arrive portant le nom de modèle demandé. Le
@@ -198,7 +200,7 @@ de bas de page.
 
 ## Ce que demandent les réglementations, qui est moins
 
-Le [règlement européen sur l'IA](https://digital-strategy.ec.europa.eu/en/faqs/guidelines-obligations-general-purpose-ai-providers)
+Le [règlement européen sur l'intelligence artificielle (IA)](https://digital-strategy.ec.europa.eu/en/faqs/guidelines-obligations-general-purpose-ai-providers)
 oblige les fournisseurs de modèles d'IA à usage général à documenter, à l'annexe
 XI, les ressources de calcul employées pour l'entraînement et la **consommation
 d'énergie connue ou estimée** du modèle. Quand elle n'est pas connue, le texte
@@ -225,9 +227,9 @@ hydriques, et la Commission publie ce qui remonte.
 [COM(2026) 500 final](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf),
 du 21 septembre 2026, est la première évaluation de ce type.
 
-Pour 2024, elle donne un **PUE de 1,36** à l'échelle de l'Union, pondéré par
+Pour 2024, elle donne un **PUE (power usage effectiveness) de 1,36** à l'échelle de l'Union, pondéré par
 l'énergie sur les 681 centres dont la valeur a passé le contrôle qualité, et un
-**WUE de 0,58** litre par kilowattheure sur les 458 ayant déclaré une
+**WUE (water usage effectiveness) de 0,58** litre par kilowattheure sur les 458 ayant déclaré une
 consommation d'eau non nulle. Les deux sont au catalogue sous le fournisseur
 `on-prem-eu`, et le second compte plus qu'il n'y paraît : l'eau était un `TODO`
 sur chaque modèle auto-hébergé que ce paquet a écrit, parce que *« On-premises
@@ -247,7 +249,7 @@ installations déclarantes sont signalés par la Commission elle-même comme
 possiblement non représentatifs. Recopier une valeur depuis un graphique est la
 façon dont un nombre cesse de pouvoir dire d'où il vient : aucune n'est ici. Les
 valeurs par installation ne sont pas disponibles du tout, et ne le seront pas :
-l'article 5(5) du règlement délégué (UE) 2024/1364 impose l'anonymisation de la
+l'article 5(5) du règlement délégué (UE (Union européenne)) 2024/1364 impose l'anonymisation de la
 base.
 
 ## Le faire
@@ -277,12 +279,12 @@ moitié.
 ## Sources
 
 - [Spécification Software Carbon Intensity](https://sci.greensoftware.foundation/), ISO/IEC 21031:2024 · [SCI for AI](https://greensoftware.foundation/standards/sci-ai/)
-- *Report on the energy efficiency of data centres in the EU*, COM(2026) 500 final, 21 septembre 2026 — [copie du Conseil, PDF](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf) · la page de la Commission redirige vers [EUR-Lex](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A52026DC0500), qui sert un corps vide à tout ce qui n'est pas un navigateur.
+- *Report on the energy efficiency of data centres in the EU*, COM(2026) 500 final, 21 septembre 2026 — [copie du Conseil, Portable Document Format (PDF)](https://data.consilium.europa.eu/doc/document/ST-13443-2026-INIT/en/pdf) · la page de la Commission redirige vers [EUR-Lex](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A52026DC0500), qui sert un corps vide à tout ce qui n'est pas un navigateur.
 - [Résumé PCF NVIDIA HGX H100](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) · [HGX B200](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) — ISO 14067, revue par un tiers, du berceau à la sortie d'usine.
 - *More than Carbon: Cradle-to-Grave environmental impacts of GenAI training on the NVIDIA A100 GPU*, [arXiv:2509.00093](https://arxiv.org/abs/2509.00093).
 - *Life-Cycle Emissions of AI Hardware: A Cradle-To-Grave Approach and
   Generational Trends*, [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) —
-  l'ACV par Google de cinq générations de TPU, ISO 14040/14044, et la première
+  l'ACV (analyse du cycle de vie) par Google de cinq générations de TPU, ISO 14040/14044, et la première
   publication d'une empreinte de fabrication d'accélérateur par ceux qui l'ont
   conçu. La ligne TPU v4 vient de son tableau 1.
 - [Données annuelles d'électricité d'Ember](https://ember-energy.org/data/yearly-electricity-data/)

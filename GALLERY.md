@@ -70,7 +70,7 @@ chosen; the detector now knows the difference, and the line above finds nothing.
 
 Read as **training**, and as compute-bound, which licenses the accelerator
 projection. Seven files state an epoch count and they disagree: the training
-configs say 400 and 500, the SSL default says 100, the evaluation scripts say 10
+configs say 400 and 500, the SSL (self-supervised learning) default says 100, the evaluation scripts say 10
 and 30. It goes with `configs/train/cell_dino/vitl16_boc_hpafov.yaml`, and lists
 the other six.
 
@@ -184,7 +184,7 @@ machine, with the country stated.
 
 | Model | Unit of work | Time | Carbon | What stayed open |
 |---|---|---|---|---|
-| [`render`](examples/render.yaml) · [report](examples/render.md) | one HTML report rendered | 0.0272 s, measured | 8.34e-06 gCO2e, estimated | water, market-based scope 2, embodied |
+| [`render`](examples/render.yaml) · [report](examples/render.md) | one HyperText Markup Language (HTML) report rendered | 0.0272 s, measured | 8.34e-06 gCO2e, estimated | water, market-based scope 2, embodied |
 | [`request`](examples/request.yaml) · [report](examples/request.md) | one `/scopes` request handled end to end | 0.00385 s, measured | 1.19e-06 gCO2e, estimated | water, market-based scope 2, embodied |
 
 Both were measured on an Apple M2 Max, twelve cores, in France, by running the
@@ -260,7 +260,7 @@ saggio diff examples/walkthrough/1-as-read.yaml examples/walkthrough/3-measured.
 
 Stages two and three come out of the same command. `--into` writes the measured
 runtime into the model and recomputes everything that derives from it, which is
-the part nobody gets right by hand: pasting a runtime into a YAML file leaves the
+the part nobody gets right by hand: pasting a runtime into a YAML (YAML Ain't Markup Language) file leaves the
 energy, the money and the carbon holding their old values, and a model whose
 energy no longer matches its runtime is worse than one that had neither, because
 it looks finished. `--units 500` says the command performed five hundred units of
@@ -360,7 +360,7 @@ arrives expecting. The reading is in
 [`LANDSCAPE.md`](LANDSCAPE.md#where-the-field-publishes-its-measurements), read
 on 2026-10-18; this is what it changed here.
 
-**A leaderboard.** [ML.ENERGY](https://ml.energy/leaderboard/) measures
+**A machine learning (ML) leaderboard.** [ML.ENERGY](https://ml.energy/leaderboard/) measures
 inference energy for 46 models across 7 tasks, 1,858 configurations on H100 and
 B200 boards. Its rows compare because it holds the question constant: the
 hardware, the task, and each model's minimum-energy configuration. **This gallery
@@ -382,7 +382,7 @@ not say which machine it describes is a figure somebody will file against the
 wrong one.
 
 **A case-study catalogue.** The Green Software Foundation publishes
-[eleven SCI case studies](https://sci-guide.greensoftware.foundation/CaseStudies/)
+[eleven Software Carbon Intensity (SCI) case studies](https://sci-guide.greensoftware.foundation/CaseStudies/)
 — CAST, UBS, NTT DATA, Microsoft, AFAS and others — each a filed figure for a
 real application. The index carries the organisation, a sentence and a link; the
 figure, the functional unit and the boundary live inside the linked document.
@@ -422,7 +422,7 @@ because nothing got worse; it fails on a cost that moved past the threshold, on
 a status that weakened even when the number did not, and on a quantity that
 disappeared.
 
-### The same model, answered over HTTP
+### The same model, answered over HyperText Transfer Protocol (HTTP)
 
 The gallery is eight files. Since 1.5.0 they are also eight answers a service
 can give, which is what a reader who will never install a Python package gets:
@@ -474,7 +474,7 @@ and the signal went from 152 uncaveated identifiers to 17. Audit it yourself wit
 the command at the end of this page if you want to see it.
 
 **One more it found, and closed by adding a command.** The third stage of the
-walkthrough had to be written by a script calling the Python API, because nothing
+walkthrough had to be written by a script calling the Python API (application programming interface), because nothing
 on the command line could put a measurement into an existing model: pasting a
 runtime into YAML leaves everything derived from it stale. `saggio measure --into`
 now does it, and the script is gone.

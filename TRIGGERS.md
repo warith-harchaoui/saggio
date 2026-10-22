@@ -11,7 +11,7 @@ the right tool, and for an agent deciding whether to invoke the
 
 It answers **what does it cost to run this code, per unit of work, and how much
 should I trust that answer**: money, time, energy, carbon, water, and any
-dimension a team registers, written to a YAML file that lives next to the code and
+dimension a team registers, written to a YAML (YAML Ain't Markup Language) file that lives next to the code and
 rendered into reports.
 
 ## What it does, and how to reach it
@@ -22,7 +22,7 @@ rendered into reports.
 | Check one against the rules | `... validate` | `validate` |
 | Know which open question to answer first | `... next` | `next_questions`, `questions_payload` |
 | Build one from a repository | `... audit` | `audit`, `audit_git_url` |
-| Place each figure in a GHG inventory | `... scopes` | `placement`, `placements` |
+| Place each figure in a Greenhouse Gas (GHG) inventory | `... scopes` | `placement`, `placements` |
 | Measure a real command | `... measure` | `run_slice` |
 | Report it for people | `... render` | `render_markdown`, `render_html`, `render_office` |
 | Fail a build on drift | `... diff` | `compare` |
@@ -34,7 +34,7 @@ rendered into reports.
 
 **Cost of running.** "What does it cost to run this?", "cost per inference",
 "cost per request", "cost per training run", "how much does this job cost",
-"cost per API call", "unit economics of this service", "what is our cost per
+"cost per API (application programming interface) call", "unit economics of this service", "what is our cost per
 thousand predictions".
 
 **Energy and power.** "How much energy does this use", "watts", "kilowatt hours",
@@ -46,7 +46,7 @@ inference", "emissions of this pipeline", "green software", "how much CO2 does
 our API emit", "sustainability report for this service", "grid intensity",
 "Green Algorithms", "scope 2 for this workload".
 
-**Water.** "Water footprint of this datacenter workload", "WUE", "how much cooling
+**Water.** "Water footprint of this datacenter workload", "WUE (water usage effectiveness)", "how much cooling
 water".
 
 **Auditing a codebase.** "Audit this repo for running cost", "what is expensive in
@@ -54,19 +54,19 @@ this codebase", "which paid APIs does this call", "what does this project spend
 per run", "profile where the cost goes".
 
 **Projecting.** "What would this cost on an H100", "extrapolate from this run",
-"if we moved this to GCP", "what would the whole training run cost", "what if we
+"if we moved this to GCP (Google Cloud Platform)", "what would the whole training run cost", "what if we
 ran this in Sweden instead", "cost at a million requests a day".
 
 **Reporting and compliance, which is the same question from the other end.**
 "Which scope does our software fall under", "is our cloud compute scope 2 or
 scope 3", "scope 3 category 1 for our cloud spend", "we need a defensible figure
-for CSRD", "ESRS E1", "location-based and market-based", "what does the auditor
+for CSRD (Corporate Sustainability Reporting Directive)", "ESRS (European Sustainability Reporting Standards) E1", "location-based and market-based", "what does the auditor
 need to see", "empreinte carbone de notre service", "bilan carbone du numérique",
 "facteur d'émission de notre électricité", "un chiffre défendable pour le
 reporting extra-financier".
 
 **Keeping it honest.** "Has our cost per request drifted", "fail the build if this
-gets more expensive", "track the carbon cost in CI", "is this number still true".
+gets more expensive", "track the carbon cost in CI (continuous integration)", "is this number still true".
 
 ## Files and artefacts that should fire
 
@@ -77,7 +77,7 @@ gets more expensive", "track the carbon cost in CI", "is this number still true"
 
 ## Phrasings that should *not* fire
 
-- **Cloud billing.** "Why was our AWS bill so high last month" is a question for
+- **Cloud billing.** "Why was our AWS (Amazon Web Services) bill so high last month" is a question for
   Cost Explorer. This tool models the cost of a unit of work from first
   principles; it does not read invoices.
 - **Live observability.** "Which endpoint is slow right now" is a question for
@@ -94,7 +94,7 @@ gets more expensive", "track the carbon cost in CI", "is this number still true"
 - **Code optimisation on its own.** "Make this function faster" is a profiling
   question. This tool profiles a slice to attribute cost, but it does not rewrite
   your code.
-- **Hardware purchasing.** "Which GPU should we buy" needs embodied carbon,
+- **Hardware purchasing.** "Which GPU (graphics processing unit) should we buy" needs embodied carbon,
   lifetime, and utilisation, none of which this tool models.
 
 ## What it will refuse, out loud

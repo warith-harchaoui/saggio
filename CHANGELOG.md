@@ -7,6 +7,11 @@ schema is versioned separately, in its own `schema_version` field: within a majo
 line it only grows, so a model written today keeps validating against every later
 release of that line.
 
+Every initialism below is written out in [GLOSSARY.md](GLOSSARY.md). This file is
+appended to and read newest-first, so an initialism's first use is in the oldest
+entry at the bottom — the one place a reader starting here will never reach, which
+is why the vocabulary is one click away instead.
+
 ## Unreleased
 
 ### Four locale rules read from a database instead of kept by hand, and two of them were wrong

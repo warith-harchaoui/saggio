@@ -9,7 +9,7 @@ specific, and three of them need no Python at all.
 
 ### A catalogue row
 
-The package cannot know every accelerator, every national grid, or every paid API.
+The package cannot know every accelerator, every national grid, or every paid API (application programming interface).
 When it meets one it does not know, it says so by name:
 
 ```
@@ -39,7 +39,7 @@ a source.
 
 **And a manufacturing footprint needs one thing more: what one of it is.** This
 is the field people expect a tool to fill in for them, and it is the one a tool
-cannot. NVIDIA's PCF summaries state, in prose a parser would find on the first
+cannot. NVIDIA's PCF (product carbon footprint) summaries state, in prose a parser would find on the first
 try, that the cradle-to-gate footprint of an HGX H100 baseboard is 1,312 kgCO2e
 — 2,274 for an HGX B200. This catalogue's unit is **one accelerator**. The
 divisor is on a different page, in a spec table reading *"Form Factor: 8x NVIDIA
@@ -47,7 +47,7 @@ H100 SXM"*, and the knowledge that it is needed at all comes from the schema
 rather than from the document.
 
 A row carrying `embodied_kgco2e: 1312` under the key `H100` would be wrong by a
-factor of eight and would look impeccable: a real vendor URL, a real date, a
+factor of eight and would look impeccable: a real vendor URL (Uniform Resource Locator), a real date, a
 number genuinely printed in the document. That is the worst output this package
 can produce, and it is why **there is no verb that reads a PCF and proposes a
 row**. Reading the number is the easy half; knowing what one unit of the
@@ -69,7 +69,7 @@ value thing here, and they are welcome even without a patch.
 The third contribution that needs no Python. Two files, one top-level code in
 each:
 
-- `reporting/i18n.yaml` — every label on the HTML report. Word them however
+- `reporting/i18n.yaml` — every label on the HTML (HyperText Markup Language) report. Word them however
   reads best; they are read by people.
 - `saggio/data/prompts.yaml` — the sentence asking a local model to write its
   one sentence of prose in your language. This one is not free text: it has to
@@ -81,7 +81,7 @@ Then `python3 reporting/sync.py`, so the packaged copy of the report assets
 matches the authored one, and the tests. Contract tests refuse a language only
 one of the two files has, and a language missing any key the English table has.
 Nothing else changes: the report's language button, `saggio audit --language`,
-the HTTP field and the agent tool are all built from what those files contain.
+the HTTP (HyperText Transfer Protocol) field and the agent tool are all built from what those files contain.
 
 ## Changing the code
 
@@ -182,8 +182,8 @@ is how the Gemini pricing row was found pointing at a page Google had retired �
 and **no reply at all** means a host that may simply be slow today.
 
 A link that *illustrates a command* rather than vouching for a number belongs on
-a domain reserved for documentation (`example.invalid` and the rest of RFC
-2606), and the checker skips those by rule. This is not a convenience: an
+a domain reserved for documentation (`example.invalid` and the rest of
+Request for Comments (RFC) 2606), and the checker skips those by rule. This is not a convenience: an
 invented source on a real vendor's domain is indistinguishable from a stale one,
 which is the worst a citation can be. Four pages carried
 `nvidia.com/en-us/data-center/h300/` for a graphics card that does not exist.
@@ -203,7 +203,7 @@ with a sentence explaining what it is for.
 ## Reporting something
 
 An issue is most useful with the model that shows it. `cost_of_running.yaml` is
-plain YAML and safe to paste; check first that yours carries nothing private, since
+plain YAML (YAML Ain't Markup Language) and safe to paste; check first that yours carries nothing private, since
 a model can name internal services and repository paths.
 
 For anything with a security dimension, write to the address in `pyproject.toml`
@@ -212,4 +212,5 @@ rather than opening a public issue.
 ## Licence
 
 By contributing you agree that your contribution is licensed under the
-[BSD 3-Clause](LICENSE) licence, the same as the rest of the project.
+[BSD 3-Clause](LICENSE) licence (Berkeley Software Distribution), the same
+as the rest of the project.

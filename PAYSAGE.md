@@ -58,8 +58,8 @@ régénérez avec `standpoint <table> -r saggio --model qwen3:8b` et commitez le
 
 L'outil le plus connu du domaine, et le bon premier choix quand ce qu'on veut,
 c'est une ligne de Python qui enregistre les émissions d'un entraînement pendant
-qu'il tourne. Il suit CPU, GPU et mémoire via RAPL et `nvidia-smi`, cherche une
-intensité carbone régionale, et écrit un CSV.
+qu'il tourne. Il suit CPU (central processing unit), GPU (graphics processing unit) et mémoire via RAPL (Running Average Power Limit) et `nvidia-smi`, cherche une
+intensité carbone régionale, et écrit un CSV (comma-separated values).
 
 Ce qui diffère : CodeCarbon mesure un *épisode*. Il répond « qu'a émis cette
 exécution », pas « que coûte une requête », et sa sortie est un journal plutôt
@@ -158,11 +158,11 @@ la refacturation interne.**
 
 ### Consoles de facturation cloud
 
-AWS Cost Explorer, GCP Billing, Azure Cost Management. Font autorité sur ce qui
+AWS (Amazon Web Services) Cost Explorer, GCP (Google Cloud Platform) Billing, Azure Cost Management. Font autorité sur ce qui
 vous a été facturé, ce qui est exactement une dimension d'une question, après coup.
 **Prenez-les quand la question est « pourquoi la facture était-elle si grosse ».**
 
-## L'autre côté de la pièce : ce qu'une équipe RSE a déjà
+## L'autre côté de la pièce : ce qu'une équipe de responsabilité sociétale des entreprises (RSE) a déjà
 
 Les outils ci-dessus répondent à une question d'ingénierie. Ceux qui doivent
 *déclarer* un chiffre carbone en utilisent un tout autre jeu, et aucun ne figure
@@ -196,7 +196,7 @@ Coding Solutions. L'outil mesure l'énergie et le carbone d'une exécution
 logicielle par configuration-as-code, et publie ce qu'il a mesuré : des
 [pages de statistiques](https://metrics.green-coding.io/) par exécution, des
 vues chronologiques qui suivent un projet de commit en commit, des vues de
-comparaison, une API publique et des badges d'intégration continue. Energy-ID
+comparaison, une interface de programmation applicative (API) publique et des badges d'intégration continue. Energy-ID
 est la base de données à côté : elle évalue des logiciels libres, des outils en
 ligne de commande et des primitives de langage sur des machines fixes, et publie
 une fiche par tâche, chacune énonçant la machine et portant la réserve dans ses
@@ -204,8 +204,8 @@ propres mots : *« absolute numbers shown here are not to be taken as ground
 truth »*. C'est la base de preuves publique la plus complète du domaine, et ce
 qui ressemble le plus à une galerie chez ces outils.
 
-**[Le classement ML.ENERGY](https://ml.energy/leaderboard/)**, par l'initiative
-ML.ENERGY du Michigan ([arXiv:2505.06371](https://arxiv.org/abs/2505.06371)).
+**[Le classement ML.ENERGY](https://ml.energy/leaderboard/)** — l'énergie du machine learning (ML) —
+par l'initiative ML.ENERGY du Michigan ([arXiv:2505.06371](https://arxiv.org/abs/2505.06371)).
 L'énergie d'inférence de modèles génératifs, mesurée plutôt que modélisée : la
 version 3.0 rapporte 46 modèles sur 7 tâches, 1 858 configurations sur des GPU
 NVIDIA H100 et B200. Ce qui rend ses lignes comparables est ce qu'elle tient
@@ -216,7 +216,7 @@ raisonnement coûtent environ **vingt-cinq fois** l'énergie par réponse d'une
 conversation textuelle ordinaire, un terme bien plus grand que tout ce qu'un
 outil qui lit du code peut voir.
 
-**[Les études de cas SCI de la Green Software Foundation](https://sci-guide.greensoftware.foundation/CaseStudies/)**.
+**[Les études de cas Software Carbon Intensity (SCI) de la Green Software Foundation](https://sci-guide.greensoftware.foundation/CaseStudies/)**.
 Onze publiées, par CAST, UBS, NTT DATA, Microsoft, AFAS et d'autres, chacune un
 chiffre SCI déclaré pour une vraie application. L'index porte l'organisation, une
 phrase et un lien ; le chiffre, l'unité fonctionnelle et la frontière sont dans
@@ -281,10 +281,10 @@ Autant être honnête sur les manques, puisque c'est toute la prémisse de l'out
   machine partagée, c'est toujours le manque qui compte le plus.
 - **Deux plateformes, pas trois.** Linux et macOS, qui lisent toutes deux de
   vrais compteurs — zones powercap par leur nom, `IOReport` sur Apple Silicon,
-  NVML et les interfaces sysfs `amdgpu` / `i915` / `xe` pour l'accélérateur.
+  NVML (NVIDIA Management Library) et les interfaces sysfs `amdgpu` / `i915` / `xe` pour l'accélérateur.
   Windows est hors périmètre plutôt qu'inachevé : il n'offre aucun compteur
   d'énergie processeur sans privilèges, aucun total de temps processeur machine,
-  et aucune comptabilité POSIX des ressources — chaque chiffre y serait une
+  et aucune comptabilité POSIX (Portable Operating System Interface) des ressources — chaque chiffre y serait une
   estimation. Plus étroit que les outils au-dessus dans ce tableau, et étroit à
   dessein.
 - **Un compteur n'est pas la prise murale.** Ventilateurs, stockage, réseau et
@@ -295,7 +295,9 @@ Autant être honnête sur les manques, puisque c'est toute la prémisse de l'out
 - **Pas de suivi continu.** Une tranche bornée, une fois. Si vous voulez une série
   temporelle, ce n'est pas la bonne forme d'outil.
 - **Le carbone incorporé est implémenté et à peine catalogué.** L'arithmétique est
-  là — les quatre termes d'ISO/IEC 21031, amortis en temps calendaire — et huit
+  là — les quatre termes de la norme conjointe de l'Organisation internationale
+  de normalisation et de la Commission électrotechnique internationale,
+  ISO/IEC 21031, amortis en temps calendaire — et huit
   empreintes aussi : quatre accélérateurs sur 25 lignes et quatre processeurs sur
   12. Tout le reste rapporte `TODO`. La durée de vie reste à vous, parce que
   combien de temps une carte reste en service est un fait sur un parc et non sur

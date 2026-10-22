@@ -10,7 +10,7 @@ précises, et trois d'entre elles ne demandent pas une ligne de Python.
 ### Une ligne de catalogue
 
 Le paquet ne peut pas connaître tous les accélérateurs, tous les réseaux
-électriques nationaux, toutes les API payantes. Quand il en croise un qu'il ne
+électriques nationaux, toutes les API (interface de programmation applicative) payantes. Quand il en croise un qu'il ne
 connaît pas, il le dit, par son nom :
 
 ```
@@ -40,7 +40,7 @@ constructeur, la page du régulateur, le rapport de durabilité de l'hébergeur.
 
 **Et une empreinte de fabrication demande une chose de plus : ce dont elle est
 l'empreinte.** C'est le champ qu'on attend d'un outil, et c'est celui qu'un
-outil ne peut pas remplir. Les fiches PCF de NVIDIA énoncent, dans une prose
+outil ne peut pas remplir. Les fiches PCF (empreinte carbone produit) de NVIDIA énoncent, dans une prose
 qu'un analyseur trouverait du premier coup, que l'empreinte du berceau à la
 sortie d'usine d'une carte de base HGX H100 est de 1 312 kgCO2e — 2 274 pour une
 HGX B200. L'unité de ce catalogue est **un accélérateur**. Le diviseur est sur
@@ -49,7 +49,7 @@ NVIDIA H100 SXM »*, et savoir qu'il faut diviser vient du schéma, pas du
 document.
 
 Une ligne portant `embodied_kgco2e: 1312` sous la clé `H100` serait fausse d'un
-facteur huit et paraîtrait impeccable : une vraie URL constructeur, une vraie
+facteur huit et paraîtrait impeccable : une vraie URL (Uniform Resource Locator) constructeur, une vraie
 date, un nombre réellement imprimé dans le document. C'est la pire sortie que ce
 paquet puisse produire, et c'est pourquoi **il n'existe aucun verbe qui lit un
 PCF et propose une ligne**. Lire le nombre est la moitié facile ; savoir ce
@@ -72,7 +72,7 @@ plus précieux ici, et elles sont les bienvenues même sans correctif.
 La troisième contribution qui ne demande pas de Python. Deux fichiers, un code
 de premier niveau dans chacun :
 
-- `reporting/i18n.yaml` — toutes les étiquettes du rapport HTML. Formulez-les
+- `reporting/i18n.yaml` — toutes les étiquettes du rapport HTML (HyperText Markup Language). Formulez-les
   comme elles se lisent le mieux ; ce sont des humains qui les lisent.
 - `saggio/data/prompts.yaml` — la phrase qui demande à un modèle local d'écrire
   dans votre langue son unique phrase de prose. Celle-ci n'est pas du texte
@@ -84,7 +84,7 @@ Puis `python3 reporting/sync.py`, pour que la copie empaquetée des ressources d
 rapport corresponde à celle d'origine, et les tests. Des tests de contrat
 refusent une langue que seul l'un des deux fichiers porte, et une langue à qui
 manque une clé que la table anglaise possède. Rien d'autre ne change : le bouton
-de langue du rapport, `saggio audit --language`, le champ HTTP et l'outil
+de langue du rapport, `saggio audit --language`, le champ HTTP (HyperText Transfer Protocol) et l'outil
 d'agent sont tous construits depuis ce que ces fichiers contiennent.
 
 ## Modifier le code
@@ -193,7 +193,7 @@ un hôte peut-être simplement lent aujourd'hui.
 
 Un lien qui *illustre une commande* plutôt que de répondre d'un nombre doit
 vivre sur un domaine réservé à la documentation (`example.invalid` et le reste
-de la RFC 2606), et le vérificateur les saute par règle. Ce n'est pas un
+de la Request for Comments (RFC) 2606), et le vérificateur les saute par règle. Ce n'est pas un
 confort : une source inventée sur le domaine d'un vrai constructeur est
 indiscernable d'une source périmée, ce qui est le pire qu'une citation puisse
 être. Quatre pages portaient `nvidia.com/en-us/data-center/h300/` pour une carte
@@ -216,7 +216,7 @@ rencontre avec une phrase disant à quoi il sert.
 ## Signaler quelque chose
 
 Une issue est surtout utile avec le modèle qui montre le problème.
-`cost_of_running.yaml` est du YAML simple et sans risque à coller ; vérifiez
+`cost_of_running.yaml` est du YAML (YAML Ain't Markup Language) simple et sans risque à coller ; vérifiez
 d'abord que le vôtre ne porte rien de confidentiel, car un modèle peut nommer des
 services internes et des chemins de dépôt.
 
@@ -226,4 +226,5 @@ Pour tout ce qui a une dimension de sécurité, écrivez à l'adresse indiquée 
 ## Licence
 
 En contribuant, vous acceptez que votre contribution soit publiée sous la licence
-[BSD 3-Clause](LICENSE), la même que le reste du projet.
+[BSD 3-Clause](LICENSE) — Berkeley Software Distribution —, la même que le
+reste du projet.

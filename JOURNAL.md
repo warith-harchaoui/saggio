@@ -8,6 +8,12 @@ l'intérieur d'une ligne majeure il ne fait que grandir, si bien qu'un modèle
 écrit aujourd'hui continue de valider contre toutes les versions suivantes de
 cette ligne.
 
+Tout sigle employé ci-dessous est écrit en clair dans [GLOSSAIRE.md](GLOSSAIRE.md).
+Ce fichier s'allonge par le haut et se lit du plus récent au plus ancien : la
+première occurrence d'un sigle se trouve donc dans l'entrée la plus vieille, tout
+en bas, là où personne ne descend. Le vocabulaire est à un clic plutôt qu'à cet
+endroit-là.
+
 ## Non publié
 
 ### Quatre règles de locale lues dans une base au lieu d'être tenues à la main, et deux étaient fausses

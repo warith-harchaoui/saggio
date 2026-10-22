@@ -3,7 +3,10 @@
 [🇫🇷 FRONTIERES.md](FRONTIERES.md) · 🇬🇧 English
 
 Two companies published a carbon figure for one inference in 2026, and the
-figures are more than an order of magnitude apart.
+figures are more than an order of magnitude apart. One is market-based and counts
+idle fleet capacity; the other is location-based and counts the hardware's
+manufacture, under the Association française de normalisation (AFNOR) Frugal
+artificial intelligence (AI) method.
 
 | | Figure | Boundary | Method |
 |---|---|---|---|
@@ -41,7 +44,7 @@ assumed, which says 83.76 W.
 | Boundary | Carbon per request | Status |
 |---|---|---|
 | The processor and its memory only, location-based | 7.93e-07 gCO2e | **computed** |
-| Plus the building's overhead (PUE 1.5), location-based — *this package's default* | 1.19e-06 gCO2e | **computed** |
+| Plus the building's overhead (power usage effectiveness, PUE 1.5), location-based — *this package's default* | 1.19e-06 gCO2e | **computed** |
 | Plus a contract, market-based — *Google's shape* | — | **refused**: needs `assumptions.market_carbon_intensity` |
 | Plus manufacturing the hardware — *AFNOR's shape* | — | **refused**: needs a footprint for this machine and a lifetime |
 
@@ -51,7 +54,8 @@ assumption. That is the small end of the range.
 ## What manufacturing would do, on hardware the catalogue knows
 
 This laptop has no published product carbon footprint, so the fourth row above
-stays open rather than guessing. But the catalogue holds NVIDIA's own ISO 14067
+stays open rather than guessing. But the catalogue holds NVIDIA's own
+International Organization for Standardization (ISO) 14067
 figure for an HGX H100, **164.0 kgCO2e** per board eighth, third-party verified
 and read on 2026-10-01. Amortised over the same 0.0038534 s of runtime:
 
