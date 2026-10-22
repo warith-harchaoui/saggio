@@ -2,9 +2,9 @@
 
 [🇫🇷 EXEMPLES.md](EXEMPLES.md) · 🇬🇧 English
 
-Every command shown here is parsed by the real argument parser in the test suite,
-and the library snippets whose output is printed are run. A renamed flag or an
-arithmetic that drifts turns the build red.
+Every command shown here is parsed by the real argument parser in the test
+suite; the library snippets whose output is printed are run. A renamed flag or
+an arithmetic that drifts turns the build red.
 
 ## Contents
 
@@ -33,9 +33,9 @@ saggio render cost_of_running.yaml -f html -o cost_of_running.html
 open cost_of_running.html
 ```
 
-You now have a cost model where the runtime is a `TODO`, because nothing has been
-run yet, and everything derived from it is a `TODO` too. That is the correct state
-for a model nobody has measured, and the report says so at the top.
+You now have a cost model where the runtime is a `TODO`, because nothing has
+been run yet, as is everything derived from it. That is the correct state for a
+model nobody has measured, and the report says so at the top.
 
 To make it real, measure it:
 
@@ -70,8 +70,8 @@ Valid: 0 errors, 1 warning.
 Weakest number anywhere in the model: TODO.
 ```
 
-Warnings never fail a model. A model that admits it is incomplete is being honest,
-and this package does not punish that.
+Warnings never fail a model. A model that admits it is incomplete is being
+honest, which this package does not punish.
 
 ## Auditing a repository
 
@@ -84,13 +84,13 @@ frameworks it imports, how much work a full run performs, and which paid APIs it
 calls. All of it is deterministic and quotes the line it came from.
 
 The code that tests a repository is read apart from the code it runs. A suite
-writes fixtures, and a fixture that writes `import torch` into a temporary file
-is not a project that trains anything. A framework is counted when a line
-actually imports it, never when a line merely contains its name, so a table of
-framework names in a comment detects nothing. What the suite alone imports is
-reported under `frameworks_in_suite_only`, and a service or a model whose only
-evidence line is a test file arrives with a `caveat` saying so rather than being
-priced as part of the workload.
+writes fixtures; a fixture that writes `import torch` into a temporary file is
+not a project that trains anything. A framework is counted when a line actually
+imports it, never when a line merely contains its name, so a table of framework
+names in a comment detects nothing. What the suite alone imports is reported
+under `frameworks_in_suite_only`, and a service or a model whose only evidence
+line is a test file arrives with a `caveat` saying so rather than being priced
+as part of the workload.
 
 A detected service looks like this in the model:
 
@@ -160,7 +160,7 @@ analysis:
   prose_language: fr
 ```
 
-`workload_kind` does not move, and that is the point: it is matched against a
+`workload_kind` does not move, which is the point: it is matched against a
 closed set, so it is never translated, while `prose_language` records what the
 prose was asked for. The sentence is low-confidence prose from a model and never
 a number — `confidence: low` and `evidence_source` say so on the line itself.
@@ -184,14 +184,15 @@ export SAGGIO_COUNTRY=FR
 saggio audit . -o cost_of_running.yaml
 ```
 
-`--country` wins over the variable, and neither is ever guessed: with no country
+`--country` wins over the variable; neither is ever guessed: with no country
 from either, the carbon and money figures stay open.
 
 ### Pricing the APIs it calls
 
-A price is per *model*, not per vendor: `gpt-4o` and `gpt-4o-mini` are one API (application programming interface) at
-an eightfold difference. So the audit reads the model identifier out of your code,
-with the line that names it, and looks the rates up only when you ask:
+A price is per *model*, not per vendor: `gpt-4o` and `gpt-4o-mini` are one API
+(application programming interface) at an eightfold difference. So the audit
+reads the model identifier out of your code, with the line that names it, then
+looks the rates up only when you ask:
 
 ```bash
 saggio audit . --country FR --fetch-prices -o cost_of_running.yaml
@@ -220,10 +221,10 @@ models_called:
 
 Three things are deliberate there.
 
-**Nothing parses a web page, and no model is asked what one says.** A price on a
-marketing page fails silently and wrongly: a layout change returns the
-struck-through old figure, or the enterprise tier, or the cached-input rate
-instead of the input rate. Only sources published *as data* are read.
+**Nothing parses a web page. No model is asked what one says.** A price on a
+marketing page fails silently and wrongly: a layout change returns the struck-
+through old figure, or the enterprise tier, or the cached-input rate instead of
+the input rate. Only sources published *as data* are read.
 
 **`source_kind` says how close the figure is to whoever sets it.** `stated` when
 a human wrote it, `first-party` when it came from the vendor's own price API,
@@ -243,8 +244,8 @@ same model it produces offline, with the prices left open.
 
 ### What this machine will let you read
 
-Before a measurement is worth anything, it is worth knowing what this machine is,
-and what it is willing to say, and to whom.
+Before a measurement is worth anything, it is worth knowing what this machine
+is, what it is willing to say, and to whom.
 
 ```bash
 # What this machine is: processor, cores, memory, accelerator, platform.
@@ -276,13 +277,14 @@ from. `--json` for a pipeline.
     ...
 ```
 
-Four states, and only one of them is a question for you. `absent` is a property
-of the machine, not a failure. `root-only` is a counter this package will not
-reach for, on purpose. `reads` needs nothing from anybody. `blocked` is the
+Four states, only one of them a question for you. `absent` is a property of the
+machine, not a failure. `root-only` is a counter this package will not reach
+for, on purpose. `reads` needs nothing from anybody. `blocked` is the
 interesting one: the counter is here and closed to *you*, which on Linux since
 5.10 is the default, because sampling it fast enough recovers what other
-processes are computing — the PLATYPUS attack, catalogued in Common Vulnerabilities and Exposures as CVE-2020-8694. So the remedy is
-printed rather than run, with the reason beside it:
+processes are computing — the PLATYPUS attack, catalogued in Common
+Vulnerabilities and Exposures as CVE-2020-8694. So the remedy is printed rather
+than run, with the reason beside it:
 
 ```
 [blocked] Linux powercap (RAPL)
@@ -298,7 +300,7 @@ printed rather than run, with the reason beside it:
 
 Nothing here escalates. No `sudo`, no password prompt, no quiet fall-back to a
 tool that would ask for one. Whether to reopen a published side channel on a
-machine you may share is a decision, and it stays yours.
+machine you may share is a decision that stays yours.
 
 To watch the counters work before a run depends on them, ask for a measurement
 of the machine itself:
@@ -334,16 +336,16 @@ Average power: 96.3 W (measured)
 ```
 
 Three power figures, because a counter measures the *machine* and not your
-program. The machine is watched for a second before the slice starts, and the
+program. The machine is watched for a second before the slice starts; the
 difference is what the slice added. On a laptop with a browser and an indexer
 running, that difference is the only one of the three worth quoting.
 
 The subtraction assumes something nobody checked — that the rest of the machine
 kept doing what it was doing — so the assumption is written into the model
 beside the number. Two cases get said out loud instead: a machine already
-drawing more than half of the total is called out as busy, and a machine that
-grew *quieter* during the slice yields no marginal figure at all, because
-whatever else was running stopped and the baseline was never the slice's floor.
+drawing more than half of the total is called out as busy; a machine that grew
+*quieter* during the slice yields no marginal figure at all, because whatever
+else was running stopped and the baseline was never the slice's floor.
 
 On a machine you know is quiet, skip it and save the second:
 
@@ -351,7 +353,7 @@ On a machine you know is quiet, skip it and save the second:
 saggio measure --baseline 0 -- python train.py --steps 100
 ```
 
-An audit takes the same knob, and a scaling series takes **one** baseline for the
+An audit takes the same knob; a scaling series takes **one** baseline for the
 whole ladder rather than one per rung — the rungs run back to back on the same
 machine, so three baselines would measure the same idle three times:
 
@@ -370,10 +372,25 @@ size 100: the fit predicts 0.188343 s, 0.183739 s was observed   (2.5%)
 size 400: the fit predicts 0.488059 s, 0.494136 s was observed   (1.2%)
 ```
 
-A contract test does exactly that on every committed model, and a second one
-requires the two numbers the method sentence spells to be the two the fields
-carry. Before the coefficient was a field, the observations were kept for a
-check nobody could perform.
+A contract test does exactly that on every committed model. A second requires
+the two numbers the method sentence spells to be the two the fields carry.
+Before the coefficient was a field, the observations were kept for a check
+nobody could perform.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 On a machine that publishes no counter at all there is nothing to skip: the
@@ -393,7 +410,7 @@ across the run; where NVIDIA is not the board present, Linux's own `amdgpu`,
 user.
 
 The accelerator is usually the one that matters: a processor drawing 50 W beside
-a board drawing 300 W is a 350 W machine, and a model that reported the 50 W
+a board drawing 300 W is a 350 W machine, so a model that reported the 50 W
 would be wrong by a factor of seven.
 
 Whatever answered is named in the report, and so is whatever did not. Both
@@ -405,7 +422,7 @@ carries the wattage above which that recovery would have been wrong.
 
 The two lines under the total are the function-level profile, and they cost
 something to obtain. `cProfile` charges per call, so a call-heavy workload can
-take close to twice as long under it, and the wall-clock above is of the profiled
+take close to twice as long under it. The wall-clock above is of the profiled
 run. The command says so in a warning. When the runtime is what you are after
 rather than where it went, take it without the profiler:
 
@@ -416,8 +433,8 @@ saggio measure --no-profile -- python train.py --steps 100
 ### How far would a second run move it?
 
 One run tells you what happened once. It does not tell you whether it would
-happen again, and this package's own gallery proves the two figures do not
-behave the same way:
+happen again. This package's own gallery proves the two figures do not behave
+the same way:
 
 ```bash
 saggio measure --repeat 5 --units 50 -- python render_fifty.py
@@ -442,8 +459,23 @@ leaving a silence that reads as stability.
 
 No function-level profile is taken when `--repeat` is above one: the profiler
 changes what is being timed, so a series with one profiled run among plain ones
-would report a spread the profiler put there. Run it once for the profile, and
+would report a spread the profiler put there. Run it once for the profile,
 several times for the spread.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### Putting the measurement into the model
@@ -476,18 +508,19 @@ recorded runtime is per unit. When the model already knows how much work a whole
 run performs, a whole-run projection follows from the per-unit costs.
 
 An analysis is rarely performed once. State how many times yours actually runs —
-tuning, debugging, re-runs — as `assumptions.pragmatic_scaling_factor` (the Green
-Algorithms paper's term; its worked examples range from 11 to 180), and the next
-fold projects `repeated_runs`: the whole run times that factor, derived from both
-so the validator watches the arithmetic. The factor is the team's own estimate;
-nothing here invents one, and a factor still marked `TODO` yields a projection
-whose figures are open rather than absent, so the report shows the question.
+tuning, debugging, re-runs — as `assumptions.pragmatic_scaling_factor` (the
+Green Algorithms paper's term; its worked examples range from 11 to 180); the
+next fold projects `repeated_runs`: the whole run times that factor, derived
+from both so the validator watches the arithmetic. The factor is the team's own
+estimate; nothing here invents one, and a factor still marked `TODO` yields a
+projection whose figures are open rather than absent, so the report shows the
+question.
 
 Three things are refused rather than written: a command that exited non-zero,
-because a failed run measured a failure and a failure has no cost per unit of work;
-a model with no scenario to write into; and any result that would no longer
-validate. Nothing is half-written, and a fold that changes six numbers prints all
-six.
+because a failed run measured a failure and a failure has no cost per unit of
+work; a model with no scenario to write into; and any result that would no
+longer validate. Nothing is half-written: a fold that changes six numbers prints
+all six.
 
 ```bash
 saggio measure --into cost_of_running.yaml --scenario production -- pytest -q
@@ -550,18 +583,18 @@ projections:
           - A run whose later stages differ in shape will not scale linearly.
 ```
 
-When there is no entry point with a stated size, the repository's own test suite is
-run instead. It covers an unknown share of a real workload, so no whole-run
-projection follows from it, and the audit says exactly that.
+When there is no entry point with a stated size, the repository's own test suite
+is run instead. It covers an unknown share of a real workload, so no whole-run
+projection follows from it, which the audit says exactly.
 
 ### Measuring how the work grows, instead of assuming it
 
-The projection above divides by `0.001` because the slice covered a thousandth of
-the run. That is right when the work is uniform, and when it is not, it is wrong
-by a *power* rather than by a margin: a step that is quadratic in the batch turns
-a thousandth of a run into a millionth of its cost, and the projection understates
-the bill by three orders of magnitude while looking exactly as confident as a
-correct one.
+The projection above divides by `0.001` because the slice covered a thousandth
+of the run. That is right when the work is uniform. When it is not, it is wrong
+by a *power* rather than by a margin: a step that is quadratic in the batch
+turns a thousandth of a run into a millionth of its cost, and the projection
+understates the bill by three orders of magnitude while looking exactly as
+confident as a correct one.
 
 Nothing used to check that assumption. This does:
 
@@ -569,10 +602,10 @@ Nothing used to check that assumption. This does:
 saggio audit . --country FR --run --scaling-steps 3 -o cost_of_running.yaml
 ```
 
-Three slices are run instead of one, at sizes a factor of four apart, and the
-largest of them is the slice that would have been run anyway. The two below it
-add about a third to the time — a quarter and a sixteenth of the top rung — and
-in exchange the exponent stops being an assumption:
+Three slices are run instead of one, at sizes a factor of four apart, the
+largest of them being the slice that would have been run anyway. The two below
+it add about a third to the time — a quarter and a sixteenth of the top rung —
+and in exchange the exponent stops being an assumption:
 
 ```yaml
 measurement:
@@ -593,10 +626,10 @@ measurement:
       - {size: 600.0, seconds: 36.0}
 ```
 
-The exponent is `measured`, because it is a summary of three readings off a clock,
-in the same way that watts from an energy counter over a duration is a
-measurement. What it is *not* is a law: it is `measured` **over the sizes that were
-run**, and every projection that uses it says how far past them it reached.
+The exponent is `measured`, because it is a summary of three readings off a
+clock, in the same way that watts from an energy counter over a duration is a
+measurement. What it is *not* is a law: it is `measured` **over the sizes that
+were run**; every projection that uses it says how far past them it reached.
 
 The projection that follows divides by `0.001^2.000` rather than by `0.001`, which
 on this workload is a factor of a thousand:
@@ -634,11 +667,12 @@ refusal names what would resolve it:
 | A size or a duration is not above zero | A power law is fitted on logarithms | Says a run too short for the clock needs a *larger* slice |
 | The fit explains less than 95% of the variation | The slices are not measuring one consistent behaviour | Names the R² and the usual causes — a cache warming, a schedule that changes shape, a busy machine |
 
-The last one matters most, because it is the one that changes an answer. When the
-fit is that poor, the finding is that **the slice is not representative of the run
-it was cut from**, and a projection made anyway would assert a proportionality the
-runs on hand contradict. So the whole-run block is not written at all, the reason
-travels to the reader as a note, and the refusal is recorded in the model:
+The last one matters most, because it is the one that changes an answer. When
+the fit is that poor, the finding is that **the slice is not representative of
+the run it was cut from**: a projection made anyway would assert a
+proportionality the runs on hand contradict. So the whole-run block is not
+written at all, the reason travels to the reader as a note, and the refusal is
+recorded in the model:
 
 ```yaml
 measurement:
@@ -650,14 +684,14 @@ measurement:
         the 0.95 required. The slices are not measuring one consistent behaviour …
 ```
 
-Having measured the scaling and failed is not the same as never having looked,
-and the model distinguishes them: without `--scaling-steps` the projection keeps
-the linear assumption and records it as an assumption; with it, an unfittable
+Having measured the scaling and failed is not the same as never having looked.
+The model distinguishes them: without `--scaling-steps` the projection keeps the
+linear assumption and records it as an assumption; with it, an unfittable
 workload gets no projection.
 
 Two more things worth knowing before you use it. A scaling series runs **without
 the profiler**, because `cProfile` charges per call and would put its own growth
-curve into the fit — so there is no hot path in the model, and in exchange every
+curve into the fit — so there is no hot path in the model; in exchange every
 cost figure comes from an unprofiled run rather than an inflated one. And a
 repository whose stated size is too small to cut three distinct ways falls back
 to a single slice and says so.
@@ -707,19 +741,20 @@ projections:
       datacenter overhead are the ones stated for this deployment.
 ```
 
-Two things limit a workload on an accelerator, and a projection that knows about
-only one of them is optimistic by construction. Arithmetic throughput limits work
-that keeps the tensor cores fed; memory bandwidth limits work that spends its time
-moving weights. Between a 4090 and an H100 those ratios are 6.0 and 3.3, so the
-answer is a bracket rather than a number. The point estimate is the compute ratio
-when the read established the work is compute-bound, the bandwidth ratio when it
-established the opposite, and the slower of the two when nothing established
-either, because the slower ratio is the longer run and the larger bill.
+Two things limit a workload on an accelerator; a projection that knows about
+only one of them is optimistic by construction. Arithmetic throughput limits
+work that keeps the tensor cores fed; memory bandwidth limits work that spends
+its time moving weights. Between a 4090 and an H100 those ratios are 6.0 and
+3.3, so the answer is a bracket rather than a number. The point estimate is the
+compute ratio when the read established the work is compute-bound, the bandwidth
+ratio when it established the opposite, and the slower of the two when nothing
+established either, because the slower ratio is the longer run and the larger
+bill.
 
 The projection reaches money and carbon, not just a duration, because a duration
 is not the question. It holds the country, the tariff and the grid constant and
 says so: running the work on another accelerator usually means running it
-somewhere else, and where it runs is what sets the price.
+somewhere else; where it runs is what sets the price.
 
 The throughput figure comes from the catalogue column for the precision the work
 runs in. Ask for one the catalogue has not been given and it refuses rather than
@@ -801,12 +836,13 @@ saggio render cost_of_running.yaml -f pdf -o annexe.pdf \
 saggio render cost_of_running.yaml -f docx -o cost_of_running.docx --offline
 ```
 
-The Word and PDF (Portable Document Format) title block names **saggio** as the author and carries the date
-the document was produced. That date is not the one in the body: *Last updated*
-is a fact about the model, when somebody last changed a number in it, and the
-title block is a fact about the file, when this copy was made. A PDF produced
-today from a model nobody has touched since June says both, which is the point —
-a stale figure must not acquire a fresh-looking date by being re-exported.
+The Word and PDF (Portable Document Format) title block names **saggio** as the
+author and carries the date the document was produced. That date is not the one
+in the body: *Last updated* is a fact about the model, when somebody last
+changed a number in it; the title block is a fact about the file, when this copy
+was made. A PDF produced today from a model nobody has touched since June says
+both, which is the point — a stale figure must not acquire a fresh-looking date
+by being re-exported.
 
 Pass `--author` to put a different name on a client deliverable, or `--generated`
 to state the date verbatim (`2026-Q2`, `submitted 14 March`). Both default to
@@ -838,15 +874,14 @@ saggio dashboard examples/nanoGPT.yaml examples/whisper.yaml examples/fastapi.ya
 The dashboard leads with the one comparison that is honest across projects: how
 much of each model is measured, estimated, or still open, drawn as one stacked
 bar per project on the same hundred-percent scale. The costs table follows, per
-each project's own unit of work, and the page says plainly that those rows do not
-compare with each other — one project's unit is a request, another's is a whole
-training run.
+each project's own unit of work, under a line saying plainly that those rows do
+not compare with each other — one project's unit is a request, another's is a
+whole training run.
 
 ## Which question to answer first
 
 An audit comes back with fifteen open fields and each one says what would
-resolve it. None of them says which to answer first, and they are not
-independent.
+resolve it. None of them says which to answer first. Nor are they independent.
 
 ```bash
 saggio next cost_of_running.yaml
@@ -870,9 +905,9 @@ saggio next cost_of_running.yaml --json
 
 The ordering is arithmetic rather than opinion. A quantity names its inputs in
 `derived_from`; reading those edges backwards says which other quantities would
-become computable, and the cascade is counted exactly. **It invents no
-questions**: every line is a field the model already holds open, quoted in the
-sentence the model already wrote for it.
+become computable; the cascade is counted exactly. **It invents no questions**:
+every line is a field the model already holds open, quoted in the sentence the
+model already wrote for it.
 
 A field that closes nothing is still listed, because *close only themselves* is
 the honest description of the water figure or the contracted emission factor.
@@ -904,11 +939,11 @@ category 2; rent it and both reach you as scope 3 category 1, because you bought
 a service. A provider the catalogue does not classify gets **no scope at all**
 rather than the nearest guess.
 
-Two answers are refusals, and both matter more than the placements. A
-**market-based** scope 2 figure is never derived here, because no grid average
-implies one; state `assumptions.market_carbon_intensity` with the document it
-comes from and the figure is computed and placed beside the location-based one.
-And **water has no scope**, because it is not a greenhouse gas.
+Two answers are refusals. Both matter more than the placements. A **market-
+based** scope 2 figure is never derived here, because no grid average implies
+one; state `assumptions.market_carbon_intensity` with the document it comes from
+and the figure is computed and placed beside the location-based one. And **water
+has no scope**, because it is not a greenhouse gas.
 
 [`INVENTORY.md`](INVENTORY.md) is the long form, for the person who has to file
 it rather than the one who measured it.
@@ -925,7 +960,7 @@ it rather than the one who measured it.
     saggio diff cost_of_running.yaml /tmp/now.yaml --threshold 10
 ```
 
-`diff` fails on three things, and the third is the one people forget:
+`diff` fails on three things. The third is the one people forget:
 
 ```bash
 saggio diff before.yaml after.yaml
@@ -945,7 +980,7 @@ somebody deleted the field.
 
 **And a fourth thing it no longer fails on.** When both models carry a
 `--repeat` spread, a movement that fits inside the ranges they each measured is
-not evidence that anything changed, and the gate says so instead of failing:
+not evidence that anything changed, so the gate says so instead of failing:
 
 ```
 scenarios[0].costs.carbon: 8.27e-06 -> 1.85e-05 (+123.6%), inside the noise both
@@ -976,6 +1011,36 @@ intended behaviour and still a limitation worth knowing: **a regression that
 raises the power without touching the runtime** — code that starts using the
 accelerator, say — would pass a gate built on a noisy power measurement.
 Measure on a quiet machine if you want the power band tight enough to gate on.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1010,19 +1075,35 @@ schema rather than from the document — so the verb shows both halves and the
 arithmetic between them instead of handing over a number.
 
 **Three things it will not do.** It will not take a figure that is not in a
-sentence: the parser is an OCR (optical character recognition) engine, so a bar chart becomes text like
-everything else, and a number lifted off a chart is the one thing this package
-will not carry. It will not divide by a number nobody wrote down — a document
-that gives a baseboard figure and never says how many chips the board holds is
-**refused**, not guessed at. And it will not write: there is no `--into`.
+sentence: the parser is an OCR (optical character recognition) engine, so a bar
+chart becomes text like everything else — and a number lifted off a chart is the
+one thing this package will not carry. It will not divide by a number nobody
+wrote down — a document that gives a baseboard figure and never says how many
+chips the board holds is **refused**, not guessed at. And it will not write:
+there is no `--into`.
 
 It needs a document parser, which is not in the default install:
 `pip install 'saggio[pcf]'`. The three runtime dependencies are deliberate.
 
-Over HTTP the same reading is at `POST /catalog/read-pcf`, and it is **off
-unless `SAGGIO_API_ALLOW_FETCH` is set** — fetching an address the client chose
-is the same hazard cloning is, gated separately because an operator who will let
-the server read a PDF has not thereby agreed to let it clone a repository.
+Over HTTP the same reading is at `POST /catalog/read-pcf`, **off unless
+`SAGGIO_API_ALLOW_FETCH` is set** — fetching an address the client chose is the
+same hazard cloning is, gated separately because an operator who will let the
+server read a PDF has not thereby agreed to let it clone a repository.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ```bash
@@ -1068,9 +1149,9 @@ saggio catalog refresh grid
 ```
 
 Read-only. It prints what the source says today against what the catalogue
-holds, and writes nothing. `--write saggio/data/grid.yaml` is the deliberate
-second step. `--column` picks what to re-read — `carbon` by default, `price`, or
-`both` — because the two columns do not come from the same place and do not move
+holds, writing nothing. `--write saggio/data/grid.yaml` is the deliberate second
+step. `--column` picks what to re-read — `carbon` by default, `price`, or `both`
+— because the two columns do not come from the same place and do not move
 together:
 
 ```bash
@@ -1080,8 +1161,8 @@ saggio catalog refresh grid --column both --write saggio/data/grid.yaml
 
 Each column carries its own `*_source_url`, its own `*_retrieved_date`, and the
 period the figure describes — `carbon_data_year: 2025`, `price_collected: "Q3
-2026"`. The date a number was *read* is not the period it describes, and a row
-that recorded only the first would let a figure from 2019 look like today's.
+2026"`. The date a number was *read* is not the period it describes; a row that
+recorded only the first would let a figure from 2019 look like today's.
 
 **And the period is per row, not per file.** Ember does not publish every country
 up to the same year: most reach 2025, Ukraine's series stops at 2022. A single
@@ -1120,7 +1201,7 @@ machine reports. A zone the database publishes under no name at all fails the
 command instead of being corrected, since that is a question and not a fix.
 
 Each column also runs on its own clock. A tariff and a grid mix move monthly; a
-timezone list is published a handful of times a year, and asking for it monthly
+timezone list is published a handful of times a year. Asking for it monthly
 would teach a maintainer to re-date rather than re-read — the habit the whole
 freshness mechanism exists to prevent.
 
@@ -1132,31 +1213,32 @@ That table is written by a script rather than served, so the refresh renders the
 page in a headless browser; with no browser installed it says so and stops
 rather than guessing.
 
-The more authoritative body for Europe is
-[Eurostat](https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?format=JSON&lang=EN&nrg_cons=KWH2500-4999&tax=I_TAX&currency=EUR&unit=KWH&lastTimePeriod=1),
-and it was read — as a **check**, not as the source. It publishes in euros and
-for Europe only, so taking it would have meant a second source for the exchange
-rate, a conversion going stale daily, and eighteen rows that could not be
-compared with the other twenty. Converted at the [European Central Bank's
-reference rate](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml),
-the two agree to a median of 7% across the eighteen countries both cover, and
-disagree by more than 15% for six: Finland, Romania, Poland, Norway, Sweden and
-Italy. That is a difference of method rather than an error in either — Eurostat
+The more authoritative body for Europe is [Eurostat](https://ec.europa.eu/eurost
+at/api/dissemination/statistics/1.0/data/nrg_pc_204?format=JSON&lang=EN&nrg_cons
+=KWH2500-4999&tax=I_TAX&currency=EUR&unit=KWH&lastTimePeriod=1), which was read
+— as a **check**, not as the source. It publishes in euros and for Europe only,
+so taking it would have meant a second source for the exchange rate, a
+conversion going stale daily, and eighteen rows that could not be compared with
+the other twenty. Converted at the [European Central Bank's reference
+rate](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml), the two
+agree to a median of 7% across the eighteen countries both cover, and disagree
+by more than 15% for six: Finland, Romania, Poland, Norway, Sweden and Italy.
+That is a difference of method rather than an error in either — Eurostat
 averages a half-year by consumption band, the other is one collection. All three
 URLs are in the source, so the comparison can be run again.
 
 A country the source does not answer for is left alone and named. Nothing is
 interpolated, carried over, or averaged.
 
-**What the first real run found.** Before writing anything, the refreshed figures
-were checked against Ember's full series, year by year, to confirm the catalogue
-was simply a year behind. It was not. The committed values best-matched Ember
-years scattered from 2000 to 2025, and eight countries matched no Ember year
-within 8% — Sweden sat at 13 gCO2e/kWh where the lowest figure Ember has ever
-published for it is 34.91. Every row cited Ember. A `source_url` that does not
-contain the number beside it is the exact failure this package exists to object
-to, and it was in the package's own data until `saggio catalog refresh grid`
-replaced the lot with one verifiable 2025 vintage.
+**What the first real run found.** Before writing anything, the refreshed
+figures were checked against Ember's full series, year by year, to confirm the
+catalogue was simply a year behind. It was not. The committed values
+best-matched Ember years scattered from 2000 to 2025. Eight countries matched no
+Ember year within 8% — Sweden sat at 13 gCO2e/kWh where the lowest figure Ember
+has ever published for it is 34.91. Every row cited Ember. A `source_url` that
+does not contain the number beside it is the exact failure this package exists
+to object to, and it was in the package's own data until `saggio catalog refresh
+grid` replaced the lot with one verifiable 2025 vintage.
 
 Seven tests then failed, every one of them because it had copied a catalogue
 number into an assertion rather than reading it. A package whose argument is that
@@ -1173,9 +1255,9 @@ saggio catalog freshness --within 14
 > 32 more. Re-read the source now rather than re-dating it later.
 
 That warning exists for one reason. A gate that turns red overnight gets the
-date bumped in a hurry rather than the source re-read, and a re-dated number
-nobody looked at is precisely the thing this whole mechanism was built to stop.
-A week's notice — `--within 0` turns it off — is enough to go and read Ember
+date bumped in a hurry rather than the source re-read; a re-dated number nobody
+looked at is precisely the thing this whole mechanism was built to stop. A
+week's notice — `--within 0` turns it off — is enough to go and read Ember
 properly.
 
 ## The library

@@ -2,9 +2,10 @@
 
 🇫🇷 Français · [🇬🇧 EXAMPLES.md](EXAMPLES.md)
 
-Chaque commande montrée ici est analysée par le vrai analyseur d'arguments dans la
-suite de tests, et les extraits de bibliothèque dont la sortie est affichée sont
-exécutés. Une option renommée ou une arithmétique qui dérive fait rougir le build.
+Chaque commande montrée ici est analysée par le vrai analyseur d'arguments dans
+la suite de tests ; les extraits de bibliothèque dont la sortie est affichée
+sont exécutés. Une option renommée ou une arithmétique qui dérive fait rougir le
+build.
 
 ## Sommaire
 
@@ -34,9 +35,8 @@ open cost_of_running.html
 ```
 
 Vous avez maintenant un modèle de coût où la durée est un `TODO`, parce que rien
-n'a encore été exécuté, et où tout ce qui en dérive est un `TODO` aussi. C'est
-l'état correct pour un modèle que personne n'a mesuré, et le rapport le dit en
-tête.
+n'a encore été exécuté, comme tout ce qui en dérive. C'est l'état correct pour
+un modèle que personne n'a mesuré, et le rapport le dit en tête.
 
 Pour le rendre réel, mesurez-le :
 
@@ -80,18 +80,20 @@ incomplet est honnête, et ce paquet ne punit pas l'honnêteté.
 saggio audit . --country FR -o cost_of_running.yaml
 ```
 
-Lire un dépôt établit ce qu'il est : ses langages, sa forme, les frameworks qu'il
-importe, la quantité de travail d'une exécution complète, et quelles API (interface de programmation applicative) payantes
-il appelle. Tout est déterministe et cite la ligne d'où ça vient.
+Lire un dépôt établit ce qu'il est : ses langages, sa forme, les frameworks
+qu'il importe, la quantité de travail d'une exécution complète, quelles API
+(interface de programmation applicative) payantes il appelle. Tout est
+déterministe et cite la ligne d'où ça vient.
 
 Le code qui teste un dépôt est lu à part du code qu'il exécute. Une suite écrit
-des fixtures, et une fixture qui écrit `import torch` dans un fichier temporaire
+des fixtures ; une fixture qui écrit `import torch` dans un fichier temporaire
 n'est pas un projet qui entraîne quoi que ce soit. Un framework est compté quand
-une ligne l'importe vraiment, jamais quand une ligne contient seulement son nom :
-une table de noms de frameworks dans un commentaire ne détecte rien. Ce que seule
-la suite importe est rapporté sous `frameworks_in_suite_only`, et un service ou un
-modèle dont l'unique ligne de preuve est un fichier de test arrive avec un
-`caveat` qui le dit, au lieu d'être tarifé comme faisant partie de la charge.
+une ligne l'importe vraiment, jamais quand une ligne contient seulement son nom
+: une table de noms de frameworks dans un commentaire ne détecte rien. Ce que
+seule la suite importe est rapporté sous `frameworks_in_suite_only`, et un
+service ou un modèle dont l'unique ligne de preuve est un fichier de test arrive
+avec un `caveat` qui le dit, au lieu d'être tarifé comme faisant partie de la
+charge.
 
 Un service détecté ressemble à ceci dans le modèle :
 
@@ -161,7 +163,7 @@ analysis:
   prose_language: fr
 ```
 
-`workload_kind` ne bouge pas, et c'est le but : il est comparé à un ensemble
+`workload_kind` ne bouge pas, ce qui est le but : il est comparé à un ensemble
 fermé, donc jamais traduit, tandis que `prose_language` enregistre la langue
 demandée. La phrase reste de la prose à faible confiance produite par un modèle,
 jamais un chiffre — `confidence: low` et `evidence_source` le disent sur la
@@ -188,15 +190,16 @@ export SAGGIO_COUNTRY=FR
 saggio audit . -o cost_of_running.yaml
 ```
 
-`--country` l'emporte sur la variable, et ni l'un ni l'autre n'est jamais deviné :
-sans pays d'aucun des deux côtés, les chiffres carbone et argent restent ouverts.
+`--country` l'emporte sur la variable ; ni l'un ni l'autre n'est jamais deviné :
+sans pays d'aucun des deux côtés, les chiffres carbone et argent restent
+ouverts.
 
 ### Tarifer les API qu'il appelle
 
-Un tarif est par *modèle*, pas par fournisseur : `gpt-4o` et `gpt-4o-mini` sont la
-même API à un facteur huit. L'audit lit donc l'identifiant du modèle dans votre
-code, avec la ligne qui le nomme, et ne cherche les tarifs que si vous le
-demandez :
+Un tarif est par *modèle*, pas par fournisseur : `gpt-4o` et `gpt-4o-mini` sont
+la même API à un facteur huit. L'audit lit donc l'identifiant du modèle dans
+votre code, avec la ligne qui le nomme, puis ne cherche les tarifs que si vous
+le demandez :
 
 ```bash
 saggio audit . --country FR --fetch-prices -o cost_of_running.yaml
@@ -225,19 +228,19 @@ models_called:
 
 Trois choses y sont voulues.
 
-**Aucune page web n'est analysée, et aucun modèle n'est interrogé sur ce qu'une
-page dit.** Un tarif sur une page marketing échoue silencieusement et faussement :
-un changement de mise en page renvoie l'ancien prix barré, ou le palier
+**Aucune page web n'est analysée. Aucun modèle n'est interrogé sur ce qu'une
+page dit.** Un tarif sur une page marketing échoue silencieusement et faussement
+: un changement de mise en page renvoie l'ancien prix barré, ou le palier
 entreprise, ou le tarif d'entrée en cache au lieu du tarif d'entrée. Seules les
 sources publiées *en tant que données* sont lues.
 
 **`source_kind` dit à quelle distance le chiffre est de celui qui le fixe.**
-`stated` quand un humain l'a écrit, `first-party` quand il vient de l'API de prix
-du vendeur, `aggregator` quand il vient de la transcription d'un tiers. Les
+`stated` quand un humain l'a écrit, `first-party` quand il vient de l'API de
+prix du vendeur, `aggregator` quand il vient de la transcription d'un tiers. Les
 fournisseurs de grands modèles ne publient pas d'API de prix : leurs tarifs sont
-donc `aggregator`, et le modèle le dit au lieu de l'habiller. `saggio diff` échoue
-quand la provenance d'un prix s'affaiblit, exactement comme quand un statut
-s'affaiblit.
+donc `aggregator`, ce que le modèle dit au lieu de l'habiller. `saggio diff`
+échoue quand la provenance d'un prix s'affaiblit, exactement comme quand un
+statut s'affaiblit.
 
 **Le tarif est connu ; l'usage ne l'est pas.** Combien de tokens consomme une
 unité de travail n'est pas établi par la lecture du code : ça reste `TODO`. Le
@@ -283,14 +286,15 @@ pièce d'où elle vient. `--json` pour une chaîne de traitement.
     ...
 ```
 
-Quatre états, et un seul est une question qui vous revient. `absent` est une
+Quatre états, un seul étant une question qui vous revient. `absent` est une
 propriété de la machine, pas un échec. `root-only` est un compteur que ce paquet
 refuse d'aller chercher, délibérément. `reads` ne demande rien à personne.
 `blocked` est le cas intéressant : le compteur est là et il vous est fermé — ce
 qui, sous Linux, est le défaut depuis la 5.10, parce que l'échantillonner assez
 vite permet de reconstituer ce que calculent les autres processus : l'attaque
-PLATYPUS, inscrite au catalogue Common Vulnerabilities and Exposures sous CVE-2020-8694. Le remède est donc affiché plutôt qu'exécuté, avec sa
-raison à côté :
+PLATYPUS, inscrite au catalogue Common Vulnerabilities and Exposures sous
+CVE-2020-8694. Le remède est donc affiché plutôt qu'exécuté, avec sa raison à
+côté :
 
 ```
 [blocked] Linux powercap (RAPL)
@@ -345,15 +349,15 @@ Average power: 96.3 W (measured)
 
 Trois chiffres de puissance, parce qu'un compteur mesure la *machine* et non
 votre programme. La machine est observée une seconde avant le début de la
-tranche, et la différence est ce que la tranche a ajouté. Sur un portable avec un
+tranche ; la différence est ce que la tranche a ajouté. Sur un portable avec un
 navigateur et un indexeur qui tournent, cette différence est le seul des trois
 chiffres qui mérite d'être cité.
 
 La soustraction suppose quelque chose que personne n'a vérifié — que le reste de
-la machine a continué à faire ce qu'il faisait — donc l'hypothèse est écrite dans
-le modèle à côté du nombre. Deux cas sont dits à voix haute plutôt que
+la machine a continué à faire ce qu'il faisait — donc l'hypothèse est écrite
+dans le modèle à côté du nombre. Deux cas sont dits à voix haute plutôt que
 soustraits : une machine qui tirait déjà plus de la moitié du total est signalée
-comme occupée, et une machine devenue *plus calme* pendant la tranche ne donne
+comme occupée ; une machine devenue *plus calme* pendant la tranche ne donne
 aucun chiffre marginal, parce que ce qui tournait par ailleurs s'est arrêté et
 que la ligne de base n'a jamais été le plancher de cette tranche.
 
@@ -363,10 +367,10 @@ Sur une machine que vous savez calme, passez outre et gagnez la seconde :
 saggio measure --baseline 0 -- python train.py --steps 100
 ```
 
-Un audit prend le même réglage, et une série de mise à l'échelle prend **une**
+Un audit prend le même réglage ; une série de mise à l'échelle prend **une**
 ligne de base pour toute l'échelle plutôt qu'une par barreau — les barreaux
-s'enchaînent sur la même machine, trois lignes de base mesureraient trois fois le
-même repos :
+s'enchaînent sur la même machine, trois lignes de base mesureraient trois fois
+le même repos :
 
 ```bash
 saggio audit . --country FR --run --baseline 0 --scaling-steps 3 -o cost_of_running.yaml
@@ -384,10 +388,17 @@ taille 100 : l'ajustement prédit 0,188343 s, 0,183739 s observé   (2,5 %)
 taille 400 : l'ajustement prédit 0,488059 s, 0,494136 s observé   (1,2 %)
 ```
 
-Un test de contrat fait exactement cela sur chaque modèle commité, et un second
+Un test de contrat fait exactement cela sur chaque modèle commité. Un second
 exige que les deux nombres épelés par la phrase de méthode soient ceux que
 portent les champs. Avant que le coefficient soit un champ, les observations
 étaient conservées pour une vérification que personne ne pouvait faire.
+
+
+
+
+
+
+
 
 
 Sur une machine qui ne publie aucun compteur, il n'y a rien à passer : la ligne de
@@ -396,19 +407,19 @@ instrument qui n'existe pas.
 
 La puissance est mesurée à partir des compteurs que cette machine publie — ceux
 que `saggio power` vient d'énumérer. Sous Linux, c'est l'arborescence powercap :
-chaque paquet, la zone `psys` de préférence aux paquets qu'elle contient, et la
-zone mémoire à côté, dont l'énergie n'est *pas* dans le chiffre du paquet. Sur un
-Mac Apple Silicon, ce sont les compteurs de la puce : cœurs du processeur, cœurs
-graphiques, moteur neuronal et mémoire, lus sans mot de passe. Sur toute machine
-portant une carte NVIDIA, le pilote répond, soit par un compteur d'énergie
-cumulée, soit, sur les cartes qui n'en tiennent pas, par la moyenne de relevés
-pris toutes les demi-secondes pendant la course ; quand ce n'est pas NVIDIA qui
-est présent, les pilotes `amdgpu`, `i915` et `xe` de Linux publient la même chose
-par sysfs, à un utilisateur ordinaire.
+chaque paquet, la zone `psys` de préférence aux paquets qu'elle contient, la
+zone mémoire à côté, dont l'énergie n'est *pas* dans le chiffre du paquet. Sur
+un Mac Apple Silicon, ce sont les compteurs de la puce : cœurs du processeur,
+cœurs graphiques, moteur neuronal et mémoire, lus sans mot de passe. Sur toute
+machine portant une carte NVIDIA, le pilote répond, soit par un compteur
+d'énergie cumulée, soit, sur les cartes qui n'en tiennent pas, par la moyenne de
+relevés pris toutes les demi-secondes pendant la course ; quand ce n'est pas
+NVIDIA qui est présent, les pilotes `amdgpu`, `i915` et `xe` de Linux publient
+la même chose par sysfs, à un utilisateur ordinaire.
 
 C'est en général l'accélérateur qui compte : un processeur qui tire 50 W à côté
-d'une carte qui en tire 300 est une machine à 350 W, et un modèle qui rapporterait
-les 50 W se tromperait d'un facteur sept.
+d'une carte qui en tire 300 est une machine à 350 W, si bien qu'un modèle qui
+rapporterait les 50 W se tromperait d'un facteur sept.
 
 Ce qui a répondu est nommé dans le rapport, et ce qui n'a pas répondu aussi. Les
 deux compteurs donnent un chiffre qui dit ce qu'il laisse de côté ; l'accélérateur
@@ -419,8 +430,8 @@ plage publiée, et le chiffre porte la puissance au-delà de laquelle ce
 redressement aurait été faux.
 
 Les deux lignes sous le total sont le profil par fonction, et elles se paient.
-`cProfile` facture à l'appel : une charge riche en appels peut mettre presque deux
-fois plus de temps sous lui, et le temps affiché ci-dessus est celui de
+`cProfile` facture à l'appel : une charge riche en appels peut mettre presque
+deux fois plus de temps sous lui. Le temps affiché ci-dessus est celui de
 l'exécution profilée. La commande le dit dans un avertissement. Quand c'est la
 durée qui vous intéresse et non l'endroit où elle est passée, prenez-la sans le
 profileur :
@@ -432,7 +443,7 @@ saggio measure --no-profile -- python train.py --steps 100
 ### De combien une seconde exécution la déplacerait-elle ?
 
 Une exécution dit ce qui s'est passé une fois. Elle ne dit pas si cela se
-reproduirait, et la galerie de ce paquet prouve que les deux figures ne se
+reproduirait. La galerie de ce paquet prouve que les deux figures ne se
 comportent pas pareil :
 
 ```bash
@@ -451,7 +462,7 @@ mesure la machine et que l'une de ces cinq exécutions a attrapé autre chose qu
 se réveillait.
 
 Avec `--into`, le modèle porte l'exécution dont le temps était médian — une
-exécution réelle, et non une médiane assemblée champ par champ, parce que
+exécution réelle plutôt qu'une médiane assemblée champ par champ, parce que
 l'énergie d'un modèle est son temps multiplié par sa puissance et que mélanger
 des exécutions énoncerait un couple qui n'a jamais eu lieu. L'étendue est
 inscrite à côté, dans le bloc de mesure et dans les notes de chaque quantité
@@ -459,9 +470,16 @@ qu'elle borne. Une valeur mesurée une seule fois le dit, plutôt que de laisser
 un silence passer pour de la stabilité.
 
 Aucun profil par fonction n'est pris quand `--repeat` dépasse un : le profileur
-change ce qui est chronométré, et une série avec une exécution profilée au
-milieu d'exécutions ordinaires rapporterait un écart que le profileur y aurait
-mis. Une fois pour le profil, plusieurs fois pour l'écart.
+change ce qui est chronométré ; une série avec une exécution profilée au milieu
+d'exécutions ordinaires rapporterait un écart que le profileur y aurait mis. Une
+fois pour le profil, plusieurs fois pour l'écart.
+
+
+
+
+
+
+
 
 
 ### Mettre la mesure dans le modèle
@@ -482,12 +500,13 @@ saggio measure --into cost_of_running.yaml --units 500 -- python predict.py --n 
   whole run: projected from the per-unit costs above
 ```
 
-C'est l'étape qu'on rate à la main. Coller une durée dans le YAML (YAML Ain't Markup Language) laisse l'énergie,
-l'argent et le carbone sur leurs anciennes valeurs, et un modèle dont l'énergie ne
-correspond plus à sa durée est pire qu'un modèle qui n'avait ni l'une ni l'autre,
-parce qu'il a l'air fini. Chaque chiffre ci-dessus est recalculé à partir des
-hypothèses du modèle lui-même, par les fonctions qu'emploie l'audit, et le résultat
-est validé avant que quoi que ce soit ne soit écrit.
+C'est l'étape qu'on rate à la main. Coller une durée dans le YAML (YAML Ain't
+Markup Language) laisse l'énergie, l'argent et le carbone sur leurs anciennes
+valeurs ; un modèle dont l'énergie ne correspond plus à sa durée est pire qu'un
+modèle qui n'avait ni l'une ni l'autre, parce qu'il a l'air fini. Chaque chiffre
+ci-dessus est recalculé à partir des hypothèses du modèle lui-même, par les
+fonctions qu'emploie l'audit, et le résultat est validé avant que quoi que ce
+soit ne soit écrit.
 
 `--units 500` dit que la commande a effectué cinq cents unités de travail : la
 durée enregistrée est donc par unité. Quand le modèle sait déjà quelle quantité de
@@ -496,18 +515,19 @@ des coûts unitaires.
 
 Une analyse est rarement exécutée une seule fois. Dites combien de fois la vôtre
 tourne vraiment — réglage, débogage, relances — dans
-`assumptions.pragmatic_scaling_factor` (le terme du papier Green Algorithms ; ses
-exemples vont de 11 à 180), et le pliage suivant projette `repeated_runs` :
+`assumptions.pragmatic_scaling_factor` (le terme du papier Green Algorithms ;
+ses exemples vont de 11 à 180). Le pliage suivant projette `repeated_runs` :
 l'exécution complète multipliée par ce facteur, dérivée des deux pour que le
 validateur surveille l'arithmétique. Le facteur est l'estimation de l'équipe ;
-rien ici n'en invente un, et un facteur encore marqué `TODO` donne une projection
-aux chiffres ouverts plutôt qu'absents, pour que le rapport montre la question.
+rien ici n'en invente un, et un facteur encore marqué `TODO` donne une
+projection aux chiffres ouverts plutôt qu'absents, pour que le rapport montre la
+question.
 
 Trois choses sont refusées plutôt qu'écrites : une commande sortie en non-zéro,
-parce qu'une exécution ratée a mesuré un échec et qu'un échec n'a pas de coût par
-unité de travail ; un modèle sans scénario où écrire ; et tout résultat qui ne
-validerait plus. Rien n'est écrit à moitié, et un pliage qui change six nombres les
-affiche tous les six.
+parce qu'une exécution ratée a mesuré un échec et qu'un échec n'a pas de coût
+par unité de travail ; un modèle sans scénario où écrire ; et tout résultat qui
+ne validerait plus. Rien n'est écrit à moitié : un pliage qui change six nombres
+les affiche tous les six.
 
 ```bash
 saggio measure --into cost_of_running.yaml --scenario production -- pytest -q
@@ -570,18 +590,18 @@ projections:
 ```
 
 Quand il n'y a pas de point d'entrée avec une taille annoncée, c'est la suite de
-tests du dépôt qui est exécutée. Elle couvre une part inconnue d'une vraie charge
-de travail, donc aucune projection sur l'exécution complète n'en découle, et
-l'audit le dit exactement.
+tests du dépôt qui est exécutée. Elle couvre une part inconnue d'une vraie
+charge de travail, donc aucune projection sur l'exécution complète n'en découle,
+ce que l'audit dit exactement.
 
 ### Mesurer comment le travail croît, au lieu de le supposer
 
 La projection ci-dessus divise par `0,001` parce que la tranche couvrait un
-millième de l'exécution. C'est juste quand le travail est uniforme, et quand il ne
-l'est pas, c'est faux d'une *puissance* et non d'une marge : une étape quadratique
-en la taille du lot transforme un millième d'exécution en un millionième de son
-coût, et la projection sous-estime la facture de trois ordres de grandeur avec
-exactement l'assurance d'une projection correcte.
+millième de l'exécution. C'est juste quand le travail est uniforme. Quand il ne
+l'est pas, c'est faux d'une *puissance* et non d'une marge : une étape
+quadratique en la taille du lot transforme un millième d'exécution en un
+millionième de son coût, et la projection sous-estime la facture de trois ordres
+de grandeur avec exactement l'assurance d'une projection correcte.
 
 Rien ne vérifiait cette hypothèse. Ceci la vérifie :
 
@@ -590,7 +610,7 @@ saggio audit . --country FR --run --scaling-steps 3 -o cost_of_running.yaml
 ```
 
 Trois tranches sont exécutées au lieu d'une, à des tailles espacées d'un facteur
-quatre, et la plus grande est la tranche qui aurait été exécutée de toute façon.
+quatre, la plus grande étant la tranche qui aurait été exécutée de toute façon.
 Les deux en dessous ajoutent environ un tiers au temps — un quart et un seizième
 du barreau supérieur — et en échange l'exposant cesse d'être une hypothèse :
 
@@ -613,11 +633,11 @@ measurement:
       - {size: 600.0, seconds: 36.0}
 ```
 
-L'exposant est `measured`, parce qu'il résume trois lectures d'horloge, de la même
-manière que des watts tirés d'un compteur d'énergie sur une durée sont une mesure.
-Ce qu'il n'est *pas*, c'est une loi : il est `measured` **sur les tailles qui ont
-été exécutées**, et chaque projection qui l'utilise dit de combien elle est allée
-au-delà.
+L'exposant est `measured`, parce qu'il résume trois lectures d'horloge, de la
+même manière que des watts tirés d'un compteur d'énergie sur une durée sont une
+mesure. Ce qu'il n'est *pas*, c'est une loi : il est `measured` **sur les
+tailles qui ont été exécutées** ; chaque projection qui l'utilise dit de combien
+elle est allée au-delà.
 
 La projection qui suit divise par `0,001^2,000` plutôt que par `0,001`, ce qui sur
 cette charge fait un facteur mille :
@@ -644,9 +664,9 @@ projections:
 
 #### Quand elle refuse, et pourquoi c'est la réponse utile
 
-Une mesure qui revient en disant *je ne peux pas savoir* vaut mieux qu'un exposant
-que personne ne peut vérifier. La série refuse donc dans quatre situations, et
-chaque refus nomme ce qui le lèverait :
+Une mesure qui revient en disant *je ne peux pas savoir* vaut mieux qu'un
+exposant que personne ne peut vérifier. La série refuse donc dans quatre
+situations, chaque refus nommant ce qui le lèverait :
 
 | Situation | Pourquoi | Ce qu'elle dit |
 |---|---|---|
@@ -657,10 +677,10 @@ chaque refus nomme ce qui le lèverait :
 
 La dernière compte le plus, parce que c'est celle qui change une réponse. Quand
 l'ajustement est aussi mauvais, le constat est que **la tranche n'est pas
-représentative de l'exécution dont elle a été coupée**, et une projection faite
+représentative de l'exécution dont elle a été coupée** : une projection faite
 malgré tout affirmerait une proportionnalité que les exécutions disponibles
-contredisent. Le bloc whole_run n'est donc pas écrit du tout, la raison remonte au
-lecteur sous forme de note, et le refus est consigné dans le modèle :
+contredisent. Le bloc whole_run n'est donc pas écrit du tout, la raison remonte
+au lecteur sous forme de note, et le refus est consigné dans le modèle :
 
 ```yaml
 measurement:
@@ -673,17 +693,17 @@ measurement:
 ```
 
 Avoir mesuré la mise à l'échelle et échoué n'est pas la même chose que n'avoir
-jamais regardé, et le modèle distingue les deux : sans `--scaling-steps`, la
+jamais regardé. Le modèle distingue les deux : sans `--scaling-steps`, la
 projection garde l'hypothèse linéaire et la consigne comme une hypothèse ; avec,
 une charge inajustable n'obtient aucune projection.
 
 Deux choses encore avant de l'utiliser. Une série de mise à l'échelle s'exécute
 **sans le profileur**, parce que `cProfile` facture à l'appel et injecterait sa
-propre courbe de croissance dans l'ajustement — il n'y a donc pas de chemin chaud
-dans le modèle, et en échange chaque chiffre de coût provient d'une exécution non
-profilée plutôt que gonflée. Et un dépôt dont la taille annoncée est trop petite
-pour être coupée en trois tailles distinctes retombe sur une tranche unique et le
-dit.
+propre courbe de croissance dans l'ajustement — il n'y a donc pas de chemin
+chaud dans le modèle ; en échange chaque chiffre de coût provient d'une
+exécution non profilée plutôt que gonflée. Et un dépôt dont la taille annoncée
+est trop petite pour être coupée en trois tailles distinctes retombe sur une
+tranche unique et le dit.
 
 La méthode n'est pas neuve. C'est celle de [Goldsmith, Aiken et Wilkerson,
 *Measuring Empirical Computational
@@ -731,21 +751,22 @@ projections:
       datacenter overhead are the ones stated for this deployment.
 ```
 
-Deux choses limitent une charge sur un accélérateur, et une projection qui n'en
+Deux choses limitent une charge sur un accélérateur ; une projection qui n'en
 connaît qu'une est optimiste par construction. Le débit arithmétique limite le
-travail qui garde les unités de calcul occupées ; la bande passante mémoire limite
-le travail qui passe son temps à déplacer des poids. Entre une 4090 et une H100,
-ces deux rapports valent 6,0 et 3,3 : la réponse est donc un encadrement, pas un
-nombre. L'estimation ponctuelle est le rapport de calcul quand la lecture a établi
-que la charge est limitée par le calcul, le rapport de bande passante quand elle a
-établi l'inverse, et le plus lent des deux quand elle n'a rien établi, parce que le
-rapport le plus lent, c'est l'exécution la plus longue et la facture la plus lourde.
+travail qui garde les unités de calcul occupées ; la bande passante mémoire
+limite le travail qui passe son temps à déplacer des poids. Entre une 4090 et
+une H100, ces deux rapports valent 6,0 et 3,3 : la réponse est donc un
+encadrement, pas un nombre. L'estimation ponctuelle est le rapport de calcul
+quand la lecture a établi que la charge est limitée par le calcul, le rapport de
+bande passante quand elle a établi l'inverse, et le plus lent des deux quand
+elle n'a rien établi, parce que le rapport le plus lent, c'est l'exécution la
+plus longue et la facture la plus lourde.
 
-La projection va jusqu'à l'argent et au carbone, pas seulement jusqu'à une durée,
-parce qu'une durée n'est pas la question posée. Elle tient le pays, le tarif et le
-mix électrique constants, et elle le dit : faire tourner le travail sur un autre
-accélérateur, c'est en général le faire tourner ailleurs, et c'est l'endroit qui
-fixe le prix.
+La projection va jusqu'à l'argent et au carbone, pas seulement jusqu'à une
+durée, parce qu'une durée n'est pas la question posée. Elle tient le pays, le
+tarif et le mix électrique constants, et elle le dit : faire tourner le travail
+sur un autre accélérateur, c'est en général le faire tourner ailleurs ; et c'est
+l'endroit qui fixe le prix.
 
 Le chiffre de débit vient de la colonne du catalogue correspondant à la précision
 dans laquelle le travail tourne. Demandez-en une que le catalogue ne porte pas et
@@ -786,8 +807,8 @@ scenarios:
         status: "measured"
 ```
 
-Rien dans le paquet n'a besoin de changer. Le validateur la tient aux mêmes règles,
-le rapport lui donne une ligne, et la barrière de dérive la surveille.
+Rien dans le paquet n'a besoin de changer. Le validateur la tient aux mêmes
+règles, le rapport lui donne une ligne, la barrière de dérive la surveille.
 
 Pour dire que davantage vaut mieux plutôt que pire :
 
@@ -866,15 +887,14 @@ saggio dashboard examples/nanoGPT.yaml examples/whisper.yaml examples/fastapi.ya
 Le dashboard ouvre sur la seule comparaison honnête entre projets : la part de
 chaque modèle qui est mesurée, estimée, ou encore ouverte, dessinée en une barre
 empilée par projet, toutes sur la même échelle de cent pour cent. Le tableau des
-coûts suit, par unité de travail propre à chaque projet, et la page dit
+coûts suit, par unité de travail propre à chaque projet, sous une ligne disant
 clairement que ces lignes ne se comparent pas entre elles — l'unité de l'un est
 une requête, celle de l'autre un entraînement complet.
 
 ## À quelle question répondre en premier
 
-Un audit revient avec quinze champs ouverts, chacun disant ce qui le
-résoudrait. Aucun ne dit par lequel commencer, et ils ne sont pas
-indépendants.
+Un audit revient avec quinze champs ouverts, chacun disant ce qui le résoudrait.
+Aucun ne dit par lequel commencer. Ils ne sont pas indépendants non plus.
 
 ```bash
 saggio next cost_of_running.yaml
@@ -898,9 +918,9 @@ saggio next cost_of_running.yaml --json
 
 Le classement est de l'arithmétique, pas une opinion. Une grandeur nomme ses
 entrées dans `derived_from` ; lire ces arêtes à l'envers dit quelles autres
-grandeurs deviendraient calculables, et la cascade se compte exactement.
-**Aucune question n'est inventée** : chaque ligne est un champ que le modèle
-tient déjà ouvert, cité dans la phrase que le modèle a déjà écrite pour lui.
+grandeurs deviendraient calculables ; la cascade se compte exactement. **Aucune
+question n'est inventée** : chaque ligne est un champ que le modèle tient déjà
+ouvert, cité dans la phrase que le modèle a déjà écrite pour lui.
 
 Un champ qui ne ferme rien reste listé, parce que « ne ferme que lui-même » est
 la description honnête du chiffre d'eau ou du facteur d'émission contractuel.
@@ -923,8 +943,8 @@ saggio scopes cost_of_running.yaml --scenario cold
 ```
 
 La commande ne calcule rien. Chaque nombre est déjà dans le modèle ; ce qui
-s'ajoute est le scope, la phrase qui le justifie, et un décompte de la solidité
-des figures placées — qui est la part d'estimation qu'un déclarant doit publier,
+s'ajoute est le scope, la phrase qui le justifie, un décompte de la solidité des
+figures placées — qui est la part d'estimation qu'un déclarant doit publier,
 déjà écrite.
 
 Le scope tient à un seul fait que le modèle énonce, `deployment.provider` :
@@ -934,12 +954,12 @@ catégorie 1, puisque vous avez acheté un service. Un fournisseur que le
 catalogue ne classe pas n'obtient **aucun scope** plutôt que la supposition la
 plus proche.
 
-Deux réponses sont des refus, et ils comptent davantage que les placements. Une
+Deux réponses sont des refus. Ils comptent davantage que les placements. Une
 figure de scope 2 **market-based** n'est jamais dérivée ici, parce qu'aucune
-moyenne de réseau ne l'implique ; énoncez
-`assumptions.market_carbon_intensity` avec le document d'où elle vient et la
-figure est calculée et placée à côté de la location-based. Et **l'eau n'a pas de
-scope**, parce que ce n'est pas un gaz à effet de serre.
+moyenne de réseau ne l'implique ; énoncez `assumptions.market_carbon_intensity`
+avec le document d'où elle vient et la figure est calculée et placée à côté de
+la location-based. Et **l'eau n'a pas de scope**, parce que ce n'est pas un gaz
+à effet de serre.
 
 [`INVENTAIRE.md`](INVENTAIRE.md) est la forme longue, pour la personne qui doit
 déclarer plutôt que pour celle qui a mesuré.
@@ -956,7 +976,7 @@ déclarer plutôt que pour celle qui a mesuré.
     saggio diff cost_of_running.yaml /tmp/maintenant.yaml --threshold 10
 ```
 
-`diff` échoue sur trois choses, et c'est la troisième qu'on oublie :
+`diff` échoue sur trois choses. C'est la troisième qu'on oublie :
 
 ```bash
 saggio diff avant.yaml apres.yaml
@@ -1014,6 +1034,20 @@ calme si vous voulez un intervalle de puissance assez serré pour arbitrer dessu
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Les catalogues
 ### Lire l'empreinte produit d'un constructeur
 
@@ -1043,21 +1077,28 @@ le verbe montre donc les deux moitiés et l'arithmétique entre elles au lieu de
 tendre un nombre.
 
 **Trois choses qu'il ne fera pas.** Il ne prendra pas une valeur qui n'est pas
-dans une phrase : l'analyseur fait de l'OCR (reconnaissance optique de caractères), donc un diagramme en barres devient
-du texte comme le reste, et une valeur relevée sur un graphique est la seule
-chose que ce paquet refuse de porter. Il ne divisera pas par un nombre que
-personne n'a écrit — un document donnant une valeur de carte de base sans dire
-combien de puces elle porte est **refusé**, pas deviné. Et il n'écrit pas : il
-n'y a pas de `--into`.
+dans une phrase : l'analyseur fait de l'OCR (reconnaissance optique de
+caractères), donc un diagramme en barres devient du texte comme le reste — et
+une valeur relevée sur un graphique est la seule chose que ce paquet refuse de
+porter. Il ne divisera pas par un nombre que personne n'a écrit — un document
+donnant une valeur de carte de base sans dire combien de puces elle porte est
+**refusé**, pas deviné. Et il n'écrit pas : il n'y a pas de `--into`.
 
 Il demande un analyseur de documents, absent de l'installation par défaut :
 `pip install 'saggio[pcf]'`. Les trois dépendances d'exécution sont délibérées.
 
-En HTTP, la même lecture est sur `POST /catalog/read-pcf`, et elle est
-**fermée sauf si `SAGGIO_API_ALLOW_FETCH` est positionné** — aller chercher une
-adresse choisie par le client est le même risque que cloner, barré à part parce
-qu'un exploitant qui laisse le serveur lire un PDF n'a pas pour autant accepté
-qu'il clone un dépôt.
+En HTTP, la même lecture est sur `POST /catalog/read-pcf`, **fermée sauf si
+`SAGGIO_API_ALLOW_FETCH` est positionné** — aller chercher une adresse choisie
+par le client est le même risque que cloner, barré à part parce qu'un exploitant
+qui laisse le serveur lire un PDF n'a pas pour autant accepté qu'il clone un
+dépôt.
+
+
+
+
+
+
+
 
 
 ```bash
@@ -1083,9 +1124,9 @@ saggio catalog add gpu H300 \
     --field peak_bf16_tflops=2400
 ```
 
-La ligne atterrit dans votre propre surcouche, sert immédiatement, et pourra être
-proposée en amont plus tard. Sans source ni date elle est refusée, et c'est cette
-règle qui rend les catalogues dignes de confiance.
+La ligne atterrit dans votre propre surcouche, sert immédiatement, et pourra
+être proposée en amont plus tard. Sans source ni date elle est refusée : c'est
+cette règle qui rend les catalogues dignes de confiance.
 
 Demander quels chiffres ont discrètement vieilli :
 
@@ -1105,7 +1146,7 @@ saggio catalog refresh grid
 ```
 
 En lecture seule. Elle affiche ce que dit la source aujourd'hui face à ce que
-tient le catalogue, et n'écrit rien. `--write saggio/data/grid.yaml` est le
+tient le catalogue, sans rien écrire. `--write saggio/data/grid.yaml` est le
 second geste, délibéré. `--column` choisit quoi relire — `carbon` par défaut,
 `price`, ou `both` — parce que les deux colonnes ne viennent pas du même endroit
 et ne bougent pas ensemble :
@@ -1115,9 +1156,9 @@ saggio catalog refresh grid --column price
 saggio catalog refresh grid --column both --write saggio/data/grid.yaml
 ```
 
-Chaque colonne porte son `*_source_url`, son `*_retrieved_date`, et la période
-que le chiffre décrit — `carbon_data_year: 2025`, `price_collected: "Q3 2026"`.
-La date à laquelle un nombre a été *lu* n'est pas la période qu'il décrit, et une
+Chaque colonne porte son `*_source_url`, son `*_retrieved_date`, la période que
+le chiffre décrit — `carbon_data_year: 2025`, `price_collected: "Q3 2026"`. La
+date à laquelle un nombre a été *lu* n'est pas la période qu'il décrit ; une
 ligne qui ne noterait que la première laisserait un chiffre de 2019 passer pour
 celui d'aujourd'hui.
 
@@ -1159,9 +1200,9 @@ la base ne publie sous aucun nom fait échouer la commande au lieu d'être
 corrigé : c'est une question, pas une correction.
 
 Chaque colonne a aussi son horloge. Un tarif et un mix électrique bougent tous
-les mois ; une liste de fuseaux est publiée quelques fois par an, et la redemander
-tous les mois apprendrait à redater plutôt qu'à relire — l'habitude même que tout
-ce mécanisme de fraîcheur existe pour empêcher.
+les mois ; une liste de fuseaux est publiée quelques fois par an. La redemander
+tous les mois apprendrait à redater plutôt qu'à relire — l'habitude même que
+tout ce mécanisme de fraîcheur existe pour empêcher.
 
 **La colonne tarif** vient de
 [GlobalPetrolPrices](https://www.globalpetrolprices.com/electricity_prices/), qui
@@ -1171,19 +1212,20 @@ table est écrite par un script plutôt que servie, donc le rafraîchissement re
 la page dans un navigateur sans interface ; sans navigateur installé, il le dit
 et s'arrête au lieu de deviner.
 
-L'institution qui fait le plus autorité en Europe est
-[Eurostat](https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?format=JSON&lang=EN&nrg_cons=KWH2500-4999&tax=I_TAX&currency=EUR&unit=KWH&lastTimePeriod=1),
-et elle a été lue — comme **contre-test**, pas comme source. Elle publie en euros
-et pour l'Europe seulement : la retenir aurait imposé une seconde source pour le
+L'institution qui fait le plus autorité en Europe est [Eurostat](https://ec.euro
+pa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?format=JSON&lang
+=EN&nrg_cons=KWH2500-4999&tax=I_TAX&currency=EUR&unit=KWH&lastTimePeriod=1), qui
+a été lue — comme **contre-test**, pas comme source. Elle publie en euros et
+pour l'Europe seulement : la retenir aurait imposé une seconde source pour le
 taux de change, une conversion qui périme chaque jour, et dix-huit lignes
 incomparables avec les vingt autres. Converties au [taux de référence de la
-Banque centrale européenne](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml),
-les deux concordent à 7 % en médiane sur les dix-huit pays couverts par les deux,
-et divergent de plus de 15 % pour six : Finlande, Roumanie, Pologne, Norvège,
-Suède et Italie. C'est une différence de méthode, pas une erreur de l'une ou de
-l'autre — Eurostat moyenne un semestre par tranche de consommation, l'autre est
-un relevé. Les trois URL (Uniform Resource Locator) sont dans le code, pour que la comparaison puisse être
-refaite.
+Banque centrale européenne](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-
+daily.xml), les deux concordent à 7 % en médiane sur les dix-huit pays couverts
+par les deux, et divergent de plus de 15 % pour six : Finlande, Roumanie,
+Pologne, Norvège, Suède et Italie. C'est une différence de méthode, pas une
+erreur de l'une ou de l'autre — Eurostat moyenne un semestre par tranche de
+consommation, l'autre est un relevé. Les trois URL (Uniform Resource Locator)
+sont dans le code, pour que la comparaison puisse être refaite.
 
 Un pays pour lequel la source ne répond pas est laissé tel quel et nommé. Rien
 n'est interpolé, reporté ni moyenné.
@@ -1192,9 +1234,9 @@ n'est interpolé, reporté ni moyenné.
 les chiffres rafraîchis ont été confrontés à la série Ember complète, année par
 année, pour confirmer que le catalogue avait simplement une année de retard. Ce
 n'était pas le cas. Les valeurs commitées correspondaient à des années Ember
-éparpillées de 2000 à 2025, et huit pays ne correspondaient à aucune année Ember
-à 8 % près — la Suède était à 13 gCO2e/kWh là où le plus bas chiffre jamais
-publié par Ember pour elle est 34,91. Chaque ligne citait pourtant Ember. Un
+éparpillées de 2000 à 2025. Huit pays ne correspondaient à aucune année Ember à
+8 % près — la Suède était à 13 gCO2e/kWh là où le plus bas chiffre jamais publié
+par Ember pour elle est 34,91. Chaque ligne citait pourtant Ember. Un
 `source_url` qui ne contient pas le chiffre qu'il accompagne est exactement la
 faute que ce paquet existe pour dénoncer, et elle était dans ses propres données
 jusqu'à ce que `saggio catalog refresh grid` remplace l'ensemble par un seul
@@ -1217,8 +1259,8 @@ saggio catalog freshness --within 14
 
 Cet avertissement existe pour une raison. Une barrière qui vire au rouge du jour
 au lendemain fait redater la ligne dans l'urgence au lieu de faire relire la
-source, et un nombre redaté que personne n'a regardé est exactement ce que tout
-ce mécanisme a été bâti pour empêcher. Une semaine de préavis — `--within 0` le
+source ; un nombre redaté que personne n'a regardé est exactement ce que tout ce
+mécanisme a été bâti pour empêcher. Une semaine de préavis — `--within 0` le
 désactive — suffit à aller lire Ember correctement.
 
 ## La bibliothèque
