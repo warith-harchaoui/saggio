@@ -477,8 +477,8 @@ READS_AS_WRITTEN: dict[str, str] = {
 #: What a sentence that stopped being a sentence looks like, mechanically.
 NOT_A_SENTENCE: dict[str, str] = {
     r"\b(?!CODE|LINK)([A-Za-zÀ-ÿ]{3,})\s+\1\b": "a word written twice in a row",
-    r"\b(?:ce|cet|cette|ces)\s+(?!que|qu'|qui|dont|quoi|où)\w+\s+(?:ce|cet|cette|ces)\s+\w":
-        "two French determiners either side of one word",
+    r"\b(?:ce|cet|cette|ces)\s+(?!que|qu'|qui|dont|quoi|où)\w+\s+"
+    r"(?:ce|cet|cette|ces)\s+\w": "two French determiners either side of one word",
     r"(?:,\s*[,.]|;\s*;|\(\s*\))": "punctuation left over from a rewrite",
 }
 
