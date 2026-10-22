@@ -10,10 +10,13 @@ saying how far it can be trusted.
   <img src="https://raw.githubusercontent.com/warith-harchaoui/saggio/master/assets/logo.png" alt="saggio logo">
 </p>
 
-The answer is a YAML (YAML Ain't Markup Language) file you commit next to the code, and reports rendered from
-it. The file is reviewable in a pull request, the reports are readable by people
-who will never open a terminal, and neither of them is allowed to state a number
-without saying where it came from.
+The answer is a model written in YAML (YAML Ain't Markup Language), committed
+next to the code, plus two reports rendered from it: a Portable Document Format
+(PDF) file for the reader who wants a document, a web page that recomputes in
+the browser when you change the country, the provider or the machine. The file
+is reviewable in a pull request. The reports are readable by people who will
+never open a terminal. None of the three may state a number without saying where
+it came from.
 
 ```bash
 pip install saggio
@@ -44,27 +47,27 @@ costs:
     derived_from: ["scenarios[0].costs.energy", "assumptions.grid_carbon_intensity"]
 ```
 
-From there the **weakest-link rule** follows, and the validator enforces it: a
+From there the **weakest-link rule** follows, which the validator enforces: a
 derived value may never claim to be better founded than the worst of its inputs.
-Measure the runtime and the energy becomes measured on its own. Leave the country
-unstated and the carbon figure stays open, because nobody knows it yet.
+Measure the runtime and the energy becomes measured on its own. Leave the
+country unstated and the carbon figure stays open, because nobody knows it yet.
 
 And the derivation is **checked, not just declared**. The validator parses every
-unit down to its base dimensions — a watt *is* a joule per second — and recomputes
-the value from its named inputs, multiplying them and, where that cannot reach the
-stated unit, dividing: amortising an embodied footprint over a lifetime is a
-division, and the model names the lifetime among its inputs just the same. A value
-more than a percent from what its inputs give is an error. Where several readings
-reach the unit and the units cannot say which was meant, a value matching none of
-them is still an error, because it is wrong under every reading. A unit no
-arrangement of the inputs can produce is an error needing no arithmetic at all.
-The mistake this closes is the worst-looking one: a number orders of magnitude
-out, carrying a perfectly correct list of the inputs it supposedly came from,
-reads as better founded than anything else on the page. And where any unit
-involved is one the package does not know — a dimension you registered this
-morning — it says nothing rather than inventing a rule.
+unit down to its base dimensions — a watt *is* a joule per second — and
+recomputes the value from its named inputs, multiplying them and, where that
+cannot reach the stated unit, dividing: amortising an embodied footprint over a
+lifetime is a division, so the model names the lifetime among its inputs just
+the same. A value more than a percent from what its inputs give is an error.
+Where several readings reach the unit and the units cannot say which was meant,
+a value matching none of them is still an error, because it is wrong under every
+reading. A unit no arrangement of the inputs can produce is an error needing no
+arithmetic at all. The mistake this closes is the worst-looking one: a number
+orders of magnitude out, carrying a perfectly correct list of the inputs it
+supposedly came from, reads as better founded than anything else on the page.
+And where any unit involved is one the package does not know — a dimension you
+registered this morning — it says nothing rather than inventing a rule.
 
-Three properties fall out of writing it this way, and they are the reason for the
+Three properties fall out of writing it this way. They are the reason for the
 design:
 
 - **Nothing can hide.** The validator walks the whole file. Any number outside a
@@ -99,54 +102,54 @@ prices: sourced YAML catalogues, each row carrying the URL (Uniform Resource Loc
 date somebody read it, each one going stale on a schedule that matches how fast
 that kind of fact actually moves.
 
-**Projects, and says what it assumed — or measures the assumption away.** From a
-measured slice to a whole run.
-From one accelerator to another, and all the way to money and carbon rather than
-stopping at a duration. The first projection rests on the work being uniform, and `--scaling-steps 3`
-replaces that assumption with a number: three slices of different sizes, a fitted
-exponent, and a refusal to project at all when the fit says the slices are not
-measuring one consistent behaviour. That second projection is a bracket, not a number: work is
-limited by arithmetic throughput or by memory bandwidth, the two ratios differ by
-more than a factor of two between an A100 and an H100, and reporting the compute
-ratio alone would understate the bill by a third. It refuses outright when the
+**Projects, saying what it assumed — or measures the assumption away.** From a
+measured slice to a whole run. From one accelerator to another, and all the way
+to money and carbon rather than stopping at a duration. The first projection
+rests on the work being uniform. `--scaling-steps 3` replaces that assumption
+with a number: three slices of different sizes, a fitted exponent, and a refusal
+to project at all when the fit says the slices are not measuring one consistent
+behaviour. That second projection is a bracket, not a number: work is limited by
+arithmetic throughput or by memory bandwidth, the two ratios differ by more than
+a factor of two between an A100 and an H100, and reporting the compute ratio
+alone would understate the bill by a third. It refuses outright when the
 catalogue has no throughput figure for the precision the work runs in.
 
 **Counts the hardware, not only the electricity.** Manufacturing one HGX H100
-baseboard emits 1,312 kgCO2e before it computes anything, and a model that
-reports only the energy is claiming that figure is zero. The `embodied_carbon`
-dimension amortises a published product carbon footprint over the share of the
-hardware's life one unit of work reserved — which completes the four terms of
-the Software Carbon Intensity standard, published jointly by the International
-Organization for Standardization and the International Electrotechnical
-Commission as [ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/),
-and whose shape this package already had.
+baseboard emits 1,312 kgCO2e before it computes anything. A model that reports
+only the energy is claiming that figure is zero. The `embodied_carbon` dimension
+amortises a published product carbon footprint over the share of the hardware's
+life one unit of work reserved — which completes the four terms of the Software
+Carbon Intensity standard, published jointly by the International Organization
+for Standardization and the International Electrotechnical Commission as
+[ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/), and whose
+shape this package already had.
 
-The arithmetic is complete; **the catalogue is not, and will not pretend to
-be.** Eight footprints ship: four accelerators out of 25 rows and four
-processors out of 12. Everything else reports `TODO` with a sentence saying
-nobody has read a footprint for it, which is not the same as it having been free
-to build. The reason the gap is that wide is that most vendors publish a
-footprint for a whole server and not for the part inside it, and the one open
-database that covers processors answers for a chip it does not have by
-substituting the nearest one it does — asked for an Apple M4 Max it returns an
-Apple M1 Max, four generations earlier, with no warning. Those answers are
-refused by name rather than imported.
-[`STANDARDS.md`](https://github.com/warith-harchaoui/saggio/blob/master/STANDARDS.md) has the table, the boundary of every figure, and
-the eight refusals with their reasons.
+The arithmetic is complete; **the catalogue is not, nor does it pretend to be.**
+Eight footprints ship: four accelerators out of 25 rows and four processors out
+of 12. Everything else reports `TODO` with a sentence saying nobody has read a
+footprint for it, which is not the same as it having been free to build. The
+reason the gap is that wide is that most vendors publish a footprint for a whole
+server rather than for the part inside it. The one open database that covers
+processors answers for a chip it does not have by substituting the nearest one
+it does — asked for an Apple M4 Max it returns an Apple M1 Max, four generations
+earlier, with no warning. Those answers are refused by name rather than
+imported. [`STANDARDS.md`](https://github.com/warith-
+harchaoui/saggio/blob/master/STANDARDS.md) has the table, the boundary of every
+figure, and the eight refusals with their reasons.
 
-**Writes reports that people read.** Markdown for a pull request. A single
-self-contained HTML (HyperText Markup Language) page for everyone else: offline, light and dark, English and
-French, with a panel that recomputes the model for a different country in the
-browser and a chart of how the grid would move the carbon elsewhere. Word and PDF (Portable Document Format)
-through `md2star` when a document is what somebody wants, their title block
-naming what produced them and the date they were produced — which is not the
-date the model last changed, and says so. Every known carbon
-figure is also restated in terms a reader can feel — tree-months of
-sequestration, kilometres in an average car, a fraction of a Paris–London
-flight — with the [Green Algorithms](https://doi.org/10.1002/advs.202100707)
-coefficients, and without gaining any confidence in the restating: an open figure
-stays open, and a measured one reads `estimated`, because the tree is an average
-tree.
+**Writes reports that people read.** Markdown for a pull request. A single self-
+contained HTML (HyperText Markup Language) page for everyone else: offline,
+light and dark, English and French, with a panel that recomputes the model for a
+different country in the browser and a chart of how the grid would move the
+carbon elsewhere. Word and PDF through `md2star` when a document is what
+somebody wants, their title block naming what produced them and the date they
+were produced — which is not the date the model last changed, and says so. Every
+known carbon figure is also restated in terms a reader can feel — tree-months of
+sequestration, kilometres in an average car, a fraction of a Paris–London flight
+— with the [Green Algorithms](https://doi.org/10.1002/advs.202100707)
+coefficients, and without gaining any confidence in the restating: an open
+figure stays open, and a measured one reads `estimated`, because the tree is an
+average tree.
 
 **Shows the team, not just the project.** `saggio dashboard` renders every
 committed cost model on one page. It leads with the one comparison that is honest
@@ -177,7 +180,7 @@ them. PyYAML parses the models and the catalogues.
 `platformdirs` finds the per-user config directory. Everything else this package
 does, it does itself.
 
-Word and PDF need one more thing, and only if you want them:
+Word and PDF need one more thing, only if you want them:
 
 ```bash
 pip install "saggio[office]"
@@ -276,27 +279,27 @@ It never puts a number in a file that nobody chose. The country is stated by a
 person or inferred from the machine's timezone and labelled as an inference; it is
 never read off a locale and written down as fact.
 
-It never parses a pricing page, and never asks a model what one says. With
-`--fetch-prices` it reads rates from sources published *as data*, records which
-model the code names and on which line, and stamps every rate with where it was
-read and when. A rate from the vendor's own price API and a rate from somebody
-else's transcription are both `estimated`, so each one also carries a
-`source_kind` saying which it is, and the drift gate fails when that weakens.
-Without the flag nothing reaches the network and the price stays open, pointing
-at the page where the current number lives.
+It never parses a pricing page, nor asks a model what one says. With `--fetch-
+prices` it reads rates from sources published *as data*, records which model the
+code names and on which line, and stamps every rate with where it was read and
+when. A rate from the vendor's own price API and a rate from somebody else's
+transcription are both `estimated`, so each one also carries a `source_kind`
+saying which it is; the drift gate fails when that weakens. Without the flag
+nothing reaches the network and the price stays open, pointing at the page where
+the current number lives.
 
 It never lets a language model supply a number. A local model, when you have one
 running, is asked what shape of work your repository does and nothing else. Its
 answer is labelled with the model's name and marked low confidence. Every number
 comes from a file you can open or a counter you can read.
 
-It speaks your language, and says where that stops. `--language fr` is on every
-verb and on every HTTP (HyperText Transfer Protocol) route that answers with prose, so the validator's
-findings, an inventory placement's reasoning, a report's headings, the notes an
-audit writes and the question it asks before running your code all come back in
-it. Figures are written the way the language writes them: `17.4 W` in English,
-`17,4 W` in French. Four hundred sentences live in translation files; adding a
-language is those files and no code.
+It speaks your language; it also says where that stops. `--language fr` is on
+every verb and on every HTTP (HyperText Transfer Protocol) route that answers
+with prose, so the validator's findings, an inventory placement's reasoning, a
+report's headings, the notes an audit writes and the question it asks before
+running your code all come back in it. Figures are written the way the language
+writes them: `17.4 W` in English, `17,4 W` in French. Four hundred sentences
+live in translation files; adding a language is those files and no code.
 
 Two limits, measured rather than implied. A model carries the sentences it was
 written with, so a model audited in English renders in English however you ask
@@ -312,38 +315,38 @@ office: all of it is listed in the report as excluded, because a footprint that
 quietly leaves out the largest term is worse than no footprint.
 
 Idle capacity is the one that changed its answer. When the power is a nameplate
-rating it really is excluded, and the report says so. When the power was read
-off this machine's own counters it is **inside** the figure — a counter meters
+rating it really is excluded, as the report says. When the power was read off
+this machine's own counters it is **inside** the figure — a counter meters
 hardware, not processes, so whatever else the machine was doing is in there —
 and the report says *that* instead, with the floor the machine was drawing
 beside it. An exclusions list that read the same either way would be false in
 one of the two cases.
 
-It never watches continuously. Every figure here is *per unit of work*, and a
-daemon has no unit of work: it would have to split a stream across whatever
-happened to be running, which is the attribution this package measured to be
-the least reproducible of three — a range of 67% to 190% across five runs,
-against 8% to 49% for the metered total. A number whose spread cannot be bounded
-cannot say how far it can be trusted, which is the one thing every number here
-is for. `saggio measure` runs a slice you chose, and stops.
+It never watches continuously. Every figure here is *per unit of work*; a daemon
+has no unit of work: it would have to split a stream across whatever happened to
+be running, which is the attribution this package measured to be the least
+reproducible of three — a range of 67% to 190% across five runs, against 8% to
+49% for the metered total. A number whose spread cannot be bounded cannot say
+how far it can be trusted, which is the one thing every number here is for.
+`saggio measure` runs a slice you chose, and stops.
 
-It reads a vendor's product carbon footprint, and that is not a contradiction
-with the sentence above: it is the same rule reaching opposite answers. A PCF
-states a figure *and says what the figure is of*; an invoice states a total and
-leaves the split to whoever wants one. So `saggio catalog read-pcf <url>` reads
-the document, shows the sentence it took the number from and the line it took
-the divisor from, prints a draft row — and stops. It writes nothing. Where the
-document gives a figure for a baseboard and never says how many accelerators
-the board holds, it **refuses** rather than dividing by a number nobody wrote
-down. A catalogue row is a claim somebody makes, and the person making it is
-the person who can be asked why.
+It reads a vendor's product carbon footprint. That is not a contradiction with
+the sentence above: it is the same rule reaching opposite answers. A PCF states
+a figure *and says what the figure is of*; an invoice states a total and leaves
+the split to whoever wants one. So `saggio catalog read-pcf <url>` reads the
+document, shows the sentence it took the number from and the line it took the
+divisor from, prints a draft row — and stops. It writes nothing. Where the
+document gives a figure for a baseboard and never says how many accelerators the
+board holds, it **refuses** rather than dividing by a number nobody wrote down.
+A catalogue row is a claim somebody makes, and the person making it is the
+person who can be asked why.
 
 It never reads your cloud invoice. A bill states money for an account over a
-month; splitting it across units of work needs a key nobody publishes, and an
-importer would have to invent one. What you may do is read the figure yourself
-and record it: a quantity carries `source_kind: stated` for exactly that, and a
-figure a human took off the vendor's own invoice has **better** provenance than
-the `aggregator` tariff the catalogue would otherwise use.
+month; splitting it across units of work needs a key nobody publishes, which an
+importer would have to invent. What you may do is read the figure yourself and
+record it: a quantity carries `source_kind: stated` for exactly that. A figure a
+human took off the vendor's own invoice has **better** provenance than the
+`aggregator` tariff the catalogue would otherwise use.
 
 ## Where the numbers come from
 
@@ -359,9 +362,9 @@ the machine, because water usage effectiveness is defined per kilowatt-hour of I
 load and using the building figure would count the cooling twice.
 
 Hardware wattages, grid intensities, tariffs, and datacenter overheads live in
-[`saggio/data/`](https://github.com/warith-harchaoui/saggio/tree/master/saggio/data), one row each
-with its source and its date. Missing a row is a normal outcome, and the tool
-tells you which one by name:
+[`saggio/data/`](https://github.com/warith-
+harchaoui/saggio/tree/master/saggio/data), one row each with its source and its
+date. Missing a row is a normal outcome; the tool tells you which one by name:
 
 ```bash
 saggio catalog list gpu
@@ -396,17 +399,18 @@ The dependency direction only points one way, so the command line can do nothing
 library caller cannot.
 
 The HTML report's own pieces are authored outside the package, in
-[`reporting/`](https://github.com/warith-harchaoui/saggio/tree/master/reporting): the document shell with the tokens the renderer
-fills, the stylesheet, the script, the translations. They are a stylesheet and a
-script there rather than strings quoted inside Python, and `reporting/sync.py`
-copies them into the package that ships them, with a test that fails the build if
-the two ever drift apart. Copy that trio to render reports of your own shape.
+[`reporting/`](https://github.com/warith-
+harchaoui/saggio/tree/master/reporting): the document shell with the tokens the
+renderer fills, the stylesheet, the script, the translations. They are a
+stylesheet and a script there rather than strings quoted inside Python;
+`reporting/sync.py` copies them into the package that ships them, with a test
+that fails the build if the two ever drift apart. Copy that trio to render
+reports of your own shape.
 
 ## Five ways to reach it
 
 One engine, five surfaces, because the person who produces a figure is rarely
-the person who has to file it, and most of the readers will never install a
-Python package.
+the person who has to file it; most readers will never install a Python package.
 
 | Surface | For | How |
 |---|---|---|
@@ -420,7 +424,7 @@ Every one of them is an adapter over the same public functions, which is a rule
 tests enforce rather than a habit: a surface that could do something the library
 cannot would be a capability every other caller is locked out of. The HTTP
 surface runs nobody's code, because over a network there is nobody to ask for
-consent, and it clones a repository only where the operator allowed it.
+consent; it clones a repository only where the operator allowed it.
 
 [`USING.md`](https://github.com/warith-harchaoui/saggio/blob/master/USING.md) is the whole of it: what each surface is for, what
 none of them may do, and how to add a sixth.
@@ -450,18 +454,20 @@ and is not, and the six things it does not cover.
 
 ## Related work
 
-[`LANDSCAPE.md`](https://github.com/warith-harchaoui/saggio/blob/master/LANDSCAPE.md) places this alongside CodeCarbon, Green Algorithms,
-Scaphandre, PowerAPI, Cloud Carbon Footprint, and the rest of the field, and is
-honest about where each of them is the better tool — plus the tools a
-sustainability team already has, which answer a different question entirely.
+[`LANDSCAPE.md`](https://github.com/warith-
+harchaoui/saggio/blob/master/LANDSCAPE.md) places this alongside CodeCarbon,
+Green Algorithms, Scaphandre, PowerAPI, Cloud Carbon Footprint and the rest of
+the field, saying honestly where each of them is the better tool — plus the
+tools a sustainability team already has, which answer a different question
+entirely.
 
 ## The name
 
 *Saggio* is Italian for the assay of a metal: you draw a sample, you determine
-its fineness, and the result is stamped with who determined it and when. It also
-means an essay, and it means judicious. All three are the point. This tool draws
-a capped sample of a real run, reports how well founded each number is, and
-records where every figure came from and on what date somebody read it.
+its fineness, and the result is stamped with who determined it and when. It
+means an essay as well, and *judicious*. All three are the point. This tool
+draws a capped sample of a real run, reports how well founded each number is,
+and records where every figure came from and on what date somebody read it.
 
 ## Licence
 

@@ -383,10 +383,16 @@ def test_every_initialism_is_written_out_before_it_is_used(page: str) -> None:
     explained before it is used. Each page stands alone for it, because a
     reader landing on one has not read the others.
 
-    What counts as spelled out: the written-out form appears on the same line
-    as the first use or before it. That accepts both shapes — *Common Locale
-    Data Repository (CLDR)* and *CLDR (Common Locale Data Repository)* — and a
-    glossary row, where the two sit side by side.
+    What counts as spelled out: the written-out form appears no later than the
+    end of the sentence that first uses the initialism. That accepts both
+    shapes — *Common Locale Data Repository (CLDR)* and *CLDR (Common Locale
+    Data Repository)* — and a glossary row, where the two sit side by side.
+
+    The unit is the sentence rather than the source line on purpose. Markdown
+    soft-wraps, so a line break inside a paragraph is invisible to the reader:
+    judging the rule by where the file happens to wrap failed pages whose
+    expansion a reader saw perfectly well, and turned every re-wrap of a
+    paragraph into a chance to break a page that had not changed meaning.
     """
     if page in HISTORIES:
         pytest.skip(HISTORIES[page])
@@ -398,9 +404,9 @@ def test_every_initialism_is_written_out_before_it_is_used(page: str) -> None:
         first = re.search(rf"(?<![A-Za-z0-9]){re.escape(acronym)}(?![A-Za-z0-9])", prose)
         if first is None:
             continue
-        line_end = prose.find("\n", first.end())
-        before = prose[: line_end if line_end != -1 else len(prose)]
-        if written.lower() not in re.sub(r"\s+", " ", before).lower():
+        sentence_end = re.search(r"(?<=[.!?:])\s|\n\n", prose[first.end() :])
+        cut = first.end() + (sentence_end.end() if sentence_end else len(prose))
+        if written.lower() not in re.sub(r"\s+", " ", prose[:cut]).lower():
             unexplained.append(acronym)
     assert not unexplained, (
         f"{page} uses these without writing them out first: {sorted(unexplained)}. "

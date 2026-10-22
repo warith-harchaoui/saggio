@@ -7,13 +7,16 @@
 🇫🇷 Français · [🇬🇧 README.md](README.md)
 
 **Combien coûte l'exécution de votre code ?** L'argent, le temps, l'énergie, le
-carbone, l'eau, et toute autre dimension que vous décidez de suivre, par unité de
+carbone, l'eau et toute autre dimension que vous décidez de suivre, par unité de
 travail, chaque chiffre disant jusqu'où on peut lui faire confiance.
 
-La réponse est un fichier YAML (YAML Ain't Markup Language) que vous versionnez à côté du code, et des rapports
-qui en sont tirés. Le fichier se relit dans une pull request, les rapports se
-lisent par des gens qui n'ouvriront jamais un terminal, et ni l'un ni l'autre n'a
-le droit d'avancer un chiffre sans dire d'où il vient.
+La réponse est un modèle écrit en YAML (YAML Ain't Markup Language), versionné à
+côté du code, plus deux rapports qui en sortent : un fichier PDF (Portable
+Document Format) pour qui veut un document, une page web qui recalcule dans le
+navigateur dès que vous changez le pays, le fournisseur ou la machine. Le
+fichier se relit dans une pull request. Les rapports se lisent par des gens qui
+n'ouvriront jamais un terminal. Aucun des trois n'a le droit d'avancer un
+chiffre sans dire d'où il vient.
 
 ```bash
 pip install saggio
@@ -44,29 +47,30 @@ costs:
     derived_from: ["scenarios[0].costs.energy", "assumptions.grid_carbon_intensity"]
 ```
 
-De là découle la **règle du maillon faible**, et le validateur la fait respecter :
+De là découle la **règle du maillon faible**, que le validateur fait respecter :
 une valeur dérivée ne peut jamais prétendre être mieux fondée que la pire de ses
-entrées. Mesurez la durée et l'énergie devient mesurée toute seule. Laissez le pays
-non renseigné et le chiffre carbone reste ouvert, parce que personne ne le connaît
-encore.
+entrées. Mesurez la durée et l'énergie devient mesurée toute seule. Laissez le
+pays non renseigné et le chiffre carbone reste ouvert, parce que personne ne le
+connaît encore.
 
-Et la dérivation est **vérifiée, pas seulement déclarée**. Le validateur décompose
-chaque unité en dimensions de base — un watt *est* un joule par seconde — et
-recalcule la valeur depuis les apports nommés, en les multipliant puis, là où le
-produit n'atteint pas l'unité déclarée, en divisant : amortir une empreinte de
-fabrication sur une durée de vie est une division, et le modèle nomme cette durée
-parmi ses apports tout pareillement. Une valeur à plus d'un pour cent de ce que
-donnent ses apports est une erreur. Là où plusieurs lectures atteignent l'unité et
-où les unités ne peuvent dire laquelle était visée, une valeur qui ne correspond à
-aucune reste une erreur, puisqu'elle est fausse sous toutes les lectures. Une unité
-qu'aucun agencement des apports ne peut produire est une erreur qui ne demande
-aucun calcul. L'erreur ainsi fermée est celle qui a la plus belle allure : un
-nombre faux de plusieurs ordres de grandeur, portant la liste parfaitement exacte
-des apports dont il est censé venir, paraît mieux fondé que tout le reste de la
-page. Et là où une unité en jeu n'est pas connue du paquet — une dimension que
-vous avez enregistrée ce matin — il ne dit rien plutôt que d'inventer une règle.
+Et la dérivation est **vérifiée, pas seulement déclarée**. Le validateur
+décompose chaque unité en dimensions de base — un watt *est* un joule par
+seconde — et recalcule la valeur depuis les apports nommés, en les multipliant
+puis, là où le produit n'atteint pas l'unité déclarée, en divisant : amortir une
+empreinte de fabrication sur une durée de vie est une division, si bien que le
+modèle nomme cette durée parmi ses apports tout pareillement. Une valeur à plus
+d'un pour cent de ce que donnent ses apports est une erreur. Là où plusieurs
+lectures atteignent l'unité et où les unités ne peuvent dire laquelle était
+visée, une valeur qui ne correspond à aucune reste une erreur, puisqu'elle est
+fausse sous toutes les lectures. Une unité qu'aucun agencement des apports ne
+peut produire est une erreur qui ne demande aucun calcul. L'erreur ainsi fermée
+est celle qui a la plus belle allure : un nombre faux de plusieurs ordres de
+grandeur, portant la liste parfaitement exacte des apports dont il est censé
+venir, paraît mieux fondé que tout le reste de la page. Et là où une unité en
+jeu n'est pas connue du paquet — une dimension que vous avez enregistrée ce
+matin — il ne dit rien plutôt que d'inventer une règle.
 
-Trois propriétés en découlent, et ce sont elles qui justifient le dessin :
+Trois propriétés en découlent. Ce sont elles qui justifient le dessin :
 
 - **Rien ne peut se cacher.** Le validateur parcourt tout le fichier. Un nombre
   hors d'une quantité est une erreur, où qu'il soit et dans quel bloc que ce soit,
@@ -84,17 +88,17 @@ Trois propriétés en découlent, et ce sont elles qui justifient le dessin :
 quantité de travail d'une exécution complète, quelles API (interface de programmation applicative) payantes vous appelez et
 à quelle ligne. Tout est déterministe, tout cite sa preuve.
 
-**Il en exécute une tranche, si vous l'autorisez.** Avec `--run`, et après votre
-accord donné une fois, il lance une tranche plafonnée de votre vrai point
-d'entrée, la chronomètre, lit les compteurs d'énergie que la machine publie à un
-utilisateur ordinaire, et profile où le temps est passé. Sous Linux, c'est
-l'arborescence powercap, zone mémoire comprise, et le capteur du pilote
-graphique ; sur un Mac Apple Silicon, ce sont les compteurs de la puce elle-même,
-lus sans mot de passe ; sur toute machine dotée d'une carte NVIDIA, c'est le
-pilote. `saggio power` dit lesquels répondent ici, et affiche ce qu'il faudrait
-pour ouvrir les autres — sans jamais les ouvrir lui-même. La part du travail que
-couvre la tranche est lue dans votre propre configuration : projeter sur une
-exécution complète relève donc de l'arithmétique, pas de la devinette.
+**Il en exécute une tranche, si vous l'autorisez.** Avec `--run`, une fois votre
+accord donné, il lance une tranche plafonnée de votre vrai point d'entrée, la
+chronomètre, lit les compteurs d'énergie que la machine publie à un utilisateur
+ordinaire et profile où le temps est passé. Sous Linux, c'est l'arborescence
+powercap, zone mémoire comprise, et le capteur du pilote graphique ; sur un Mac
+Apple Silicon, ce sont les compteurs de la puce elle-même, lus sans mot de passe
+; sur toute machine dotée d'une carte NVIDIA, c'est le pilote. `saggio power`
+dit lesquels répondent ici, et affiche ce qu'il faudrait pour ouvrir les autres
+— sans jamais les ouvrir lui-même. La part du travail que couvre la tranche est
+lue dans votre propre configuration : projeter sur une exécution complète relève
+donc de l'arithmétique, pas de la devinette.
 
 **Il cherche plutôt que de supposer.** Ce que consomme un GPU (graphics processing unit), ce qu'émet un
 kilowattheure en Pologne, ce qu'ajoute un datacenter, où une API publie ses tarifs :
@@ -102,54 +106,53 @@ des catalogues YAML sourcés, chaque ligne portant l'URL (Uniform Resource Locat
 à laquelle quelqu'un l'a lue, chacune périmant selon un délai adapté à la vitesse
 à laquelle ce genre de fait bouge vraiment.
 
-**Il projette, et il dit ce qu'il a supposé — ou il mesure l'hypothèse.** D'une
-tranche mesurée à une exécution complète. D'un accélérateur à un autre, et jusqu'à
-l'argent et au carbone plutôt que de s'arrêter à une durée. La première projection
-repose sur l'uniformité du travail, et `--scaling-steps 3` remplace cette
-hypothèse par un nombre : trois tranches de tailles différentes, un exposant
-ajusté, et un refus net de projeter quand l'ajustement dit que les tranches ne
-mesurent pas un comportement cohérent. Cette seconde projection est un
-encadrement, pas un nombre : une charge est limitée par le débit arithmétique ou
-par la bande passante mémoire, les deux rapports diffèrent de plus du double entre
-une A100 et une H100, et ne rapporter que le rapport de calcul sous-estimerait la
-facture d'un tiers. Il refuse net quand le catalogue n'a aucun chiffre de débit
-pour la précision dans laquelle le travail tourne.
+**Il projette en disant ce qu'il a supposé — ou il mesure l'hypothèse.** D'une
+tranche mesurée à une exécution complète. D'un accélérateur à un autre, puis
+jusqu'à l'argent et au carbone plutôt que de s'arrêter à une durée. La première
+projection repose sur l'uniformité du travail. `--scaling-steps 3` remplace
+cette hypothèse par un nombre : trois tranches de tailles différentes, un
+exposant ajusté, et un refus net de projeter quand l'ajustement dit que les
+tranches ne mesurent pas un comportement cohérent. Cette seconde projection est
+un encadrement, pas un nombre : une charge est limitée par le débit arithmétique
+ou par la bande passante mémoire, les deux rapports diffèrent de plus du double
+entre une A100 et une H100, et ne rapporter que le rapport de calcul sous-
+estimerait la facture d'un tiers. Il refuse net quand le catalogue n'a aucun
+chiffre de débit pour la précision dans laquelle le travail tourne.
 
 **Il compte le matériel, pas seulement l'électricité.** Fabriquer une carte mère
-HGX H100 émet 1 312 kgCO2e avant qu'elle ne calcule quoi que ce soit, et un
-modèle qui ne rapporte que l'énergie affirme que ce chiffre est zéro. La
-dimension `embodied_carbon` amortit une empreinte carbone produit publiée sur la
-part de vie du matériel qu'une unité de travail a réservée — ce qui complète les
-quatre termes de la norme Software Carbon Intensity, publiée conjointement par
+HGX H100 émet 1 312 kgCO2e avant qu'elle ne calcule quoi que ce soit. Un modèle
+qui ne rapporte que l'énergie affirme que ce chiffre est zéro. La dimension
+`embodied_carbon` amortit une empreinte carbone produit publiée sur la part de
+vie du matériel qu'une unité de travail a réservée — ce qui complète les quatre
+termes de la norme Software Carbon Intensity, publiée conjointement par
 l'Organisation internationale de normalisation et la Commission électrotechnique
-internationale sous la référence
-[ISO/IEC 21031:2024](https://greensoftware.foundation/standards/sci/), et dont ce
-paquet avait déjà la forme.
+internationale sous la référence [ISO/IEC
+21031:2024](https://greensoftware.foundation/standards/sci/), et dont ce paquet
+avait déjà la forme.
 
 L'arithmétique est complète ; **le catalogue ne l'est pas, et ne fera pas
-semblant de l'être.** Huit empreintes sont livrées : quatre accélérateurs sur 25
-lignes et quatre processeurs sur 12. Tout le reste rapporte `TODO` avec une
-phrase disant que personne n'a lu d'empreinte pour cette pièce — ce qui n'est pas
-la même chose que sa fabrication aurait été gratuite. Si l'écart est si large,
-c'est que la plupart des fabricants publient une empreinte pour un serveur entier
-et non pour la pièce qu'il contient, et que la seule base ouverte couvrant les
-processeurs répond à propos d'une puce qu'elle n'a pas en lui substituant la plus
-proche qu'elle a — interrogée sur une Apple M4 Max, elle renvoie une Apple M1
-Max, quatre générations plus tôt, sans avertissement. Ces réponses-là sont
-refusées nommément plutôt qu'importées.
-[`NORMES.md`](NORMES.md) dit quelle part est satisfaite et quelle part reste la
-vôtre à fournir.
+semblant.** Huit empreintes sont livrées : quatre accélérateurs sur 25 lignes et
+quatre processeurs sur 12. Tout le reste rapporte `TODO` avec une phrase disant
+que personne n'a lu d'empreinte pour cette pièce — ce qui n'est pas la même
+chose que sa fabrication aurait été gratuite. Si l'écart est si large, c'est que
+la plupart des fabricants publient une empreinte pour un serveur entier et non
+pour la pièce qu'il contient, et que la seule base ouverte couvrant les
+processeurs répond à propos d'une puce qu'elle n'a pas en lui substituant la
+plus proche qu'elle a — interrogée sur une Apple M4 Max, elle renvoie une Apple
+M1 Max, quatre générations plus tôt, sans avertissement. Ces réponses-là sont
+refusées nommément plutôt qu'importées. [`NORMES.md`](NORMES.md) dit quelle part
+est satisfaite et quelle part reste la vôtre à fournir.
 
 **Il écrit des rapports qui se lisent.** Du Markdown pour une pull request. Une
-page HTML (HyperText Markup Language) autonome pour tous les autres : hors ligne, clair et sombre, anglais et
-français, avec un panneau qui recalcule le modèle pour un autre pays dans le
-navigateur et un graphique de ce que le réseau électrique ferait au carbone
-ailleurs. Word et PDF (Portable Document Format) via `md2star` quand c'est un document qu'on attend, leur bloc de
-titre nommant ce qui les a produits et la date de production — qui n'est pas
-celle de la dernière modification du modèle, et le dit. Chaque
-chiffre de carbone connu est aussi restitué en termes qu'un lecteur peut
-ressentir — des mois-arbre de séquestration, des kilomètres en voiture moyenne,
-une fraction d'un vol Paris–Londres — avec les coefficients de
+page HTML (HyperText Markup Language) autonome pour tous les autres : hors
+ligne, clair et sombre, anglais et français, avec un panneau qui recalcule le
+modèle pour un autre pays dans le navigateur et un graphique de ce que le réseau
+électrique ferait au carbone ailleurs. Word et PDF via `md2star` quand c'est un
+document qu'on attend, leur bloc de titre nommant ce qui les a produits et la
+date de production — qui n'est pas celle de la dernière modification du modèle,
+et le dit. Chaque chiffre de carbone connu est aussi restitué en termes qu'un
+lecteur peut ressentir — des mois-arbre de séquestration, des kilomètres en
+voiture moyenne, une fraction d'un vol Paris–Londres — avec les coefficients de
 [Green Algorithms](https://doi.org/10.1002/advs.202100707), et sans gagner en
 confiance au passage : un chiffre ouvert reste ouvert, et un chiffre mesuré se
 lit `estimated`, parce que l'arbre est un arbre moyen.
@@ -160,9 +163,9 @@ honnête entre projets — la part de chaque modèle qui est mesurée, estimée,
 encore ouverte — et dit clairement que les lignes de coûts, chacune par unité de
 travail propre à son projet, ne se comparent pas entre elles.
 
-**Il fait échouer votre build quand un coût dérive.** `diff` compare deux modèles
-et échoue sur un coût qui a empiré au-delà d'un seuil, sur un statut qui s'est
-affaibli, et sur une quantité qui a discrètement disparu.
+**Il fait échouer votre build quand un coût dérive.** `diff` compare deux
+modèles et échoue sur un coût qui a empiré au-delà d'un seuil, sur un statut qui
+s'est affaibli, sur une quantité qui a discrètement disparu.
 
 ## Installation
 
@@ -173,17 +176,18 @@ pip install saggio
 **Linux et macOS.** Windows est hors périmètre, délibérément et définitivement :
 il ne publie aucun compteur d'énergie processeur indépendant du fabricant à un
 processus sans privilèges, aucun total de temps processeur machine que ce paquet
-puisse lire, et aucune comptabilité POSIX (Portable Operating System Interface) des ressources d'un enfant. Un outil
-dont toute la proposition est qu'un nombre dise jusqu'où lui faire confiance ne
-devrait pas prétendre supporter une plateforme où il ne pourrait qu'estimer :
-`import saggio` y lève une erreur au lieu de fonctionner à moitié.
+puisse lire, aucune comptabilité POSIX (Portable Operating System Interface) des
+ressources d'un enfant. Un outil dont toute la proposition est qu'un nombre dise
+jusqu'où lui faire confiance ne devrait pas prétendre supporter une plateforme
+où il ne pourrait qu'estimer : `import saggio` y lève une erreur au lieu de
+fonctionner à moitié.
 
 Trois dépendances d'exécution, à dessein. [`os-helper`](https://pypi.org/project/os-helper/)
 répond à toutes les questions sur la machine et le système, sur les deux. PyYAML
 lit les modèles et les catalogues. `platformdirs` trouve le répertoire de
 configuration de l'utilisateur. Tout le reste, ce paquet le fait lui-même.
 
-Word et PDF demandent une chose de plus, et seulement si vous les voulez :
+Word et PDF demandent une chose de plus, seulement si vous les voulez :
 
 ```bash
 pip install "saggio[office]"
@@ -242,21 +246,21 @@ print(saggio.render_markdown(resultat.model))
 [`MESURER.md`](MESURER.md) dit quels compteurs cette machine vous laissera lire
 et ce que chacun couvre, [`GALERIE.md`](GALERIE.md) montre ce qu'il dit de
 nanoGPT, Whisper, DINOv2, FastAPI et Airflow, fichiers commités à l'appui,
-[`docs/api.md`](docs/api.md) liste tout ce que `import saggio` donne, et
+[`docs/api.md`](docs/api.md) liste tout ce que `import saggio` donne,
 [`docs/`](docs/LISEZMOI.md) est la carte du reste.
 
 [`ANALYSE.md`](ANALYSE.md) est l'enquête derrière cette division du travail : ce
 que l'analyse statique et l'analyse dynamique ont réellement démontré pour la
-complexité et pour la consommation, ce qui de tout cela a sa place ici, et ce
-qui est refusé, avec les raisons.
+complexité et pour la consommation, ce qui de tout cela a sa place ici, ce qui
+est refusé, avec les raisons.
 
-## Exécuter votre code, et ce que ça implique
+## Exécuter votre code : ce que ça implique
 
 Mesurer ce que coûte l'exécution d'un code, c'est l'exécuter. Il n'y a pas de bac
 à sable ici et on n'en fait pas semblant : le dépôt étudié s'exécute sous votre
 identité, avec vos permissions et votre accès réseau.
 
-L'accord est donc explicite, demandé une seule fois, et enregistré là où vous
+L'accord est donc explicite, demandé une seule fois, enregistré là où vous
 pouvez le retrouver et le révoquer :
 
 ```bash
@@ -283,29 +287,30 @@ Il ne met jamais dans un fichier un chiffre que personne n'a choisi. Le pays est
 indiqué par une personne, ou déduit du fuseau horaire de la machine et étiqueté
 comme déduction ; il n'est jamais lu dans une locale puis écrit comme un fait.
 
-Il n'analyse jamais une page de tarification, et ne demande jamais à un modèle ce
+Il n'analyse jamais une page de tarification, ni ne demande à un modèle ce
 qu'une page raconte. Avec `--fetch-prices`, il lit des tarifs dans des sources
-publiées *en tant que données*, note quel modèle le code nomme et à quelle ligne,
-et estampille chaque tarif de l'endroit et de la date de lecture. Un tarif venu de
-l'API de prix du vendeur et un tarif venu de la transcription d'un tiers sont tous
-deux `estimated` : chacun porte donc en plus un `source_kind` qui dit lequel, et la
-porte de dérive échoue quand celui-ci s'affaiblit. Sans le drapeau, rien ne touche
-le réseau et le tarif reste ouvert, pointant la page où vit le chiffre du jour.
+publiées *en tant que données*, note quel modèle le code nomme et à quelle
+ligne, puis estampille chaque tarif de l'endroit et de la date de lecture. Un
+tarif venu de l'API de prix du vendeur et un tarif venu de la transcription d'un
+tiers sont tous deux `estimated` : chacun porte donc en plus un `source_kind`
+qui dit lequel, et la porte de dérive échoue quand celui-ci s'affaiblit. Sans le
+drapeau, rien ne touche le réseau et le tarif reste ouvert, pointant la page où
+vit le chiffre du jour.
 
-Il ne laisse jamais un modèle de langue fournir un chiffre. Un modèle local, quand
-vous en avez un qui tourne, se voit demander quelle forme de travail fait votre
-dépôt, et rien d'autre. Sa réponse est étiquetée du nom du modèle et marquée de
-confiance faible. Chaque chiffre vient d'un fichier qu'on peut ouvrir ou d'un
+Il ne laisse jamais un modèle de langue fournir un chiffre. Un modèle local,
+quand vous en avez un qui tourne, se voit demander quelle forme de travail fait
+votre dépôt, rien d'autre. Sa réponse est étiquetée du nom du modèle et marquée
+de confiance faible. Chaque chiffre vient d'un fichier qu'on peut ouvrir ou d'un
 compteur qu'on peut lire.
 
-Il parle votre langue, et dit où cela s'arrête. `--language fr` est sur chaque
-verbe et sur chaque route HTTP (HyperText Transfer Protocol) qui répond par de la prose : les constats du
-validateur, le raisonnement d'un placement d'inventaire, les titres d'un rapport,
-les notes qu'un audit écrit et la question qu'il pose avant d'exécuter votre code
-reviennent donc dedans. Les chiffres sont écrits comme la langue les écrit :
-`17.4 W` en anglais, `17,4 W` en français. Quatre cents phrases vivent dans des
-fichiers de traduction ; ajouter une langue, c'est ces fichiers et pas une ligne
-de code.
+Il parle votre langue ; il dit aussi où cela s'arrête. `--language fr` est sur
+chaque verbe et sur chaque route HTTP (HyperText Transfer Protocol) qui répond
+par de la prose : les constats du validateur, le raisonnement d'un placement
+d'inventaire, les titres d'un rapport, les notes qu'un audit écrit et la
+question qu'il pose avant d'exécuter votre code reviennent donc dedans. Les
+chiffres sont écrits comme la langue les écrit : `17.4 W` en anglais, `17,4 W`
+en français. Quatre cents phrases vivent dans des fichiers de traduction ;
+ajouter une langue, c'est ces fichiers et pas une ligne de code.
 
 Deux limites, mesurées plutôt que sous-entendues. Un modèle porte les phrases
 avec lesquelles il a été écrit : un modèle audité en anglais se rend en anglais
@@ -323,23 +328,23 @@ qu'une empreinte qui laisse discrètement de côté le plus gros terme est pire
 qu'aucune empreinte.
 
 La capacité au repos est celle qui a changé de réponse. Quand la puissance est
-une plaque signalétique, elle est réellement exclue, et le rapport le dit. Quand
-la puissance a été lue sur les compteurs de cette machine, elle est **dedans** —
-un compteur mesure du matériel, pas des processus, donc tout ce que la machine
-faisait par ailleurs y est — et le rapport dit *cela* à la place, avec le
-plancher que la machine tirait à côté. Une liste d'exclusions identique dans les
-deux cas serait fausse dans l'un des deux.
+une plaque signalétique, elle est réellement exclue, comme le dit le rapport.
+Quand la puissance a été lue sur les compteurs de cette machine, elle est
+**dedans** — un compteur mesure du matériel, pas des processus, donc tout ce que
+la machine faisait par ailleurs y est — et le rapport dit *cela* à la place,
+avec le plancher que la machine tirait à côté. Une liste d'exclusions identique
+dans les deux cas serait fausse dans l'un des deux.
 
-Il ne surveille jamais en continu. Chaque valeur ici est *par unité de travail*,
-et un démon n'a pas d'unité de travail : il devrait répartir un flux entre ce
-qui se trouvait tourner, c'est-à-dire l'attribution que ce paquet a mesurée
-comme la moins reproductible des trois — une étendue de 67 % à 190 % sur cinq
-exécutions, contre 8 % à 49 % pour le total au compteur. Une valeur dont on ne
-sait pas borner l'écart ne peut pas dire jusqu'où on peut lui faire confiance,
-ce qui est l'unique raison d'être de chaque chiffre d'ici. `saggio measure`
-exécute une tranche que vous avez choisie, et s'arrête.
+Il ne surveille jamais en continu. Chaque valeur ici est *par unité de travail*
+; un démon n'a pas d'unité de travail : il devrait répartir un flux entre ce qui
+se trouvait tourner, c'est-à-dire l'attribution que ce paquet a mesurée comme la
+moins reproductible des trois — une étendue de 67 % à 190 % sur cinq exécutions,
+contre 8 % à 49 % pour le total au compteur. Une valeur dont on ne sait pas
+borner l'écart ne peut pas dire jusqu'où on peut lui faire confiance, ce qui est
+l'unique raison d'être de chaque chiffre d'ici. `saggio measure` exécute une
+tranche que vous avez choisie, et s'arrête.
 
-Il lit l'empreinte produit publiée par un constructeur, et ce n'est pas en
+Il lit l'empreinte produit publiée par un constructeur. Ce n'est pas en
 contradiction avec la phrase ci-dessous : c'est la même règle qui aboutit à
 l'inverse. Un PCF énonce une valeur **et dit de quoi elle est l'empreinte** ;
 une facture énonce un total et laisse la répartition à qui en veut une. Donc
@@ -353,9 +358,9 @@ catalogue est une affirmation que quelqu'un fait, et celui qui la fait est celui
 
 Il ne lit jamais votre facture cloud. Une facture énonce de l'argent pour un
 compte sur un mois ; la répartir entre des unités de travail demande une clé que
-personne ne publie, et un importateur devrait l'inventer. Ce que vous pouvez
+personne ne publie, qu'un importateur devrait donc inventer. Ce que vous pouvez
 faire, c'est lire la valeur vous-même et l'enregistrer : une quantité porte
-`source_kind: stated` exactement pour cela, et une valeur qu'un humain a relevée
+`source_kind: stated` exactement pour cela. Une valeur qu'un humain a relevée
 sur la facture du fournisseur a une **meilleure** provenance que le tarif
 `aggregator` que le catalogue utiliserait sinon.
 
@@ -367,17 +372,17 @@ donne l'énergie, l'énergie multipliée par une intensité carbone donne le car
 l'énergie multipliée par un tarif donne l'argent, l'énergie multipliée par un
 rendement d'usage de l'eau donne l'eau.
 
-Une distinction est tenue, et elle se perd facilement. La machine consomme une
+Une distinction est tenue ici, qui se perd facilement. La machine consomme une
 quantité ; le bâtiment consomme cette quantité multipliée par son rendement
 énergétique. Le carbone et l'argent suivent le bâtiment, parce que c'est ce que
-compte le compteur. L'eau suit la machine, parce que le rendement d'usage de l'eau
-se définit par kilowattheure de charge informatique et qu'utiliser le chiffre du
-bâtiment compterait le refroidissement deux fois.
+compte le compteur. L'eau suit la machine, parce que le rendement d'usage de
+l'eau se définit par kilowattheure de charge informatique et qu'utiliser le
+chiffre du bâtiment compterait le refroidissement deux fois.
 
-Consommations matérielles, intensités carbone, tarifs et rendements de datacenter
-vivent dans [`saggio/data/`](saggio/data/),
-une ligne chacun avec sa source et sa date. Une ligne manquante est une issue
-normale, et l'outil vous dit laquelle par son nom :
+Consommations matérielles, intensités carbone, tarifs et rendements de
+datacenter vivent dans [`saggio/data/`](saggio/data/), une ligne chacun avec sa
+source et sa date. Une ligne manquante est une issue normale ; l'outil vous dit
+laquelle par son nom :
 
 ```bash
 saggio catalog list gpu
@@ -413,9 +418,9 @@ Les dépendances ne pointent que dans un sens, si bien que la ligne de commande 
 peut rien faire qu'un appelant de la bibliothèque ne puisse faire.
 
 Les pièces du rapport HTML s'écrivent hors du paquet, dans
-[`reporting/`](reporting/) : la coquille du document avec les jetons que le rendu
-remplit, la feuille de style, le script, les traductions. Ce sont là une feuille
-de style et un script, et non des chaînes citées dans du Python ;
+[`reporting/`](reporting/) : la coquille du document avec les jetons que le
+rendu remplit, la feuille de style, le script, les traductions. Ce sont là une
+feuille de style et un script plutôt que des chaînes citées dans du Python ;
 `reporting/sync.py` les recopie dans le paquet qui les livre, et un test fait
 échouer le build si les deux viennent à diverger. Copiez ce trio pour produire
 des rapports d'une autre forme.
@@ -423,7 +428,7 @@ des rapports d'une autre forme.
 ## Cinq façons de l'atteindre
 
 Un seul moteur, cinq surfaces, parce que la personne qui produit un chiffre est
-rarement celle qui doit le déclarer, et que la plupart des lecteurs
+rarement celle qui doit le déclarer ; et parce que la plupart des lecteurs
 n'installeront jamais un paquet Python.
 
 | Surface | Pour | Comment |
@@ -434,15 +439,16 @@ n'installeront jamais un paquet Python.
 | Protocole d'agent | Poser la question avec ses mots, dans sa langue | `uvicorn saggio.api.mcp:app`, outils sur `/mcp` |
 | Skill | Claude, et tout agent qui lit les Agent Skills | [`skills/saggio/`](https://github.com/warith-harchaoui/saggio/blob/master/skills/saggio/SKILL.md) |
 
-Chacune est un adaptateur au-dessus des mêmes fonctions publiques, et c'est une
-règle que des tests imposent plutôt qu'une habitude : une surface capable de ce
-que la bibliothèque ne sait pas faire serait une capacité interdite à tous les
-autres appelants. La surface HTTP n'exécute le code de personne, parce qu'à
-travers un réseau il n'y a personne à qui demander un consentement, et elle ne
-clone un dépôt que là où l'exploitant l'a permis.
+Chacune est un adaptateur au-dessus des mêmes fonctions publiques — une règle
+que des tests imposent plutôt qu'une habitude : une surface capable de ce que la
+bibliothèque ne sait pas faire serait une capacité interdite à tous les autres
+appelants. La surface HTTP n'exécute le code de personne, parce qu'à travers un
+réseau il n'y a personne à qui demander un consentement ; elle ne clone un dépôt
+que là où l'exploitant l'a permis.
 
-[`UTILISER.md`](https://github.com/warith-harchaoui/saggio/blob/master/UTILISER.md) dit tout : à quoi sert chaque surface, ce
-qu'aucune n'a le droit de faire, et comment en ajouter une sixième.
+[`UTILISER.md`](https://github.com/warith-
+harchaoui/saggio/blob/master/UTILISER.md) dit tout : à quoi sert chaque surface,
+ce qu'aucune n'a le droit de faire, comment en ajouter une sixième.
 
 ## Contribuer
 
@@ -459,29 +465,30 @@ ruff format --check .
 
 ## Pour qui doit déclarer le chiffre
 
-Un modèle de coût répond à ce que coûte une unité de travail. Un bilan GES (gaz à effet de serre)
-demande à qui est l'émission et sous quel scope elle se déclare — et la réponse
-tient à un seul fait que le modèle énonce déjà : qui exploite la machine.
-`saggio scopes` l'imprime, chaque rapport le porte, et
+Un modèle de coût répond à ce que coûte une unité de travail. Un bilan GES (gaz
+à effet de serre) demande à qui est l'émission et sous quel scope elle se
+déclare — et la réponse tient à un seul fait que le modèle énonce déjà : qui
+exploite la machine. `saggio scopes` l'imprime, chaque rapport le porte,
 [`INVENTAIRE.md`](INVENTAIRE.md) expose ce que cela donne à un vérificateur, ce
 que le chiffre de scope 2 est et n'est pas, et les six choses qu'il ne couvre
 pas.
 
 ## Travaux voisins
 
-[`PAYSAGE.md`](PAYSAGE.md) situe cet outil à côté de CodeCarbon, Green Algorithms,
-Scaphandre, PowerAPI, Cloud Carbon Footprint et le reste du domaine, et dit
-honnêtement là où chacun d'eux est le meilleur choix — plus les outils qu'une
-équipe RSE (responsabilité sociétale des entreprises) a déjà, qui répondent à une tout autre question.
+[`PAYSAGE.md`](PAYSAGE.md) situe cet outil à côté de CodeCarbon, Green
+Algorithms, Scaphandre, PowerAPI, Cloud Carbon Footprint et le reste du domaine,
+en disant honnêtement là où chacun d'eux est le meilleur choix — plus les outils
+qu'une équipe RSE (responsabilité sociétale des entreprises) a déjà, qui
+répondent à une tout autre question.
 
 ## Le nom
 
-*Saggio*, en italien, c'est l'essai d'un métal : on prélève un échantillon, on en
-détermine le titre, et le résultat est poinçonné avec le nom de qui l'a déterminé
-et la date. Le mot veut dire aussi l'essai qu'on écrit, et il veut dire avisé.
-Les trois sens sont le propos. Cet outil prélève une tranche plafonnée d'une
-vraie exécution, dit à quel point chaque chiffre est fondé, et note d'où vient
-chaque valeur et à quelle date quelqu'un l'a lue.
+*Saggio*, en italien, c'est l'essai d'un métal : on prélève un échantillon, on
+en détermine le titre, le résultat est poinçonné avec le nom de qui l'a
+déterminé et la date. Le mot veut dire aussi l'essai qu'on écrit, et avisé. Les
+trois sens sont le propos. Cet outil prélève une tranche plafonnée d'une vraie
+exécution, dit à quel point chaque chiffre est fondé, note d'où vient chaque
+valeur et à quelle date quelqu'un l'a lue.
 
 ## Licence
 
