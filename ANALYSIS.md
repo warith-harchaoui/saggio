@@ -2,18 +2,18 @@
 
 [🇫🇷 ANALYSE.md](ANALYSE.md) · 🇬🇧 English
 
-Two questions sit under every cost model this package writes, and they are not
+Two questions sit under every cost model this package writes. They are not
 symmetric.
 
 **Can reading a repository tell you what it costs to run?** Mostly no, and the
 literature is unusually clear about why.
 
 **Can running a repository tell you how it scales?** Yes, within the range you
-ran it over, and that is worth more than it sounds.
+ran it over, which is worth more than it sounds.
 
 This page is the investigation behind those two sentences: what static analysis
 and dynamic analysis have actually been shown to deliver for **complexity** and
-for **consumption**, with the numbers and the papers, and what of it belongs in
+for **consumption**, with the numbers and the papers, then what of it belongs in
 `saggio`. It is a reference, not a feature list. Where a technique is refused,
 the refusal is argued rather than asserted.
 
@@ -81,8 +81,8 @@ from source, and it is worth knowing precisely what it needs.
 | Recurrence extraction | [COSTA](https://www.researchgate.net/publication/221047639_COSTA_Design_and_Implementation_of_a_Cost_and_Termination_Analyzer_for_Java_Bytecode), SPEED, [CoFloCo](https://arxiv.org/pdf/2202.01769), [KoAT](https://arxiv.org/pdf/2606.28542), Loopus | Java bytecode, or pointer-free C lowered to integer transition systems | Closed-form upper bound on a cost measure |
 | Amortised typing | [RaML](https://www.raml.co/publications/) (Resource Aware ML), C4B | First-order functional programs, OCaml | Concrete, *non-asymptotic* polynomial bounds, inferred by linear programming |
 
-Both families work, and both are narrow by construction. The recurrence family
-is [explicitly unable to infer tight bounds for programs that are non-linearly
+Both families work. Both are narrow by construction. The recurrence family is
+[explicitly unable to infer tight bounds for programs that are non-linearly
 recursive, amortised, non-monotonic or
 multiphase](https://arxiv.org/pdf/2202.01769) — even when a simple closed form
 exists. The amortised family wants a typed functional language. Neither accepts
@@ -106,10 +106,10 @@ and limits of multi-level energy analysis for deeply embedded single- and
 multi-threaded programs](https://arxiv.org/pdf/1510.07095).
 
 The precondition is a per-instruction energy model for the target. That exists
-for an XMOS microcontroller. It does not exist, and will not, for a
-superscalar out-of-order core with three cache levels, a memory controller, an
-operating system scheduler, a garbage-collected interpreter, and a discrete
-accelerator on the other side of a PCIe link.
+for an XMOS microcontroller. It does not exist, and will not, for a superscalar
+out-of-order core with three cache levels, a memory controller, an operating
+system scheduler, a garbage-collected interpreter, a discrete accelerator on the
+other side of a PCIe link.
 
 The nearest thing at the top of that stack is static **throughput** prediction
 for a single basic block: [uiCA](https://arxiv.org/abs/2107.14210) reports about
@@ -134,11 +134,10 @@ They measure how hard code is to *read and maintain*. They are not measures of
 how much work it does, and the evidence on using them as energy predictors is
 now specific enough to quote.
 
-[A 2026 study of 2,786 Java
-methods](https://arxiv.org/abs/2607.06124) extracted 33 static features — lines
-of code, control-flow counts, internal and external calls, cyclomatic
-complexity, and which standard APIs each method touches — and fitted eleven
-regression models to measured energy:
+[A 2026 study of 2,786 Java methods](https://arxiv.org/abs/2607.06124) extracted
+33 static features — lines of code, control-flow counts, internal and external
+calls, cyclomatic complexity, which standard APIs each method touches — and
+fitted eleven regression models to measured energy:
 
 - static features **alone**: R² ≈ **0.005**;
 - static features **plus the logarithm of execution time**: R² = **0.46** (random
@@ -183,15 +182,16 @@ early stage — and a rule count is not a quantity. "Seventeen eco-design
 findings" is not joules, not grams, and not comparable between two repositories.
 
 Where a rule is unambiguous and cheap, the pattern worth borrowing is the one
-this package already uses for API (application programming interface) calls: **quote the line, name the practice,
-and attach no number.** A finding with a file and a line number is evidence a
-reader can check. A finding with a score is a number nobody can check.
+this package already uses for API (application programming interface) calls:
+**quote the line, name the practice, attach no number.** A finding with a file
+and a line number is evidence a reader can check. A finding with a score is a
+number nobody can check.
 
 ### 1.6 So what is static analysis actually good for here?
 
 Everything in the list below is deterministic, checkable, and already the
-division of labour `saggio` keeps — the static pass owns the counting, and never
-owns a wattage:
+division of labour `saggio` keeps: the static pass owns the counting and never
+owns a wattage.
 
 - **What the repository is**: languages by extension weight, archetype, which
   compute frameworks are imported and whether they are imported by the workload
@@ -241,14 +241,16 @@ prediction of its cost.
 
 ### 2.1 The counters, and how far they can be trusted
 
-`saggio` reads energy counters directly: powercap/RAPL (Running Average Power Limit) zones by name on Linux,
-`IOReport` on Apple Silicon, NVML (NVIDIA Management Library) through the NVIDIA driver, and `amdgpu` /
-`i915` / `xe` through sysfs. The reference study for how far any of this can be
-trusted is [Jay, Ostapenco, Lefèvre, Trystram, Orgerie and Fichel, CCGrid
-2023](https://perso.ens-lyon.fr/laurent.lefevre/pdf/CCGRID2023_Ostapenco_Jay_Lefevre.pdf),
-which compared nine software power meters — CarbonTracker, CodeCarbon, Energy
-Scope, Experiment Impact Tracker, `perf`, PowerAPI, Scaphandre, Green Algorithms
-and ML (machine learning) CO2 Impact — against high-precision physical meters on Grid'5000.
+`saggio` reads energy counters directly: powercap/RAPL (Running Average Power
+Limit) zones by name on Linux, `IOReport` on Apple Silicon, NVML (NVIDIA
+Management Library) through the NVIDIA driver, `amdgpu` / `i915` / `xe` through
+sysfs. The reference study for how far any of this can be trusted is [Jay,
+Ostapenco, Lefèvre, Trystram, Orgerie and Fichel, CCGrid 2023](https://perso.ens
+-lyon.fr/laurent.lefevre/pdf/CCGRID2023_Ostapenco_Jay_Lefevre.pdf), which
+compared nine software power meters — CarbonTracker, CodeCarbon, Energy Scope,
+Experiment Impact Tracker, `perf`, PowerAPI, Scaphandre, Green Algorithms and ML
+(machine learning) CO2 Impact — against high-precision physical meters on
+Grid'5000.
 
 What they found, in the order it matters:
 
@@ -272,7 +274,7 @@ What they found, in the order it matters:
   about which process was drawing more, with no reference available to settle it.
 
 This is the empirical basis for two rules already enforced in this package: a
-reading carries the **scope** of what it covered, and a package figure is never
+reading carries the **scope** of what it covered; a package figure is never
 presented as the cost of a run that was dominated by an accelerator.
 
 ### 2.2 The cost of measuring
@@ -293,9 +295,10 @@ shows what careful engineering buys at method granularity: instrumentation
 decoupled from measurement through a lock-free buffer, R² = 0.9934 against RAPL,
 10.9% mean absolute error, and overhead still **1.5–11.3%**.
 
-The same caveat governs profilers, and `saggio` already states it: a run taken
-with `cProfile` attached reports an inflated wall time, because the profiler
-charges per call. Sampling profilers ([Scalene](https://www.usenix.org/conference/osdi23/presentation/berger),
+The same caveat governs profilers, as `saggio` already states: a run taken with
+`cProfile` attached reports an inflated wall time, because the profiler charges
+per call. Sampling profilers
+([Scalene](https://www.usenix.org/conference/osdi23/presentation/berger),
 `py-spy`, `pyinstrument`) trade exactness for a much lower disturbance, and
 Scalene additionally separates time spent in Python from time spent in native
 code — the distinction that decides whether a hot line is worth rewriting. At
@@ -304,8 +307,8 @@ the other extreme, instrumentation-based tools are honest about their price:
 
 ### 2.3 Measuring complexity by running the thing
 
-This is the part of the literature that is directly useful here, and it is
-older and better than its visibility suggests.
+This is the part of the literature that is directly useful here, older and
+better than its visibility suggests.
 
 **[trend-prof](https://theory.stanford.edu/~aiken/publications/papers/fse07.pdf)**
 (Goldsmith, Aiken and Wilkerson, FSE 2007) measures *empirical computational
@@ -404,9 +407,9 @@ measures something other than language:
 - the "same algorithm" benchmarks differ in parallelism, vectorisation and
   third-party libraries — the C++/C regex gap of 8.9× comes from PCRE versus
   Boost, not from the languages;
-- JIT (just-in-time) warm-up dominates short runs: first iterations up to **3×** slower, and
-  averaging over ten or more iterations improves measured energy efficiency by
-  **80%**;
+- JIT (just-in-time) warm-up dominates short runs: first iterations up to **3×**
+  slower, with averaging over ten or more iterations improving measured energy
+  efficiency by **80%**;
 - core count dominates power, roughly **P(x) ≈ 30·log₂(x) + 242 W**, so a
   benchmark that happens to be parallel in one language and sequential in
   another is not a language comparison at all;
@@ -415,7 +418,7 @@ measures something other than language:
 
 Their conclusion, controlled for the above: *"the choice of programming language
 implementation has no significant impact on energy consumption beyond execution
-time"*, and the advice that follows is to optimise performance rather than shop
+time"*, so the advice that follows is to optimise performance rather than shop
 for a language.
 
 That is a strong statement for the design of this package, and it should not be
@@ -477,12 +480,12 @@ carry.
 
 `project_to_completion` used to scale a measured slice to a whole run and record
 the assumption it rested on — that the work is uniform. Nothing checked that
-assumption, and when it is wrong it is wrong by a power, not by a margin.
+assumption. When it is wrong it is wrong by a power, not by a margin.
 
-trend-prof's method turns it into something checkable, and the repository already
-supplied the missing ingredient: the static pass reads the declared work size, so
-a slice can be run at several sizes rather than one. That is now what
-`--scaling-steps N` does, and the arithmetic is a strict generalisation of what
+trend-prof's method turns it into something checkable, and the repository
+already supplied the missing ingredient: the static pass reads the declared work
+size, so a slice can be run at several sizes rather than one. That is now what
+`--scaling-steps N` does, whose arithmetic is a strict generalisation of what
 was there before:
 
 ```
@@ -511,9 +514,9 @@ two are kept apart: no series means the linear assumption, recorded as an
 assumption; a failed series means no projection.
 
 The exponent is `measured`, over the sizes that were run and nowhere else. The
-projection remains `estimated`, because it always was: a measurement of something
-smaller is not a measurement of this. [`EXAMPLES.md`](EXAMPLES.md) shows the
-command, the YAML (YAML Ain't Markup Language), and the refusals.
+projection remains `estimated`, because it always was: a measurement of
+something smaller is not a measurement of this. [`EXAMPLES.md`](EXAMPLES.md)
+shows the command, the YAML (YAML Ain't Markup Language), the refusals.
 
 ```bash
 saggio power --seconds 5                                   # what this machine will tell you

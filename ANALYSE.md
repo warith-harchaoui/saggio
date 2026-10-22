@@ -2,20 +2,20 @@
 
 🇫🇷 Français · [🇬🇧 ANALYSIS.md](ANALYSIS.md)
 
-Deux questions sont sous chaque modèle de coût que ce paquet écrit, et elles ne
+Deux questions sont sous chaque modèle de coût que ce paquet écrit. Elles ne
 sont pas symétriques.
 
 **Lire un dépôt peut-il dire ce qu'il coûte à exécuter ?** Presque jamais, et la
 littérature est inhabituellement claire sur les raisons.
 
 **L'exécuter peut-il dire comment il passe à l'échelle ?** Oui, sur la plage
-effectivement parcourue, et cela vaut plus qu'il n'y paraît.
+effectivement parcourue, ce qui vaut plus qu'il n'y paraît.
 
 Cette page est l'enquête derrière ces deux phrases : ce que l'analyse statique
 et l'analyse dynamique ont réellement démontré pour la **complexité** et pour la
-**consommation**, chiffres et articles à l'appui, et ce qui, de tout cela, a sa
-place dans `saggio`. C'est une référence, pas une liste de fonctionnalités. Là
-où une technique est refusée, le refus est argumenté plutôt qu'asséné.
+**consommation**, chiffres et articles à l'appui, puis ce qui, de tout cela, a
+sa place dans `saggio`. C'est une référence, pas une liste de fonctionnalités.
+Là où une technique est refusée, le refus est argumenté plutôt qu'asséné.
 
 ```mermaid
 %% Les couleurs sont celles d'Okabe et Ito, sûres pour les déficiences de la
@@ -84,9 +84,9 @@ exige.
 | Extraction de récurrences | [COSTA](https://www.researchgate.net/publication/221047639_COSTA_Design_and_Implementation_of_a_Cost_and_Termination_Analyzer_for_Java_Bytecode), SPEED, [CoFloCo](https://arxiv.org/pdf/2202.01769), [KoAT](https://arxiv.org/pdf/2606.28542), Loopus | Bytecode Java, ou C sans pointeurs abaissé en systèmes de transitions entiers | Borne supérieure en forme close sur une mesure de coût |
 | Typage amorti | [RaML](https://www.raml.co/publications/) (Resource Aware ML), C4B | Programmes fonctionnels du premier ordre, OCaml | Bornes polynomiales concrètes, *non asymptotiques*, inférées par programmation linéaire |
 
-Les deux familles fonctionnent, et les deux sont étroites par construction. La
-famille des récurrences est [explicitement incapable d'inférer des bornes serrées
-pour les programmes récursifs non linéaires, amortis, non monotones ou
+Les deux familles fonctionnent. Les deux sont étroites par construction. La
+famille des récurrences est [explicitement incapable d'inférer des bornes
+serrées pour les programmes récursifs non linéaires, amortis, non monotones ou
 multiphases](https://arxiv.org/pdf/2202.01769) — même quand une forme close
 simple existe. La famille amortie veut un langage fonctionnel typé. Aucune
 n'accepte un dépôt dont le coût est dominé par NumPy, un noyau CUDA, une base de
@@ -142,8 +142,9 @@ d'énergie sont désormais assez précises pour être citées.
 [Une étude 2026 portant sur 2 786 méthodes
 Java](https://arxiv.org/abs/2607.06124) a extrait 33 traits statiques — lignes
 de code, comptes de flot de contrôle, appels internes et externes, complexité
-cyclomatique, et quelles API (interface de programmation applicative) standard chaque méthode touche — puis ajusté onze
-modèles de régression sur l'énergie mesurée :
+cyclomatique, quelles API (interface de programmation applicative) standard
+chaque méthode touche — puis ajusté onze modèles de régression sur l'énergie
+mesurée :
 
 - traits statiques **seuls** : R² ≈ **0,005** ;
 - traits statiques **plus le logarithme du temps d'exécution** : R² = **0,46**
@@ -192,15 +193,15 @@ se compare pas entre deux dépôts.
 
 Là où une règle est non ambiguë et bon marché, le motif à reprendre est celui
 que ce paquet applique déjà aux appels d'API : **citer la ligne, nommer la
-pratique, et n'attacher aucun nombre.** Un constat avec un fichier et un numéro
-de ligne est une preuve vérifiable. Un constat avec un score est un nombre que
+pratique, n'attacher aucun nombre.** Un constat avec un fichier et un numéro de
+ligne est une preuve vérifiable. Un constat avec un score est un nombre que
 personne ne peut vérifier.
 
 ### 1.6 Alors, à quoi sert vraiment l'analyse statique ici ?
 
 Tout ce qui suit est déterministe, vérifiable, et constitue déjà la division du
-travail que ce paquet tient — la passe statique possède le comptage, et ne
-possède jamais un wattage :
+travail que ce paquet tient : la passe statique possède le comptage et ne
+possède jamais un wattage.
 
 - **Ce qu'est le dépôt** : langages pondérés par extension, archétype, quels
   cadriciels de calcul sont importés, et s'ils le sont par la charge de travail
@@ -253,15 +254,16 @@ comme une prédiction de son coût.
 
 ### 2.1 Les compteurs, et jusqu'où leur faire confiance
 
-`saggio` lit directement les compteurs d'énergie : les zones powercap/RAPL (Running Average Power Limit) par
-leur nom sous Linux, `IOReport` sur Apple Silicon, NVML (NVIDIA Management Library) via le pilote NVIDIA, et
-`amdgpu` / `i915` / `xe` via sysfs. L'étude de référence sur la confiance à
-accorder à tout cela est [Jay, Ostapenco, Lefèvre, Trystram, Orgerie et Fichel,
-CCGrid
-2023](https://perso.ens-lyon.fr/laurent.lefevre/pdf/CCGRID2023_Ostapenco_Jay_Lefevre.pdf),
-qui compare neuf wattmètres logiciels — CarbonTracker, CodeCarbon, Energy Scope,
-Experiment Impact Tracker, `perf`, PowerAPI, Scaphandre, Green Algorithms et ML (machine learning)
-CO2 Impact — à des wattmètres physiques de haute précision sur Grid'5000.
+`saggio` lit directement les compteurs d'énergie : les zones powercap/RAPL
+(Running Average Power Limit) par leur nom sous Linux, `IOReport` sur Apple
+Silicon, NVML (NVIDIA Management Library) via le pilote NVIDIA, `amdgpu` /
+`i915` / `xe` via sysfs. L'étude de référence sur la confiance à accorder à tout
+cela est [Jay, Ostapenco, Lefèvre, Trystram, Orgerie et Fichel, CCGrid 2023](htt
+ps://perso.ens-lyon.fr/laurent.lefevre/pdf/CCGRID2023_Ostapenco_Jay_Lefevre.pdf)
+, qui compare neuf wattmètres logiciels — CarbonTracker, CodeCarbon, Energy
+Scope, Experiment Impact Tracker, `perf`, PowerAPI, Scaphandre, Green Algorithms
+et ML (machine learning) CO2 Impact — à des wattmètres physiques de haute
+précision sur Grid'5000.
 
 Ce qu'ils trouvent, par ordre d'importance :
 
@@ -288,7 +290,7 @@ Ce qu'ils trouvent, par ordre d'importance :
   le plus, sans référence pour trancher.
 
 C'est la base empirique de deux règles déjà appliquées dans ce paquet : une
-lecture porte le **périmètre** de ce qu'elle a couvert, et un chiffre de package
+lecture porte le **périmètre** de ce qu'elle a couvert ; un chiffre de package
 n'est jamais présenté comme le coût d'une exécution dominée par un accélérateur.
 
 ### 2.2 Le coût de la mesure
@@ -312,7 +314,7 @@ instrumentation découplée de la mesure par un tampon sans verrou, R² = 0,9934
 face à RAPL, 10,9 % d'erreur absolue moyenne, et un surcoût encore de
 **1,5 à 11,3 %**.
 
-La même réserve gouverne les profileurs, et `saggio` l'énonce déjà : une
+La même réserve gouverne les profileurs, comme `saggio` l'énonce déjà : une
 exécution prise avec `cProfile` attaché rapporte un temps d'horloge gonflé,
 parce que le profileur facture à l'appel. Les profileurs par échantillonnage
 ([Scalene](https://www.usenix.org/conference/osdi23/presentation/berger),
@@ -325,8 +327,8 @@ code natif — la distinction qui décide si une ligne chaude vaut une réécrit
 
 ### 2.3 Mesurer la complexité en exécutant la chose
 
-C'est la partie de la littérature directement utile ici, et elle est plus
-ancienne et meilleure que sa visibilité ne le laisse croire.
+C'est la partie de la littérature directement utile ici, plus ancienne et
+meilleure que sa visibilité ne le laisse croire.
 
 **[trend-prof](https://theory.stanford.edu/~aiken/publications/papers/fse07.pdf)**
 (Goldsmith, Aiken et Wilkerson, FSE 2007) mesure la *complexité computationnelle
@@ -433,9 +435,9 @@ et montre qu'il mesure autre chose que le langage :
 - les tests censés exécuter « le même algorithme » diffèrent en parallélisme, en
   vectorisation et en bibliothèques tierces — l'écart de 8,9× entre C++ et C sur
   les expressions régulières vient de PCRE contre Boost, pas des langages ;
-- l'échauffement JIT (just-in-time) domine les exécutions courtes : premières itérations
-  jusqu'à **3×** plus lentes, et moyenner sur dix itérations ou plus améliore
-  l'efficacité énergétique mesurée de **80 %** ;
+- l'échauffement JIT (just-in-time) domine les exécutions courtes : premières
+  itérations jusqu'à **3×** plus lentes, moyenner sur dix itérations ou plus
+  améliorant l'efficacité énergétique mesurée de **80 %** ;
 - le nombre de cœurs domine la puissance, environ
   **P(x) ≈ 30·log₂(x) + 242 W** : un test parallèle dans un langage et
   séquentiel dans un autre n'est pas une comparaison de langages ;
@@ -444,8 +446,8 @@ et montre qu'il mesure autre chose que le langage :
 
 Leur conclusion, une fois tout cela contrôlé : *« the choice of programming
 language implementation has no significant impact on energy consumption beyond
-execution time »*, et le conseil qui suit est d'optimiser la performance plutôt
-que de magasiner un langage.
+execution time »*, si bien que le conseil qui suit est d'optimiser la
+performance plutôt que de magasiner un langage.
 
 C'est une affirmation forte pour la conception de ce paquet, et il ne faut pas
 la sur-lire. Le temps n'est pas un substitut complet à l'énergie :
@@ -507,16 +509,16 @@ honnêtement porter.
 
 ### Le seul changement qui vaille, désormais fait
 
-`project_to_completion` mettait à l'échelle une tranche mesurée vers une exécution
-complète et consignait l'hypothèse sur laquelle elle reposait : que le travail est
-uniforme. Rien ne vérifiait cette hypothèse, et quand elle est fausse, elle l'est
-d'une puissance, pas d'une marge.
+`project_to_completion` mettait à l'échelle une tranche mesurée vers une
+exécution complète et consignait l'hypothèse sur laquelle elle reposait : que le
+travail est uniforme. Rien ne vérifiait cette hypothèse. Quand elle est fausse,
+elle l'est d'une puissance, pas d'une marge.
 
 La méthode de trend-prof la rend vérifiable, et le dépôt fournissait déjà
-l'ingrédient manquant : la passe statique lit la taille de travail déclarée, donc
-une tranche peut être exécutée à plusieurs tailles plutôt qu'à une. C'est ce que
-fait désormais `--scaling-steps N`, et l'arithmétique est une généralisation
-stricte de ce qui existait :
+l'ingrédient manquant : la passe statique lit la taille de travail déclarée,
+donc une tranche peut être exécutée à plusieurs tailles plutôt qu'à une. C'est
+ce que fait désormais `--scaling-steps N`, dont l'arithmétique est une
+généralisation stricte de ce qui existait :
 
 ```
 exécution complète = tranche mesurée / fraction ** exposant
