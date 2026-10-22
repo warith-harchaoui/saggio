@@ -342,12 +342,12 @@ exactly its job. The column is not a scoreboard — it is the reason these tools
 are not interchangeable, and the reason a figure from one of them cannot simply
 be pasted where a figure from another is expected.
 
-What the comparison cannot show, and should not pretend to: **the numbers do not
-line up.** A CodeCarbon figure for a training run and a saggio figure for one
-inference are not two measurements of one thing, any more than the gallery's own
-six models compare with each other — each is per its own unit of work, which is
-the first thing every report here says. Nothing on this page ranks the tools by
-their output, because their outputs are not on one scale.
+What the comparison cannot show, nor pretend to: **the numbers do not line up.**
+A CodeCarbon figure for a training run and a saggio figure for one inference are
+not two measurements of one thing, any more than the gallery's own six models
+compare with each other — each is per its own unit of work, which is the first
+thing every report here says. Nothing on this page ranks the tools by their
+output, because their outputs are not on one scale.
 
 Where each tool is genuinely better, where this one is weakest, and the rating
 table the positioning map is drawn from, are all in

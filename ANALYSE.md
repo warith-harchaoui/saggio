@@ -93,8 +93,8 @@ n'accepte un dépôt dont le coût est dominé par NumPy, un noyau CUDA, une bas
 données et un appel réseau.
 
 Le résumé honnête : ces outils répondent sur la *complexité*, sur des classes de
-programmes bien plus étroites que celles auditées ici, et ils y répondent sur
-une mesure de coût abstraite — pas, jamais, sur des joules.
+programmes bien plus étroites que celles auditées ici, sur une mesure de coût
+abstraite — pas, jamais, sur des joules.
 
 ### 1.3 L'énergie statique : ça existe, et ça ne se transpose pas
 
@@ -136,7 +136,7 @@ pour la complexité cognitive façon SonarSource, et la règle `C901` de `ruff`
 pour le même compte de McCabe.
 
 Elles mesurent la difficulté à *lire et maintenir* du code. Ce ne sont pas des
-mesures du travail effectué, et les preuves sur leur usage comme prédicteurs
+mesures du travail effectué. Les preuves sur leur usage comme prédicteurs
 d'énergie sont désormais assez précises pour être citées.
 
 [Une étude 2026 portant sur 2 786 méthodes
@@ -392,8 +392,8 @@ abandonnant ses exigences `CAP_BPF` et `CAP_SYSADMIN` — le même réflexe de
 moindre privilège qui fait que ce paquet imprime le remède pour un compteur
 réservé à root au lieu de l'appliquer.
 
-L'attribution est un modèle posé sur une mesure, et le résultat CCGrid ci-dessus
-est la raison de la tenir à distance : deux outils mûrs, face à deux processus
+L'attribution est un modèle posé sur une mesure, que le résultat CCGrid
+ci-dessus invite à tenir à distance : deux outils mûrs, face à deux processus
 différents côte à côte, les ont classés dans l'ordre inverse.
 
 ### 2.5 Le déterminisme, pour une barrière qui ne doit pas trembler

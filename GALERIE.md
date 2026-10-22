@@ -14,7 +14,7 @@ décrite est celle qui a fait l'audit plutôt que celle qui exécute le code. Ce
 dernier point compte ici plus qu'ailleurs, car ces dépôts ont été clonés et lus
 sur un portable. Chaque modèle le dit, dans `deployment.machine_provenance`. La
 valeur de la galerie n'est pas dans les nombres. Elle est dans ce que l'outil
-établit, ce qu'il refuse d'établir, et là où il se trompe.
+établit, ce qu'il refuse d'établir, là où il se trompe.
 
 Régénérez n'importe lequel :
 
@@ -364,13 +364,13 @@ n'est pas un classement — c'est la raison pour laquelle ces outils ne sont pas
 interchangeables, et pour laquelle un chiffre de l'un ne peut pas être collé là où
 on attend un chiffre de l'autre.
 
-Ce que la comparaison ne peut pas montrer, et ne doit pas prétendre montrer : **les
-nombres ne s'alignent pas.** Un chiffre CodeCarbon pour un entraînement et un
-chiffre saggio pour une inférence ne sont pas deux mesures d'une même chose, pas
-plus que les six modèles de la galerie ne se comparent entre eux — chacun porte sur
+Ce que la comparaison ne peut pas montrer, ni prétendre montrer : **les nombres
+ne s'alignent pas.** Un chiffre CodeCarbon pour un entraînement et un chiffre
+saggio pour une inférence ne sont pas deux mesures d'une même chose, pas plus
+que les six modèles de la galerie ne se comparent entre eux — chacun porte sur
 sa propre unité de travail, ce que chaque rapport dit en premier. Rien sur cette
-page ne classe les outils par leur sortie, parce que leurs sorties ne sont pas sur
-une même échelle.
+page ne classe les outils par leur sortie, parce que leurs sorties ne sont pas
+sur une même échelle.
 
 Là où chaque outil est réellement meilleur, là où celui-ci est le plus faible,
 et le tableau de notation dont la carte de positionnement est tirée, sont dans

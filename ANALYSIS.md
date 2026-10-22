@@ -90,8 +90,8 @@ a repository whose cost is dominated by NumPy, a CUDA kernel, a database, and a
 network call.
 
 The honest summary is that these tools answer *complexity*, on program classes
-that are far narrower than the ones this package audits, and they answer it
-about an abstract cost measure — steps, allocations, ticks — not about joules.
+far narrower than the ones this package audits, about an abstract cost measure —
+steps, allocations, ticks — not about joules.
 
 ### 1.3 Static energy: it exists, and it does not transfer
 
@@ -131,8 +131,8 @@ SonarSource-style cognitive complexity, and `ruff`'s `C901` for the same McCabe
 count as a lint rule.
 
 They measure how hard code is to *read and maintain*. They are not measures of
-how much work it does, and the evidence on using them as energy predictors is
-now specific enough to quote.
+how much work it does. The evidence on using them as energy predictors is now
+specific enough to quote.
 
 [A 2026 study of 2,786 Java methods](https://arxiv.org/abs/2607.06124) extracted
 33 static features — lines of code, control-flow counts, internal and external
@@ -366,8 +366,8 @@ dropping its `CAP_BPF` and `CAP_SYSADMIN` requirements — the same
 least-privilege instinct that makes this package print the remedy for a
 root-only counter instead of performing it.
 
-Attribution is a model on top of a measurement, and the CCGrid result above is
-the reason to hold it at arm's length: two mature tools, given two different
+Attribution is a model on top of a measurement, which the CCGrid result above is
+the reason to hold at arm's length: two mature tools, given two different
 processes running side by side, ranked them in opposite orders.
 
 ### 2.5 Determinism, for a gate that must not flake
