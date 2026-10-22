@@ -2,18 +2,19 @@
 
 🇫🇷 Français · [🇬🇧 GALLERY.md](GALLERY.md)
 
-Des modèles de coût que cet outil a produits, sur des dépôts que vous pouvez aller
-lire. Chaque fichier sous [`examples/`](examples/) a été engendré par la commande
-imprimée au-dessus de lui, et chacun est commité avec son rapport rendu à côté.
+Des modèles de coût que cet outil a produits, sur des dépôts que vous pouvez
+aller lire. Chaque fichier sous [`examples/`](examples/) a été engendré par la
+commande imprimée au-dessus de lui, chacun commité avec son rapport rendu à
+côté.
 
-**Aucun de ces chiffres n'est une affirmation de coût.** Ce sont des modèles tels
-que `saggio audit` les écrit avant qu'un humain n'y touche : les nombres coûteux
-sont encore ouverts, l'unité de travail est une proposition, et la machine décrite
-est celle qui a fait l'audit, pas celle qui exécute le code. Ce dernier point
-compte ici plus qu'ailleurs, car ces dépôts ont été clonés et lus sur un portable.
-Chaque modèle le dit, dans `deployment.machine_provenance`. La valeur de la
-galerie n'est pas dans les nombres. Elle est dans ce que l'outil établit, ce qu'il
-refuse d'établir, et là où il se trompe.
+**Aucun de ces chiffres n'est une affirmation de coût.** Ce sont des modèles
+tels que `saggio audit` les écrit avant qu'un humain n'y touche : les nombres
+coûteux sont encore ouverts, l'unité de travail est une proposition, la machine
+décrite est celle qui a fait l'audit plutôt que celle qui exécute le code. Ce
+dernier point compte ici plus qu'ailleurs, car ces dépôts ont été clonés et lus
+sur un portable. Chaque modèle le dit, dans `deployment.machine_provenance`. La
+valeur de la galerie n'est pas dans les nombres. Elle est dans ce que l'outil
+établit, ce qu'il refuse d'établir, et là où il se trompe.
 
 Régénérez n'importe lequel :
 
@@ -39,8 +40,8 @@ saggio render examples/nanoGPT.yaml -f md -o examples/nanoGPT.md
 
 Lu comme une charge d'**entraînement** important PyTorch, transformers et NumPy.
 Une exécution complète fait `600000` itérations, d'après `train.py::max_iters`.
-Trois autres fichiers du même dépôt disent autre chose, et le modèle le dit au lieu
-de trancher :
+Trois autres fichiers du même dépôt disent autre chose, ce que le modèle
+rapporte au lieu de trancher :
 
 > `max_iters` est énoncé plusieurs fois et les énoncés se contredisent
 > (`train.py` dit 600000 ; `config/finetune_shakespeare.py` dit 20 ;
@@ -79,12 +80,12 @@ se contredisent : les configurations d'entraînement disent 400 et 500, la
 configuration SSL (self-supervised learning) par défaut dit 100, les scripts d'évaluation disent 10 et 30. Il
 retient `configs/train/cell_dino/vitl16_boc_hpafov.yaml`, et liste les six autres.
 
-Il retenait auparavant `configs/eval/...`, une configuration d'*évaluation*, parce
-que la règle était alphabétique et qu'`eval` se classe avant `train`. Un dépôt qui
-sépare `configs/train` de `configs/eval` vous dit laquelle des deux une vraie
-exécution lit, et la règle l'écoute désormais : un répertoire d'entraînement prime
-sur un répertoire neutre, qui prime sur un répertoire d'évaluation, de banc d'essai
-ou d'exemples.
+Il retenait auparavant `configs/eval/...`, une configuration d'*évaluation*,
+parce que la règle était alphabétique et qu'`eval` se classe avant `train`. Un
+dépôt qui sépare `configs/train` de `configs/eval` vous dit laquelle des deux
+une vraie exécution lit, si bien que la règle l'écoute désormais : un répertoire
+d'entraînement prime sur un répertoire neutre, qui prime sur un répertoire
+d'évaluation, de banc d'essai ou d'exemples.
 
 Entre quatre configurations d'entraînement, c'est encore alphabétique, et 400
 contre 500 est une vraie ambiguïté que ceci ne peut pas trancher. Ce qu'il fait à
@@ -93,9 +94,9 @@ trouve d'un coup d'œil.
 
 ### fastapi — la suite n'est pas la charge de travail
 
-Lu comme un **outil en ligne de commande**, 1138 fichiers Python, aucun framework
-de calcul. Il trouve trois identifiants de modèle, et tous les trois arrivent avec
-une réserve :
+Lu comme un **outil en ligne de commande**, 1138 fichiers Python, aucun
+framework de calcul. Il trouve trois identifiants de modèle, tous les trois
+arrivant avec une réserve :
 
 ```yaml
 - model: alexnet
@@ -104,17 +105,18 @@ une réserve :
     of the workload. Confirm before pricing it.
 ```
 
-`alexnet`, `lenet` et `resnet` sont des chaînes dans un test de tutoriel. Ils sont
-rapportés, parce que les faire disparaître en silence serait une autre forme de
-malhonnêteté, et ils sont signalés, parce que FastAPI ne les appelle pas.
+`alexnet`, `lenet` et `resnet` sont des chaînes dans un test de tutoriel. Ils
+sont rapportés, parce que les faire disparaître en silence serait une autre
+forme de malhonnêteté ; et signalés, parce que FastAPI ne les appelle pas.
 
-Il y en avait un quatrième, `Body_`, venu de `model_name = "Body_" + name` dans les
-entrailles de FastAPI. Une chaîne littérale avec un `+` contre elle est un fragment
-en cours de construction, pas un modèle nommé, et le détecteur le dit maintenant.
+Il y en avait un quatrième, `Body_`, venu de `model_name = "Body_" + name` dans
+les entrailles de FastAPI. Une chaîne littérale avec un `+` contre elle est un
+fragment en cours de construction, pas un modèle nommé, ce que le détecteur dit
+maintenant.
 
 ### airflow — le test de résistance
 
-Neuf langages. 7920 fichiers Python, 1112 TypeScript, et derrière eux du Go, du
+Neuf langages. 7920 fichiers Python, 1112 TypeScript, derrière eux du Go, du
 Kotlin, du Java, du Shell, du JavaScript et du Scala. Huit services payants
 détectés avec la ligne qui prouve chacun, de
 `providers/anthropic/.../operators/agent.py:36` à
@@ -135,11 +137,11 @@ de détection. Un dépôt qui contient des tables de détection se détecte lui-
 c'est inhérent, et c'est dit plutôt que caché.
 
 Sa durée d'exécution, `num_samples: 5000`, vient de
-`examples/walkthrough/counter/config.py` — le dépôt jouet plus bas sur cette page.
-Rien d'autre dans ce paquet n'énonce la quantité de travail d'une exécution : le
-seul énoncé l'emporte donc. C'est la bonne réponse à la question posée et la
-mauvaise à la question visée, et le modèle nomme le fichier : la différence est à
-une ligne de là.
+`examples/walkthrough/counter/config.py` — le dépôt jouet plus bas sur cette
+page. Rien d'autre dans ce paquet n'énonce la quantité de travail d'une
+exécution : le seul énoncé l'emporte donc. C'est la bonne réponse à la question
+posée et la mauvaise à la question visée, ce que le modèle nomme le fichier : la
+différence est à une ligne de là.
 
 ### detectron2 — le premier lu comme inférence
 
@@ -177,17 +179,18 @@ en garde. La règle reconnaît désormais une suite quelle que soit sa langue, e
 refuse `latest.rs` et `contest.py`, qu'une première tentative trop lâche avait
 emportés.
 
-**Et une qui n'est pas corrigée, et qui est nommée ici plutôt que cachée.** Rust
-garde ses tests unitaires *à l'intérieur* du fichier qu'ils testent, dans un bloc
+**Et une qui n'est pas corrigée, nommée ici plutôt que cachée.** Rust garde ses
+tests unitaires *à l'intérieur* du fichier qu'ils testent, dans un bloc
 `#[cfg(test)] mod tests`. Une détection au niveau du fichier ne peut pas voir
 cela, si bien que des fixtures comme `trusted/model` et `gpt-test` figurent
 encore à côté des vrais `openai/gpt-4o` et `anthropic/claude-sonnet-4-20250514`
 que ce moteur appelle réellement. Lire à l'intérieur d'un fichier pour y trouver
-un module de test en ligne est un travail autre, et plus grand, que lire son nom.
+un module de test en ligne est un travail autre, et plus grand, que lire son
+nom.
 
 ## Deux modèles terminés
 
-Tout ce qui précède est un audit sans rien exécuter : huit dépôts lus, et huit
+Tout ce qui précède est un audit sans rien exécuter : huit dépôts lus, huit
 modèles dont chaque coût est un `TODO`. C'est la sortie honnête d'une lecture de
 code qu'on n'a pas exécuté, et c'est aussi une moitié de démonstration. Ces deux
 modèles sont l'autre moitié — le même outil sur du travail réellement mesuré,
@@ -217,9 +220,9 @@ valeur qu'un compteur puisse réellement voir. Chacun de ces nombres est dans le
 modèle, dans la phrase attachée à la figure de puissance et dans la liste des
 exclusions à côté.
 
-**Et une seule exécution ne borne rien.** `render` a été mesuré avec
-`--repeat 5`, et les cinq exécutions divergent d'une façon que les deux figures
-ne partagent pas :
+**Et une seule exécution ne borne rien.** `render` a été mesuré avec `--repeat
+5`. Les cinq exécutions divergent d'une façon que les deux figures ne partagent
+pas :
 
 | | Étendue sur cinq exécutions | Écart |
 |---|---|---|
@@ -241,8 +244,8 @@ Le modèle `request` a été mesuré une seule fois, avant l'existence de
 passer pour de la stabilité.
 
 **Ce que « terminé » veut dire ici, et ce que ça ne veut pas dire.** Quatre
-nombres sur sept sont établis et trois restent ouverts, et c'est l'état final,
-pas un état inachevé. L'eau reste ouverte parce qu'aucune efficacité d'usage de
+nombres sur sept sont établis et trois restent ouverts : c'est l'état final, pas
+un état inachevé. L'eau reste ouverte parce qu'aucune efficacité d'usage de
 l'eau n'est publiée pour un portable. La moitié market-based du scope 2 reste
 ouverte parce qu'elle repose sur un contrat d'électricité, qui est un fait sur
 une organisation et non sur ce code. Le carbone incorporé reste ouvert parce que
@@ -252,10 +255,10 @@ chose, et chacun le dit dans ses propres notes.
 
 La différence avec les huit ci-dessus est celle qui mérite le regard : un temps
 d'exécution mesuré transforme trois `TODO` en chiffres par la chaîne de
-dérivation, et la figure de puissance passe d'une supposition de fiche technique
-à une lecture de compteur près de cinq fois plus petite — qui dit quelle part
-d'elle-même était cette exécution, et de combien elle bougerait si on la
-reprenait.
+dérivation, tandis que la figure de puissance passe d'une supposition de fiche
+technique à une lecture de compteur près de cinq fois plus petite — qui dit
+quelle part d'elle-même était cette exécution, et de combien elle bougerait si
+on la reprenait.
 
 ## La démonstration pas à pas : une charge, quatre étapes
 
@@ -286,7 +289,7 @@ cinq cents unités de travail : le chiffre enregistré est donc par unité.
 `saggio audit --run` fait la lecture et l'exécution en une seule étape, et demande
 votre accord d'abord, parce que ce chemin-là exécute le code du dépôt étudié.
 
-La leçon est dans le diff, et sa première ligne mérite d'être lue deux fois :
+La leçon est dans le diff, dont la première ligne mérite d'être lue deux fois :
 
 ```
 assumptions.power_draw: 83.76 -> 31.1047 (-62.9%), estimated -> measured
@@ -343,7 +346,7 @@ quand elles ne peuvent pas répondre.**
 Lisez la dernière colonne en premier. C'est elle qui décide si un chiffre survit
 au fait d'être cité.
 
-La figure regroupe par famille. Voici les outils de chacune, et c'est leur propre
+La figure regroupe par famille. Voici les outils de chacune. C'est leur propre
 page qui permet de les juger, pas celle-ci :
 
 | Famille | Les outils qu'elle représente |
@@ -369,9 +372,9 @@ sa propre unité de travail, ce que chaque rapport dit en premier. Rien sur cett
 page ne classe les outils par leur sortie, parce que leurs sorties ne sont pas sur
 une même échelle.
 
-Là où chaque outil est réellement meilleur, là où celui-ci est le plus faible, et
-le tableau de notation à douze lignes dont la carte de positionnement est tirée,
-sont dans [`PAYSAGE.md`](PAYSAGE.md) — y compris les cas où le conseil honnête est
+Là où chaque outil est réellement meilleur, là où celui-ci est le plus faible,
+et le tableau de notation dont la carte de positionnement est tirée, sont dans
+[`PAYSAGE.md`](PAYSAGE.md) — y compris les cas où le conseil honnête est
 d'utiliser autre chose.
 
 ## Ce qu'est une galerie, dans ce domaine, et ce que celle-ci emprunte
@@ -382,16 +385,17 @@ parce que c'est ce qu'un lecteur arrive en attendant. La lecture est dans
 [`PAYSAGE.md`](PAYSAGE.md#où-ce-domaine-publie-ses-mesures), faite le
 2026-10-18 ; voici ce qu'elle a changé ici.
 
-**Un classement de machine learning (ML).** [ML.ENERGY](https://ml.energy/leaderboard/) mesure l'énergie
-d'inférence de 46 modèles sur 7 tâches, 1 858 configurations sur des cartes H100
-et B200. Ses lignes se comparent parce qu'il tient la question constante : le
-matériel, la tâche, et la configuration à énergie minimale de chaque modèle.
-**Cette galerie ne peut pas en être un, et ce n'est pas par modestie.** Ses huit
-lignes sont huit dépôts avec huit unités de travail différentes — une inférence,
-une requête, un entraînement — et aucune arithmétique ne met cela sur un axe. La
-seule chose qui se compare d'une ligne à l'autre est la part de chaque modèle
-qui est *établie* plutôt que supposée, et c'est pourquoi c'est elle qui est en
-figure en tête, et pas les coûts.
+**Un classement de machine learning (ML).**
+[ML.ENERGY](https://ml.energy/leaderboard/) mesure l'énergie d'inférence de 46
+modèles sur 7 tâches, 1 858 configurations sur des cartes H100 et B200. Ses
+lignes se comparent parce qu'il tient la question constante : le matériel, la
+tâche, la configuration à énergie minimale de chaque modèle. **Cette galerie ne
+peut pas en être un, et ce n'est pas par modestie.** Ses huit lignes sont huit
+dépôts avec huit unités de travail différentes — une inférence, une requête, un
+entraînement — et aucune arithmétique ne met cela sur un axe. La seule chose qui
+se compare d'une ligne à l'autre est la part de chaque modèle qui est *établie*
+plutôt que supposée, et c'est pourquoi c'est elle qui est en figure en tête, et
+pas les coûts.
 
 **Une base de mesures.** L'[Energy-ID](https://www.green-coding.io/products/energy-id/)
 de Green Coding publie une fiche par tâche, sur des machines fixes, chacune
@@ -521,14 +525,14 @@ coller une durée dans du YAML laisse périmé tout ce qui en découle.
   alphabétique.** DINOv2 est maintenant lu depuis `configs/train`, la bonne
   catégorie, et 400 contre 500 à l'intérieur reste une vraie ambiguïté que rien ici
   ne peut trancher. Elle est rapportée, pas décidée.
-- **Le bloc de déploiement décrit un portable.** Chacun de ces dépôts a été cloné
-  et lu sur une seule machine, et `power_draw` est celle-là. Les modèles le disent
-  dans `deployment.machine_provenance`, et aucun chiffre d'énergie en dessous ne
-  veut dire quoi que ce soit tant que personne n'a énoncé où le code tourne
-  vraiment.
+- **Le bloc de déploiement décrit un portable.** Chacun de ces dépôts a été
+  cloné et lu sur une seule machine, dont `power_draw` est la puissance. Les
+  modèles le disent dans `deployment.machine_provenance`, et aucun chiffre
+  d'énergie en dessous ne veut dire quoi que ce soit tant que personne n'a
+  énoncé où le code tourne vraiment.
 - **Tous les chiffres de catalogue ici sont des semences.** Les puissances, le
-  tarif et l'intensité carbone portent un `source_url` et une `retrieved_date`, et
-  ils n'ont pas été vérifiés un par un contre la page qu'ils nomment.
+  tarif et l'intensité carbone portent un `source_url` et une `retrieved_date`,
+  sans qu'aucun ait été vérifié contre la page qu'il nomme.
 
 ## Régénérer toute la galerie
 
@@ -547,6 +551,6 @@ Puis rendez chacun à côté de son modèle :
 saggio render examples/airflow.yaml -f md -o examples/airflow.md
 ```
 
-Les nombres ne reviendront pas identiques. Ces dépôts changent, et le catalogue
-contre lequel on les lit change aussi. C'est tout l'intérêt de commiter un modèle à
+Les nombres ne reviendront pas identiques. Ces dépôts changent, comme change le
+catalogue contre lequel on les lit. C'est tout l'intérêt de commiter un modèle à
 côté du code qu'il décrit : quand il bouge, `diff` le dit.
