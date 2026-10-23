@@ -14,6 +14,7 @@ from saggio.report.figures import (
     derivation_chain,
     derivation_edges,
     honesty_bar,
+    honesty_overview,
     scenario_energy,
 )
 from saggio.report.html import render_html, translations
@@ -107,6 +108,48 @@ def test_the_honesty_bar_is_described_for_a_reader_who_cannot_see_it() -> None:
 
 def test_an_empty_model_draws_an_empty_bar() -> None:
     assert honesty_bar({}).count("<rect") == 0
+
+
+def _overview_legend(svg: str) -> list[str]:
+    """The status names the overview's legend prints, in order."""
+    return re.findall(r'fill="var\(--ink-soft\)">(\w+)</text>', svg)
+
+
+def test_the_overview_legend_names_only_what_it_draws() -> None:
+    """A swatch for a status no bar uses sends a reader hunting for a colour.
+
+    The single-model bar has always skipped an empty status; the overview drew
+    all four unconditionally, so every dashboard carried a `placeholder` key
+    with nothing on the chart to match it. Most models have no placeholder at
+    all, which made it the usual offender.
+    """
+    legend = _overview_legend(
+        honesty_overview(
+            [
+                ("alpha", {"measured": 2, "estimated": 3, "TODO": 1}),
+                ("gamma", {"measured": 1, "TODO": 5}),
+            ]
+        )
+    )
+    assert "placeholder" not in legend
+    assert legend[-3:] == ["measured", "estimated", "TODO"]
+
+
+def test_the_overview_legend_keeps_a_status_some_row_does_draw() -> None:
+    """The other direction, which is the one worth pinning.
+
+    A rule that hides an empty status is one edit away from hiding a full one,
+    and the figure would still look plausible.
+    """
+    legend = _overview_legend(
+        honesty_overview(
+            [
+                ("alpha", {"measured": 2, "estimated": 3, "TODO": 1}),
+                ("beta", {"estimated": 4, "placeholder": 2}),
+            ]
+        )
+    )
+    assert "placeholder" in legend
 
 
 def test_the_derivation_graph_is_read_from_the_model_not_assumed() -> None:

@@ -869,7 +869,17 @@ def honesty_overview(entries: list[tuple[str, dict[str, int]]]) -> str:
 
     legend_x = _LABEL_WIDTH
     legend_y = len(counted) * _ROW_HEIGHT + 24
+    # Only the statuses some row actually draws. A swatch for a status no bar
+    # uses sends the reader hunting the chart for a colour that is not on it,
+    # and "placeholder" is usually that status: most models have none. The
+    # single-model bar has always skipped empty statuses; this is the same rule
+    # reaching the overview.
+    present = {
+        status for _, counts, _ in counted for status in STATUS_ORDER if counts.get(status, 0)
+    }
     for status in STATUS_ORDER:
+        if status not in present:
+            continue
         parts.append(
             f'<rect x="{legend_x}" y="{legend_y - 10}" width="11" height="11" rx="2" '
             f'fill="{_FILL[status]}"/>'
