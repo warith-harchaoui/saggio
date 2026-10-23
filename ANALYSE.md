@@ -204,7 +204,7 @@ travail que ce paquet tient : la passe statique possède le comptage et ne
 possède jamais un wattage.
 
 - **Ce qu'est le dépôt** : langages pondérés par extension, archétype, quels
-  cadriciels de calcul sont importés, et s'ils le sont par la charge de travail
+  frameworks de calcul sont importés, et s'ils le sont par la charge de travail
   ou seulement par la suite de tests.
 - **Combien de travail accomplit une exécution complète** : la taille déclarée,
   collectée partout où elle est énoncée, avec une précédence explicite et les
@@ -494,7 +494,7 @@ honnêtement porter.
 
 | Technique | Ce qu'elle rend | Statut admissible | Verdict |
 |---|---|---|---|
-| Taille de travail déclarée, cadriciels, lieux d'appel de services | Une preuve avec fichier et ligne | `estimated` au plus, souvent aucun nombre | **Livré.** C'est à cela que sert la passe statique. |
+| Taille de travail déclarée, frameworks, lieux d'appel de services | Une preuve avec fichier et ligne | `estimated` au plus, souvent aucun nombre | **Livré.** C'est à cela que sert la passe statique. |
 | Exposant d'échelle empirique par tranches répétées | Le `b` de `y = a·x^b`, avec R² | `measured` sur la plage parcourue ; toute projection au-delà reste `estimated` | **Livré**, sous `saggio audit --scaling-steps N`. Voir ci-dessous. |
 | Compteurs d'énergie, lus deux fois, à basse cadence | Des joules, avec un périmètre | `measured` | **Livré.** Garder les échantillonneurs lents ; préférer les compteurs cumulatifs. |
 | Comptes d'instructions sous Cachegrind | Un indicateur de travail déterministe | `measured` comme compte ; jamais converti en énergie | **À adopter plus tard**, pour les barrières `diff`. Linux seulement, refus ailleurs. |

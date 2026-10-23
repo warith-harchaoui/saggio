@@ -156,7 +156,7 @@ d'entrée trouvé, donc pas d'exécution à chronométrer ; aucun identifiant de
 modèle ni service payant nommé, donc rien à tarifer ; la taille de travail n'est
 pas énoncée, donc la durée reste `TODO`. Un outil soucieux de paraître utile
 aurait rempli tout cela depuis le zoo de modèles de la documentation. Celui-ci
-rapporte une main vide, ce qui est la lecture honnête d'un *cadriciel* de
+rapporte une main vide, ce qui est la lecture honnête d'un *framework* de
 détection : ce qu'il coûte dépend entièrement du modèle qu'on lui donne, et le
 dépôt ne choisit pas à votre place.
 
