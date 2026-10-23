@@ -30,7 +30,7 @@ import pytest
 
 from saggio.model import CostModel
 from saggio.report.markdown import render_markdown
-from saggio.report.office import DEFAULT_AUTHOR, render_office
+from saggio.report.office import DEFAULT_AUTHOR, _lift_prose_columns, render_office
 
 #: A model small enough to read and complete enough to render.
 MODEL = CostModel.from_mapping(
@@ -55,6 +55,11 @@ if {code} == 0:
     # The real one records what it was asked to do, including the reference
     # document when one was given, which is how the test below sees the flag.
     pathlib.Path(target + ".argv").write_text("\\n".join(argv), encoding="utf-8")
+    # And a copy of the Markdown it was handed, because the scratch file is
+    # deleted on the way out and what is *in* it is half of this module's job.
+    pathlib.Path(target + ".md").write_text(
+        pathlib.Path(argv[1]).read_text(encoding="utf-8"), encoding="utf-8"
+    )
 sys.stderr.write({stderr!r})
 sys.exit({code})
 """
@@ -172,6 +177,120 @@ def test_the_converter_is_given_the_rendered_markdown_not_the_model(
     scratch = Path(argv[1])
     assert scratch.suffix == ".md"
     assert not scratch.exists(), "the scratch Markdown was left behind"
+
+
+def test_a_column_of_sentences_does_not_squeeze_the_figures_out_of_a_table() -> None:
+    """The defect that made both office formats unreadable, pinned.
+
+    The converter sizes a table's columns by how much text each holds, so a
+    notes column carrying three sentences per row took 79% of the width and
+    left the dimension column 3%. At that width the figures came out one
+    character per line: "5.585e-08 USD" ran down the page. Nothing caught it
+    because nothing had ever rendered the Word file and looked at it.
+    """
+    prose = "Facility energy times the price per kilowatt-hour, staff excluded. " * 2
+    table = "\n".join(
+        [
+            "| Dimension | Per unit | Status | Notes |",
+            "|---|---|---|---|",
+            f"| Money | 5.585e-08 USD | estimated | {prose} |",
+            f"| Carbon | 8.337e-06 gCO2e | estimated | {prose} |",
+        ]
+    )
+    lifted = _lift_prose_columns(table)
+
+    header = next(line for line in lifted.splitlines() if line.startswith("| Dimension"))
+    assert "Notes" not in header, "the prose column is still inside the table"
+    assert "Per unit" in header and "Status" in header, "a short column was lifted by mistake"
+    assert "**Money** — Facility energy" in lifted, "the prose was dropped rather than moved"
+    assert "**Carbon** — Facility energy" in lifted
+
+
+def test_the_markdown_handed_over_has_had_its_prose_columns_lifted(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Through ``render_office``, not through the helper on its own.
+
+    Testing the helper proves the helper works. It does not prove this module
+    calls it, and the defect being guarded against is precisely a report going
+    to the converter unlifted -- which is what shipped. Removing the call has
+    to turn this red.
+    """
+    # A model whose notes are long enough to collapse the table, because the
+    # bare fixture's are not and the comparison would be vacuous: lifting is a
+    # no-op on a report with no prose column, so an unlifted hand-over would
+    # look identical to a lifted one.
+    wordy = CostModel.from_mapping(
+        {
+            "schema_version": "2.0",
+            "date_updated": "2026-10-03",
+            "unit_of_work": {"name": "one request", "status": "estimated"},
+            "deployment": {"provider": "on-prem", "country": "FR"},
+            "scenarios": [
+                {
+                    "name": "as-audited",
+                    "costs": {
+                        "money": {
+                            "value": 5.585e-08,
+                            "unit": "USD",
+                            "status": "estimated",
+                            "notes": "Facility energy times the price per kilowatt-hour. "
+                            "Hardware and staff are not included in this figure. "
+                            "The tariff is the one the catalogue holds for the country.",
+                        }
+                    },
+                }
+            ],
+        }
+    )
+    rendered = render_markdown(wordy)
+    assert _lift_prose_columns(rendered) != rendered, (
+        "this test's own model no longer has a column worth lifting, so it "
+        "cannot tell a lifted hand-over from an unlifted one"
+    )
+
+    point_at(monkeypatch, stand_in_md2star(tmp_path))
+    target = tmp_path / "cost.docx"
+    render_office(wordy, target, output_format="docx")
+    handed = (tmp_path / "cost.docx.md").read_text(encoding="utf-8")
+
+    assert handed == _lift_prose_columns(rendered), (
+        "the converter was handed the report unlifted; a notes column will "
+        "squeeze the figures in the table down to one character per line"
+    )
+
+
+def test_a_table_whose_columns_are_all_short_is_left_alone() -> None:
+    """The other direction, which is the one that would quietly ruin a report.
+
+    A rule that lifts a long column is one threshold away from dismantling
+    every table in the document, and the result would still render.
+    """
+    table = "\n".join(
+        [
+            "| provider | country | cores |",
+            "|---|---|---|",
+            "| on-prem | FR | 12 |",
+        ]
+    )
+    assert _lift_prose_columns(table) == table
+
+
+def test_text_that_is_not_a_table_passes_through_untouched() -> None:
+    """Prose, headings and fenced code are not tables and must not be read as one."""
+    document = "\n".join(
+        [
+            "# Heading",
+            "",
+            "A paragraph mentioning | a pipe | in passing.",
+            "",
+            "```",
+            "| this | is | code |",
+            "|---|---|---|",
+            "```",
+        ]
+    )
+    assert _lift_prose_columns(document) == document
 
 
 def test_a_reference_document_is_passed_through_when_given(
