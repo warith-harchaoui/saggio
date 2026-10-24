@@ -9,8 +9,9 @@ description: >-
   run their code, says "cost per request", "carbon per inference", "energy of this
   training run", "audit the running cost of this repo", "which scope does our
   software fall under", "empreinte carbone de notre service", "bilan carbone du
-  numérique", "scope 2 market-based", "un chiffre pour la CSRD ou ESRS E1", or
-  wants that cost watched in CI. Do not use for cloud-billing breakdowns,
+  numérique", "scope 2 market-based", "un chiffre pour la CSRD ou ESRS E1",
+  "what would this cost on an H100", "how much would we save running it in
+  Sweden", or wants that cost watched in CI. Do not use for cloud-billing breakdowns,
   live-service observability, a whole organisational carbon inventory, or hardware
   purchasing decisions.
 license: BSD-3-Clause
