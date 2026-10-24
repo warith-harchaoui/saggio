@@ -107,8 +107,47 @@ def test_an_unreadable_overlay_does_not_stop_the_bundled_data(overlay: Path) -> 
     assert "A100" in Catalog.load("hardware", overlay=overlay).keys("gpus")
 
 
-def test_the_overlay_directory_is_created_on_demand() -> None:
-    assert overlay_directory().is_dir()
+def test_naming_the_overlay_directory_does_not_create_it(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Asking where the overlay lives must not be a write.
+
+    It used to create the directory, which made every catalogue read a write
+    and crashed the read-only case below.
+    """
+    folder = tmp_path / "unwritten"
+    monkeypatch.setattr(
+        "saggio.catalog.registry.platformdirs.user_config_dir",
+        lambda *_a, **_k: str(folder),
+    )
+    assert overlay_directory() == folder
+    assert not folder.exists()
+
+
+def test_a_catalogue_loads_where_the_overlay_cannot_be_created(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A read must not need a writable filesystem.
+
+    The bundled catalogue is complete on its own and a missing overlay reads as
+    empty, so a container with a read-only root must still be able to ask what
+    a graphics processing unit draws. This failed with a permission error
+    raised from inside a path lookup.
+    """
+    locked = tmp_path / "locked"
+    locked.mkdir()
+    locked.chmod(0o555)
+    try:
+        (locked / "probe").touch()
+    except OSError:
+        pass
+    else:  # pragma: no cover - a process that writes anyway cannot be tested
+        pytest.skip("this process can write into a read-only directory")
+    monkeypatch.setattr(
+        "saggio.catalog.registry.platformdirs.user_config_dir",
+        lambda *_a, **_k: str(locked / "saggio"),
+    )
+    assert "A100" in Catalog.load("hardware").keys("gpus")
 
 
 # --- Provenance --------------------------------------------------------------

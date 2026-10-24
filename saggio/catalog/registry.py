@@ -107,20 +107,32 @@ _APP_NAME: Final[str] = "saggio"
 def overlay_directory() -> Path:
     """Return the per-user directory holding local catalogue additions.
 
+    **This only names the directory; it does not create it.** It used to create
+    it, on the reasoning that a caller about to write there should not have to
+    check first. But the caller that writes is :func:`add_row`, and it creates
+    the directory itself; the caller that merely reads is :meth:`Catalog.load`,
+    which asks for this path only to look for a file that is usually absent.
+    So the one writer never needed the convenience and the reader was made to
+    write to be allowed to read -- on a read-only filesystem, a minimal
+    container among them, every command that consults a catalogue died with a
+    permission error raised from inside a path lookup. ``saggio machine``,
+    which only reports what this machine is, was one of them.
+
+    Naming a location is not the same act as making one. A missing overlay is
+    already not a problem anywhere downstream: :func:`_read_yaml` answers with
+    an empty mapping, and the bundled catalogue stands alone.
+
     Returns
     -------
     pathlib.Path
-        A platform-appropriate config directory. It is created if missing, so
-        callers may write into it without checking first.
+        A platform-appropriate config directory, which may not exist yet.
 
     Examples
     --------
     >>> overlay_directory().name
     'saggio'
     """
-    folder = Path(platformdirs.user_config_dir(_APP_NAME))
-    osh.make_directory(str(folder))
-    return folder
+    return Path(platformdirs.user_config_dir(_APP_NAME))
 
 
 def _read_yaml(path: Path) -> dict[str, Any]:

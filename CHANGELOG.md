@@ -14,6 +14,40 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### Asking where the catalogue overlay lives created its directory, and seven commands died on a read-only filesystem
+
+`overlay_directory()` returned the per-user directory that holds local
+catalogue additions, and created it on the way out. Its docstring gave the
+reason: a caller about to write there should not have to check first.
+
+It has two callers. `add_row` writes — and creates the directory itself on the
+very next line, so it never needed the convenience. `Catalog.load` reads, and
+asks for this path only to look for a file that is usually absent; `_read_yaml`
+already answers a missing overlay with an empty mapping, and the bundled
+catalogue stands alone without one. So the only caller the side effect could
+serve was the one that had already served itself, and **the reader was made to
+write in order to be allowed to read.**
+
+On a filesystem that refuses the write — a container with a read-only root
+among them — that is not a degraded path or a warning. It is a permission error
+raised from inside a path lookup, with a traceback. Measured over the eleven
+commands tried, **seven died**: `machine`, `scopes`, `render`, `audit`,
+`catalog list` for either kind tried, and `catalog freshness`. `saggio
+machine`, whose whole job is to report what this machine is, was one of them.
+The four that lived — `power`, `validate`, `next`, `consent status` — are the
+four that never reach a catalogue.
+
+`overlay_directory()` now only names the directory, and the writer keeps the
+one line that makes it. **Naming a location is not the same act as making
+one.**
+
+Worth recording about the method rather than the defect: this was not found by
+reading the function. Four consecutive rounds of reading had passed over it.
+It was found by running the read-only commands with the configuration
+directory locked — the register that keeps producing real defects after reading
+has stopped producing them.
+
+
 ### Four locale rules read from a database instead of kept by hand, and two of them were wrong
 
 Babel is the fourth runtime dependency, and the comment in `pyproject.toml` that

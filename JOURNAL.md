@@ -16,6 +16,42 @@ endroit-là.
 
 ## Non publié
 
+### Demander où vit la surcouche du catalogue créait son dossier, et sept commandes mouraient sur un système de fichiers en lecture seule
+
+`overlay_directory()` renvoyait le dossier propre à l'utilisateur où
+s'ajoutent ses lignes de catalogue, et le créait au passage. Sa docstring en
+donnait la raison : qui s'apprête à y écrire ne devrait pas avoir à vérifier
+d'abord.
+
+Deux fonctions l'appellent. `add_row` écrit — et crée le dossier elle-même à la
+ligne suivante : la commodité ne lui a jamais servi. `Catalog.load` lit, et ne
+demande ce chemin que pour y chercher un fichier le plus souvent absent ;
+`_read_yaml` répond déjà à une surcouche manquante par une table vide, et le
+catalogue livré se tient seul sans elle. Le seul appelant que l'effet de bord
+pouvait servir était donc celui qui s'était déjà servi lui-même, et **on
+obligeait le lecteur à écrire pour avoir le droit de lire.**
+
+Sur un système de fichiers qui refuse cette écriture — un conteneur à racine en
+lecture seule, par exemple — ce n'est pas un chemin dégradé ni un
+avertissement. C'est une erreur de permission levée au fond d'une résolution de
+chemin, avec sa trace d'appels. Mesuré sur les onze commandes essayées, **sept
+mouraient** : `machine`, `scopes`, `render`, `audit`, `catalog list` pour les
+deux sortes essayées, et `catalog freshness`. `saggio machine`, dont tout le
+travail est de dire quelle machine on a devant soi, était du nombre. Les quatre
+qui vivaient — `power`, `validate`, `next`, `consent status` — sont les quatre
+qui n'atteignent aucun catalogue.
+
+`overlay_directory()` ne fait plus que nommer le dossier, et celle qui écrit
+garde la ligne qui le crée. **Nommer un endroit n'est pas le même geste que
+le fabriquer.**
+
+À noter sur la méthode plutôt que sur le défaut : ce n'est pas la lecture de la
+fonction qui l'a trouvé. Quatre tours de lecture d'affilée étaient passés à
+côté. Il a fallu lancer les commandes en lecture seule avec le dossier de
+configuration verrouillé — le registre qui produit encore de vrais défauts
+quand la lecture, elle, n'en produit plus.
+
+
 ### Quatre règles de locale lues dans une base au lieu d'être tenues à la main, et deux étaient fausses
 
 Babel est la quatrième dépendance d'exécution, et le commentaire de
