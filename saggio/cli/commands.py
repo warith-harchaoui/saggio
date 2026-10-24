@@ -357,15 +357,28 @@ def scopes(args: argparse.Namespace) -> int:
         )
         + "\n"
     )
-    for row in rows:
-        # The report's own rounding, so the same figure reads the same in both
-        # places. Seven decimal places of a derived gram are noise either way.
-        shown = (
+    # The report's own rounding, so the same figure reads the same in both
+    # places. Seven decimal places of a derived gram are noise either way.
+    shown = {
+        row["dimension"]: (
             not_known()
             if row["value"] is None
             else f"{format_number(row['value'])} {row['unit'] or ''}".strip()
         )
-        print(f"  {row['dimension']:<19} {shown:<18} {row['label']}")
+        for row in rows
+    }
+    # Sized from what is in the table rather than from two numbers typed once.
+    # Those numbers were 19 and 18, which fitted English exactly and put every
+    # French table two characters past an eighty-column terminal: "Scope 3,
+    # catégorie 2 — biens d'équipement" is six characters longer than the
+    # English label, and nothing had looked at the French table.
+    name_width = max((len(row["dimension"]) for row in rows), default=0)
+    value_width = max((len(text) for text in shown.values()), default=0)
+    for row in rows:
+        print(
+            f"  {row['dimension']:<{name_width}}  "
+            f"{shown[row['dimension']]:<{value_width}}  {row['label']}"
+        )
     print()
     for row in rows:
         # Why an emission got no scope, which is the answer a reader came for

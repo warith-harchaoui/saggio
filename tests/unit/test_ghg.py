@@ -15,6 +15,7 @@ import re
 from pathlib import Path
 
 import pytest
+import yaml
 
 from saggio.cli.commands import scopes
 from saggio.estimate.ghg import (
@@ -341,6 +342,55 @@ def test_the_command_prints_why_an_emission_got_no_scope(tmp_path: Path, capsys)
     out = " ".join(capsys.readouterr().out.split())
     assert "carbon_market_based: The machine is operated by a vendor" in out
     assert "somebody else's question" in out
+
+
+def test_the_scope_table_stays_aligned_whatever_is_in_it(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Columns sized from the rows, not from two numbers typed once.
+
+    They were 19 and 18, which fitted the English labels exactly and put every
+    French table two characters past an eighty-column terminal. Worse, a
+    dimension longer than nineteen characters -- which this package invites a
+    team to register -- pushed the value column right and misaligned the rows
+    below it.
+    """
+    model = yaml.safe_load(Path("examples/render.yaml").read_text(encoding="utf-8"))
+    long_name = "embodied_carbon_of_the_network_fabric"
+    model["scenarios"][0]["costs"][long_name] = {
+        "value": 1.5e-07,
+        "unit": "gCO2e",
+        "status": "estimated",
+        "derived_from": ["scenarios[0].costs.energy"],
+        "notes": "A registered dimension whose name is longer than the old column.",
+    }
+    wide = tmp_path / "wide.yaml"
+    wide.write_text(yaml.safe_dump(model, sort_keys=False, allow_unicode=True), encoding="utf-8")
+
+    assert scopes(_args(model=str(wide))) == 0
+    rows = [
+        line
+        for line in capsys.readouterr().out.split("\n")
+        if line.startswith("  ") and ("Scope" in line or "No scope" in line)
+    ]
+    assert any(long_name in row for row in rows), "the long dimension is not in the table"
+
+    # Where the second column starts, per row. Aligned means every row agrees.
+    # The first version of this check compared the *first* column's offset,
+    # which is two spaces on every row however broken the rest is, so it
+    # passed against the hard-coded widths it was written to catch.
+    def value_starts_at(row: str) -> int:
+        rest = row[2:]
+        name = rest[: len(rest) - len(rest.lstrip())] + rest.split(" ", 1)[0]
+        after = rest[len(name) :]
+        return 2 + len(name) + (len(after) - len(after.lstrip()))
+
+    offsets = {value_starts_at(row) for row in rows}
+    assert len(offsets) == 1, (
+        f"the value column starts at different places on different rows: "
+        f"{sorted(offsets)}. A width typed once cannot hold a name longer "
+        f"than itself, and {long_name!r} is longer than the one that was there."
+    )
 
 
 # --- The whole-model answer, which three surfaces share ------------------------
