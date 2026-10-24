@@ -6,12 +6,13 @@ description: >-
   carrying an honesty status (measured / estimated / placeholder / TODO) and naming
   what it was derived from. Renders it, and places each figure on the line of a
   greenhouse-gas inventory it belongs to. Use when the user asks what it costs to
-  run their code, says "cost per request", "carbon per inference", "energy of this
+  run their code, says "cost per request", "coût par requête", "carbon per
+  inference", "energy of this
   training run", "audit the running cost of this repo", "which scope does our
   software fall under", "empreinte carbone de notre service", "bilan carbone du
   numérique", "scope 2 market-based", "un chiffre pour la CSRD ou ESRS E1",
-  "what would this cost on an H100", "how much would we save running it in
-  Sweden", or wants that cost watched in CI. Do not use for cloud-billing breakdowns,
+  "what would this cost on an H100", "combien sur un H100", "how much would we
+  save running it in Sweden", or wants that cost watched in CI. Do not use for cloud-billing breakdowns,
   live-service observability, a whole organisational carbon inventory, or hardware
   purchasing decisions.
 license: BSD-3-Clause

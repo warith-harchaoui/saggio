@@ -14,6 +14,52 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### The skill's French loaded for one of its two audiences
+
+The description's own gate says it plainly: this skill is asked one question
+from two ends, by an engineer who says *cost per request* and by a
+sustainability team that says *scope* and *CSRD*, and a description written for
+either alone never loads for the other. That gate then required French of the
+second audience and never of the first.
+
+Counted: **8 English triggers against 3 French.** Every French one belonged to
+the sustainability end — *empreinte carbone de notre service*, *bilan carbone du
+numérique*, *un chiffre pour la CSRD ou ESRS E1*. A French engineer asking the
+skill's own first question, *combien coûte une requête chez nous*, got nothing.
+And the two capabilities added most recently — the projection onto other
+hardware and the country swap — were English-only, so *combien sur un H100*
+loaded nothing either.
+
+Two triggers close both: `coût par requête` and `combien sur un H100`. Thirteen
+triggers now, five of them French.
+
+**And the reason the French was short is a budget, which is worth a number.**
+The ceiling is 1024 characters, past which the frontmatter is not shortened but
+refused. The description was at 966 and is now at 1009. A trigger costs about
+twenty characters, so **there is no longer room for one**: the next capability
+this skill learns needs a trigger that will not fit, which means choosing what
+leaves. A test says so, so that it is a decision somebody makes rather than one
+they discover through a refused frontmatter.
+
+#### What did not hold, said out loud
+
+The method that found the last defect here did not generalise. Iteration 14
+measured a capability against the description and got 33% where the others
+scored above 60%. Run again as term overlap over each workflow step, it rated
+*Audit the repository* — the skill's central capability, and a literal trigger
+in the description — at **9%**, because it was counting words like *Belgium* and
+*accident* out of the prose around the step. It measures prose incidentals, not
+reachability, and no number from it is quoted here.
+
+What replaced it was reading: list the asks the body serves, check each against
+the triggers. That also killed the first candidate it produced. The catalogue
+step looked unreachable — nothing in the description mentions catalogues, vendor
+datasheets or a product carbon footprint — until the step's first line said
+*when the audit says a device is not in the catalogue*. It is a remedy inside
+the workflow, not a thing a user arrives asking for, and the description is
+right not to trigger on it.
+
+
 ### Fifty-five per cent of what the agent surface said was written for somebody reading the source
 
 The protocol's tool descriptions are generated from the routes' own docstrings,

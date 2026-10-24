@@ -16,6 +16,55 @@ endroit-là.
 
 ## Non publié
 
+### Le français de la compétence ne chargeait que pour une de ses deux audiences
+
+La porte de la description le dit elle-même : cette compétence reçoit une seule
+question par deux bouts, d'un ingénieur qui dit *cost per request* et d'une
+équipe durabilité qui dit *scope* et *CSRD*, et une description écrite pour l'un
+seul ne charge jamais pour l'autre. Cette porte exigeait ensuite du français de
+la seconde audience, et jamais de la première.
+
+Compté : **8 déclencheurs anglais contre 3 français.** Tous les français
+appartenaient au bout durabilité — *empreinte carbone de notre service*, *bilan
+carbone du numérique*, *un chiffre pour la CSRD ou ESRS E1*. Un ingénieur
+francophone posant la première question de la compétence elle-même, *combien
+coûte une requête chez nous*, n'obtenait rien. Et les deux capacités ajoutées le
+plus récemment — la projection sur un autre matériel et le changement de pays —
+n'existaient qu'en anglais : *combien sur un H100* ne chargeait rien non plus.
+
+Deux déclencheurs ferment les deux trous : `coût par requête` et `combien sur un
+H100`. Treize déclencheurs désormais, dont cinq français.
+
+**Et si le français était court, c'est une affaire de budget, ce qui mérite un
+chiffre.** Le plafond est de 1024 caractères, au-delà duquel l'en-tête n'est pas
+raccourci mais refusé. La description était à 966, elle est à 1009. Un
+déclencheur coûte une vingtaine de caractères : **il n'y a donc plus la place
+pour un seul**. La prochaine capacité que cette compétence apprendra demandera
+un déclencheur qui ne rentrera pas, ce qui veut dire choisir ce qui part. Un
+test le dit, pour que ce soit une décision qu'on prenne et non qu'on découvre
+par un en-tête refusé.
+
+#### Ce qui n'a pas tenu, dit franchement
+
+La méthode qui avait trouvé le défaut précédent ici ne se généralise pas.
+L'itération 14 mesurait une capacité contre la description et obtenait 33 % là
+où les autres passaient 60 %. Rejouée en recouvrement de termes sur chaque étape
+du flux, elle notait *Audit the repository* — la capacité centrale, et un
+déclencheur littéral de la description — à **9 %**, parce qu'elle comptait des
+mots comme *Belgique* et *accident* dans la prose autour de l'étape. Elle mesure
+les accidents de rédaction, pas l'atteignabilité, et aucun de ses chiffres n'est
+cité ici.
+
+Ce qui l'a remplacée, c'est la lecture : lister les demandes que le corps sert,
+confronter chacune aux déclencheurs. Cela a aussi tué la première candidate
+qu'elle avait produite. L'étape du catalogue semblait inatteignable — rien dans
+la description ne parle de catalogues, de fiches techniques ni d'empreinte
+carbone produit — jusqu'à ce que sa première ligne dise *quand l'audit signale
+qu'un appareil n'est pas au catalogue*. C'est un remède interne au flux, pas une
+demande avec laquelle on arrive, et la description a raison de ne pas s'y
+déclencher.
+
+
 ### Cinquante-cinq pour cent de ce que disait la surface agent était écrit pour qui lit le code
 
 Les descriptions d'outils du protocole sont engendrées depuis les docstrings des

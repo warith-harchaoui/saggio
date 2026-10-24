@@ -100,14 +100,51 @@ def test_no_frontmatter_field_carries_angle_brackets(field: str) -> None:
 
 @pytest.mark.parametrize(
     "phrase",
-    ["cost per request", "carbon per inference", "empreinte carbone", "CSRD", "scope"],
+    [
+        "cost per request",
+        "carbon per inference",
+        "empreinte carbone",
+        "CSRD",
+        "scope",
+        # The engineer's French. The comment below used to end "not optional for
+        # the second", and that was the hole: French was required of the
+        # sustainability audience and never of the engineer, so a French
+        # engineer asking the skill's own first question got nothing. Counted
+        # when it was found: eight English triggers against three French, and
+        # the two capabilities added most recently -- the projection onto other
+        # hardware and the country swap -- were English-only.
+        "coût par requête",
+        "combien sur un H100",
+    ],
 )
 def test_the_description_carries_the_words_both_readers_type(phrase: str) -> None:
     # This skill has two audiences asking one question from opposite ends: an
     # engineer who says "cost per request" and a sustainability team that says
     # "scope" and "CSRD". A description written for either alone never loads for
-    # the other, and the French wording is not optional for the second.
+    # the other, and the French wording is not optional for either of them.
     assert phrase.lower() in frontmatter()["description"].lower()
+
+
+def test_the_description_has_room_left_for_the_next_trigger() -> None:
+    """The ceiling is the reason the French was short, so it is worth a number.
+
+    At 1024 characters the description is not shortened, it is refused, and this
+    one sits close enough that the budget is the real constraint on the trigger
+    list rather than anybody's judgement about wording. When the French gap was
+    closed it went from 966 to 1009, which leaves fifteen characters.
+
+    So this is not a limit test -- the one above already refuses 1025. It is a
+    notice: a trigger costs about twenty characters, and there is no longer room
+    for one. **The next capability this skill learns needs a trigger that cannot
+    fit, which means choosing what leaves**, and that is a decision for whoever
+    owns the skill rather than a thing to discover by a refused frontmatter.
+    """
+    room = 1024 - len(frontmatter()["description"])
+    assert room >= 0, "the description is over the ceiling and will be refused"
+    assert room < 20, (
+        f"{room} characters free: a trigger fits again, so this notice can go, "
+        "and the French-to-English balance is worth re-reading while it does"
+    )
 
 
 def evals() -> dict:
