@@ -108,10 +108,13 @@ console.log(JSON.stringify(shown));
 """
 
 #: The panel prints three significant figures, so a comparison against the full
-#: precision Python carries has to allow for the rounding the reader sees. One
-#: per cent is two orders of magnitude looser than that rounding and still
-#: tight enough that a wrong factor -- a missing overhead, a cooling term
-#: counted twice -- cannot hide inside it.
+#: precision Python carries has to allow for the rounding the reader sees.
+#:
+#: Measured rather than argued: multiplying the carbon term by 1.02 fails this
+#: check and by 1.005 does not, so it catches an error of two per cent and
+#: tolerates one of a half. Every defect it is for -- an overhead applied
+#: twice, water taking the building's energy, a term dropped -- is tens of per
+#: cent, and the display rounding is tenths.
 TOLERANCE = 1e-2
 
 

@@ -54,7 +54,7 @@ ghg.not_an_emission.water: >-
 ghg.unregistered_dimension: >-
   {dimension} est une dimension que ce projet a enregistrée. Savoir si c'est un
   gaz à effet de serre, et sous quel scope, est une question sur votre dimension
-  plutôt que sur ce paquet, qui ne la devinera pas depuis une unité.
+  plutôt que sur ce paquet, qui ne la devinera pas à partir d'une unité.
 
 ghg.operator_unknown.named_provider: >-
   Le fournisseur ne dit pas qui exploite la machine, et c'est précisément le fait
@@ -209,7 +209,7 @@ boundary.domain.memory: "mémoire"
 # --- Ce que signifie chaque statut d'honnêteté (saggio/model/taxonomy.py)
 
 status.meaning.measured: "Relevé lors d'une exécution réelle sur le système visé."
-status.meaning.estimated: "Calculé depuis une hypothèse sourcée ou une formule publiée."
+status.meaning.estimated: "Calculé à partir d'une hypothèse sourcée ou d'une formule publiée."
 status.meaning.placeholder: "Un substitut structurel laissé visible ; pas un vrai nombre."
 status.meaning.TODO: "Un humain doit le fournir avant qu'on puisse se fier au modèle."
 
@@ -850,7 +850,7 @@ cli.help.catalog.read-pcf.document: >-
   téléchargée.
 cli.help.catalog.read-pcf.json: "Afficher la lecture en JSON."
 cli.help.refresh.summary: >-
-  Relire les chiffres d'un catalogue depuis la source qu'il cite. Lecture seule
+  Relire les chiffres d'un catalogue à la source qu'il cite. Lecture seule
   sauf si --write est donné.
 cli.help.catalog.refresh.catalog: >-
   Quel catalogue : `grid` ou `hardware`.
@@ -897,7 +897,7 @@ project.scaling_refused: >-
   d'énoncer un exposant : {reason} Tant que ce n'est pas résolu, projeter par le
   rapport des tailles affirmerait une proportionnalité que les exécutions
   disponibles n'étayent pas.
-project.linear.notes: "Projeté depuis une tranche couvrant {percent} de l'exécution."
+project.linear.notes: "Projeté à partir d'une tranche couvrant {percent} de l'exécution."
 project.linear.method: "Course entière = tranche mesurée / {fraction}."
 project.linear.assumption.same_per_unit: >-
   Le travail restant coûte autant par unité que la tranche exécutée.
@@ -915,7 +915,7 @@ project.linear.limit.unchecked: >-
   tailles différentes transformerait cette hypothèse en un exposant ; voir
   saggio.estimate.scaling.
 project.scaled.notes: >-
-  Projeté depuis une tranche couvrant {percent} de l'exécution, avec un exposant de
+  Projeté à partir d'une tranche couvrant {percent} de l'exécution, avec un exposant de
   montée en charge mesuré de {exponent}.
 project.scaled.method: "Course entière = tranche mesurée / {fraction}^{exponent}. {method}"
 project.scaled.assumption.keeps_scaling: >-
@@ -1132,7 +1132,7 @@ fold.change.idle: >-
   exclusions : la capacité au repos n'est plus déclarée dehors, parce que la
   puissance a été lue sur la machine entière
 fold.change.whole_run: >-
-  exécution entière : projetée depuis les coûts par unité ci-dessus
+  exécution entière : projetée à partir des coûts par unité ci-dessus
 fold.change.repeated_runs: >-
   exécutions répétées : l'exécution entière fois le facteur d'échelle pragmatique du
   modèle
@@ -1145,7 +1145,7 @@ fold.power_read: >-
   Lu sur la machine pendant l'exécution de la commande. {scope} {boundary}
   {spread}
 fold.whole_run.description: >-
-  Ce que coûterait une exécution entière, depuis les coûts par unité de {scenario}. Une
+  Ce que coûterait une exécution entière, à partir des coûts par unité de {scenario}. Une
   exécution entière accomplit {units} {unit}, comme {source} l'indique. Cela suppose
   qu'une unité de travail est un(e) {singular} ; si l'unité de travail du modèle désigne
   autre chose, réénoncez ceci.
@@ -1258,8 +1258,7 @@ capability.node.detail: >-
 capability.summary.covers: "couvre : {covers}"
 capability.summary.remedy: "pour l'ouvrir : {remedy}"
 capability.nothing_measures_detail: >-
-  Rien ici ne mesure la puissance : l'énergie sera donc estimée depuis le
-  catalogue matériel, et chaque chiffre qui en dérive portera `estimated`
+  Rien ici ne mesure la puissance : l'énergie sera donc estimée à partir du catalogue matériel, et chaque chiffre qui en dérive portera `estimated`
   plutôt que `measured`. C'est un chiffre plus faible, pas un chiffre faux.
 
 # --- Ce qu'un compteur de puissance couvre, et ce qu'il rate
@@ -1270,12 +1269,12 @@ power.rapl_scope: >-
   accélérateur discret n'y est pas comprise, donc une charge GPU mesurée ainsi
   est sous-comptée.
 power.accelerator.counter: >-
-  la carte accélératrice entière, depuis le compteur d'énergie cumulé du pilote
+  la carte accélératrice entière, par le compteur d'énergie cumulé du pilote
 power.accelerator.sampled: >-
   la carte accélératrice entière, comme moyenne de {count} relevés de puissance
   de carte instantanée pris toutes les {interval} au long de l'exécution
 power.graphics.counter: >-
-  le périphérique graphique, depuis le compteur d'énergie cumulé du pilote dans
+  le périphérique graphique, par le compteur d'énergie cumulé du pilote dans
   sysfs, qui n'exige ni outil de fournisseur ni droits d'administrateur
 power.graphics.sampled: >-
   le périphérique graphique, comme moyenne de {count} relevés de puissance de
@@ -1307,8 +1306,7 @@ power.wrap_recovered: >-
   l'exécution.
 power.unavailable.darwin: >-
   macOS ne publie la puissance du paquet que par powermetrics, qui exige des
-  droits d'administrateur et ne peut donc pas être lu depuis un appel de
-  bibliothèque.
+  droits d'administrateur et ne peut donc pas être lu par un appel de bibliothèque.
 power.unavailable.linux: >-
   Aucun compteur RAPL lisible n'a été trouvé : c'est une machine ARM, un
   conteneur sans les fichiers sysfs, ou des fichiers qui ne sont pas lisibles par
@@ -1328,7 +1326,7 @@ scaling.reading.sublinear: >-
   Le travail a crû moins vite que la taille, à la puissance {exponent}. Sur ces tailles,
   l'exécution est dominée par des coûts qui ne croissent pas avec le job — démarrage,
   imports, chargement d'un modèle : les tranches mesurent donc surtout de la surcharge,
-  et une projection depuis elles surestimerait l'exécution entière.
+  et une projection à partir d'elles surestimerait l'exécution entière.
 scaling.refuse.too_few: >-
   {count} exécution(s) chronométrée(s) ne suffisent pas pour ajuster un exposant
   de montée en charge ; il en faut {needed} de tailles différentes, parce que
@@ -1417,8 +1415,7 @@ refresh.not_a_file: >-
 
 refresh.grid.no_key: >-
   Pas de clé d'API Ember. Renseignez {variable}, ou passez --api-key. Ember en
-  délivre une gratuitement sur https://ember-energy.org/data/ — ce paquet ne
-  rafraîchira depuis aucune autre source. {refused}
+  délivre une gratuitement sur https://ember-energy.org/data/ — ce paquet ne se rafraîchira à partir d'aucune autre source. {refused}
 refresh.grid.refused_fallback: >-
   La série carbon-intensity-electricity d'Our World in Data est accessible sans
   clé et dérive d'Ember, mais ses propres métadonnées l'appellent intensité
@@ -1559,10 +1556,9 @@ figure.domains.total: "Total {total} W."
 #     (analyze/apple.py, power/soc.py)
 
 apple.soc_scope: >-
-  les cœurs processeur, les cœurs graphiques et le moteur neuronal de la puce,
-  depuis les compteurs d'énergie du système sur puce
+  les cœurs processeur, les cœurs graphiques et le moteur neuronal de la puce, par les compteurs d'énergie du système sur puce
 apple.soc_memory_scope: >-
-  la mémoire de la puce, depuis son propre compteur d'énergie
+  la mémoire de la puce, par son propre compteur d'énergie
 apple.soc_model_note: >-
   Ce sont les compteurs d'énergie propres à la puce : un modèle à l'intérieur du
   silicium plutôt qu'un appareil de mesure sur le rail d'alimentation, et Apple
@@ -1571,8 +1567,7 @@ apple.soc_model_note: >-
   les pertes propres de l'alimentation.
 apple.intel_mac: >-
   C'est un Mac Intel, dont macOS ne publie le compteur de paquet que par
-  powermetrics, qui exige des droits d'administrateur et ne peut donc pas être lu
-  depuis un appel de bibliothèque.
+  powermetrics, qui exige des droits d'administrateur et ne peut donc pas être lu par un appel de bibliothèque.
 apple.unknown_layout: >-
   Cette puce Apple publie ses canaux d'énergie sous des noms que ce paquet ne
   reconnaît pas : rien n'a donc été mesuré plutôt que quelque chose deviné.
