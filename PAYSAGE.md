@@ -46,9 +46,9 @@ direct. Plus on **monte**, plus il tourne sur votre propre machine et la lit ;
 plus on **descend**, plus c'est quelque chose qu'on pointe vers une facture ou
 un formulaire.
 
-<p align="center"> <img src="assets/landscape.png" alt="Carte de positionnement
-des quatorze outils le long de deux composantes principales, saggio en haut à
-droite" width="720"> </p>
+<p align="center">
+  <img src="assets/landscape.png" alt="Carte de positionnement des quatorze outils le long de deux composantes principales, saggio en haut à droite" width="720">
+</p>
 
 Les distances sont celles du tableau, pas une opinion : deux outils sont voisins
 parce que leurs lignes de notes le sont. Après une mise à jour du tableau,

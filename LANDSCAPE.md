@@ -43,9 +43,9 @@ answers; the further **left**, the more it measures live power. The further
 **up**, the more it runs on your own machine and reads it; the further **down**,
 the more it is something you point at a bill or a form.
 
-<p align="center"> <img src="assets/landscape.png" alt="Positioning map of the
-fourteen tools along two principal components, saggio in the top-right corner"
-width="720"> </p>
+<p align="center">
+  <img src="assets/landscape.png" alt="Positioning map of the fourteen tools along two principal components, saggio in the top-right corner" width="720">
+</p>
 
 The distances are the table's, not an opinion: two tools sit together because
 their rating rows are close. Regenerate after editing the table with
