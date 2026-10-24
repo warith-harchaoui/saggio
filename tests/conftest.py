@@ -27,8 +27,17 @@ def overlay(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def consent_file(tmp_path: Path) -> Path:
-    """A consent record the test owns, never the user's."""
-    return tmp_path / "consent" / "decision.json"
+    """A consent record the test owns, never the user's.
+
+    The directory exists and the file does not, which is the ordinary situation.
+    A test that writes the record writes it; `consent_path` no longer makes the
+    directory, because answering where a decision is kept must not be a write.
+    The case where the directory is absent too is held by
+    `test_asking_about_consent_does_not_need_a_writable_filesystem`.
+    """
+    folder = tmp_path / "consent"
+    folder.mkdir()
+    return folder / "decision.json"
 
 
 @pytest.fixture

@@ -16,6 +16,40 @@ endroit-là.
 
 ## Non publié
 
+### Le même défaut dans la porte du consentement, qui répondait à une question en écrivant sur le disque
+
+L'entrée ci-dessous a retiré d'`overlay_directory()` un effet de bord qui
+créait un dossier. Chercher où cette forme se trouvait encore l'a trouvée une
+fois de plus, à l'endroit précis où ne pas savoir répondre coûte le plus cher.
+
+`consent_path()` renvoie le fichier qui garde la trace de l'accord donné pour
+exécuter du code téléchargé, et créait son dossier au passage — la docstring le
+disait : *le fichier, avec son dossier créé*. De ses appelants, un seul écrit
+(`record_consent`) ; les autres lisent, et `has_consent` est interrogée **à
+chaque exécution de code téléchargé**.
+
+La question du consentement ne pouvait donc pas être tranchée sans une
+écriture, et sur un système de fichiers qui la refuse elle levait une erreur de
+permission. **La porte échouait en plantant au lieu de dire que rien n'avait
+été accordé** — pour un lecteur, l'issue ne se distingue pas d'un bogue, et
+c'est le mécanisme dont tout le travail consiste à être sans ambiguïté sur la
+permission.
+
+`consent_path()` ne fait plus que nommer le fichier. `record_consent` crée le
+dossier où elle écrit. Un fichier absent valait déjà la même réponse qu'un
+fichier disant non : personne d'autre n'a jamais eu besoin que ce dossier
+existe.
+
+Le montage de test s'appuyait aussi sur l'effet de bord : il livrait
+`consent/decision.json` dans un dossier qui n'existait pas et laissait la
+fonction éprouvée le créer. Il crée son dossier lui-même désormais, et le cas
+qu'il cessait ainsi de couvrir — pas de dossier du tout — tient dans un test à
+lui.
+
+Celle-ci comme l'entrée ci-dessous sont passées par `bites.py` : les tests
+neufs tombent quand on remet l'effet de bord.
+
+
 ### Demander où vit la surcouche du catalogue créait son dossier, et sept commandes mouraient sur un système de fichiers en lecture seule
 
 `overlay_directory()` renvoyait le dossier propre à l'utilisateur où

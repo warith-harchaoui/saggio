@@ -14,6 +14,37 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### The same defect in the consent gate, which answered a question by writing to disk
+
+The entry below removed a directory-creating side effect from
+`overlay_directory()`. Asking where else that shape existed found it once more,
+in the one place where failing to answer matters most.
+
+`consent_path()` returns the file that records whether running downloaded code
+has been agreed to, and created its directory on the way out — the docstring
+said so: *the file, with its directory created*. Of its callers, exactly one
+writes (`record_consent`); the others read, and `has_consent` is asked **on
+every run of downloaded code**.
+
+So the consent question could not be answered without a write, and on a
+filesystem that refuses one it raised a permission error. **The gate failed by
+crashing rather than by reporting that nothing had been agreed to** — the same
+outcome a reader cannot distinguish from a bug, in the mechanism whose entire
+job is to be unambiguous about permission.
+
+`consent_path()` now only names the file. `record_consent` makes the directory
+it writes into. A missing file was already the same answer as a file saying no,
+so nothing else ever needed the directory to exist.
+
+The test fixture was leaning on the side effect too: it handed out
+`consent/decision.json` in a directory that did not exist and let the function
+under test create it. It makes its own directory now, and the case it thereby
+stopped covering — no directory at all — is held by a test of its own.
+
+Both this and the entry below were put to `bites.py`: the new tests fail when
+the side effect is put back.
+
+
 ### Asking where the catalogue overlay lives created its directory, and seven commands died on a read-only filesystem
 
 `overlay_directory()` returned the per-user directory that holds local

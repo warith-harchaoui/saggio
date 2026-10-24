@@ -181,7 +181,20 @@ def consent_path(path: str | Path | None = None) -> Path:
     Returns
     -------
     pathlib.Path
-        The file, with its directory created.
+        The file, which may not exist yet, in a directory which may not either.
+        :func:`record_consent` makes the directory when it writes; nothing else
+        needs it to exist, because a missing file is the same answer as a file
+        saying no.
+
+    Notes
+    -----
+    **This only names the file; it does not create its directory.** It used to,
+    which made :func:`has_consent` -- a question, asked on every run of
+    downloaded code -- write to disk in order to be answered, and raise
+    :class:`PermissionError` where it could not. On a read-only filesystem the
+    consent gate therefore failed closed by crashing rather than by reporting
+    that nothing had been agreed to. Asking where a decision is recorded is not
+    the same act as recording one.
 
     Examples
     --------
@@ -193,12 +206,8 @@ def consent_path(path: str | Path | None = None) -> Path:
     'decision.json'
     """
     if path is not None:
-        target = Path(path)
-        osh.make_directory(str(target.parent))
-        return target
-    folder = Path(platformdirs.user_config_dir(_APP_NAME))
-    osh.make_directory(str(folder))
-    return folder / CONSENT_FILENAME
+        return Path(path)
+    return Path(platformdirs.user_config_dir(_APP_NAME)) / CONSENT_FILENAME
 
 
 def has_consent(path: str | Path | None = None) -> bool:
@@ -300,6 +309,7 @@ def record_consent(
     (True, 'fr', True)
     """
     target = consent_path(path)
+    osh.make_directory(str(target.parent))
     target.write_text(
         json.dumps(
             {

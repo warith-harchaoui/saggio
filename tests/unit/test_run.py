@@ -33,6 +33,38 @@ def test_nothing_recorded_means_no_consent(consent_file: Path) -> None:
     assert not has_consent(consent_file)
 
 
+def test_asking_about_consent_does_not_need_a_writable_filesystem(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A question must not be a write.
+
+    `consent_path` used to create the directory, so `has_consent` -- asked on
+    every run of downloaded code -- wrote to disk to be answered and raised a
+    permission error where it could not. The gate then failed by crashing
+    instead of reporting that nothing had been agreed to.
+    """
+    locked = tmp_path / "locked"
+    locked.mkdir()
+    locked.chmod(0o555)
+    try:
+        (locked / "probe").touch()
+    except OSError:
+        pass
+    else:  # pragma: no cover - a process that writes anyway cannot be tested
+        pytest.skip("this process can write into a read-only directory")
+
+    monkeypatch.setattr(
+        "saggio.analyze.run.platformdirs.user_config_dir",
+        lambda *_a, **_k: str(locked / "saggio"),
+    )
+    assert consent_path().parent == locked / "saggio"
+    assert not (locked / "saggio").exists()
+    assert has_consent() is False
+
+    # The same question about a directory that simply is not there yet.
+    assert has_consent(tmp_path / "absent" / "decision.json") is False
+
+
 def test_a_decision_is_recorded_and_read_back(consent_file: Path) -> None:
     record_consent(True, consent_file)
     assert has_consent(consent_file)
