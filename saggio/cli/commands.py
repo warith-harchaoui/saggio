@@ -252,8 +252,21 @@ def _hanging(label: str, text: str) -> str:
     name: word word...
           word...
     """
+    # The label's own leading spaces go through ``initial_indent`` rather than
+    # into the text: textwrap normalises whitespace it finds in the string, so
+    # a label written as "  field=" lost its indent on any value long enough to
+    # take a line of its own.
+    lead = label[: len(label) - len(label.lstrip())]
     wrapped = textwrap.wrap(
-        f"{label}{text}", width=_PROSE_WIDTH, subsequent_indent=" " * len(label)
+        label.lstrip() + text,
+        width=_PROSE_WIDTH - len(lead),
+        initial_indent=lead,
+        subsequent_indent=lead + " " * len(label.lstrip()),
+        # A URL is one word. Split across two lines it cannot be copied, which
+        # is the only reason it is printed, so it is allowed to run past the
+        # margin instead.
+        break_long_words=False,
+        break_on_hyphens=False,
     )
     return "\n".join(wrapped)
 
@@ -293,7 +306,13 @@ def _paragraph(text: str, indent: str = "") -> str:
     if not text:
         return ""
     return "\n".join(
-        f"{indent}{line}" for line in textwrap.wrap(text, width=_PROSE_WIDTH - len(indent))
+        f"{indent}{line}"
+        for line in textwrap.wrap(
+            text,
+            width=_PROSE_WIDTH - len(indent),
+            break_long_words=False,
+            break_on_hyphens=False,
+        )
     )
 
 
@@ -465,8 +484,7 @@ def next_question(args: argparse.Namespace) -> int:
             # The sentence the model already wrote about what would resolve it.
             # Repeating it here rather than inventing a prompt is the whole
             # reason this command can be trusted to ask the right thing.
-            for line in textwrap.wrap(question["note"], width=76):
-                print(f"      {line}")
+            print(_paragraph(question["note"], indent="      "))
         print("      " + say("cli.next.closes", paths=", ".join(question["closes"])))
         print()
 
@@ -972,13 +990,33 @@ def catalog_list(args: argparse.Namespace) -> int:
     if args.json:
         _emit(rows, as_json=True)
     else:
-        for key, row in rows.items():
-            summary = ", ".join(
-                f"{field}={value}"
-                for field, value in row.items()
-                if field not in {"key", "source_url", "retrieved_date", "notes", "detect"}
+        shown = [
+            (
+                key,
+                [
+                    (field, value)
+                    for field, value in row.items()
+                    if field not in {"key", "source_url", "retrieved_date", "notes", "detect"}
+                ],
             )
-            print(f"{key:<28} {summary}")
+            for key, row in rows.items()
+        ]
+        # Short rows stay on one line, which is what a reader wants from a
+        # listing. A row stops fitting when one of its *values* is a sentence:
+        # `embodied_scope` is prose with commas and a URL in it, so joining
+        # fields with ", " produced 391-character lines a reader could not tell
+        # apart from the commas inside the sentence. Those rows go one field to
+        # a line, where the separator is the line break and cannot be confused
+        # with anything in the value.
+        width = max((len(key) for key, _ in shown), default=0)
+        for key, fields in shown:
+            summary = ", ".join(f"{field}={value}" for field, value in fields)
+            if width + 1 + len(summary) <= _PROSE_WIDTH:
+                print(f"{key:<{width}} {summary}")
+                continue
+            print(key)
+            for field, value in fields:
+                print(_hanging(f"  {field}=", str(value)))
         print(f"{len(rows)} row(s).")
     return OK
 

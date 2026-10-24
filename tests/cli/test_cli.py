@@ -255,6 +255,67 @@ def test_catalog_list_prints_rows(capsys) -> None:
     assert "A100" in out
 
 
+def test_a_row_whose_value_is_a_sentence_is_not_joined_by_commas(capsys) -> None:
+    """The separator must not be a character the values contain.
+
+    `embodied_scope` is prose: "One AMD EPYC 7742 package, cradle-to-gate,
+    computed from its die of 1600 mm2 by https://... Excludes the use phase
+    and, per the source, end of life." Joining the fields of that row with
+    ", " made a 391-character line in which a reader could not tell a field
+    boundary from a comma inside the sentence.
+
+    A row that does not fit goes one field to a line, where the separator is
+    the line break and nothing in a value can be mistaken for it.
+    """
+    code, out, _ = run(["catalog", "list", "cpu"], capsys)
+    assert code == OK
+
+    lines = out.split("\n")
+    scope = [line for line in lines if "embodied_scope=" in line]
+    assert scope, "no row in this catalogue carries a prose field any more"
+    for line in scope:
+        assert ", embodied_source_url=" not in line, (
+            "a field that is a sentence is still being comma-joined to the "
+            "next field, so the two cannot be told apart"
+        )
+
+
+def test_no_catalogue_line_breaks_a_url(capsys) -> None:
+    """A URL is printed to be copied, and half of one cannot be.
+
+    Wrapping is allowed to run a line past the margin rather than split a
+    single long token, which is the whole reason a source URL is in the
+    listing.
+    """
+    from saggio.catalog import Catalog
+
+    code, out, _ = run(["catalog", "list", "gpu"], capsys)
+    assert code == OK
+
+    # Against the catalogue rather than against the output's own shape. The
+    # first version of this searched the printed text for `https?://\S+` and
+    # asserted the match held no newline -- which `\S` cannot match, so the
+    # assertion could not fail and a split URL sailed through it.
+    lines = out.split("\n")
+    # Only the fields the listing prints. `source_url` and `retrieved_date`
+    # are held back from it on purpose, and asserting one of those appears is
+    # how the first version of this failed -- against the product, over a URL
+    # the product never claimed to show.
+    withheld = {"key", "source_url", "retrieved_date", "notes", "detect"}
+    urls = {
+        str(value)
+        for row in Catalog.load("hardware").rows("gpus").values()
+        for field, value in row.items()
+        if field not in withheld and str(value).startswith("http")
+    }
+    assert urls, "no GPU row carries a source URL any more"
+    for url in urls:
+        assert any(url in line for line in lines), (
+            f"{url} is in the catalogue and on no single line of the listing, "
+            "so wrapping has split it and a reader cannot copy it"
+        )
+
+
 def test_catalog_list_emits_json_on_request(capsys) -> None:
     code, out, _ = run(["catalog", "list", "country", "--json"], capsys)
     assert code == OK
