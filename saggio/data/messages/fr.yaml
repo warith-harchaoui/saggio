@@ -713,7 +713,7 @@ cli.help.init.summary: "Écrire un modèle de coût de départ."
 cli.help.init.template: "Quel modèle de départ écrire. Par défaut {default}."
 cli.help.init.o: "Où l'écrire. Sortie standard si omis."
 cli.help.validate.summary: >-
-  Vérifier un modèle contre le schéma et les règles d'honnêteté.
+  Confronter un modèle au schéma et aux règles d'honnêteté.
 cli.help.validate.model: "Le modèle de coût à vérifier."
 cli.help.validate.json: "Afficher le verdict en JSON."
 cli.help.scopes.summary: >-
@@ -866,7 +866,7 @@ cli.help.catalog.refresh.year: >-
   n'est pas la même année pour tous : une ligne enregistre la sienne.
 cli.help.catalog.refresh.column: >-
   Quelle colonne relire. Pour `grid` : `carbon` interroge Ember, `price` la page
-  de tarifs, `timezones` vérifie les noms contre la base IANA qui les définit,
+  de tarifs, `timezones` vérifie les noms par rapport à la base IANA qui les définit,
   `both` fait carbone et prix, `all` fait les trois. Pour `hardware` :
   `embodied` demande les empreintes de processeurs. Chaque colonne porte sa
   propre source et sa propre date, parce qu'elles ne viennent pas du même endroit
