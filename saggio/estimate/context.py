@@ -140,6 +140,17 @@ def local_timezone_name() -> str | None:
     be checked three different ways, which is how ``TZ=Japan`` came to be
     ignored in favour of the laptop it was set on.
 
+    **A ``TZ`` that is set ends the search**, whether or not the database can
+    resolve it. Fixing the detection left the fall-through: on a system whose
+    database omits the backward-compatibility links -- a minimal Linux image,
+    where ``Japan``, ``Singapore``, ``Israel`` and ``US/Eastern`` are all
+    absent -- ``TZ=Japan`` failed the check and the next source answered with
+    the machine's own zone. The stated input was replaced by a different one,
+    with no warning and a perfectly plausible answer, which is the whole defect
+    the paragraph above describes fixing. A stated zone the database cannot
+    resolve now yields ``None``: unknowable, and the country falls to the next
+    rung of the ladder rather than to whichever country this machine sits in.
+
     Returns
     -------
     str or None
@@ -156,8 +167,9 @@ def local_timezone_name() -> str | None:
     # file"; the colon is not part of the IANA name and would make the country
     # lookup fail on a perfectly resolvable timezone.
     from_env = os.environ.get("TZ", "").strip().lstrip(":")
-    if _names_a_zone(from_env):
-        return from_env
+    if from_env:
+        # Set, so it is the answer or there is none -- never this machine's.
+        return from_env if _names_a_zone(from_env) else None
 
     if osh.unix():
         try:

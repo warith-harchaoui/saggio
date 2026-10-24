@@ -88,8 +88,37 @@ def test_a_zone_the_user_asked_for_beats_the_machine_it_runs_on(
     # The user-visible half of the same defect. `TZ=Japan` used to be dropped,
     # and the country came back as whatever the laptop was in -- which is a
     # different country's grid, in a file somebody will quote.
+    #
+    # `Japan` is a backward-compatibility link, and a minimal Linux image ships
+    # a database without those. Asserting it resolves encodes the developer's
+    # machine: this test passed on macOS and failed on the Linux runner, where
+    # the answer was the runner's own `Etc/UTC`. What has to hold on every
+    # machine is that the answer is the zone that was asked for, or nothing --
+    # never a different one.
     monkeypatch.setenv("TZ", "Japan")
-    assert local_timezone_name() == "Japan"
+    assert local_timezone_name() in {"Japan", None}
+
+
+def test_a_stated_zone_the_database_cannot_resolve_gives_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Never this machine's zone, which is a different country's grid.
+
+    Fixing the detection left the fall-through. On a database without the
+    backward links, `TZ=Japan` failed the check and the *next source* answered
+    -- with `/etc/localtime`, the machine's own zone. A stated input replaced
+    by a plausible wrong one is the defect this whole package exists to refuse,
+    and it was in the function whose docstring describes refusing it.
+    """
+    here = local_timezone_name()
+    monkeypatch.setenv("TZ", "Definitely/Not-A-Zone")
+    answer = local_timezone_name()
+    assert answer is None, (
+        f"a zone the database cannot resolve gave {answer!r}. It must give "
+        "None so the country falls to the next rung, rather than to wherever "
+        "this machine happens to be."
+    )
+    assert answer != here, "the stated zone was replaced by the machine's own"
 
 
 def test_an_unresolvable_zone_gives_no_country_rather_than_the_laptop_s(
