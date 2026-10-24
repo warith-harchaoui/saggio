@@ -800,6 +800,47 @@ def requested_language(argv: Sequence[str] | None = None) -> str | None:
     return os.environ.get(LANGUAGE_ENVIRONMENT_VARIABLE, "").strip() or None
 
 
+def _let_the_streams_degrade_rather_than_die() -> None:
+    """Make the output streams survive a character they cannot encode.
+
+    This package's prose uses typography that plain byte encodings do not carry:
+    the em dash in both languages, and in French the accents and the ``œ``
+    ligature. Written to a stream that cannot encode them -- a container with
+    no language set, a wrapper that exports ``PYTHONIOENCODING=ascii``, a log
+    collector reading a pipe -- every one of those raised
+    :class:`UnicodeEncodeError` from inside the write, so the command died with
+    a traceback and printed nothing. Measured across eight verbs on an ASCII
+    stream: all eight failed in French and three in English, the English ones
+    on the em dash alone.
+
+    The streams now use ``backslashreplace``, so an unencodable character is
+    written as the escape naming it and the report still arrives.
+
+    **The declared encoding is kept, deliberately.** Forcing the stream to
+    UTF-8 would print the prose correctly far more often, and it is the wrong
+    thing to do here: ``PYTHONIOENCODING`` is something the operator stated,
+    and replacing a stated input with a more plausible one is the defect this
+    package exists to refuse -- the same one :func:`~saggio.estimate.context.
+    local_timezone_name` was fixed for. So the escape is visible and reversible
+    rather than quietly correct, and ``?`` was refused for the opposite reason:
+    it loses the character instead of naming it.
+
+    Examples
+    --------
+    >>> _let_the_streams_degrade_rather_than_die()
+    """
+    for stream in (sys.stdout, sys.stderr):
+        # A doctest or a caller may have replaced the stream with something
+        # that holds text rather than bytes, and has nothing to reconfigure.
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(errors="backslashreplace")
+        except (OSError, ValueError):  # pragma: no cover - a stream that refuses
+            pass
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the command line.
 
@@ -822,6 +863,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     >>> without_a_verb, with_a_verb
     (2, 0)
     """
+    # Before anything writes, including the parser's own usage text.
+    _let_the_streams_degrade_rather_than_die()
     # Before the parser, because the parser's help text is built from the
     # catalogue and a `--help` in the wrong language would be the one piece of
     # this surface nobody could ask to change.

@@ -20,6 +20,54 @@ def run(argv: list[str], capsys) -> tuple[int, str, str]:
     return code, captured.out, captured.err
 
 
+# --- Streams that cannot carry the typography ---------------------------------
+
+
+@pytest.mark.parametrize("encoding", ["ascii", "latin-1"])
+@pytest.mark.parametrize("language", ["fr", "en"])
+def test_a_stream_that_cannot_encode_the_prose_still_gets_the_report(
+    encoding: str, language: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A narrow output encoding must cost a character, never the command.
+
+    The prose uses the em dash in both languages and accents plus the ``oe``
+    ligature in French. On a stream that cannot encode them -- a container with
+    no language set, a wrapper exporting ``PYTHONIOENCODING=ascii`` -- the write
+    raised `UnicodeEncodeError` and the command printed nothing at all.
+    """
+    import io
+
+    raw = io.BytesIO()
+    monkeypatch.setattr(sys, "stdout", io.TextIOWrapper(raw, encoding=encoding, errors="strict"))
+    code = main(["--language", language, "machine"])
+    sys.stdout.flush()
+    assert code == OK
+    assert raw.getvalue(), "the report did not arrive"
+    # Decodable as what the stream claimed to be, which is the point: the
+    # declared encoding is honoured rather than quietly replaced by UTF-8.
+    raw.getvalue().decode(encoding)
+
+
+def test_what_a_narrow_stream_loses_is_named_rather_than_dropped(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An unencodable character arrives as the escape naming it, not as `?`.
+
+    `?` would lose which character it stood for; the escape stays reversible,
+    so a French report read off an ASCII pipe is still unambiguous.
+    """
+    import io
+
+    raw = io.BytesIO()
+    monkeypatch.setattr(sys, "stdout", io.TextIOWrapper(raw, encoding="ascii", errors="strict"))
+    assert main(["--language", "fr", "machine"]) == OK
+    sys.stdout.flush()
+    written = raw.getvalue().decode("ascii")
+    # "Memoire" carries an acute accent in the French output.
+    assert "\\xe9" in written
+    assert "?" not in written
+
+
 # --- The parser --------------------------------------------------------------
 
 

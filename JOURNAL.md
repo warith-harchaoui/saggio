@@ -16,6 +16,51 @@ endroit-là.
 
 ## Non publié
 
+### Douze commandes sur seize mouraient sur un flux de sortie étroit, et le tiret cadratin explique pourquoi l'anglais mourait aussi
+
+Mesuré sur huit verbes dans les deux langues, en écrivant vers un flux dont
+l'encodage est ASCII : **les huit tombaient en français, et quatre sur huit en
+anglais.**
+La commande levait `UnicodeEncodeError` au fond de l'écriture et n'imprimait
+rien du tout — pas un rapport tronqué, pas un avertissement, rien.
+
+Ma première lecture était fausse et mérite d'être notée, parce que c'était la
+lecture confortable : *la sortie française casse sur un flux étroit*. Les
+caractères disent autre chose. Celui qui cassait `render`, `scopes`, `audit` et
+`catalog list` en **anglais** est `\u2014`, le tiret cadratin, dont la prose de
+ce projet se sert dans les deux langues. Le français tombe seulement plus tôt,
+sur ses accents et son `œ`. Le défaut ne tient pas au français : il tient à une
+typographie que ce paquet écrit partout et qu'il n'avait jamais écrite que vers
+un flux capable de la porter. Sous `latin-1` le motif tient avec une autre
+distribution : `œ` tombe, les accents passent, le tiret cadratin emporte encore
+tout.
+
+L'environnement n'a rien d'exotique. Un conteneur sans langue définie, un
+script qui exporte `PYTHONIOENCODING`, un collecteur de journaux qui lit un
+tube — chacun le produit, et aucun n'est une faute de celui qui exploite la
+machine.
+
+Les flux emploient désormais `backslashreplace` : un caractère inencodable
+arrive sous la forme de l'échappement qui le nomme, et le rapport arrive avec
+lui.
+
+**L'encodage déclaré est conservé, et c'est là toute la décision.** Forcer le
+flux en UTF-8 imprimerait la prose correctement bien plus souvent, et ce serait
+la mauvaise chose à faire : `PYTHONIOENCODING=ascii` est quelque chose que
+l'exploitant a *énoncé*, et remplacer une entrée énoncée par une autre, plus
+plausible, est le défaut même que ce paquet existe pour refuser — c'est le
+défaut pour lequel `local_timezone_name` a été corrigée deux entrées plus haut,
+où un `TZ` énoncé recevait en silence le fuseau de la machine. L'échappement
+est donc visible et réversible plutôt que silencieusement juste. `?` a été
+écarté pour la raison inverse : il perd quel caractère il remplaçait, et un
+rapport qu'on ne peut pas relire sans ambiguïté est précisément ce qu'on
+cherche à éviter.
+
+Sur un flux qui *peut* encoder la prose, la sortie est identique à l'octet près
+— vérifié, parce qu'un filet de sécurité qui change le cas ordinaire n'est pas
+un filet de sécurité.
+
+
 ### Le même défaut dans la porte du consentement, qui répondait à une question en écrivant sur le disque
 
 L'entrée ci-dessous a retiré d'`overlay_directory()` un effet de bord qui

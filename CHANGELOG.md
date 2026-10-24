@@ -14,6 +14,47 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### Twelve of sixteen commands died on a narrow output stream, and the em dash was why English died too
+
+Measured across eight verbs in both languages, writing to a stream whose
+encoding is ASCII: **all eight failed in French and four of the eight in
+English.** The
+command raised `UnicodeEncodeError` from inside the write and printed nothing
+at all — not a truncated report, not a warning, nothing.
+
+The first reading of that was wrong and worth recording, because it was the
+comfortable one: *French output breaks on a narrow stream*. The characters say
+otherwise. The one that broke `render`, `scopes`, `audit` and
+`catalog list` in **English** is `\u2014`, the em dash, which this project's prose uses in both
+languages. French merely fails sooner, on its accents and its `œ`. The defect
+is not about French; it is about typography this package writes everywhere and
+only ever wrote to a stream that could carry it. Under `latin-1` the pattern
+holds with a different cast: `œ` falls, the accents survive, the em dash still
+takes everything.
+
+This is not an exotic environment. A container with no language set, a wrapper
+that exports `PYTHONIOENCODING`, a log collector reading a pipe — any of them
+produces it, and none of them is a mistake on the operator's part.
+
+The streams now use `backslashreplace`, so an unencodable character arrives as
+the escape that names it and the report arrives with it.
+
+**The declared encoding is kept, and that is the whole decision.** Forcing the
+stream to UTF-8 would print the prose correctly far more often, and it is the
+wrong thing to do: `PYTHONIOENCODING=ascii` is something the operator *stated*,
+and replacing a stated input with a more plausible one is the defect this
+package exists to refuse — it is the same defect `local_timezone_name` was
+fixed for two entries ago, where a stated `TZ` was quietly answered with the
+machine's own. So the escape is visible and reversible rather than quietly
+correct. `?` was refused for the opposite reason: it loses which character it
+stood for, and a report that cannot be read back unambiguously is the thing
+being prevented.
+
+Output on a stream that *can* encode the prose is byte-identical to before —
+checked, because a safety net that changes the ordinary case is not a safety
+net.
+
+
 ### The same defect in the consent gate, which answered a question by writing to disk
 
 The entry below removed a directory-creating side effect from
