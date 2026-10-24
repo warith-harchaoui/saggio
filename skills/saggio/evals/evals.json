@@ -2,7 +2,7 @@
   "skill": "saggio",
   "description": "Behaviours the skill has to get right, and the ones it has to refuse.",
   "triggering": {
-    "note": "Whether the skill loads at all, which no behaviour case can test. The two wordings below are the same question asked from opposite ends of an organisation, and both have to reach it.",
+    "note": "Whether the skill loads at all, which no behaviour case can test. The two wordings below are the same question asked from opposite ends of an organisation, and both have to reach it. In both languages, on both ends: these cases once had French only for the sustainability wording, which is the same hole the description had, and a French engineer asking the first question on this list reached nothing.",
     "should_fire": [
       "What does it cost to run this repo?",
       "Carbon footprint per inference for this model",
@@ -10,6 +10,9 @@
       "Audit the running cost of this repository",
       "What would this cost on an H100 in Sweden?",
       "Fail the build if our cost per request drifts",
+      "Combien coûte une requête chez nous ?",
+      "Combien ça coûterait sur un H100 ?",
+      "Quelle énergie consomme cet entraînement ?",
       "Quelle est l'empreinte carbone de notre service ?",
       "On nous demande le bilan carbone du numérique pour ce produit",
       "Which scope does the electricity for our own inference servers fall under?",
@@ -19,6 +22,7 @@
     ],
     "should_not_fire": [
       "Why was our AWS bill so high last month?",
+      "Pourquoi notre facture cloud a-t-elle explosé le mois dernier ?",
       "Which endpoint is slow right now?",
       "Build our whole corporate carbon inventory",
       "Calcule notre bilan carbone complet, déplacements et bâtiments compris",

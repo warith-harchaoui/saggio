@@ -16,6 +16,27 @@ endroit-là.
 
 ## Non publié
 
+### Le même trou, dans le fichier qui sert à le détecter
+
+L'entrée ci-dessous a fermé le manque de français de la description. Les cas
+censés attraper ce manque l'avaient aussi : sur douze cas déclencheurs, trois
+étaient français et les trois du vocabulaire durabilité. Sur huit refus, un
+seul français, et du côté durabilité encore — un bilan carbone d'entreprise
+complet.
+
+Le français de l'ingénieur manquait donc à la fois à la chose éprouvée et à
+l'épreuve, ce qui explique que personne ne l'ait vu. Quatre cas déclencheurs et
+un refus ajoutés : les questions françaises de l'ingénieur, et la plus proche
+des mauvaises — une facture cloud, refusée en anglais seulement.
+
+Deux portes remplacent le comptage, qu'on aurait satisfait en ajoutant n'importe
+quoi de français. La première nomme **quatre quadrants** — les deux bouts de
+l'organisation croisés aux deux langues — et échoue en nommant celui qui est
+vide. La seconde épingle que la plus proche des mauvaises questions est refusée
+dans les deux langues. Les évaluations n'ont aucun plafond de 1024 caractères :
+contrairement à la description, le manque n'avait ici aucune excuse de budget.
+
+
 ### Le français de la compétence ne chargeait que pour une de ses deux audiences
 
 La porte de la description le dit elle-même : cette compétence reçoit une seule

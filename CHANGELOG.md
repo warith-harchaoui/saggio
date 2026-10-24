@@ -14,6 +14,26 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### The same hole, in the file that tests for it
+
+The entry below closed the description's French gap. The cases that are supposed
+to catch that gap had it too: of twelve firing cases, three were French and all
+three were the sustainability wording. Of eight refusals, one was French, and it
+was the sustainability end again — a whole corporate inventory.
+
+So the engineer's French was missing from both the thing being tested and the
+test, which is why nothing noticed. Four firing cases and one refusal added: the
+engineer's French questions, and the nearest wrong one — a cloud bill, which was
+refused in English only.
+
+Two gates replace the count that would have been satisfied by adding anything
+French. The first names **four quadrants** — the two ends of an organisation
+times the two languages — and fails naming the empty one. The second pins that
+the nearest wrong question is refused in both languages. The evals have no
+1024-character ceiling, so unlike the description there was never a budget
+reason for the gap.
+
+
 ### The skill's French loaded for one of its two audiences
 
 The description's own gate says it plainly: this skill is asked one question

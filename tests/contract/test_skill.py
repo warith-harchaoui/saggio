@@ -167,6 +167,43 @@ def test_the_triggers_cover_both_wordings_of_the_same_question() -> None:
         assert wording in firing
 
 
+def test_the_triggers_cover_both_ends_in_both_languages() -> None:
+    """Four quadrants, and one of them was empty.
+
+    The two ends of the organisation times the two languages. The French
+    existed only on the sustainability end -- *empreinte carbone*, *bilan
+    carbone*, *CSRD* -- so a French engineer asking the first question on the
+    firing list reached nothing. The same hole as the description's, in the file
+    that is supposed to test the description.
+
+    Checked on the cases rather than on counts: a count is satisfied by adding
+    anything French, and what was missing was a specific quadrant.
+    """
+    firing = " ".join(evals()["triggering"]["should_fire"]).lower()
+    quadrants = {
+        "the engineer, in English": ("cost per", "running cost"),
+        "the engineer, in French": ("coûte une requête", "combien ça coûterait"),
+        "the filer, in English": ("which scope", "scope 2", "scope 3"),
+        "the filer, in French": ("empreinte carbone", "bilan carbone", "csrd"),
+    }
+    empty = [
+        quadrant
+        for quadrant, wordings in quadrants.items()
+        if not any(wording in firing for wording in wordings)
+    ]
+    assert not empty, f"nothing in the firing cases reaches the skill for: {empty}"
+
+
+def test_the_nearest_wrong_question_is_refused_in_both_languages() -> None:
+    # The refusals had one French case against seven English, and the one they
+    # had was the sustainability end again -- a whole corporate inventory. The
+    # engineer's nearest wrong question is a cloud bill, and it was refused in
+    # English only.
+    refused = " ".join(evals()["triggering"]["should_not_fire"]).lower()
+    assert "bill" in refused, "a cloud bill is the nearest wrong question in English"
+    assert "facture" in refused, "and it is the same wrong question in French"
+
+
 def test_the_whole_inventory_is_a_trigger_the_skill_refuses() -> None:
     # The nearest adjacent question, and the one it would be most damaging to
     # answer: a cost model for one unit of work is not a corporate inventory.
