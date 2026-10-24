@@ -83,7 +83,7 @@ no field anywhere that would tell a reader which it is. Look it up:
 python -c "from saggio.estimate.context import DeploymentContext as D; print(D.build(country='FR').grid_intensity())"
 ```
 
-The answer comes back with its unit, its status, the URL it was read from and the
+The answer comes back with its unit, its status, the address (Uniform Resource Locator) it was read from and the
 date it was read. Those four are the reason to ask rather than to remember.
 
 The four statuses:
@@ -112,7 +112,7 @@ proposes a unit with status `placeholder` precisely so that a human confirms it.
 saggio audit . --country FR -o cost_of_running.yaml
 ```
 
-`--country` is an ISO 3166-1 alpha-2 code and must come from the user or from
+`--country` is an International Organization for Standardization (ISO) 3166-1 alpha-2 code and must come from the user or from
 something the repository states. Never infer it from their locale, their language,
 or where you think they are. Without it the carbon and money figures stay open, and
 that is the correct outcome.
@@ -120,7 +120,7 @@ that is the correct outcome.
 **Pass `--language` when the user is not writing to you in English.** One sentence
 of the model is not read from a file: a local model is asked what shape of work the
 repository does, and it writes the answer into the `analysis` block. Everything
-else in a report can be read in the reader's language — the HTML page has a
+else in a report can be read in the reader's language — the HyperText Markup Language (HTML) page has a
 language button — so that one sentence arriving in English is the single thing
 that makes the deliverable bilingual by accident rather than on purpose.
 
@@ -228,7 +228,7 @@ reported elsewhere.
 saggio diff cost_of_running.yaml /tmp/now.yaml --threshold 10
 ```
 
-Suggest a CI step. A cost model nobody re-checks stops being true within a quarter.
+Suggest a continuous-integration step. A cost model nobody re-checks stops being true within a quarter.
 
 ## What you must not do
 
@@ -238,7 +238,7 @@ refusal is the answer. Explain it; do not work around it.
 **Do not quote a figure without its status.** In your reply to the user, say "an
 estimated 0.0014 gCO2e per request", not "0.0014 gCO2e per request".
 
-**Do not edit the YAML to make validation pass.** Fix what the error is pointing
+**Do not edit the YAML (YAML Ain't Markup Language) to make validation pass.** Fix what the error is pointing
 at.
 
 **Do not present a projection as a measurement.** A measured slice projected to a

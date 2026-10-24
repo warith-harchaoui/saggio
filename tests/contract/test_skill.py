@@ -154,6 +154,68 @@ def test_the_evals_are_valid_json_and_cover_the_refusals() -> None:
         assert case["prompt"] and case["expect"]
 
 
+#: Initialisms the skill's body uses without writing out, each because it sits
+#: inside a phrase a *user* types. The description's whole job is to be matched
+#: against what somebody asks for, and the body quotes those same askings; an
+#: expansion inside a quotation changes what the person said, which is the one
+#: thing this repository's own rule forbids.
+QUOTED_BY_A_USER: dict[str, str] = {
+    "API": 'in "carbon footprint of our API", a phrase a user types',
+    "CSRD": 'in "we need a figure for CSRD", a phrase a user types',
+    "ESRS": 'in "ESRS E1", the name of the standard as a filer says it',
+    "GPU": 'in "which GPU should we buy", a phrase a user types',
+}
+
+
+def test_the_skill_writes_out_the_initialisms_it_uses() -> None:
+    """The rule every page here obeys, reaching the skill's body as well.
+
+    Thirty documentation pages are held to "nowhere an acronym that is not
+    spelled out before it is used", and the skill -- which is prose a reader
+    and an agent both read -- was held to nothing. It used eleven and expanded
+    none.
+
+    The frontmatter is deliberately not checked. Its description is matched
+    against what a user asks for, so the acronyms in it are search terms
+    rather than prose, and expanding them would make the skill harder to find
+    while making nothing clearer.
+    """
+    body = SKILL.read_text(encoding="utf-8").split("---", 2)[2]
+    prose = re.sub(r"```.*?```", " ", body, flags=re.S)
+    prose = re.sub(r"`[^`]*`", " ", prose)
+
+    glossary = ROOT / "GLOSSARY.md"
+    declared: dict[str, str] = {}
+    for line in glossary.read_text(encoding="utf-8").splitlines():
+        found = re.match(r"\|\s*\*\*([A-Z][A-Z0-9]*)\*\*\s*\|\s*([^|]*?)\s*\|", line)
+        if found and found.group(2) not in {"", "—"}:
+            declared[found.group(1)] = found.group(2)
+
+    unexplained = sorted(
+        acronym
+        for acronym, written in declared.items()
+        if acronym not in QUOTED_BY_A_USER
+        and re.search(rf"(?<![A-Za-z0-9]){acronym}(?![A-Za-z0-9])", prose)
+        and written.lower() not in prose.lower()
+    )
+    assert not unexplained, (
+        f"SKILL.md uses these without writing them out: {unexplained}. The "
+        f"written-out form is in {glossary.name}. If one is inside a phrase a "
+        f"user types, declare it in QUOTED_BY_A_USER with the reason."
+    )
+
+
+def test_every_exemption_is_still_quoted_in_the_skill() -> None:
+    """An exemption nobody needs is one that stops being read."""
+    body = SKILL.read_text(encoding="utf-8").split("---", 2)[2]
+    idle = sorted(
+        acronym
+        for acronym in QUOTED_BY_A_USER
+        if not re.search(rf"(?<![A-Za-z0-9]){acronym}(?![A-Za-z0-9])", body)
+    )
+    assert not idle, f"QUOTED_BY_A_USER names acronyms the skill no longer uses: {idle}"
+
+
 def test_every_command_the_skill_shows_parses() -> None:
     import shlex
 
@@ -161,7 +223,18 @@ def test_every_command_the_skill_shows_parses() -> None:
 
     parser = build_parser()
     text = SKILL.read_text(encoding="utf-8").replace("\\\n", " ")
+    # Fenced blocks only. A command shown to a reader is in a fence -- all
+    # eight here are -- and reading prose for commands means any rewrap can
+    # invent one by landing the word "saggio" at the start of a line, which is
+    # exactly how this check's twin in test_documentation.py came to fail on a
+    # French sentence.
+    fenced = False
     for line in text.splitlines():
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+            continue
+        if not fenced:
+            continue
         stripped = line.strip()
         if not stripped.startswith("saggio "):
             continue
