@@ -74,7 +74,14 @@ pip install "saggio[api]"
 uvicorn saggio.api.app:app --host 127.0.0.1 --port 8000
 ```
 
-La documentation interactive est alors en `/docs`. Les routes :
+La documentation interactive est alors en `/docs`. C'est la seule chose ici qui
+atteint le réseau : la page est dessinée par un script et une feuille de style
+que le framework va chercher sur un réseau de diffusion de contenu, donc sur une
+machine sans route vers l'extérieur elle s'affiche vide. Toutes les routes
+ci-dessous répondent sans elle, et `/openapi.json` est la même description sous
+forme de fichier.
+
+Les routes :
 
 | Route | Ce qu'elle répond |
 |---|---|
