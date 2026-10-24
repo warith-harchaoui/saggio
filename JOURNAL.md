@@ -16,6 +16,71 @@ endroit-là.
 
 ## Non publié
 
+### Cinquante-cinq pour cent de ce que disait la surface agent était écrit pour qui lit le code
+
+Les descriptions d'outils du protocole sont engendrées depuis les docstrings des
+routes, et c'est la bonne conception : un seul texte, pas de seconde copie libre
+de s'écarter du point d'entrée qu'elle décrit. Elle livrait aussi à l'agent la
+docstring *entière*.
+
+Mesuré sur les onze outils : **3 398 caractères de prose utilisable dans 7 523
+livrés, soit 45 %.** Le reste, ce sont des sections numpydoc, des doctests et le
+bloc `### Responses: … Content-Type: application/json` du protocole lui-même.
+Pour `render_report`, la part utile tombait à 22 % : deux phrases, puis trois
+cent quatre-vingt-dix caractères d'échafaudage.
+
+**Le gaspillage n'est pas le défaut.** L'unique exemple de `render_report`
+disait
+
+    >>> out = render_route(RenderIn(cost_model={...}))
+
+— une fonction et une classe qui n'existent pas du côté agent du protocole, où
+cet outil prend `cost_model`, `format`, `language` et `yaml_text`. Un agent qui
+calque sur les exemples se voyait montrer la mauvaise forme d'appel par le texte
+même censé lui apprendre la bonne. Sept des onze nommaient ainsi une classe de
+requête Python.
+
+`agent_prose()` ramène désormais chaque description à sa phrase de résumé et à
+la prose qui dit *quand* prendre cet outil — la seule chose dont ait besoin qui
+choisit entre onze. Les arguments n'ont jamais été la perte : ils arrivent à
+l'agent **typés**, dans le schéma d'entrée de chaque outil, où `format` porte
+son `enum: [markdown, html]` là où la version numpydoc disait `request :
+RenderIn`. La coupe se fait au protocole et non aux routes, pour que l'unique
+docstring continue de servir les deux lecteurs sans qu'aucun reçoive la moitié
+de l'autre.
+
+### Trois arguments qu'un agent devait remplir sans rien pour le guider
+
+Trouvés par le même passage, un cran plus bas : je corrigeais les descriptions
+alors que le schéma d'à côté avait des trous.
+
+- **`read_catalogue.name`** annonçait `string`. Les valeurs valides forment un
+  ensemble fini connu : l'agent devait deviner, lire le 404 qui les nomme, et
+  recommencer. La description se construit depuis `BUNDLED_CATALOGS`, pour
+  qu'un catalogue ajouté au paquet ne laisse pas la phrase en arrière. Et
+  volontairement pas un `enum` : un nom faux deviendrait un 422 du cadriciel au
+  lieu du 404 de la route, qui nomme ceux qui existent.
+- **`place_in_inventory.scenario`** — de quel scénario placer les coûts, et ce
+  qui se passe quand on l'omet.
+- **`read_product_carbon_footprint.document`** attend un lien `https` et
+  annonçait `string`.
+
+Dans les trois cas l'explication existait déjà, dans une docstring — le seul
+endroit que l'agent ne voit pas. C'est la forme de l'entrée ci-dessus : de la
+prose écrite pour qui lit le code, et la surface lisible par une machine laissée
+nue.
+
+Deux portes tiennent les deux : aucune description d'outil ne peut porter de
+doctest, de section numpydoc ni de bloc de réponses, et aucun argument qu'un
+agent doit remplir ne peut rester sans description. Passées à `bites.py`, elles
+mordent toutes les deux.
+
+Et un chiffre a bougé pour cette raison : `USING.md` et `UTILISER.md` comptaient
+209 littéraux de prose, il y en a 211 — les deux descriptions de champ
+ci-dessus. La porte qui le recalcule a nommé le vrai chiffre, ce pour quoi elle
+existe.
+
+
 ### Douze commandes sur seize mouraient sur un flux de sortie étroit, et le tiret cadratin explique pourquoi l'anglais mourait aussi
 
 Mesuré sur huit verbes dans les deux langues, en écrivant vers un flux dont

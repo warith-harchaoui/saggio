@@ -50,7 +50,7 @@ import os
 from typing import Any, Final, Literal
 
 import yaml
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Path, Query
 from pydantic import BaseModel, Field, model_validator
 
 from .. import __version__
@@ -132,7 +132,18 @@ class FootprintIn(BaseModel):
     'https://example.invalid/pcf.pdf'
     """
 
-    document: str
+    # Described on the field and not only in the docstring above. The agent
+    # surface hands a caller this schema and nothing else: an `https` link is
+    # not guessable from `document: str`, and the reason it is a link rather
+    # than an upload is the kind of thing a caller gets wrong once.
+    document: str = Field(
+        description=(
+            "An `https` link to the vendor's product carbon footprint summary. A "
+            "link rather than an upload: the link is what the catalogue row has "
+            "to carry afterwards, so that a reader can check the figure by "
+            "following it."
+        )
+    )
     language: str = _language_field()
 
 
@@ -444,7 +455,16 @@ def create_app(*, allow_clone: bool | None = None, allow_fetch: bool | None = No
         operation_id="place_in_inventory",
         summary="Say which line of a greenhouse-gas inventory each figure belongs on",
     )
-    def scopes_route(request: ModelIn, scenario: str | None = None) -> dict[str, Any]:
+    def scopes_route(
+        request: ModelIn,
+        scenario: str | None = Query(
+            default=None,
+            description=(
+                "Which scenario's costs to place, by its `name`. The first "
+                "scenario in the model when omitted."
+            ),
+        ),
+    ) -> dict[str, Any]:
         """Place a model's costs in a corporate greenhouse-gas inventory.
 
         The scope turns on one fact the model already states, who operates the
@@ -613,7 +633,15 @@ def create_app(*, allow_clone: bool | None = None, allow_fetch: bool | None = No
         operation_id="read_catalogue",
         summary="Read a catalogue's rows, each with the source it was read from",
     )
-    def catalogue(name: str) -> dict[str, Any]:
+    def catalogue(
+        name: str = Path(
+            # Built from the tuple rather than typed out, so a catalogue
+            # added to the package cannot leave this sentence behind. Not an
+            # enum: that would make a wrong name a 422 from the framework
+            # instead of the 404 below, which names the ones that do exist.
+            description="A bundled catalogue: " + ", ".join(BUNDLED_CATALOGS) + ".",
+        ),
+    ) -> dict[str, Any]:
         """Return one catalogue, every row carrying its source URL and the date.
 
         Parameters

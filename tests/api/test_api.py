@@ -274,3 +274,56 @@ def test_a_tool_tells_an_agent_what_the_route_tells_a_reader() -> None:
     description = tools["place_in_inventory"].description or ""
     assert "scope" in description.lower()
     assert "market-based" in description.lower()
+
+
+def test_a_tool_description_carries_no_part_written_for_a_source_reader() -> None:
+    """The prose reaches the agent; the scaffolding around it does not.
+
+    Generating the descriptions from the docstrings is right, and it used to
+    hand the agent the whole docstring. Measured over the eleven tools, 45% of
+    what arrived was usable prose; the rest was numpydoc sections, doctests and
+    the protocol's own response block. For `render_report` it was 22%.
+
+    The part that matters is not the waste. `render_report`'s only worked
+    example read `render_route(RenderIn(cost_model={...}))` -- a function and a
+    class that do not exist on the agent's side of the protocol, where the tool
+    takes `cost_model`, `format`, `language` and `yaml_text`. An agent that
+    patterns off examples was being shown the wrong shape of call by the text
+    meant to teach it the right one.
+    """
+    from saggio.api.mcp import attach_mcp
+
+    tools = attach_mcp(create_app(allow_clone=False)).tools
+    for tool in tools:
+        description = tool.description or ""
+        assert description.strip(), f"{tool.name} describes itself with nothing"
+        for unwanted in (">>>", "### Responses:", "Content-Type:"):
+            assert unwanted not in description, (
+                f"{tool.name} hands the agent {unwanted!r}, which is written for "
+                "somebody reading the source"
+            )
+        for section in ("Parameters", "Returns", "Examples", "Raises"):
+            assert f"\n{section}\n" not in description.replace(" ", ""), (
+                f"{tool.name} hands the agent its {section} section; the arguments "
+                "reach the agent typed, in the tool's own input schema"
+            )
+
+
+def test_every_argument_an_agent_must_supply_says_what_it_is() -> None:
+    """A field an agent has to fill, with nothing telling it what to put.
+
+    Three of them had nothing: `read_catalogue.name`, whose valid values are a
+    known finite set, so an agent had to guess, read the 404, and retry;
+    `place_in_inventory.scenario`; and `read_product_carbon_footprint.document`,
+    which wants an `https` link and said only `string`. In all three the
+    explanation existed -- in a docstring, which is the one place the agent
+    cannot see.
+    """
+    from saggio.api.mcp import attach_mcp
+
+    bare: list[str] = []
+    for tool in attach_mcp(create_app(allow_clone=False)).tools:
+        for field, schema in (tool.inputSchema or {}).get("properties", {}).items():
+            if not (schema.get("description") or "").strip():
+                bare.append(f"{tool.name}.{field}")
+    assert not bare, f"an agent must fill these and is told nothing about them: {bare}"

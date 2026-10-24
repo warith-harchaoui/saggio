@@ -14,6 +14,64 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### Fifty-five per cent of what the agent surface said was written for somebody reading the source
+
+The protocol's tool descriptions are generated from the routes' own docstrings,
+and that is the right design: one text, no second copy free to drift from the
+endpoint it describes. It also handed the agent the *whole* docstring.
+
+Measured over the eleven tools: **3,398 characters of usable prose inside 7,523 delivered — 45%.** The rest was numpydoc sections, doctests, and the protocol's
+own `### Responses: … Content-Type: application/json` block. For
+`render_report` the usable share was 22%: two sentences, then three hundred and
+ninety characters of scaffolding.
+
+**The waste is not the defect.** `render_report`'s only worked example read
+
+    >>> out = render_route(RenderIn(cost_model={...}))
+
+— a function and a class that do not exist on the agent's side of the protocol,
+where that tool takes `cost_model`, `format`, `language` and `yaml_text`. An
+agent that patterns off examples was being shown the wrong shape of call by the
+very text meant to teach it the right one. Seven of the eleven named a Python
+request class this way.
+
+`agent_prose()` now trims each generated description to the summary and the
+prose explaining when to reach for that tool, which is the only thing a caller
+choosing between eleven of them needs. The arguments were never the loss: they
+reach the agent **typed**, in each tool's own input schema, where `format`
+carries `enum: [markdown, html]` and the numpydoc version said `request :
+RenderIn`. Trimmed at the protocol rather than at the routes, so the one
+docstring keeps serving both readers and neither is handed the other's half.
+
+### Three arguments an agent had to supply with nothing telling it what to put
+
+Found by the same pass, one level down: the descriptions were being fixed while
+the schema beside them had holes.
+
+- **`read_catalogue.name`** said `string`. The valid values are a known finite
+  set, so an agent had to guess, read the 404 that names them, and try again.
+  The description is built from `BUNDLED_CATALOGS`, so a catalogue added to the
+  package cannot leave the sentence behind. Deliberately not an `enum`: that
+  would make a wrong name a framework 422 instead of the route's 404, which
+  names the ones that do exist.
+- **`place_in_inventory.scenario`** — which scenario's costs to place, and what
+  happens when it is omitted.
+- **`read_product_carbon_footprint.document`** wants an `https` link, and said
+  `string`.
+
+In all three the explanation already existed, in a docstring — which is the one
+place the agent cannot see. That is the same shape as the entry above: prose
+written for a source reader, and the machine-readable surface left bare.
+
+Two gates now hold both: no tool description may carry a doctest, a numpydoc
+section or a response block, and no argument an agent must fill may be
+undescribed. Both were put to `bites.py` and both bite.
+
+And one figure moved because of this: `USING.md` and `UTILISER.md` counted 209
+prose literals and there are now 211, the two field descriptions above. The
+gate that recomputes it named the real number, which is what it is for.
+
+
 ### Twelve of sixteen commands died on a narrow output stream, and the em dash was why English died too
 
 Measured across eight verbs in both languages, writing to a stream whose
