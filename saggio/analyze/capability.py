@@ -42,6 +42,7 @@ from __future__ import annotations
 import os
 import shutil
 import sys
+import textwrap
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
@@ -396,6 +397,28 @@ def measurable() -> bool:
     return any(interface.measured() for interface in probe())
 
 
+#: How wide this block's paragraphs are set. The explanations here say why a
+#: counter is closed and what it would take to open it, and one of them ran to
+#: 384 characters on one line -- a terminal turns that into a wall with no left
+#: edge to come back to.
+_PROSE_WIDTH: Final[int] = 76
+
+
+def _wrapped(text: str, indent: str = "    ") -> list[str]:
+    """Return one paragraph as indented lines, or nothing when it is empty.
+
+    Examples
+    --------
+    >>> _wrapped("")
+    []
+    >>> _wrapped("short", indent="  ")
+    ['  short']
+    """
+    if not text:
+        return []
+    return [f"{indent}{line}" for line in textwrap.wrap(text, width=_PROSE_WIDTH - len(indent))]
+
+
 def summary() -> str:
     """Return the probe as text, for a terminal or a report.
 
@@ -413,13 +436,13 @@ def summary() -> str:
     lines: list[str] = []
     for interface in probe():
         lines.append(f"[{interface.state}] {interface.name}")
-        lines.append("    " + say("capability.summary.covers", covers=interface.covers))
-        lines.append(f"    {interface.detail}")
+        lines.extend(_wrapped(say("capability.summary.covers", covers=interface.covers)))
+        lines.extend(_wrapped(interface.detail))
         if interface.remedy:
-            lines.append("    " + say("capability.summary.remedy", remedy=interface.remedy))
+            lines.extend(_wrapped(say("capability.summary.remedy", remedy=interface.remedy)))
         lines.append("")
     if not measurable():
-        lines.append(say("capability.nothing_measures_detail"))
+        lines.extend(_wrapped(say("capability.nothing_measures_detail"), indent=""))
     return "\n".join(lines).rstrip() + "\n"
 
 

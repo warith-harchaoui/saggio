@@ -37,7 +37,7 @@ import sys
 import textwrap
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
 import os_helper as osh
 import yaml
@@ -231,6 +231,72 @@ def check(args: argparse.Namespace) -> int:
     return OK if report.ok else INVALID
 
 
+#: How wide a paragraph this package prints to a terminal. Seventy-six leaves
+#: room for the four-space indent the explanations carry and still fits the
+#: eighty columns a terminal is assumed to have when it will not say.
+_PROSE_WIDTH: Final[int] = 76
+
+
+def _hanging(label: str, text: str) -> str:
+    """Return ``label`` and ``text`` as one wrapped block, label on the first line.
+
+    The shape a reader already knows -- ``carbon_market_based: the reason`` --
+    kept when the reason is too long for one line, by indenting only what
+    wraps onto the next.
+
+    Examples
+    --------
+    >>> _hanging("a: ", "one two")
+    'a: one two'
+    >>> print(_hanging("name: ", "word " * 30))  # doctest: +ELLIPSIS
+    name: word word...
+          word...
+    """
+    wrapped = textwrap.wrap(
+        f"{label}{text}", width=_PROSE_WIDTH, subsequent_indent=" " * len(label)
+    )
+    return "\n".join(wrapped)
+
+
+def _paragraph(text: str, indent: str = "") -> str:
+    """Return one paragraph of prose, wrapped, with every line indented.
+
+    The sentences this package prints are long on purpose -- they say where a
+    number came from and what would resolve it -- and one of them ran to 732
+    characters on a single line, which a terminal turns into a block of text
+    with no left edge. ``next`` had wrapped its notes since it was written;
+    ``scopes`` and ``power`` printed theirs raw, so the same kind of sentence
+    read well from one verb and badly from another.
+
+    Parameters
+    ----------
+    text : str
+        The prose to wrap. Empty input gives an empty string rather than a
+        blank line, because a missing explanation should take no space.
+    indent : str, optional
+        Put in front of every line, continuation lines included.
+
+    Returns
+    -------
+    str
+        The wrapped paragraph, ready to print.
+
+    Examples
+    --------
+    >>> _paragraph("")
+    ''
+    >>> print(_paragraph("one two three", indent="  "))
+      one two three
+    >>> len(max(_paragraph("word " * 60).splitlines(), key=len)) <= _PROSE_WIDTH
+    True
+    """
+    if not text:
+        return ""
+    return "\n".join(
+        f"{indent}{line}" for line in textwrap.wrap(text, width=_PROSE_WIDTH - len(indent))
+    )
+
+
 def scopes(args: argparse.Namespace) -> int:
     """Say which line of a greenhouse-gas inventory each of a model's costs goes on.
 
@@ -307,20 +373,20 @@ def scopes(args: argparse.Namespace) -> int:
         # an emission: a copy kept here would have swallowed the market-based
         # explanation, which exists for exactly this case.
         if row["scope"] is None and row["dimension"] in GHG_EMISSIONS:
-            print(f"{row['dimension']}: {row['why']}\n")
+            print(_hanging(f"{row['dimension']}: ", row["why"]) + "\n")
     placed_rows = [row for row in rows if row["scope"] is not None]
     for row in placed_rows:
         print(f"{row['dimension']} — {row['label']}")
-        print(f"  {row['why']}")
+        print(_paragraph(row["why"], indent="  "))
         if row["source_url"]:
             print(f"  {row['source_url']}")
         if row["dual_reporting"]:
-            print("  " + say("cli.scopes.dual", sentence=row["dual_reporting"]))
+            print(_paragraph(say("cli.scopes.dual", sentence=row["dual_reporting"]), indent="  "))
         print()
     if counted:
         summary = ", ".join(f"{count} {status}" for status, count in sorted(counted.items()))
-        print(say("cli.scopes.founded", summary=summary))
-        print(say("cli.scopes.filer"))
+        print(_paragraph(say("cli.scopes.founded", summary=summary)))
+        print(_paragraph(say("cli.scopes.filer")))
     return OK
 
 

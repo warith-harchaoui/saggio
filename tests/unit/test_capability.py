@@ -107,7 +107,13 @@ def test_nothing_here_escalates() -> None:
     # No interface's remedy is run; they are printed. The guarantee is worth a
     # test because the failure mode is silent and the blast radius is the
     # user's machine.
-    text = summary()
+    #
+    # Whitespace is flattened first. The property is about what the text says,
+    # and the text is wrapped to a terminal, so a command that happens to land
+    # across a line break is the paragraph being set rather than this package
+    # reaching for a password -- which is exactly what the raw string match
+    # reported the day the wrapping went in.
+    text = " ".join(summary().split())
     assert "sudo" not in text.replace("sudo chmod", "").replace("sudo powermetrics", "")
 
 

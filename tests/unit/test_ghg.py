@@ -335,7 +335,10 @@ def test_the_command_prints_why_an_emission_got_no_scope(tmp_path: Path, capsys)
     moved.write_text(yaml.safe_dump(model, sort_keys=False, allow_unicode=True), encoding="utf-8")
 
     assert scopes(_args(model=str(moved))) == 0
-    out = capsys.readouterr().out
+    # Flattened: the command wraps its prose to a terminal, so a phrase landing
+    # across a line break is the paragraph being set rather than the sentence
+    # changing. What is asserted is what the command says.
+    out = " ".join(capsys.readouterr().out.split())
     assert "carbon_market_based: The machine is operated by a vendor" in out
     assert "somebody else's question" in out
 
