@@ -18,14 +18,14 @@ counter, a share of time from a profile, a scaling exponent from repeated runs.
 
 **Neither owns a wattage inferred from source.** There is no path from the shape
 of a Python file to joules, and the attempts that exist need a per-instruction
-energy model for the target processor, which no laptop, server, or GPU has.
+energy model for the target processor, which no laptop, server, or graphics processing unit (GPU) has.
 
 ## May produce a number
 
 | Analysis | Output | Status |
 |---|---|---|
 | Declared work size, read from the repository's own configuration | A count of units | `estimated` |
-| Wall time, CPU time of a slice | Seconds | `measured` |
+| Wall time, central processing unit (CPU) time of a slice | Seconds | `measured` |
 | Energy counter read twice, with a named scope | Joules | `measured` |
 | `FLOPs ≈ 6 · N · D`, when parameters and tokens are both declared | Operations | `estimated`, with the coefficient's source |
 | Scaling exponent `b` from `y = a · x^b` over three or more slice sizes (`--scaling-steps N`) | An exponent and an R² | `measured` over the sizes run |
@@ -48,13 +48,13 @@ choice of language implementation has no significant effect on energy beyond
 execution time. Measure duration hardest; read power off a counter; never infer
 either from source.
 
-**Fast sampling distorts what it measures.** RAPL-based tools polling at 1 kHz
+**Fast sampling distorts what it measures.** Running Average Power Limit (RAPL)-based tools polling at 1 kHz
 show time overheads from 0.25% to 46.75%, and energy overheads above 40%. At
 1 Hz the overhead is negligible. Prefer an accumulating counter read twice over
 a sampled wattage, and keep any unavoidable sampler slow.
 
 **Data movement dominates arithmetic.** At 45 nm, a floating-point operation
-costs 0.4–3.7 pJ and an off-chip 64-bit DRAM access 1300–2600 pJ. An estimate
+costs 0.4–3.7 pJ and an off-chip 64-bit dynamic random-access memory (DRAM) access 1300–2600 pJ. An estimate
 built on operation counts alone is counting the cheap part, which is why a
 projection onto another accelerator is a bracket and not a number.
 

@@ -79,7 +79,7 @@ Say these as facts, not as gaps. "No scope applies" is a placement.
 ## What to tell an assurance provider
 
 Every quantity carries four things the package enforces rather than suggests: a
-status, a provenance URL with the date it was read, the inputs it was derived
+status, a provenance address (Uniform Resource Locator) with the date it was read, the inputs it was derived
 from with the arithmetic re-checked, and a freshness window that fails a build
 when nobody has re-read the figure.
 

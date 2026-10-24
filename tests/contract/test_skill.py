@@ -167,6 +167,79 @@ QUOTED_BY_A_USER: dict[str, str] = {
 }
 
 
+#: Per reference file, the initialisms it uses without writing out, and why.
+#: Each sits inside a question a user asks or the name of a platform, and the
+#: repository's rule is that neither gets rewritten.
+QUOTED_IN_REFERENCES: dict[str, dict[str, str]] = {
+    "inventory.md": {
+        "AWS": "a column of platform names: AWS, GCP, Azure",
+        "GCP": "a column of platform names: AWS, GCP, Azure",
+        "GPU": 'the phrase "a GPU cloud" in that same column of platforms',
+    },
+    "landscape.md": {
+        "AWS": 'inside "Why was our AWS bill so high last month?", a user\'s question',
+        "GCP": "the product name GCP Billing",
+        "GPU": 'inside "Which GPU should we buy?", a user\'s question',
+    },
+}
+
+
+def _declared_initialisms() -> dict[str, str]:
+    """The glossary, as the pages are held to it."""
+    declared: dict[str, str] = {}
+    for line in (ROOT / "GLOSSARY.md").read_text(encoding="utf-8").splitlines():
+        found = re.match(r"\|\s*\*\*([A-Z][A-Z0-9]*)\*\*\s*\|\s*([^|]*?)\s*\|", line)
+        if found and found.group(2) not in {"", "—"}:
+            declared[found.group(1)] = found.group(2)
+    return declared
+
+
+def _prose_of(text: str) -> str:
+    """Prose only: no fenced blocks, no inline code."""
+    without = re.sub(r"```.*?```", " ", text, flags=re.S)
+    return re.sub(r"`[^`]*`", " ", without)
+
+
+@pytest.mark.parametrize(
+    "reference", sorted(path.name for path in (SKILL_DIR / "references").glob("*.md"))
+)
+def test_each_reference_writes_out_the_initialisms_it_uses(reference: str) -> None:
+    """The same rule, reaching the files the skill loads on demand.
+
+    A reference is read by whoever followed the link to it, which is the
+    definition of a reader landing on one page without having read another.
+    "Per kilowatt-hour of IT load" is the one that settles the argument: in
+    English prose those two letters are as likely to be read as a pronoun.
+    """
+    prose = _prose_of((SKILL_DIR / "references" / reference).read_text(encoding="utf-8"))
+    exempt = QUOTED_IN_REFERENCES.get(reference, {})
+    unexplained = sorted(
+        acronym
+        for acronym, written in _declared_initialisms().items()
+        if acronym not in exempt
+        and re.search(rf"(?<![A-Za-z0-9]){acronym}(?![A-Za-z0-9])", prose)
+        and written.lower() not in prose.lower()
+    )
+    assert not unexplained, (
+        f"references/{reference} uses these without writing them out: "
+        f"{unexplained}. If one is inside a question a user asks or a platform's "
+        f"name, declare it in QUOTED_IN_REFERENCES with the reason."
+    )
+
+
+def test_every_reference_exemption_is_still_needed() -> None:
+    """An exemption for a file that no longer uses the word is dead weight."""
+    idle: list[str] = []
+    for reference, acronyms in QUOTED_IN_REFERENCES.items():
+        text = (SKILL_DIR / "references" / reference).read_text(encoding="utf-8")
+        idle += [
+            f"{reference}:{acronym}"
+            for acronym in acronyms
+            if not re.search(rf"(?<![A-Za-z0-9]){acronym}(?![A-Za-z0-9])", text)
+        ]
+    assert not idle, f"QUOTED_IN_REFERENCES names what is no longer used: {sorted(idle)}"
+
+
 def test_the_skill_writes_out_the_initialisms_it_uses() -> None:
     """The rule every page here obeys, reaching the skill's body as well.
 

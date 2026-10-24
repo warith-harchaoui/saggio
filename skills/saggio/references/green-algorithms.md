@@ -26,7 +26,7 @@ Carbon and money follow the **facility** figure, because that is what the grid
 supplies and the meter counts.
 
 Water follows the **machine** figure. **Water usage effectiveness** is defined as
-litres of on-site water per kilowatt-hour of IT load, so it already accounts for
+litres of on-site water per kilowatt-hour of information technology load, so it already accounts for
 the cooling. Multiplying it by facility energy would count the cooling overhead
 twice.
 
@@ -98,7 +98,7 @@ average car, and an open carbon figure gives an open equivalence.
 - For a *relocation* decision the **marginal** carbon intensity — the plant that
   answers the extra demand, usually gas — is the right figure, and the average is
   a lower bound on the benefit of moving.
-- The GHG basket behind "CO2e" is CO2, CH4, and N2O under GWP100 (IPCC), which
+- The Greenhouse Gas (GHG) basket behind "CO2e" is CO2, CH4, and N2O under GWP100 (IPCC), which
   together cover 97.9% of global GHG emissions.
 - Parallelising has an optimum: past it, adding cores cuts runtime slower than it
   adds power, and the footprint climbs (the paper doubles emissions going from 15

@@ -1,6 +1,6 @@
 # The cost-model file
 
-Schema 2.1. A plain YAML mapping, so it diffs, reviews in a pull request, and reads
+Schema 2.1. A plain YAML (YAML Ain't Markup Language) mapping, so it diffs, reviews in a pull request, and reads
 without this package installed.
 
 ## A quantity
@@ -120,7 +120,7 @@ package.
   short list of structural paths such as core counts and exit codes.
 - Every `derived_from` path resolves to a quantity in the same model.
 - No derived value outranks its weakest input.
-- A value on a money dimension carries an ISO 4217 currency.
+- A value on a money dimension carries an International Organization for Standardization (ISO) 4217 currency.
 - A `measured` or `estimated` status carries a number; a `placeholder` or `TODO`
   does not.
 - No cost is negative.

@@ -142,7 +142,7 @@ somebody: not the impressive figures, the weakest one.
 ## Provenance, beside the status
 
 A status says how well founded a number is. It cannot say *whose* number it is,
-and for a sourced figure that matters: a price read from a vendor's own price API
+and for a sourced figure that matters: a price read from a vendor's own price application programming interface (API)
 and the same price copied out of a community table are both, correctly,
 `estimated`. So a quantity may also carry a `source_kind`:
 
