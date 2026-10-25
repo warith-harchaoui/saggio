@@ -43,15 +43,23 @@ attributes, and `_verb` builds one from what click parsed.
 
 **Three regressions, all three found by tests rather than by reading.**
 
-1. **Twelve positional arguments lost their help.** `click.argument` takes no
-   `help=`: click's position is that a positional belongs in the command's
-   description. argparse listed one line each, and this surface had twelve
-   written *and translated* — what a `model` is, what `before` and `after` mean,
-   that `measure`'s command goes after `--`. The gate that refuses wording
-   nothing reaches caught it: the twelve catalogue keys went dead the moment the
-   arguments stopped asking for them. `DescribedArgument` and
-   `DescribedCommand` carry and render the help, so the catalogue stays the one
-   place the sentences live.
+1. **Twelve positional arguments lost their help.** argparse listed one line
+   each, and this surface had twelve written *and translated* — what a `model`
+   is, what `before` and `after` mean, that `measure`'s command goes after
+   `--`. The gate that refuses wording nothing reaches caught it: the twelve
+   catalogue keys went dead the moment the arguments stopped asking for them.
+
+   **The first fix was wrong and continuous integration said so.** `click.argument`
+   took no `help=` in 8.4, so a `DescribedArgument` carried it and a
+   `DescribedCommand` rendered it. That passed here and failed on the runner,
+   which resolved **click 8.5 — where `argument(..., help=...)` is a feature**
+   and `Argument.__init__` takes `help` itself, setting the shim's to None. The
+   floor is 8.5 now and the shim is deleted — and it is a floor rather than a
+   preference: under 8.4 this package does not start at all, because
+   `argument(..., help=...)` raises `TypeError` while the commands are being
+   declared. It is the second override in this
+   move to turn out to be restating click, after the one suggesting a nearest
+   verb; the section header is click's own wording, *Positional arguments*.
 2. **`--help` came out in English however it was asked for.** Every help string
    comes from the catalogue through `say`, and a decorator evaluates its
    arguments at import — so declaring the commands at module level froze all of

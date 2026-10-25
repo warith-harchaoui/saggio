@@ -85,7 +85,22 @@ dependencies = [
     # What it is not taken for: anything the library does. click is reached only
     # from `saggio.cli`, and a gate refuses an import of it anywhere else, so
     # the four above remain the whole cost of `import saggio`.
-    "click>=8.1",
+    #
+    # 8.5 and not 8.1, and the floor was raised rather than worked around.
+    # argparse gave every positional argument a line of help and this surface
+    # has twelve of them written and translated; click learned `argument(...,
+    # help=...)` in 8.5. A shim that carried the help was written here against
+    # 8.4, passed locally, and failed the moment continuous integration
+    # resolved 8.5 -- where `Argument.__init__` takes `help` itself and set the
+    # shim's to None. Pinning a library's internals to keep an older floor is
+    # the arrangement that breaks quietly; using the feature is not.
+    #
+    # The floor is mandatory rather than preferred, and that was measured:
+    # under 8.4 this package does not merely lose the twelve lines of help, it
+    # does not start. `click.argument(..., help=...)` raises `TypeError:
+    # Parameter.__init__() got an unexpected keyword argument 'help'` while the
+    # commands are being declared, before any verb runs.
+    "click>=8.5",
 ]
 
 [project.optional-dependencies]

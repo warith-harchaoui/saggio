@@ -47,16 +47,25 @@ les attributs d'un objet, et `_verb` en construit un depuis ce que click a lu.
 
 **Trois régressions, les trois trouvées par des tests et non par relecture.**
 
-1. **Douze arguments positionnels ont perdu leur aide.** `click.argument`
-   n'accepte pas de `help=` : la position de click est qu'un positionnel
-   s'explique dans la description de la commande. argparse en listait une ligne
-   chacun, et cette surface en avait douze écrites *et traduites* — ce qu'est un
-   `model`, ce que veulent dire `before` et `after`, que la commande de
-   `measure` va après `--`. La porte qui refuse une formulation que rien
-   n'atteint l'a vu : les douze clés du catalogue sont mortes à l'instant où les
-   arguments ont cessé de les demander. `DescribedArgument` et
-   `DescribedCommand` portent et rendent cette aide, pour que le catalogue reste
-   le seul endroit où vivent les phrases.
+1. **Douze arguments positionnels ont perdu leur aide.** argparse en listait
+   une ligne chacun, et cette surface en avait douze écrites *et traduites* —
+   ce qu'est un `model`, ce que veulent dire `before` et `after`, que la
+   commande de `measure` va après `--`. La porte qui refuse une formulation que
+   rien n'atteint l'a vu : les douze clés du catalogue sont mortes à l'instant
+   où les arguments ont cessé de les demander.
+
+   **La première correction était mauvaise, et l'intégration continue l'a dit.**
+   `click.argument` n'acceptait pas de `help=` en 8.4 : un `DescribedArgument`
+   le portait et un `DescribedCommand` le rendait. Cela passait ici et échouait
+   sur le coureur, qui résolvait **click 8.5 — où `argument(..., help=...)` est
+   une fonctionnalité** et où `Argument.__init__` prend `help` lui-même, mettant
+   celui du palliatif à None. Le plancher est 8.5 et le palliatif est supprimé — et c'est un plancher, pas
+   une préférence : sous 8.4 ce paquet ne démarre pas du tout, car
+   `argument(..., help=...)` lève `TypeError` pendant la déclaration des
+   commandes.
+   C'est le second override de ce déplacement à se révéler une redite de click,
+   après celui qui suggérait le verbe le plus proche ; l'intitulé de section est
+   la formulation de click, *Positional arguments*.
 2. **`--help` sortait en anglais quoi qu'on demande.** Chaque texte d'aide vient
    du catalogue via `say`, et un décorateur évalue ses arguments à l'import :
    déclarer les commandes au niveau du module les figeait toutes dans la langue

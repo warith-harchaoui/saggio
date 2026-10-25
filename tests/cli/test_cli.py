@@ -149,16 +149,21 @@ def test_the_shell_can_be_told_what_comes_next(
 def test_the_help_explains_the_positional_arguments(
     verb: str, positional: str, wording: str, capsys
 ) -> None:
-    """Click does not describe positionals; argparse did, and twelve were written.
+    """Positionals explain themselves: argparse did it, click learned to in 8.5.
 
-    `DescribedArgument` carries the help and `DescribedCommand` renders it. The
-    gate that caught the loss is the one refusing wording nothing reaches --
-    the twelve catalogue keys went dead the moment the arguments stopped asking
-    for them -- and this is the same promise from the reader's side.
+    Twelve are written here and translated. Between the two, a shim carried
+    them: it passed against click 8.4 and broke against 8.5, where
+    `Argument.__init__` takes `help` itself and set the shim's to None. The
+    floor moved to 8.5 and the shim is gone.
+
+    Two gates hold this from both sides. The one refusing wording nothing
+    reaches caught the loss when the twelve catalogue keys went dead; this is
+    the same promise from the reader's side, and it is the one that would
+    notice a click release dropping the feature again.
     """
     code, out, _ = run([verb, "--help"], capsys)
     assert code == OK
-    assert "Arguments:" in out
+    assert "Positional arguments:" in out
     assert positional in out
     assert wording in out
 

@@ -21,6 +21,11 @@ being work:
   ``parser._subparsers._group_actions`` to find out what this surface offers,
   with a comment apologising for it; click publishes :attr:`click.Group.commands`.
 * **Completion works**, because click generates it. Nothing here had it before.
+* **Positional arguments explain themselves**, which argparse did and click
+  learned in 8.5. A shim that carried the help was written here for 8.4 and
+  deleted the day continuous integration resolved 8.5 and showed it restating
+  the library -- the second override in this move to do that, which is why the
+  floor is 8.5 rather than 8.1.
 
 What did not change, and was the point of keeping the shapes identical: every
 verb, every flag, every default, and every exit code. The handlers in
@@ -173,52 +178,6 @@ def _verb(name: str) -> Callable[..., int]:
     return callback
 
 
-class DescribedArgument(click.Argument):
-    """A positional argument that carries its own help, which click does not.
-
-    ``click.argument`` takes no ``help``: click's position is that a positional
-    should be explained in the command's description. argparse listed one line
-    per positional, and this surface had twelve of them written and translated
-    -- what a ``model`` is for ``validate``, what ``before`` and ``after`` mean
-    for ``diff``, that ``measure``'s command goes after ``--``.
-
-    Dropping them was the first thing the move to click cost, and it was caught
-    by the gate that refuses wording nothing reaches: the twelve keys went dead
-    in the message catalogue the moment the arguments stopped asking for them.
-    So the help is carried here and rendered by :class:`DescribedCommand`, and
-    the catalogue stays the one place the sentences live.
-    """
-
-    def __init__(self, *args: Any, help: str | None = None, **kwargs: Any) -> None:
-        self.help = help
-        super().__init__(*args, **kwargs)
-
-
-class DescribedCommand(click.Command):
-    """A command whose help lists its positional arguments, the way argparse did.
-
-    Click renders options and not arguments. This adds one section above them,
-    in the order the arguments are declared, for the ones that carry help.
-    """
-
-    def format_options(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
-        """Write the positional arguments, then let click write the options."""
-        described = [
-            (parameter.metavar or parameter.name.upper(), parameter.help)
-            for parameter in self.params
-            if isinstance(parameter, DescribedArgument) and parameter.help
-        ]
-        if described:
-            with formatter.section("Arguments"):
-                formatter.write_dl(described)
-        super().format_options(ctx, formatter)
-
-
-def _argument(name: str, **kwargs: Any) -> Callable[..., Any]:
-    """Declare a positional that explains itself in ``--help``."""
-    return click.argument(name, cls=DescribedArgument, **kwargs)
-
-
 class VerbGroup(click.Group):
     """The root group, listing its verbs in the order they were declared.
 
@@ -333,7 +292,6 @@ def build_cli() -> VerbGroup:
     # --- The verbs ----------------------------------------------------------------
 
     @cli.command(
-        cls=DescribedCommand,
         name="init",
         help=say("cli.help.init.summary"),
         epilog="; ".join(f"{name}: {TEMPLATES[name]}" for name in template_names()),
@@ -351,19 +309,17 @@ def build_cli() -> VerbGroup:
         return _verb("init")(**given)
 
     @cli.command(
-        cls=DescribedCommand,
         name="validate",
         help=say("cli.help.validate.summary"),
         epilog=f"Statuses, strongest to weakest: {', '.join(STATUS_ORDER)}.",
     )
-    @_argument("model", help=say("cli.help.validate.model"))
+    @click.argument("model", help=say("cli.help.validate.model"))
     @click.option("--json", "json", is_flag=True, help=say("cli.help.validate.json"))
     @_language_option
     def _validate_command(**given: Any) -> int:
         return _verb("validate")(**given)
 
     @cli.command(
-        cls=DescribedCommand,
         name="scopes",
         help=say("cli.help.scopes.summary"),
         epilog=(
@@ -373,7 +329,7 @@ def build_cli() -> VerbGroup:
             "printed instead."
         ),
     )
-    @_argument("model", help=say("cli.help.scopes.model"))
+    @click.argument("model", help=say("cli.help.scopes.model"))
     @click.option("--scenario", default=None, help=say("cli.help.scopes.scenario"))
     @click.option("--json", "json", is_flag=True, help=say("cli.help.scopes.json"))
     @_language_option
@@ -381,7 +337,6 @@ def build_cli() -> VerbGroup:
         return _verb("scopes")(**given)
 
     @cli.command(
-        cls=DescribedCommand,
         name="next",
         help=say("cli.help.next.summary"),
         epilog=(
@@ -391,14 +346,14 @@ def build_cli() -> VerbGroup:
             "first, in the words the model already wrote for each field."
         ),
     )
-    @_argument("model", help=say("cli.help.next.model"))
+    @click.argument("model", help=say("cli.help.next.model"))
     @click.option("--json", "json", is_flag=True, help=say("cli.help.next.json"))
     @_language_option
     def _next_command(**given: Any) -> int:
         return _verb("next")(**given)
 
-    @cli.command(cls=DescribedCommand, name="render", help=say("cli.help.render.summary"))
-    @_argument("model", help=say("cli.help.render.model"))
+    @cli.command(name="render", help=say("cli.help.render.summary"))
+    @click.argument("model", help=say("cli.help.render.model"))
     @click.option(
         "-f",
         "--format",
@@ -425,7 +380,6 @@ def build_cli() -> VerbGroup:
         return _verb("render")(**given)
 
     @cli.command(
-        cls=DescribedCommand,
         name="dashboard",
         help=say("cli.help.dashboard.summary"),
         epilog=(
@@ -433,14 +387,13 @@ def build_cli() -> VerbGroup:
             "compares how well founded the models are, never the costs across rows."
         ),
     )
-    @_argument("models", nargs=-1, required=True, help=say("cli.help.dashboard.models"))
+    @click.argument("models", nargs=-1, required=True, help=say("cli.help.dashboard.models"))
     @click.option("-o", "--output", default=None, help=say("cli.help.dashboard.o"))
     @_language_option
     def _dashboard_command(**given: Any) -> int:
         return _verb("dashboard")(**given)
 
     @cli.command(
-        cls=DescribedCommand,
         name="audit",
         help=say("cli.help.audit.summary"),
         epilog=(
@@ -449,7 +402,7 @@ def build_cli() -> VerbGroup:
             "with your permissions, after you have agreed to it once."
         ),
     )
-    @_argument("target", help=say("cli.help.audit.target"))
+    @click.argument("target", help=say("cli.help.audit.target"))
     @click.option("-o", "--output", default=None, help=say("cli.help.audit.o"))
     @click.option("--json", "json", is_flag=True, help=say("cli.help.audit.json"))
     @click.option("--run", is_flag=True, help=say("cli.help.audit.run"))
@@ -498,7 +451,6 @@ def build_cli() -> VerbGroup:
         return _verb("audit")(**given)
 
     @cli.command(
-        cls=DescribedCommand,
         name="measure",
         help=say("cli.help.measure.summary"),
         epilog="Put the command after --, for example: measure -- python train.py --steps 100",
@@ -509,7 +461,9 @@ def build_cli() -> VerbGroup:
         # separator itself, so the handler's guard is now belt and braces.
         context_settings={"ignore_unknown_options": True, "allow_interspersed_args": False},
     )
-    @_argument("command", nargs=-1, type=click.UNPROCESSED, help=say("cli.help.measure.command"))
+    @click.argument(
+        "command", nargs=-1, type=click.UNPROCESSED, help=say("cli.help.measure.command")
+    )
     @click.option("-C", "--directory", default=None, help=say("cli.help.measure.C"))
     @click.option(
         "--timeout",
@@ -547,7 +501,6 @@ def build_cli() -> VerbGroup:
         return _verb("measure")(**given)
 
     @cli.command(
-        cls=DescribedCommand,
         name="diff",
         help=say("cli.help.diff.summary"),
         epilog=(
@@ -555,8 +508,8 @@ def build_cli() -> VerbGroup:
             "whatever the numbers did."
         ),
     )
-    @_argument("before", help=say("cli.help.diff.before"))
-    @_argument("after", help=say("cli.help.diff.after"))
+    @click.argument("before", help=say("cli.help.diff.before"))
+    @click.argument("after", help=say("cli.help.diff.after"))
     @click.option(
         "--threshold",
         type=float,
@@ -570,7 +523,6 @@ def build_cli() -> VerbGroup:
         return _verb("diff")(**given)
 
     @cli.command(
-        cls=DescribedCommand,
         name="machine",
         help=say("cli.help.machine.summary"),
         epilog=(
@@ -585,7 +537,6 @@ def build_cli() -> VerbGroup:
         return _verb("machine")(**given)
 
     @cli.command(
-        cls=DescribedCommand,
         name="power",
         help=say("cli.help.power.summary"),
         epilog=(
@@ -603,7 +554,6 @@ def build_cli() -> VerbGroup:
         return _verb("power")(**given)
 
     @cli.command(
-        cls=DescribedCommand,
         name="consent",
         help=say("cli.help.consent.summary"),
         epilog=(
@@ -642,7 +592,7 @@ def build_cli() -> VerbGroup:
 
     _KINDS: Final[list[str]] = sorted(SECTION_OF_KIND)
 
-    @catalog_group.command(cls=DescribedCommand, name="list", help=say("cli.help.list.summary"))
+    @catalog_group.command(name="list", help=say("cli.help.list.summary"))
     @click.argument("kind", type=click.Choice(_KINDS))
     @click.option("--json", "json", is_flag=True, help=say("cli.help.catalog.list.json"))
     @_language_option
@@ -650,7 +600,6 @@ def build_cli() -> VerbGroup:
         return _verb("catalog list")(**given)
 
     @catalog_group.command(
-        cls=DescribedCommand,
         name="add",
         help=say("cli.help.add.summary"),
         epilog=(
@@ -659,7 +608,7 @@ def build_cli() -> VerbGroup:
         ),
     )
     @click.argument("kind", type=click.Choice(_KINDS))
-    @_argument("key", help=say("cli.help.catalog.add.key"))
+    @click.argument("key", help=say("cli.help.catalog.add.key"))
     @click.option("--source-url", required=True, help=say("cli.help.catalog.add.source_url"))
     @click.option(
         "--retrieved-date", required=True, help=say("cli.help.catalog.add.retrieved_date")
@@ -675,7 +624,6 @@ def build_cli() -> VerbGroup:
         return _verb("catalog add")(**given)
 
     @catalog_group.command(
-        cls=DescribedCommand,
         name="read-pcf",
         help=say("cli.help.read_pcf.summary"),
         epilog=(
@@ -684,16 +632,14 @@ def build_cli() -> VerbGroup:
             "is the person who can defend it."
         ),
     )
-    @_argument("document", help=say("cli.help.catalog.read-pcf.document"))
+    @click.argument("document", help=say("cli.help.catalog.read-pcf.document"))
     @click.option("--json", "json", is_flag=True, help=say("cli.help.catalog.read-pcf.json"))
     @_language_option
     def _catalog_read_pcf_command(**given: Any) -> int:
         return _verb("catalog read-pcf")(**given)
 
-    @catalog_group.command(
-        cls=DescribedCommand, name="refresh", help=say("cli.help.refresh.summary")
-    )
-    @_argument("catalog", help=say("cli.help.catalog.refresh.catalog"))
+    @catalog_group.command(name="refresh", help=say("cli.help.refresh.summary"))
+    @click.argument("catalog", help=say("cli.help.catalog.refresh.catalog"))
     @click.option("--api-key", default=None, help=say("cli.help.catalog.refresh.api_key"))
     @click.option("--year", type=int, default=None, help=say("cli.help.catalog.refresh.year"))
     @click.option(
@@ -711,9 +657,7 @@ def build_cli() -> VerbGroup:
     def _catalog_refresh_command(**given: Any) -> int:
         return _verb("catalog refresh")(**given)
 
-    @catalog_group.command(
-        cls=DescribedCommand, name="freshness", help=say("cli.help.freshness.summary")
-    )
+    @catalog_group.command(name="freshness", help=say("cli.help.freshness.summary"))
     @click.option(
         "--within",
         type=int,
