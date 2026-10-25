@@ -230,12 +230,12 @@ rapport statique** en français.
 visible d'un rapport produit. L'ossature
 bouge : titres, noms de colonnes, étiquettes du panneau what-if, phrases
 d'équivalence. La substance, non : les notes, les méthodes, les mises en garde
-et les refus sont écrits là où la mesure se fait, soit **211 littéraux de prose
+et les refus sont écrits là où la mesure se fait, soit **212 littéraux de prose
 de quatre mots ou plus dans 35 modules**, dont 4 % seulement sous `report/`. Une
 seule définition, écrite dans `tests/contract/test_languages.py` et recalculée
 là, pour que le compte ne puisse pas se périmer tout seul : passée sur l'arbre
 qui citait 709 au départ, la même définition en compte 801 — et c'est cette
-comparaison qu'un lecteur peut vérifier, 801 contre 211, et 53 modules contre
+comparaison qu'un lecteur peut vérifier, 801 contre 212, et 53 modules contre
 35.
 Dire « le rapport est bilingue » serait une affirmation que personne n'a
 établie. La *documentation* est bilingue, page pour page ; un rapport produit est

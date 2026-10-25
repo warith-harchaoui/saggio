@@ -16,6 +16,83 @@ endroit-là.
 
 ## Non publié
 
+### argparse dehors, click dedans, et une cinquième dépendance dite franchement
+
+Une décision, pas une découverte. argparse est dans la bibliothèque standard et
+donc gratuit ; click est une cinquième dépendance d'exécution et un vrai coût.
+Ce qu'il achète :
+
+- **Un verbe mal tapé nomme le plus proche.** `saggio vlaidate` répond
+  *No such command 'vlaidate'. Did you mean 'validate'?* là où argparse
+  répondait par la liste des treize. **C'est click qui le fait** — un override
+  qui l'ajoutait a été écrit ici, reconnu comme la redite mot pour mot de
+  click 8.4, et supprimé. C'est un acquis du déplacement, pas une écriture de ce
+  paquet.
+- **La complétion**, que cette surface n'avait pas du tout. Verbes, sous-verbes,
+  et les valeurs de chaque choix : les quatre formats de rapport, les deux
+  langues, les six sortes de catalogue. Documentée dans les deux fichiers
+  d'accueil ; elle reste éteinte jusqu'à ce qu'un interpréteur sache où la
+  prendre.
+- **Les verbes sont publics.** Un test de contrat lisait
+  `parser._subparsers._group_actions`, avec un commentaire s'excusant qu'argparse
+  n'offrît aucun lecteur public et que l'alternative fût une seconde liste de
+  verbes tenue à la main — la chose même que ce test existe pour empêcher.
+  `click.Group.commands` est publié : l'excuse a disparu.
+
+Chaque verbe, drapeau, valeur par défaut et code de sortie est inchangé, et les
+1 689 lignes de gestionnaires n'ont pas bougé : ils lisent leurs arguments sur
+les attributs d'un objet, et `_verb` en construit un depuis ce que click a lu.
+
+#### Ce que le déplacement a coûté, et ce que les portes ont attrapé
+
+**Trois régressions, les trois trouvées par des tests et non par relecture.**
+
+1. **Douze arguments positionnels ont perdu leur aide.** `click.argument`
+   n'accepte pas de `help=` : la position de click est qu'un positionnel
+   s'explique dans la description de la commande. argparse en listait une ligne
+   chacun, et cette surface en avait douze écrites *et traduites* — ce qu'est un
+   `model`, ce que veulent dire `before` et `after`, que la commande de
+   `measure` va après `--`. La porte qui refuse une formulation que rien
+   n'atteint l'a vu : les douze clés du catalogue sont mortes à l'instant où les
+   arguments ont cessé de les demander. `DescribedArgument` et
+   `DescribedCommand` portent et rendent cette aide, pour que le catalogue reste
+   le seul endroit où vivent les phrases.
+2. **`--help` sortait en anglais quoi qu'on demande.** Chaque texte d'aide vient
+   du catalogue via `say`, et un décorateur évalue ses arguments à l'import :
+   déclarer les commandes au niveau du module les figeait toutes dans la langue
+   d'écriture. `build_cli()` est une fonction exactement pour cela, appelée dans
+   le contexte de langue à chaque exécution, ce que faisait `build_parser()`.
+   Mesuré, parce qu'une reconstruction par invocation a l'air coûteuse et ne
+   l'est pas : **0,36 ms la construction contre 240 ms de démarrage** dominé par
+   les imports, et le démarrage est inchangé à 0,24–0,25 s.
+3. **`main` a cessé de lever et s'est mise à retourner.** Sous argparse, une
+   erreur d'usage et `--version` sortaient depuis l'intérieur de l'appel : quatre
+   tests étaient écrits en `pytest.raises(SystemExit)` et le `-> int` de `main`
+   était faux précisément pour les chemins dont un appelant veut le plus un
+   entier. Seule `run` sort désormais. Les quatre tests vérifient le code, ce
+   qui est la revendication la plus forte.
+
+#### Le compte des dépendances était déjà faux
+
+Quatre étaient déclarées et les quatre pages qui les comptent disaient
+**trois** : Babel est arrivé, la déclaration a grandi, les phrases non. Babel
+n'était même pas nommé dans les deux qui les nomment. Rien ne comparait la prose
+à `pyproject.toml` — donc pour un paquet dont tout l'argument est qu'un nombre
+non vérifié ne doit pas être cru, le nombre de choses qu'il fait installer était
+un nombre que personne ne vérifiait.
+
+Cinq maintenant, nommées, et trois portes : le compte écrit égale le compte
+déclaré, chaque dépendance déclarée est nommée là où on les compte, et **click
+est importé sous `saggio/cli/` et nulle part ailleurs**, pour que les quatre
+autres restent tout le coût d'`import saggio`.
+
+`build_parser()` a disparu, `build_cli()` la remplace. Le renommage est la part
+honnête : l'objet est un `click.Group`, donc un appelant qui en tenait un aurait
+trouvé autre chose derrière le même nom. `accepts(argv)` est neuve et publique —
+la porte de documentation analyse toutes les commandes que montrent les pages,
+et la seule subtilité qu'il faut réussir vit là plutôt que dans le test.
+
+
 ### Le même trou, dans le fichier qui sert à le détecter
 
 L'entrée ci-dessous a fermé le manque de français de la description. Les cas

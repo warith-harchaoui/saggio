@@ -1309,7 +1309,7 @@ donnant une valeur de carte de base sans dire combien de puces elle porte est
 **refusé**, pas deviné. Et il n'écrit pas : il n'y a pas de `--into`.
 
 Il demande un analyseur de documents, absent de l'installation par défaut :
-`pip install 'saggio[pcf]'`. Les trois dépendances d'exécution sont délibérées.
+`pip install 'saggio[pcf]'`. Les cinq dépendances d'exécution sont délibérées.
 
 En HTTP, la même lecture est sur `POST /catalog/read-pcf`, **fermée sauf si
 `SAGGIO_API_ALLOW_FETCH` est positionné** — aller chercher une adresse choisie

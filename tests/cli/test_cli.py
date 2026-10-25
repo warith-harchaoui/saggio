@@ -10,7 +10,16 @@ from typing import Any
 import pytest
 import yaml
 
-from saggio.cli import DECLINED, INVALID, OK, UNAVAILABLE, USAGE, main
+from saggio import __version__
+from saggio.cli import (
+    DECLINED,
+    INVALID,
+    OK,
+    PROGRAM,
+    UNAVAILABLE,
+    USAGE,
+    main,
+)
 from saggio.model import SCHEMA_VERSION
 
 
@@ -68,13 +77,102 @@ def test_what_a_narrow_stream_loses_is_named_rather_than_dropped(
     assert "?" not in written
 
 
+# --- What click bought ---------------------------------------------------------
+
+
+def test_a_mistyped_verb_names_the_nearest_one(capsys) -> None:
+    """Fourteen verbs, so argparse's "invalid choice" was true and useless.
+
+    **Click does this, and this package does not.** An override that added the
+    suggestion was written here and deleted once it turned out to be restating
+    click 8.4 word for word. So this is a gate on a library's behaviour rather
+    than on ours -- the kind this repository keeps, because the promise is made
+    to a reader at a terminal either way, and the day an upgrade drops it is a
+    day somebody should be told rather than find out.
+    """
+    code, _, err = run(["vlaidate", "cost.yaml"], capsys)
+    assert code == USAGE
+    assert "validate" in err, err
+    assert "did you mean" in err.lower(), err
+
+
+def test_a_verb_near_nothing_is_not_given_an_invented_suggestion(capsys) -> None:
+    # A suggestion that is not near is worse than none: it sends somebody to
+    # read the help for a verb that was never going to be the one. Click's
+    # cutoff, pinned here because it is the half of the behaviour above that
+    # would be easy to lose without noticing.
+    code, _, err = run(["xyzzy"], capsys)
+    assert code == USAGE
+    assert "did you mean" not in err.lower(), err
+
+
+@pytest.mark.parametrize(
+    ("words", "position", "expected"),
+    [
+        ("saggio ", 1, {"init", "validate", "audit", "catalog"}),
+        ("saggio catalog ", 2, {"list", "add", "refresh", "freshness"}),
+        ("saggio catalog list ", 3, {"gpu", "cpu", "provider"}),
+        ("saggio render m.yaml -f ", 4, {"md", "html"}),
+    ],
+)
+def test_the_shell_can_be_told_what_comes_next(
+    words: str, position: int, expected: set[str], monkeypatch, capsys
+) -> None:
+    """Completion, which this surface did not have at all under argparse.
+
+    Driven the way a shell drives it, through the environment variable click
+    derives from the program name, because that is the only path a user's shell
+    ever takes. `main` has to notice that variable before it short-circuits a
+    bare invocation into the help screen -- which it did, and which is why this
+    is tested rather than assumed from click offering the feature.
+    """
+    from saggio.cli.app import COMPLETION_VARIABLE, main
+
+    monkeypatch.setenv(COMPLETION_VARIABLE, "bash_complete")
+    monkeypatch.setenv("COMP_WORDS", words)
+    monkeypatch.setenv("COMP_CWORD", str(position))
+    main([])
+    offered = {
+        line.split(",", 1)[1] for line in capsys.readouterr().out.splitlines() if "," in line
+    }
+    assert expected <= offered, f"offered {sorted(offered)}"
+
+
+@pytest.mark.parametrize(
+    ("verb", "positional", "wording"),
+    [
+        ("validate", "MODEL", "cost model"),
+        ("diff", "BEFORE", "earlier"),
+        ("measure", "COMMAND", "--"),
+    ],
+)
+def test_the_help_explains_the_positional_arguments(
+    verb: str, positional: str, wording: str, capsys
+) -> None:
+    """Click does not describe positionals; argparse did, and twelve were written.
+
+    `DescribedArgument` carries the help and `DescribedCommand` renders it. The
+    gate that caught the loss is the one refusing wording nothing reaches --
+    the twelve catalogue keys went dead the moment the arguments stopped asking
+    for them -- and this is the same promise from the reader's side.
+    """
+    code, out, _ = run([verb, "--help"], capsys)
+    assert code == OK
+    assert "Arguments:" in out
+    assert positional in out
+    assert wording in out
+
+
 # --- The parser --------------------------------------------------------------
 
 
 def test_no_verb_prints_help_and_says_it_was_a_usage_problem(capsys) -> None:
     code, out, _ = run([], capsys)
     assert code == USAGE
-    assert "usage:" in out
+    # Case-insensitively: click writes "Usage:" where argparse wrote "usage:",
+    # and which one of those a help screen opens with is not a promise this
+    # package makes to anybody.
+    assert "usage:" in out.lower()
 
 
 def test_the_help_lists_the_exit_codes(capsys) -> None:
@@ -83,9 +181,12 @@ def test_the_help_lists_the_exit_codes(capsys) -> None:
 
 
 def test_the_version_is_the_packages(capsys) -> None:
-    with pytest.raises(SystemExit) as exit_info:
-        main(["--version"])
-    assert exit_info.value.code == 0
+    # `main` returns the code; only `run` exits with it. Under argparse this had
+    # to be written as `pytest.raises(SystemExit)`, because argparse's version
+    # action exited from inside the call -- which made the `-> int` on `main`
+    # untrue for exactly the paths a caller most wants an integer from.
+    assert main(["--version"]) == OK
+    assert capsys.readouterr().out.strip() == f"{PROGRAM} {__version__}"
 
 
 # --- init --------------------------------------------------------------------
@@ -105,8 +206,7 @@ def test_init_writes_to_standard_output_when_no_file_is_named(capsys) -> None:
 
 
 def test_an_unknown_template_is_rejected_before_anything_is_written(capsys) -> None:
-    with pytest.raises(SystemExit):
-        main(["init", "--template", "fancy"])
+    assert main(["init", "--template", "fancy"]) == USAGE
 
 
 # --- validate ----------------------------------------------------------------
@@ -371,8 +471,7 @@ def test_catalog_list_emits_json_on_request(capsys) -> None:
 
 
 def test_adding_a_row_without_provenance_is_impossible(capsys) -> None:
-    with pytest.raises(SystemExit):
-        main(["catalog", "add", "gpu", "X"])
+    assert main(["catalog", "add", "gpu", "X"]) == USAGE
 
 
 def test_a_malformed_field_is_a_usage_problem(capsys) -> None:

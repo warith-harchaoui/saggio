@@ -173,11 +173,13 @@ accounting for a child. A tool whose whole proposition is that a number says how
 far it can be trusted should not pretend to support a platform where it could
 only ever estimate, so `import saggio` there raises rather than half-working.
 
-Three runtime dependencies, on purpose. [`os-helper`](https://pypi.org/project/os-helper/)
+Five runtime dependencies, on purpose. [`os-helper`](https://pypi.org/project/os-helper/)
 answers every question about the machine and the operating system on both of
 them. PyYAML parses the models and the catalogues.
-`platformdirs` finds the per-user config directory. Everything else this package
-does, it does itself.
+`platformdirs` finds the per-user config directory. Babel carries the Unicode
+Consortium's database of how each language writes a number, orders a list and
+names a country, so those are read rather than guessed. click declares the
+command line. Everything else this package does, it does itself.
 
 Word and PDF need one more thing, only if you want them:
 
@@ -190,6 +192,19 @@ For conda:
 ```bash
 conda env create -f environment.yaml
 conda activate env-for-saggio
+```
+
+### Completion
+
+The command line completes its verbs, its sub-verbs and the values of every
+choice — the four report formats, the two languages, the six catalogue kinds.
+It comes from click rather than from anything written here, and it is off until
+a shell is told where to get it:
+
+```bash
+eval "$(_SAGGIO_COMPLETE=bash_source saggio)"      # bash, in ~/.bashrc
+eval "$(_SAGGIO_COMPLETE=zsh_source saggio)"       # zsh, in ~/.zshrc
+_SAGGIO_COMPLETE=fish_source saggio | source       # fish
 ```
 
 ## Use it

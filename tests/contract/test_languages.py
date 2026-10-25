@@ -25,7 +25,7 @@ import pytest
 from saggio.analyze.llm import WORKLOAD_KINDS, _build_prompt
 from saggio.api.app import AuditIn
 from saggio.auditor.options import AuditOptions
-from saggio.cli.app import build_parser
+from saggio.cli.app import build_cli
 from saggio.i18n import (
     DEFAULT_LANGUAGE,
     decimal_separator,
@@ -436,34 +436,75 @@ def test_every_sentence_about_the_record_names_the_file(code: str, key: str) -> 
 # --- The surfaces offer what the files hold ----------------------------------
 
 
-def test_the_command_line_offers_exactly_the_languages_that_exist() -> None:
-    import argparse
+def _language_parameter(command):
+    """Return a command's ``--language`` parameter, or None. Public API only."""
+    return next((p for p in command.params if p.name == "language"), None)
 
-    parser = build_parser()
-    overall = next(a for a in parser._actions if a.dest == "language")
-    assert tuple(overall.choices) == languages()
+
+def test_the_command_line_offers_exactly_the_languages_that_exist() -> None:
+    """Every verb offers the language, and offers the ones that exist.
+
+    Read off `Command.params`, which click publishes. The argparse version of
+    this walked `parser._actions` and `action.choices`, and ended by asserting
+    that each verb's default was the `argparse.SUPPRESS` constant -- a test
+    about how one library avoids overwriting a parent's value, not about
+    anything a caller can see. What a caller can see is pinned by the test
+    below instead.
+    """
+    import click
+
+    group = build_cli()
+    overall = _language_parameter(group)
+    assert overall is not None, "the group offers no --language"
+    assert tuple(overall.type.choices) == languages()
     assert overall.default == DEFAULT_LANGUAGE, "the global spelling carries the default"
 
-    action = next(a for a in parser._actions if a.dest == "verb")
-    for name, verb in action.choices.items():
-        language = next((a for a in verb._actions if a.dest == "language"), None)
-        assert language is not None, f"{name} offers no --language"
-        assert tuple(language.choices) == languages(), name
-        # SUPPRESS, so that `saggio --language fr audit .` is not overwritten by
-        # the verb's own default on its way through the sub-parser. A default
-        # here is the argparse trap that makes a global option look ignored.
-        assert language.default is argparse.SUPPRESS, name
+    def walk(command, prefix=""):
+        for name, verb in command.commands.items():
+            if isinstance(verb, click.Group):
+                walk(verb, prefix=f"{prefix}{name} ")
+                continue
+            where = f"{prefix}{name}"
+            parameter = _language_parameter(verb)
+            assert parameter is not None, f"{where} offers no --language"
+            assert tuple(parameter.type.choices) == languages(), where
+            # None, not a language: a default here would be indistinguishable
+            # from the caller asking for English and would win over the group's
+            # `--language`. The merge is in `_verb`, and the test below holds it.
+            assert parameter.default is None, where
+
+    walk(group)
 
 
-def test_the_global_spelling_and_the_verb_spelling_agree() -> None:
-    parser = build_parser()
-    assert parser.parse_args(["validate", "m.yaml"]).language == DEFAULT_LANGUAGE
-    assert parser.parse_args(["--language", "fr", "validate", "m.yaml"]).language == "fr"
-    assert parser.parse_args(["validate", "m.yaml", "--language", "fr"]).language == "fr"
-    # The verb wins when both are given, which is the way round a reader expects:
-    # the nearer word to the thing it describes.
-    both = parser.parse_args(["--language", "en", "validate", "m.yaml", "--language", "fr"])
-    assert both.language == "fr"
+def test_the_global_spelling_and_the_verb_spelling_agree(monkeypatch) -> None:
+    """Either position reaches the verb, and the nearer word wins.
+
+    Checked on what the verb is handed rather than on a parsed namespace: under
+    click the two spellings are merged in `_verb`, which is the behaviour a
+    caller sees, and a test reading a namespace attribute could have passed
+    with the merge missing entirely.
+    """
+    from saggio.cli import app
+
+    seen: list[str] = []
+
+    def record(args):
+        seen.append(args.language)
+        return 0
+
+    monkeypatch.setitem(app._HANDLERS, "validate", record)
+
+    for argv, expected in (
+        (["validate", "m.yaml"], DEFAULT_LANGUAGE),
+        (["--language", "fr", "validate", "m.yaml"], "fr"),
+        (["validate", "m.yaml", "--language", "fr"], "fr"),
+        # The verb wins when both are given, which is the way round a reader
+        # expects: the nearer word to the thing it describes.
+        (["--language", "en", "validate", "m.yaml", "--language", "fr"], "fr"),
+    ):
+        seen.clear()
+        assert app.main(argv) == 0, argv
+        assert seen == [expected], argv
 
 
 def test_the_library_the_http_surface_and_the_agent_tool_share_one_default() -> None:

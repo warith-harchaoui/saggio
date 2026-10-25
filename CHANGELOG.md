@@ -14,6 +14,79 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### argparse out, click in, and a fifth runtime dependency said out loud
+
+A decision, not a discovery. argparse is in the standard library and therefore
+free; click is a fifth runtime dependency and a real cost. What it buys:
+
+- **A mistyped verb names the nearest one.** `saggio vlaidate` answers
+  *No such command 'vlaidate'. Did you mean 'validate'?* where argparse
+  answered with the list of all thirteen. **Click does this itself** — an
+  override that added it was written here, found to be restating click 8.4 word
+  for word, and deleted. It is a thing the move bought, not a thing this
+  package wrote.
+- **Completion**, which this surface did not have at all. Verbs, sub-verbs, and
+  the values of every choice: the four report formats, the two languages, the
+  six catalogue kinds. Documented in both READMEs; it is off until a shell is
+  told where to get it.
+- **The verbs are public.** A contract test used to read
+  `parser._subparsers._group_actions`, with a comment apologising that argparse
+  offered no public reader and that the alternative was a second
+  hand-maintained list of verbs — the thing that test exists to stop existing.
+  `click.Group.commands` is published, so the apology is gone.
+
+Every verb, flag, default and exit code is unchanged, and the 1,689 lines of
+handlers were not touched: they read their arguments off an object's
+attributes, and `_verb` builds one from what click parsed.
+
+#### What the move cost, and what the gates caught
+
+**Three regressions, all three found by tests rather than by reading.**
+
+1. **Twelve positional arguments lost their help.** `click.argument` takes no
+   `help=`: click's position is that a positional belongs in the command's
+   description. argparse listed one line each, and this surface had twelve
+   written *and translated* — what a `model` is, what `before` and `after` mean,
+   that `measure`'s command goes after `--`. The gate that refuses wording
+   nothing reaches caught it: the twelve catalogue keys went dead the moment the
+   arguments stopped asking for them. `DescribedArgument` and
+   `DescribedCommand` carry and render the help, so the catalogue stays the one
+   place the sentences live.
+2. **`--help` came out in English however it was asked for.** Every help string
+   comes from the catalogue through `say`, and a decorator evaluates its
+   arguments at import — so declaring the commands at module level froze all of
+   them in the authored language. `build_cli()` is a function for exactly this
+   reason, called inside the language context on every run, which is what
+   `build_parser()` did. Measured, because rebuilding per invocation sounds
+   expensive and is not: **0.36 ms a build against a 240 ms startup** dominated
+   by imports, and startup is unchanged at 0.24–0.25 s.
+3. **`main` stopped raising and started returning.** Under argparse a usage
+   error and `--version` exited from inside the call, so four tests were written
+   as `pytest.raises(SystemExit)` and the `-> int` on `main` was untrue for
+   exactly the paths a caller most wants an integer from. Only `run` exits now.
+   The four tests assert the code instead, which is the stronger claim.
+
+#### The count of dependencies was already wrong
+
+Four were declared and all four pages that count them said **three**: Babel
+arrived, the declaration grew, and the sentences did not. Babel was not even
+named in the two that name them. Nothing compared the prose against
+`pyproject.toml` — so for a package whose whole argument is that an unchecked
+number should not be believed, the number of things it makes you install was
+one nobody checked.
+
+Now five, named, and three gates: the written count equals the declared count,
+every declared dependency is named where they are counted, and **click is
+imported under `saggio/cli/` and nowhere else**, so the four others remain the
+whole cost of `import saggio`.
+
+`build_parser()` is gone and `build_cli()` replaces it. The rename is the honest
+part: the object is a `click.Group`, so a caller holding one would have found a
+different thing behind the same name. `accepts(argv)` is new and public — the
+documentation gate parses every command the pages show, and the one subtlety
+that needs getting right lives there instead of in the test.
+
+
 ### The same hole, in the file that tests for it
 
 The entry below closed the description's French gap. The cases that are supposed

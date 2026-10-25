@@ -1083,7 +1083,7 @@ chips the board holds is **refused**, not guessed at. And it will not write:
 there is no `--into`.
 
 It needs a document parser, which is not in the default install:
-`pip install 'saggio[pcf]'`. The three runtime dependencies are deliberate.
+`pip install 'saggio[pcf]'`. The five runtime dependencies are deliberate.
 
 Over HTTP the same reading is at `POST /catalog/read-pcf`, **off unless
 `SAGGIO_API_ALLOW_FETCH` is set** — fetching an address the client chose is the

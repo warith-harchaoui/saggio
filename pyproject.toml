@@ -74,6 +74,18 @@ dependencies = [
     # collation, which is why sorting a list of country names is still done
     # here, and said so where it is done.
     "Babel>=2.12",
+    # click declares the command line. It was argparse, which is in the standard
+    # library and therefore free, and the move was a decision rather than a
+    # discovery: a fifth dependency is a real cost and is being paid for three
+    # things argparse made this package work around. A mistyped verb names the
+    # nearest one, out of thirteen -- click's own doing, not this package's. The verbs are *public* -- a contract
+    # test used to read `parser._subparsers._group_actions`, with a comment
+    # apologising for it. And completion exists, which argparse never offered.
+    #
+    # What it is not taken for: anything the library does. click is reached only
+    # from `saggio.cli`, and a gate refuses an import of it anywhere else, so
+    # the four above remain the whole cost of `import saggio`.
+    "click>=8.1",
 ]
 
 [project.optional-dependencies]

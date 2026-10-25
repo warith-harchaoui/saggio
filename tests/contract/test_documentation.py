@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 
 from saggio import __version__
-from saggio.cli.app import PROGRAM, build_parser
+from saggio.cli.app import PROGRAM, accepts, build_cli
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -105,14 +105,18 @@ def test_the_documents_actually_show_commands() -> None:
 
 
 def test_every_documented_command_parses() -> None:
-    """Every invocation the documentation shows is one the parser accepts.
+    """Every invocation the documentation shows is one the command line accepts.
 
-    One claim over 152 commands. It was parametrised, which meant 152 cases
-    saying the same sentence about a different line, and a run that stopped at
-    whichever one pytest reached first. Collapsed, a failure lists every
-    command that does not parse, which is what somebody fixing the docs needs.
+    One claim over all of them. It was parametrised, which meant one case per
+    line saying the same sentence about a different one, and a run that stopped
+    at whichever pytest reached first. Collapsed, a failure lists every command
+    that does not parse, which is what somebody fixing the docs needs.
+
+    **The count is not written here any more, it is printed.** It said 152 for
+    long enough that the pages grew to 192 underneath it, and a number in a
+    docstring is the one kind this repository has no gate for -- so the message
+    below carries the live one and there is nothing left to go stale.
     """
-    parser = build_parser()
     rejected: list[str] = []
     for document, number, command in ALL_COMMANDS:
         # The prose pipes output into other tools and writes URLs with an
@@ -123,11 +127,12 @@ def test_every_documented_command_parses() -> None:
             for part in shlex.split(head, comments=True)
             if part not in {"...", "\u2026"}
         ]
-        try:
-            parser.parse_args(argv)
-        except SystemExit as exit_info:  # argparse exits on a flag it does not know.
-            rejected.append(f"{document}:{number} shows `{head.strip()}` ({exit_info})")
-    assert not rejected, "the parser rejects these documented commands:\n" + "\n".join(rejected)
+        if not accepts(argv):
+            rejected.append(f"{document}:{number} shows `{head.strip()}`")
+    assert not rejected, (
+        f"of the {len(ALL_COMMANDS)} commands the pages show, the command line "
+        "rejects these:\n" + "\n".join(rejected)
+    )
 
 
 @pytest.mark.parametrize("document", DOCUMENTS)
@@ -789,6 +794,97 @@ def test_the_exit_code_table_in_the_examples_matches_the_code() -> None:
         assert f"| `{code}` |" in text, f"exit code {code} is not documented"
 
 
+def _declared_dependencies() -> list[str]:
+    """Return the runtime dependencies `pyproject.toml` declares, bare names."""
+    tomllib = pytest.importorskip("tomllib", reason="tomllib arrived in Python 3.11")
+    declared = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    return [
+        re.split(r"[<>=!~\[]", requirement)[0].strip().lower()
+        for requirement in declared["project"]["dependencies"]
+    ]
+
+
+#: How these pages spell a small count, per language. The prose writes the
+#: number out, which reads better and is why the gate below needs this.
+_COUNT_IN_WORDS: dict[str, dict[int, str]] = {
+    "en": {2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven"},
+    "fr": {2: "deux", 3: "trois", 4: "quatre", 5: "cinq", 6: "six", 7: "sept"},
+}
+
+#: What the counting sentence says after the number, per language.
+_COUNTED: dict[str, str] = {
+    "en": "runtime dependencies",
+    "fr": "dépendances d'exécution",
+}
+
+
+@pytest.mark.parametrize(
+    ("page", "code"),
+    [("README.md", "en"), ("LISEZMOI.md", "fr"), ("EXAMPLES.md", "en"), ("EXEMPLES.md", "fr")],
+)
+def test_the_pages_count_the_runtime_dependencies_correctly(page: str, code: str) -> None:
+    """A number of dependencies written in prose is a claim, so it is checked.
+
+    It was wrong, and that is why this exists. Four were declared and all four
+    of these pages said *three*: Babel arrived, the declaration grew, and the
+    sentences that count them did not. Babel was not even named in the two that
+    name them. Nothing compared the prose against `pyproject.toml`, and this
+    package's whole argument is that a number nobody checks is a number nobody
+    should believe.
+
+    The count stays a claim worth keeping rather than prose to delete: a reader
+    deciding whether to depend on this is owed it, and a fifth dependency should
+    be uncomfortable enough to argue about.
+    """
+    total = len(_declared_dependencies())
+    expected = _COUNT_IN_WORDS[code][total]
+    counted = _COUNTED[code]
+    text = (ROOT / page).read_text(encoding="utf-8").lower()
+    stale = [
+        word
+        for number, word in _COUNT_IN_WORDS[code].items()
+        if number != total and f"{word} {counted}" in text
+    ]
+    assert not stale, (
+        f"{page} counts the runtime dependencies as {stale}; pyproject.toml "
+        f"declares {total}, which is {expected!r}"
+    )
+    assert f"{expected} {counted}" in text, (
+        f"{page} never says how many runtime dependencies there are; "
+        f"pyproject.toml declares {total} ({expected})"
+    )
+
+
+def test_every_runtime_dependency_is_named_where_they_are_counted() -> None:
+    """Counting them and not naming them leaves the reader to guess which.
+
+    Babel was declared, left out of the total, and named nowhere. The pages that
+    say how many there are are the pages that should say which.
+    """
+    declared = _declared_dependencies()
+    for page in ("README.md", "LISEZMOI.md"):
+        text = (ROOT / page).read_text(encoding="utf-8").lower()
+        missing = sorted(name for name in declared if name not in text)
+        assert not missing, f"{page} counts the dependencies but never names: {missing}"
+
+
+def test_click_is_reached_from_the_command_line_and_nowhere_else() -> None:
+    """The fifth dependency is the command line's, and stays there.
+
+    It is paid for one surface. An import of it under `saggio/` outside
+    `saggio/cli/` would make it part of the cost of `import saggio`, which is
+    the thing the count above exists to keep honest.
+    """
+    offenders: list[str] = []
+    for module in sorted((ROOT / "saggio").rglob("*.py")):
+        if "cli" in module.relative_to(ROOT / "saggio").parts:
+            continue
+        text = module.read_text(encoding="utf-8")
+        if re.search(r"^\s*(?:import click\b|from click\b)", text, re.M):
+            offenders.append(str(module.relative_to(ROOT)))
+    assert not offenders, f"click is the command line's dependency, imported in: {offenders}"
+
+
 def test_the_conda_environment_installs_the_package_and_not_just_its_dependencies() -> None:
     # An environment that installs only the dependencies leaves the reader with
     # no `saggio` command, which is not what the README promises them.
@@ -987,14 +1083,13 @@ def test_every_verb_is_shown_in_both_cookbooks() -> None:
     command a reader is expected to type, and nothing was comparing that promise
     against the parser that defines them.
     """
-    parser = build_parser()
-    verbs: set[str] = set()
-    # argparse offers no public reader for its subparsers, and the alternative
-    # is a second hand-maintained list of verbs, which is the thing this test
-    # exists to stop existing.
-    for action in parser._subparsers._group_actions:
-        verbs |= set(getattr(action, "choices", {}) or {})
-    assert verbs, "the parser stopped exposing its verbs, so this check is blind"
+    # Read off the group, which publishes them. This used to walk
+    # `parser._subparsers._group_actions`, with a comment apologising that
+    # argparse offered no public reader and that the alternative was a second
+    # hand-maintained list of verbs -- the thing this test exists to stop
+    # existing. Click publishes `Group.commands`, so the apology is gone.
+    verbs = set(build_cli().commands)
+    assert verbs, "the command line stopped exposing its verbs, so this check is blind"
 
     for cookbook in ("EXAMPLES.md", "EXEMPLES.md"):
         shown = {command.split()[0] for _, command in commands_in(cookbook) if command.split()}

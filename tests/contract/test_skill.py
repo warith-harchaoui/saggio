@@ -366,9 +366,8 @@ def test_every_exemption_is_still_quoted_in_the_skill() -> None:
 def test_every_command_the_skill_shows_parses() -> None:
     import shlex
 
-    from saggio.cli.app import build_parser
+    from saggio.cli.app import accepts
 
-    parser = build_parser()
     text = SKILL.read_text(encoding="utf-8").replace("\\\n", " ")
     # Fenced blocks only. A command shown to a reader is in a fence -- all
     # eight here are -- and reading prose for commands means any rewrap can
@@ -390,7 +389,5 @@ def test_every_command_the_skill_shows_parses() -> None:
             for part in shlex.split(stripped.removeprefix("saggio "))
             if part not in {"...", "…"}
         ]
-        try:
-            parser.parse_args(argv)
-        except SystemExit as exit_info:
-            pytest.fail(f"SKILL.md shows `{stripped}`, which the parser rejects ({exit_info})")
+        if not accepts(argv):
+            pytest.fail(f"SKILL.md shows `{stripped}`, which the command line rejects")

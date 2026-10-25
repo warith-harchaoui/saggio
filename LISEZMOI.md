@@ -182,10 +182,13 @@ jusqu'où lui faire confiance ne devrait pas prétendre supporter une plateforme
 où il ne pourrait qu'estimer : `import saggio` y lève une erreur au lieu de
 fonctionner à moitié.
 
-Trois dépendances d'exécution, à dessein. [`os-helper`](https://pypi.org/project/os-helper/)
+Cinq dépendances d'exécution, à dessein. [`os-helper`](https://pypi.org/project/os-helper/)
 répond à toutes les questions sur la machine et le système, sur les deux. PyYAML
 lit les modèles et les catalogues. `platformdirs` trouve le répertoire de
-configuration de l'utilisateur. Tout le reste, ce paquet le fait lui-même.
+configuration de l'utilisateur. Babel porte la base du consortium Unicode qui
+dit comment chaque langue écrit un nombre, ordonne une liste et nomme un pays :
+on la lit au lieu de la supposer. click déclare la ligne de commande. Tout le
+reste, ce paquet le fait lui-même.
 
 Word et PDF demandent une chose de plus, seulement si vous les voulez :
 
@@ -198,6 +201,19 @@ Pour conda :
 ```bash
 conda env create -f environment.yaml
 conda activate env-for-saggio
+```
+
+### Complétion
+
+La ligne de commande complète ses verbes, ses sous-verbes et les valeurs de
+chaque choix — les quatre formats de rapport, les deux langues, les six sortes
+de catalogue. Elle vient de click et non de quoi que ce soit écrit ici, et elle
+reste éteinte jusqu'à ce qu'un interpréteur sache où la prendre :
+
+```bash
+eval "$(_SAGGIO_COMPLETE=bash_source saggio)"      # bash, dans ~/.bashrc
+eval "$(_SAGGIO_COMPLETE=zsh_source saggio)"       # zsh, dans ~/.zshrc
+_SAGGIO_COMPLETE=fish_source saggio | source       # fish
 ```
 
 ## S'en servir

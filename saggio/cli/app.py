@@ -1,19 +1,38 @@
 """
-The command line: one parser, one dispatch table.
+The command line: one group of verbs, one dispatch table.
 
 Module summary
 --------------
-This module builds the argument parser and routes each verb to its handler in
+This module declares the command line and routes each verb to its handler in
 :mod:`saggio.cli.commands`. It holds no business logic at all,
 which is the whole point: the command line is one way of reaching the library, and
 anything it could do that the library cannot would be something a library user was
 locked out of.
 
+Built on click, and only on click. It was argparse, and the move was a decision
+rather than a discovery, but three things the old version worked around stopped
+being work:
+
+* **A mistyped verb suggests the right one.** Click does this itself, and with
+  thirteen verbs argparse's "invalid choice" was a true answer that helped
+  nobody. Nothing here implements it -- an override that did was written, found
+  to be restating click, and deleted.
+* **The verbs are public.** A contract test used to reach into
+  ``parser._subparsers._group_actions`` to find out what this surface offers,
+  with a comment apologising for it; click publishes :attr:`click.Group.commands`.
+* **Completion works**, because click generates it. Nothing here had it before.
+
+What did not change, and was the point of keeping the shapes identical: every
+verb, every flag, every default, and every exit code. The handlers in
+:mod:`saggio.cli.commands` were not touched -- they take an object with
+attributes, and :func:`_verb` builds one from what click parsed, so the two
+surfaces could be swapped without 1,689 lines moving underneath.
+
 Usage example
 -------------
->>> from saggio.cli.app import build_parser
->>> build_parser().parse_args(["validate", "cost.yaml"]).verb
-'validate'
+>>> from saggio.cli.app import build_cli
+>>> sorted(build_cli().commands)[:3]
+['audit', 'catalog', 'consent']
 
 Author
 ------
@@ -22,12 +41,15 @@ Warith Harchaoui
 
 from __future__ import annotations
 
-import argparse
 import os
+import re
 import sys
+import warnings
 from collections.abc import Callable, Sequence
-from typing import Final
+from types import SimpleNamespace
+from typing import Any, Final
 
+import click
 import os_helper as osh
 
 from .. import __version__
@@ -41,7 +63,7 @@ from ..model.taxonomy import STATUS_ORDER
 from ..report.office import DEFAULT_AUTHOR, OFFICE_FORMATS
 from ..templates import DEFAULT_TEMPLATE, TEMPLATES, template_names
 from . import commands
-from .exit_codes import MEANINGS, USAGE
+from .exit_codes import MEANINGS, OK, USAGE
 
 #: The console script's name, used in help text and in the messages commands print.
 PROGRAM: Final[str] = "saggio"
@@ -49,8 +71,8 @@ PROGRAM: Final[str] = "saggio"
 #: The formats ``render`` can produce.
 _RENDER_FORMATS: Final[tuple[str, ...]] = ("md", "html", *sorted(OFFICE_FORMATS))
 
-#: Verb name to handler. Adding a verb means adding its parser and one line here.
-_HANDLERS: Final[dict[str, Callable[[argparse.Namespace], int]]] = {
+#: Verb name to handler. Adding a verb means declaring its command and one line here.
+_HANDLERS: Final[dict[str, Callable[[SimpleNamespace], int]]] = {
     "init": commands.initialise,
     "validate": commands.check,
     "scopes": commands.scopes,
@@ -74,178 +96,275 @@ _EPILOG: Final[str] = "Exit codes: " + "; ".join(
     f"{code} {meaning.lower().rstrip('.')}" for code, meaning in MEANINGS.items()
 )
 
+#: Where a deployment states the language once, so a container does not repeat
+#: it on every verb.
+LANGUAGE_ENVIRONMENT_VARIABLE: Final[str] = "SAGGIO_LANGUAGE"
 
-def build_parser() -> argparse.ArgumentParser:
-    """Build the full argument parser.
+#: What a shell sets when it is asking what could come next rather than asking
+#: for work. The name is click's convention, derived from the program's, and it
+#: is written here because :func:`main` has to notice it before anything else.
+COMPLETION_VARIABLE: Final[str] = f"_{PROGRAM.upper()}_COMPLETE"
+
+
+def _language_option(command: Callable[..., Any]) -> Callable[..., Any]:
+    """Give a verb the same ``--language``, from one definition.
+
+    Applied as a decorator rather than written out per verb, for the reason this
+    package keeps its surfaces in step with tests rather than with discipline:
+    there is one sentence of help to keep true instead of seventeen, and a gate
+    refuses a verb that does not carry it.
+
+    It is per-verb *as well as* on the group so that ``saggio audit --language
+    fr`` reads the way the cookbook writes it and each verb's own ``--help``
+    lists it. The verb's own value wins when both are given; the default is
+    ``None`` rather than a language, because a default here would be
+    indistinguishable from a caller asking for English and would overwrite the
+    group's. Under argparse the same problem was solved with
+    ``default=SUPPRESS``, and a contract test asserted that constant --
+    a test about a library's internals rather than about the behaviour. The
+    behaviour is what is pinned now.
+    """
+    return click.option(
+        "--language",
+        type=click.Choice(list(LANGUAGES_FROM_FILES())),
+        default=None,
+        help=say("cli.help.language"),
+    )(command)
+
+
+def _verb(name: str) -> Callable[..., int]:
+    """Return the callback for a verb: gather what click parsed, hand it over.
+
+    The handlers predate this module's move to click and read their arguments
+    off an object's attributes. Rather than rewrite seventeen of them, click's
+    keyword arguments are collected into one, which is the whole of the
+    adaptation. Tuples become lists because that is what the handlers were
+    written against -- click gives a tuple for a repeatable option where
+    argparse gave a list, and a handler doing ``args.field.append`` would have
+    found out at runtime.
+
+    Parameters
+    ----------
+    name : str
+        The key in :data:`_HANDLERS`.
 
     Returns
     -------
-    argparse.ArgumentParser
-        The parser, with every verb attached.
+    callable
+        A click callback returning the handler's exit code.
+    """
+
+    def callback(**given: Any) -> int:
+        context = click.get_current_context()
+        root = context.find_root()
+        chosen = given.pop("language", None) or root.params.get("language") or DEFAULT_LANGUAGE
+        arguments = SimpleNamespace(
+            language=chosen,
+            verbose=root.params.get("verbose") or 0,
+            quiet=bool(root.params.get("quiet")),
+            **{
+                key: list(value) if isinstance(value, tuple) else value
+                for key, value in given.items()
+            },
+        )
+        with language(chosen):
+            return _HANDLERS[name](arguments)
+
+    return callback
+
+
+class DescribedArgument(click.Argument):
+    """A positional argument that carries its own help, which click does not.
+
+    ``click.argument`` takes no ``help``: click's position is that a positional
+    should be explained in the command's description. argparse listed one line
+    per positional, and this surface had twelve of them written and translated
+    -- what a ``model`` is for ``validate``, what ``before`` and ``after`` mean
+    for ``diff``, that ``measure``'s command goes after ``--``.
+
+    Dropping them was the first thing the move to click cost, and it was caught
+    by the gate that refuses wording nothing reaches: the twelve keys went dead
+    in the message catalogue the moment the arguments stopped asking for them.
+    So the help is carried here and rendered by :class:`DescribedCommand`, and
+    the catalogue stays the one place the sentences live.
+    """
+
+    def __init__(self, *args: Any, help: str | None = None, **kwargs: Any) -> None:
+        self.help = help
+        super().__init__(*args, **kwargs)
+
+
+class DescribedCommand(click.Command):
+    """A command whose help lists its positional arguments, the way argparse did.
+
+    Click renders options and not arguments. This adds one section above them,
+    in the order the arguments are declared, for the ones that carry help.
+    """
+
+    def format_options(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
+        """Write the positional arguments, then let click write the options."""
+        described = [
+            (parameter.metavar or parameter.name.upper(), parameter.help)
+            for parameter in self.params
+            if isinstance(parameter, DescribedArgument) and parameter.help
+        ]
+        if described:
+            with formatter.section("Arguments"):
+                formatter.write_dl(described)
+        super().format_options(ctx, formatter)
+
+
+def _argument(name: str, **kwargs: Any) -> Callable[..., Any]:
+    """Declare a positional that explains itself in ``--help``."""
+    return click.argument(name, cls=DescribedArgument, **kwargs)
+
+
+class VerbGroup(click.Group):
+    """The root group, listing its verbs in the order they were declared.
+
+    One departure from click's defaults, and it is the only one needed. Click
+    sorts commands alphabetically, which would put ``audit`` first and ``init``
+    sixth; these are listed in the order somebody uses them -- ``init``,
+    ``validate``, … ``catalog`` -- which is the order the cookbooks teach and
+    the order argparse happened to give.
+
+    There was a second departure here and it has been deleted, which is worth
+    recording: a ``resolve_command`` that answered a mistyped verb with the
+    nearest one. Click 8.4 already does that -- ``No such command 'vlaidate'.
+    Did you mean 'validate'?`` -- so the override was twenty lines restating a
+    feature, and the claim that this package had added the suggestion was
+    false. It is a thing the move to click bought, not a thing written here.
 
     Examples
     --------
-    >>> build_parser().prog
-    'saggio'
+    >>> group = build_cli()
+    >>> list(group.commands)[:2]
+    ['init', 'validate']
     """
-    parser = argparse.ArgumentParser(
-        prog=PROGRAM,
-        description=(
+
+    def list_commands(self, ctx: click.Context) -> list[str]:
+        """Return the verbs unsorted, which is to say in the order declared."""
+        return list(self.commands)
+
+
+def build_cli() -> VerbGroup:
+    """Build the command group, in the language in force right now.
+
+    **Built per call, and that is the whole reason this is a function.**
+    Every help string comes from the message catalogue through
+    :func:`~saggio.i18n.say`, and a decorator evaluates its arguments when
+    the module is imported -- so declaring these at module level froze all
+    of them in the language the package was written in, and
+    ``saggio --language fr validate --help`` answered in English. The
+    argparse version did not have the bug because it built the parser
+    inside the language context on every run, and this keeps that.
+
+    Measured, because a group rebuilt on every invocation sounds expensive
+    and is not: see the startup figure in the changelog entry for this
+    move. Declaring a command is attaching decorators to a function, which
+    is cheap; the imports it would otherwise repeat have already happened.
+
+    Returns
+    -------
+    VerbGroup
+        The root group, with every verb attached.
+
+    Examples
+    --------
+    >>> build_cli().name
+    'saggio'
+    >>> "catalog" in build_cli().commands
+    True
+    >>> list(build_cli().commands)[:2]
+    ['init', 'validate']
+    >>> from ..i18n import language as in_language
+    >>> with in_language("fr"):
+    ...     build_cli().commands["validate"].help.startswith("Confronter")
+    True
+    """
+
+    @click.group(
+        cls=VerbGroup,
+        name=PROGRAM,
+        help=(
             "Measure what it costs to run code: money, time, energy, carbon, water, "
             "and any dimension you register, per unit of work, with every number "
             "saying how far it can be trusted."
         ),
         epilog=_EPILOG,
+        # Click prints help and exits 0 for a bare invocation; this surface answers
+        # 2, because being asked for nothing is being asked for something it cannot
+        # do. `main` prints the help itself for that case.
+        invoke_without_command=True,
+        no_args_is_help=False,
+        context_settings={"help_option_names": ["-h", "--help"]},
     )
-    parser.add_argument("--version", action="version", version=f"{PROGRAM} {__version__}")
-    parser.add_argument(
+    @click.version_option(
+        version=__version__,
+        prog_name=PROGRAM,
+        # argparse printed "saggio 1.5.0" and `python -m saggio --version` is quoted
+        # with that answer beside it in the module's own docstring, which a contract
+        # test checks. Click's default would have said "saggio, version 1.5.0".
+        message="%(prog)s %(version)s",
+    )
+    @click.option(
         "-v",
         "--verbose",
-        action="count",
-        default=0,
+        count=True,
         help="Log more on standard error. Repeat for debug output.",
     )
-    parser.add_argument(
+    @click.option(
         "-q",
         "--quiet",
-        action="store_true",
+        is_flag=True,
         help="Say nothing on standard error but errors themselves.",
     )
-    parser.add_argument(
+    @click.option(
         "--language",
+        type=click.Choice(list(LANGUAGES_FROM_FILES())),
         default=DEFAULT_LANGUAGE,
-        choices=list(LANGUAGES_FROM_FILES()),
         help=say("cli.help.language"),
     )
-    verbs = parser.add_subparsers(dest="verb", metavar="verb")
+    @click.pass_context
+    def cli(context: click.Context, verbose: int, quiet: bool, language: str) -> None:
+        """Route the verbs. The body runs before whichever one was named."""
+        _configure_logging(SimpleNamespace(verbose=verbose, quiet=quiet))
 
-    _add_init(verbs)
-    _add_validate(verbs)
-    _add_scopes(verbs)
-    _add_next(verbs)
-    _add_render(verbs)
-    _add_dashboard(verbs)
-    _add_audit(verbs)
-    _add_measure(verbs)
-    _add_diff(verbs)
-    _add_machine(verbs)
-    _add_power(verbs)
-    _add_consent(verbs)
-    _add_catalog(verbs)
-    _add_language_everywhere(verbs)
-    return parser
+    # --- The verbs ----------------------------------------------------------------
 
-
-def _add_language_everywhere(verbs: argparse._SubParsersAction) -> None:
-    """Give every verb the same ``--language``, from one definition.
-
-    Walked rather than written out once per verb, for the reason this package
-    keeps its surfaces in step with tests rather than with discipline: a verb
-    added later gets the option without anybody having to remember, and there
-    is one sentence of help to keep true instead of sixteen.
-
-    It is per-verb rather than global so that ``saggio audit --language fr``
-    reads the way the cookbook writes it, and so each verb's own ``--help``
-    lists it.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection, after every verb has been attached.
-
-    Examples
-    --------
-    >>> build_parser().parse_args(["validate", "m.yaml"]).language
-    'en'
-    >>> build_parser().parse_args(["render", "m.yaml", "--language", "fr"]).language
-    'fr'
-    >>> build_parser().parse_args(["--language", "fr", "render", "m.yaml"]).language
-    'fr'
-    """
-    offered = list(LANGUAGES_FROM_FILES())
-    for parser in verbs.choices.values():
-        parser.add_argument(
-            "--language",
-            # SUPPRESS rather than a default: a default here is written into the
-            # namespace before the verb is parsed, and would overwrite a global
-            # `--language` with the authored one whenever the verb's own was
-            # absent — which is the argparse trap this comment exists to mark.
-            default=argparse.SUPPRESS,
-            choices=offered,
-            help=say("cli.help.language"),
-        )
-        for action in parser._actions:
-            if isinstance(action, argparse._SubParsersAction):
-                _add_language_everywhere(action)
-
-
-def _add_init(verbs: argparse._SubParsersAction) -> None:
-    """Attach the ``init`` verb.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection.
-
-    Examples
-    --------
-    >>> "init" in build_parser().parse_args(["init"]).verb
-    True
-    """
-    described = "; ".join(f"{name}: {TEMPLATES[name]}" for name in template_names())
-    parser = verbs.add_parser("init", help=say("cli.help.init.summary"), epilog=described)
-    parser.add_argument(
+    @cli.command(
+        cls=DescribedCommand,
+        name="init",
+        help=say("cli.help.init.summary"),
+        epilog="; ".join(f"{name}: {TEMPLATES[name]}" for name in template_names()),
+    )
+    @click.option(
         "--template",
-        choices=template_names(),
+        type=click.Choice(template_names()),
         default=DEFAULT_TEMPLATE,
+        show_default=False,
         help=say("cli.help.init.template", default=DEFAULT_TEMPLATE),
     )
-    parser.add_argument(
-        "-o",
-        "--output",
-        default=None,
-        help=say("cli.help.init.o"),
-    )
+    @click.option("-o", "--output", default=None, help=say("cli.help.init.o"))
+    @_language_option
+    def _init_command(**given: Any) -> int:
+        return _verb("init")(**given)
 
-
-def _add_validate(verbs: argparse._SubParsersAction) -> None:
-    """Attach the ``validate`` verb.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection.
-
-    Examples
-    --------
-    >>> build_parser().parse_args(["validate", "m.yaml"]).model
-    'm.yaml'
-    """
-    statuses = ", ".join(STATUS_ORDER)
-    parser = verbs.add_parser(
-        "validate",
+    @cli.command(
+        cls=DescribedCommand,
+        name="validate",
         help=say("cli.help.validate.summary"),
-        epilog=f"Statuses, strongest to weakest: {statuses}.",
+        epilog=f"Statuses, strongest to weakest: {', '.join(STATUS_ORDER)}.",
     )
-    parser.add_argument("model", help=say("cli.help.validate.model"))
-    parser.add_argument("--json", action="store_true", help=say("cli.help.validate.json"))
+    @_argument("model", help=say("cli.help.validate.model"))
+    @click.option("--json", "json", is_flag=True, help=say("cli.help.validate.json"))
+    @_language_option
+    def _validate_command(**given: Any) -> int:
+        return _verb("validate")(**given)
 
-
-def _add_scopes(verbs: argparse._SubParsersAction) -> None:
-    """Attach the ``scopes`` verb.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection.
-
-    Examples
-    --------
-    >>> build_parser().parse_args(["scopes", "m.yaml"]).model
-    'm.yaml'
-    """
-    parser = verbs.add_parser(
-        "scopes",
+    @cli.command(
+        cls=DescribedCommand,
+        name="scopes",
         help=say("cli.help.scopes.summary"),
         epilog=(
             "The scope turns on who operates the machine, which the model already "
@@ -254,118 +373,75 @@ def _add_scopes(verbs: argparse._SubParsersAction) -> None:
             "printed instead."
         ),
     )
-    parser.add_argument("model", help=say("cli.help.scopes.model"))
-    parser.add_argument(
-        "--scenario",
-        default=None,
-        help=say("cli.help.scopes.scenario"),
-    )
-    parser.add_argument("--json", action="store_true", help=say("cli.help.scopes.json"))
+    @_argument("model", help=say("cli.help.scopes.model"))
+    @click.option("--scenario", default=None, help=say("cli.help.scopes.scenario"))
+    @click.option("--json", "json", is_flag=True, help=say("cli.help.scopes.json"))
+    @_language_option
+    def _scopes_command(**given: Any) -> int:
+        return _verb("scopes")(**given)
 
-
-def _add_next(verbs: argparse._SubParsersAction) -> None:
-    """Register `next`, which ranks the open fields by what answering closes."""
-    described = (
-        "The fields are not independent: a measured runtime closes six figures "
-        "through the derivation chain and a water usage effectiveness closes "
-        "one. This reads `derived_from` backwards and says which to answer "
-        "first, in the words the model already wrote for each field."
-    )
-    parser = verbs.add_parser(
-        "next",
+    @cli.command(
+        cls=DescribedCommand,
+        name="next",
         help=say("cli.help.next.summary"),
-        epilog=described,
+        epilog=(
+            "The fields are not independent: a measured runtime closes six figures "
+            "through the derivation chain and a water usage effectiveness closes "
+            "one. This reads `derived_from` backwards and says which to answer "
+            "first, in the words the model already wrote for each field."
+        ),
     )
-    parser.add_argument("model", help=say("cli.help.next.model"))
-    parser.add_argument("--json", action="store_true", help=say("cli.help.next.json"))
+    @_argument("model", help=say("cli.help.next.model"))
+    @click.option("--json", "json", is_flag=True, help=say("cli.help.next.json"))
+    @_language_option
+    def _next_command(**given: Any) -> int:
+        return _verb("next")(**given)
 
-
-def _add_render(verbs: argparse._SubParsersAction) -> None:
-    """Attach the ``render`` verb.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection.
-
-    Examples
-    --------
-    >>> build_parser().parse_args(["render", "m.yaml"]).format
-    'md'
-    """
-    parser = verbs.add_parser("render", help=say("cli.help.render.summary"))
-    parser.add_argument("model", help=say("cli.help.render.model"))
-    parser.add_argument(
+    @cli.command(cls=DescribedCommand, name="render", help=say("cli.help.render.summary"))
+    @_argument("model", help=say("cli.help.render.model"))
+    @click.option(
         "-f",
         "--format",
-        choices=_RENDER_FORMATS,
+        "format",
+        type=click.Choice(_RENDER_FORMATS),
         default="md",
+        show_default=False,
         help=say("cli.help.render.f"),
     )
-    parser.add_argument("-o", "--output", default=None, help=say("cli.help.render.o"))
-    parser.add_argument(
-        "--reference-doc",
-        default=None,
-        help=say("cli.help.render.reference_doc"),
-    )
-    parser.add_argument(
+    @click.option("-o", "--output", default=None, help=say("cli.help.render.o"))
+    @click.option("--reference-doc", default=None, help=say("cli.help.render.reference_doc"))
+    @click.option(
         "--author",
         default=DEFAULT_AUTHOR,
-        help=(say("cli.help.render.author", default=DEFAULT_AUTHOR)),
+        show_default=False,
+        help=say("cli.help.render.author", default=DEFAULT_AUTHOR),
     )
-    parser.add_argument(
-        "--generated",
-        default=None,
-        metavar="DATE",
-        help=(say("cli.help.render.generated")),
+    @click.option(
+        "--generated", default=None, metavar="DATE", help=say("cli.help.render.generated")
     )
-    parser.add_argument(
-        "--offline",
-        action="store_true",
-        help=(say("cli.help.render.offline")),
-    )
+    @click.option("--offline", is_flag=True, help=say("cli.help.render.offline"))
+    @_language_option
+    def _render_command(**given: Any) -> int:
+        return _verb("render")(**given)
 
-
-def _add_dashboard(verbs: argparse._SubParsersAction) -> None:
-    """Attach the ``dashboard`` verb.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection.
-
-    Examples
-    --------
-    >>> build_parser().parse_args(["dashboard", "a.yaml", "b.yaml"]).models
-    ['a.yaml', 'b.yaml']
-    """
-    parser = verbs.add_parser(
-        "dashboard",
+    @cli.command(
+        cls=DescribedCommand,
+        name="dashboard",
         help=say("cli.help.dashboard.summary"),
         epilog=(
             "Each project's costs are per its own unit of work, so the page "
             "compares how well founded the models are, never the costs across rows."
         ),
     )
-    parser.add_argument("models", nargs="+", help=say("cli.help.dashboard.models"))
-    parser.add_argument("-o", "--output", default=None, help=say("cli.help.dashboard.o"))
+    @_argument("models", nargs=-1, required=True, help=say("cli.help.dashboard.models"))
+    @click.option("-o", "--output", default=None, help=say("cli.help.dashboard.o"))
+    @_language_option
+    def _dashboard_command(**given: Any) -> int:
+        return _verb("dashboard")(**given)
 
-
-def _add_audit(verbs: argparse._SubParsersAction) -> None:
-    """Attach the ``audit`` verb.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection.
-
-    Examples
-    --------
-    >>> build_parser().parse_args(["audit", "."]).run
-    False
-    """
-    parser = verbs.add_parser(
-        "audit",
+    @cli.command(
+        cls=DescribedCommand,
+        name="audit",
         help=say("cli.help.audit.summary"),
         epilog=(
             "Without --run, nothing is executed and the runtime stays open. With "
@@ -373,206 +449,144 @@ def _add_audit(verbs: argparse._SubParsersAction) -> None:
             "with your permissions, after you have agreed to it once."
         ),
     )
-    parser.add_argument("target", help=say("cli.help.audit.target"))
-    parser.add_argument(
-        "-o",
-        "--output",
-        default=None,
-        help=say("cli.help.audit.o"),
-    )
-    parser.add_argument("--json", action="store_true", help=say("cli.help.audit.json"))
-    parser.add_argument(
-        "--run",
-        action="store_true",
-        help=say("cli.help.audit.run"),
-    )
-    parser.add_argument(
-        "--no-llm",
-        action="store_true",
-        help=(say("cli.help.audit.no_llm")),
-    )
-    parser.add_argument(
-        "--country",
-        default=None,
-        help=say("cli.help.audit.country"),
-    )
-    parser.add_argument("--provider", default=None, help=say("cli.help.audit.provider"))
-    parser.add_argument("--instance", default=None, help=say("cli.help.audit.instance"))
-    parser.add_argument(
+    @_argument("target", help=say("cli.help.audit.target"))
+    @click.option("-o", "--output", default=None, help=say("cli.help.audit.o"))
+    @click.option("--json", "json", is_flag=True, help=say("cli.help.audit.json"))
+    @click.option("--run", is_flag=True, help=say("cli.help.audit.run"))
+    @click.option("--no-llm", is_flag=True, help=say("cli.help.audit.no_llm"))
+    @click.option("--country", default=None, help=say("cli.help.audit.country"))
+    @click.option("--provider", default=None, help=say("cli.help.audit.provider"))
+    @click.option("--instance", default=None, help=say("cli.help.audit.instance"))
+    @click.option(
         "--timeout",
         type=float,
         default=DEFAULT_TIMEOUT_SECONDS,
+        show_default=False,
         help=say("cli.help.audit.timeout", default=f"{DEFAULT_TIMEOUT_SECONDS:g}"),
     )
-    parser.add_argument(
+    @click.option(
         "--baseline",
         type=float,
         default=DEFAULT_BASELINE_SECONDS,
         metavar="SECONDS",
-        help=(say("cli.help.audit.baseline")),
+        show_default=False,
+        help=say("cli.help.audit.baseline"),
     )
-    parser.add_argument(
+    @click.option(
         "--scaling-steps",
         type=int,
         default=1,
         metavar="N",
-        help=(say("cli.help.audit.scaling_steps")),
+        show_default=False,
+        help=say("cli.help.audit.scaling_steps"),
     )
-    parser.add_argument(
-        "--source-accelerator",
-        default=None,
-        help=(say("cli.help.audit.source_accelerator")),
+    @click.option(
+        "--source-accelerator", default=None, help=say("cli.help.audit.source_accelerator")
     )
-    parser.add_argument(
+    @click.option(
         "--target-accelerator", default=None, help=say("cli.help.audit.target_accelerator")
     )
-    parser.add_argument(
+    @click.option(
         "--precision",
         default=DEFAULT_PRECISION,
+        show_default=False,
         help=say("cli.help.audit.precision", default=DEFAULT_PRECISION),
     )
-    parser.add_argument(
-        "--fetch-prices",
-        action="store_true",
-        help=(say("cli.help.audit.fetch_prices")),
-    )
+    @click.option("--fetch-prices", is_flag=True, help=say("cli.help.audit.fetch_prices"))
+    @_language_option
+    def _audit_command(**given: Any) -> int:
+        return _verb("audit")(**given)
 
-
-def _add_measure(verbs: argparse._SubParsersAction) -> None:
-    """Attach the ``measure`` verb.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection.
-
-    Examples
-    --------
-    >>> build_parser().parse_args(["measure", "--", "echo", "hi"]).command
-    ['--', 'echo', 'hi']
-    """
-    parser = verbs.add_parser(
-        "measure",
+    @cli.command(
+        cls=DescribedCommand,
+        name="measure",
         help=say("cli.help.measure.summary"),
         epilog="Put the command after --, for example: measure -- python train.py --steps 100",
+        # The command being measured carries its own flags, and they are not this
+        # one's to interpret: `measure -- python train.py --steps 100` must hand
+        # `--steps` to the script. Under argparse this was REMAINDER, which handed
+        # back the `--` as well and left the handler to strip it; click consumes the
+        # separator itself, so the handler's guard is now belt and braces.
+        context_settings={"ignore_unknown_options": True, "allow_interspersed_args": False},
     )
-    parser.add_argument("command", nargs=argparse.REMAINDER, help=say("cli.help.measure.command"))
-    parser.add_argument("-C", "--directory", default=None, help=say("cli.help.measure.C"))
-    parser.add_argument(
+    @_argument("command", nargs=-1, type=click.UNPROCESSED, help=say("cli.help.measure.command"))
+    @click.option("-C", "--directory", default=None, help=say("cli.help.measure.C"))
+    @click.option(
         "--timeout",
         type=float,
         default=DEFAULT_TIMEOUT_SECONDS,
+        show_default=False,
         help=say("cli.help.measure.timeout", default=f"{DEFAULT_TIMEOUT_SECONDS:g}"),
     )
-    parser.add_argument(
-        "--fraction",
-        type=float,
-        default=None,
-        help=say("cli.help.measure.fraction"),
-    )
-    parser.add_argument(
-        "--no-profile", action="store_true", help=say("cli.help.measure.no_profile")
-    )
-    parser.add_argument(
+    @click.option("--fraction", type=float, default=None, help=say("cli.help.measure.fraction"))
+    @click.option("--no-profile", is_flag=True, help=say("cli.help.measure.no_profile"))
+    @click.option(
         "--baseline",
         type=float,
         default=DEFAULT_BASELINE_SECONDS,
         metavar="SECONDS",
-        help=(say("cli.help.measure.baseline")),
+        show_default=False,
+        help=say("cli.help.measure.baseline"),
     )
-    parser.add_argument(
+    @click.option(
         "--repeat",
         type=int,
         default=1,
         metavar="N",
-        help=(say("cli.help.measure.repeat")),
+        show_default=False,
+        help=say("cli.help.measure.repeat"),
     )
-    parser.add_argument(
-        "--into",
-        default=None,
-        metavar="MODEL",
-        help=(say("cli.help.measure.into")),
+    @click.option("--into", default=None, metavar="MODEL", help=say("cli.help.measure.into"))
+    @click.option(
+        "--units", type=float, default=1.0, show_default=False, help=say("cli.help.measure.units")
     )
-    parser.add_argument(
-        "--units",
-        type=float,
-        default=1.0,
-        help=(say("cli.help.measure.units")),
-    )
-    parser.add_argument(
-        "--scenario",
-        default=None,
-        help=say("cli.help.measure.scenario"),
-    )
-    parser.add_argument("--json", action="store_true", help=say("cli.help.measure.json"))
+    @click.option("--scenario", default=None, help=say("cli.help.measure.scenario"))
+    @click.option("--json", "json", is_flag=True, help=say("cli.help.measure.json"))
+    @_language_option
+    def _measure_command(**given: Any) -> int:
+        return _verb("measure")(**given)
 
-
-def _add_diff(verbs: argparse._SubParsersAction) -> None:
-    """Attach the ``diff`` verb.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection.
-
-    Examples
-    --------
-    >>> build_parser().parse_args(["diff", "a.yaml", "b.yaml"]).threshold
-    10.0
-    """
-    parser = verbs.add_parser(
-        "diff",
+    @cli.command(
+        cls=DescribedCommand,
+        name="diff",
         help=say("cli.help.diff.summary"),
         epilog=(
             "A status that weakened, or a quantity that disappeared, fails the gate "
             "whatever the numbers did."
         ),
     )
-    parser.add_argument("before", help=say("cli.help.diff.before"))
-    parser.add_argument("after", help=say("cli.help.diff.after"))
-    parser.add_argument(
+    @_argument("before", help=say("cli.help.diff.before"))
+    @_argument("after", help=say("cli.help.diff.after"))
+    @click.option(
         "--threshold",
         type=float,
         default=DEFAULT_DRIFT_THRESHOLD_PERCENT,
+        show_default=False,
         help=say("cli.help.diff.threshold", default=f"{DEFAULT_DRIFT_THRESHOLD_PERCENT:g}"),
     )
-    parser.add_argument("--json", action="store_true", help=say("cli.help.diff.json"))
+    @click.option("--json", "json", is_flag=True, help=say("cli.help.diff.json"))
+    @_language_option
+    def _diff_command(**given: Any) -> int:
+        return _verb("diff")(**given)
 
+    @cli.command(
+        cls=DescribedCommand,
+        name="machine",
+        help=say("cli.help.machine.summary"),
+        epilog=(
+            "Nothing here is run as another user. Where a counter needs "
+            "administrator rights, the command that would open it is printed "
+            "and not executed, together with the reason it is shut."
+        ),
+    )
+    @click.option("--json", "json", is_flag=True, help=say("cli.help.machine.json"))
+    @_language_option
+    def _machine_command(**given: Any) -> int:
+        return _verb("machine")(**given)
 
-def _add_machine(verbs: argparse._SubParsersAction) -> None:
-    """Attach the ``machine`` verb.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection.
-
-    Examples
-    --------
-    >>> build_parser().parse_args(["machine"]).verb
-    'machine'
-    """
-    parser = verbs.add_parser("machine", help=say("cli.help.machine.summary"))
-    parser.add_argument("--json", action="store_true", help=say("cli.help.machine.json"))
-
-
-def _add_power(verbs: argparse._SubParsersAction) -> None:
-    """Attach the ``power`` verb.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection.
-
-    Examples
-    --------
-    >>> build_parser().parse_args(["power"]).verb
-    'power'
-    >>> build_parser().parse_args(["power", "--seconds", "2"]).seconds
-    2.0
-    """
-    parser = verbs.add_parser(
-        "power",
+    @cli.command(
+        cls=DescribedCommand,
+        name="power",
         help=say("cli.help.power.summary"),
         epilog=(
             "Nothing here is run as another user. Where a counter needs "
@@ -580,91 +594,89 @@ def _add_power(verbs: argparse._SubParsersAction) -> None:
             "and not executed, together with the reason it is shut."
         ),
     )
-    parser.add_argument("--json", action="store_true", help=say("cli.help.power.json"))
-    parser.add_argument(
-        "--seconds",
-        type=float,
-        default=0.0,
-        help=(say("cli.help.power.seconds")),
+    @click.option("--json", "json", is_flag=True, help=say("cli.help.power.json"))
+    @click.option(
+        "--seconds", type=float, default=0.0, show_default=False, help=say("cli.help.power.seconds")
     )
+    @_language_option
+    def _power_command(**given: Any) -> int:
+        return _verb("power")(**given)
 
-
-def _add_consent(verbs: argparse._SubParsersAction) -> None:
-    """Attach the ``consent`` verb.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection.
-
-    Examples
-    --------
-    >>> build_parser().parse_args(["consent", "revoke"]).decision
-    'revoke'
-    """
-    parser = verbs.add_parser(
-        "consent",
+    @cli.command(
+        cls=DescribedCommand,
+        name="consent",
         help=say("cli.help.consent.summary"),
         epilog=(
             "Running a repository under study executes third-party code on this "
             "machine, with your permissions. There is no sandbox."
         ),
     )
-    parser.add_argument("decision", choices=("grant", "revoke"))
-    parser.add_argument(
-        "--path",
-        default=None,
-        help=say("cli.help.consent.path"),
-    )
+    @click.argument("decision", type=click.Choice(["grant", "revoke"]))
+    @click.option("--path", default=None, help=say("cli.help.consent.path"))
+    @_language_option
+    def _consent_command(**given: Any) -> int:
+        return _verb("consent")(**given)
 
+    # --- catalog, and its actions -------------------------------------------------
 
-def _add_catalog(verbs: argparse._SubParsersAction) -> None:
-    """Attach the ``catalog`` verb and its sub-verbs.
-
-    Parameters
-    ----------
-    verbs : argparse._SubParsersAction
-        The sub-parser collection.
-
-    Examples
-    --------
-    >>> build_parser().parse_args(["catalog", "list", "gpu"]).kind
-    'gpu'
-    """
-    kinds = sorted(SECTION_OF_KIND)
-    parser = verbs.add_parser(
-        "catalog",
+    @cli.group(
+        name="catalog",
+        cls=VerbGroup,
         help=say("cli.help.catalog.summary"),
+        invoke_without_command=True,
+        no_args_is_help=False,
     )
-    sub = parser.add_subparsers(dest="catalog_verb", metavar="action")
+    @click.pass_context
+    def catalog_group(context: click.Context) -> None:
+        """Hold the catalogue actions. Naming none of them is a usage error."""
+        if context.invoked_subcommand is None:
+            # Not `context.get_help()` and exit 0: a usage error that reads as
+            # success is the defect this replaced. Under argparse the equivalent was
+            # argparse's help action raising SystemExit(0), which made a script
+            # checking the exit code believe the command had worked.
+            osh.error(
+                "catalog needs an action: list, add, freshness, or refresh. "
+                f"Try `{PROGRAM} catalog -h`."
+            )
+            context.exit(USAGE)
 
-    listing = sub.add_parser("list", help=say("cli.help.list.summary"))
-    listing.add_argument("kind", choices=kinds)
-    listing.add_argument("--json", action="store_true", help=say("cli.help.catalog.list.json"))
+    _KINDS: Final[list[str]] = sorted(SECTION_OF_KIND)
 
-    adding = sub.add_parser(
-        "add",
+    @catalog_group.command(cls=DescribedCommand, name="list", help=say("cli.help.list.summary"))
+    @click.argument("kind", type=click.Choice(_KINDS))
+    @click.option("--json", "json", is_flag=True, help=say("cli.help.catalog.list.json"))
+    @_language_option
+    def _catalog_list_command(**given: Any) -> int:
+        return _verb("catalog list")(**given)
+
+    @catalog_group.command(
+        cls=DescribedCommand,
+        name="add",
         help=say("cli.help.add.summary"),
         epilog=(
             "A row cannot be added without a source and a date. That is the rule "
             "that keeps the catalogues worth trusting."
         ),
     )
-    adding.add_argument("kind", choices=kinds)
-    adding.add_argument("key", help=say("cli.help.catalog.add.key"))
-    adding.add_argument("--source-url", required=True, help=say("cli.help.catalog.add.source_url"))
-    adding.add_argument(
+    @click.argument("kind", type=click.Choice(_KINDS))
+    @_argument("key", help=say("cli.help.catalog.add.key"))
+    @click.option("--source-url", required=True, help=say("cli.help.catalog.add.source_url"))
+    @click.option(
         "--retrieved-date", required=True, help=say("cli.help.catalog.add.retrieved_date")
     )
-    adding.add_argument(
+    @click.option(
         "--field",
-        action="append",
-        default=[],
+        multiple=True,
         metavar="NAME=VALUE",
         help=say("cli.help.catalog.add.field"),
     )
-    pcf = sub.add_parser(
-        "read-pcf",
+    @_language_option
+    def _catalog_add_command(**given: Any) -> int:
+        return _verb("catalog add")(**given)
+
+    @catalog_group.command(
+        cls=DescribedCommand,
+        name="read-pcf",
         help=say("cli.help.read_pcf.summary"),
         epilog=(
             "It reads, shows its working, and stops. Nothing is written: a "
@@ -672,72 +684,137 @@ def _add_catalog(verbs: argparse._SubParsersAction) -> None:
             "is the person who can defend it."
         ),
     )
-    pcf.add_argument(
-        "document",
-        help=say("cli.help.catalog.read-pcf.document"),
-    )
-    pcf.add_argument("--json", action="store_true", help=say("cli.help.catalog.read-pcf.json"))
+    @_argument("document", help=say("cli.help.catalog.read-pcf.document"))
+    @click.option("--json", "json", is_flag=True, help=say("cli.help.catalog.read-pcf.json"))
+    @_language_option
+    def _catalog_read_pcf_command(**given: Any) -> int:
+        return _verb("catalog read-pcf")(**given)
 
-    refresh = sub.add_parser(
-        "refresh",
-        help=say("cli.help.refresh.summary"),
+    @catalog_group.command(
+        cls=DescribedCommand, name="refresh", help=say("cli.help.refresh.summary")
     )
-    refresh.add_argument("catalog", help=say("cli.help.catalog.refresh.catalog"))
-    refresh.add_argument(
-        "--api-key",
-        default=None,
-        help=(say("cli.help.catalog.refresh.api_key")),
-    )
-    refresh.add_argument(
-        "--year",
-        type=int,
-        default=None,
-        help=(say("cli.help.catalog.refresh.year")),
-    )
-    refresh.add_argument(
+    @_argument("catalog", help=say("cli.help.catalog.refresh.catalog"))
+    @click.option("--api-key", default=None, help=say("cli.help.catalog.refresh.api_key"))
+    @click.option("--year", type=int, default=None, help=say("cli.help.catalog.refresh.year"))
+    @click.option(
         "--column",
-        choices=("carbon", "price", "timezones", "embodied", "both", "all"),
+        type=click.Choice(["carbon", "price", "timezones", "embodied", "both", "all"]),
         default="carbon",
-        help=(say("cli.help.catalog.refresh.column")),
+        show_default=False,
+        help=say("cli.help.catalog.refresh.column"),
     )
-    refresh.add_argument(
-        "--write",
-        default=None,
-        metavar="PATH",
-        help=say("cli.help.catalog.refresh.write"),
+    @click.option(
+        "--write", default=None, metavar="PATH", help=say("cli.help.catalog.refresh.write")
     )
-    refresh.add_argument("--json", action="store_true", help=say("cli.help.catalog.refresh.json"))
+    @click.option("--json", "json", is_flag=True, help=say("cli.help.catalog.refresh.json"))
+    @_language_option
+    def _catalog_refresh_command(**given: Any) -> int:
+        return _verb("catalog refresh")(**given)
 
-    freshness = sub.add_parser(
-        "freshness",
-        help=say("cli.help.freshness.summary"),
+    @catalog_group.command(
+        cls=DescribedCommand, name="freshness", help=say("cli.help.freshness.summary")
     )
-    freshness.add_argument(
+    @click.option(
         "--within",
         type=int,
         default=EXPIRING_WITHIN_DAYS,
         metavar="DAYS",
-        help=(say("cli.help.catalog.freshness.within", default=EXPIRING_WITHIN_DAYS)),
+        show_default=False,
+        help=say("cli.help.catalog.freshness.within", default=EXPIRING_WITHIN_DAYS),
     )
-    freshness.add_argument(
-        "--json", action="store_true", help=say("cli.help.catalog.freshness.json")
-    )
+    @click.option("--json", "json", is_flag=True, help=say("cli.help.catalog.freshness.json"))
+    @_language_option
+    def _catalog_freshness_command(**given: Any) -> int:
+        return _verb("catalog freshness")(**given)
+
+    return cli
 
 
-def _configure_logging(args: argparse.Namespace) -> None:
+# --- The surrounding machinery ------------------------------------------------
+
+
+def accepts(argv: Sequence[str]) -> bool:
+    """Return whether this surface would accept an invocation, without running it.
+
+    The documentation gate parses every command the pages show to catch a page
+    teaching a flag that was renamed. Under
+    argparse it called ``parse_args`` and caught :class:`SystemExit`; the
+    equivalent is published here instead of rebuilt in the test, because getting
+    it right needs one thing about click that is easy to get wrong.
+
+    A group's ``make_context`` does not resolve the verb. It leaves the verb and
+    its arguments unparsed, and in click 8 it puts the verb in
+    ``protected_args`` and the rest in ``args`` -- so a walker reading only
+    ``args`` resolves the verb's *first argument* as a verb, and reports that
+    ``validate m.yaml`` is an unknown command called ``m.yaml``. Click 9 will
+    put them all back in ``args``, which is why both are read.
+
+    Parameters
+    ----------
+    argv : sequence of str
+        The arguments, without the program name.
+
+    Returns
+    -------
+    bool
+        ``True`` when every verb, flag and argument is one this surface knows,
+        and every required argument is present.
+
+    Examples
+    --------
+    >>> accepts(["validate", "cost.yaml"])
+    True
+    >>> accepts(["render", "cost.yaml", "-f", "html"])
+    True
+    >>> accepts(["render", "cost.yaml", "-f", "sideways"])
+    False
+    >>> accepts(["validate"])
+    False
+    """
+    group = build_cli()
+    command: click.Command = group
+    try:
+        context = group.make_context(PROGRAM, list(argv), resilient_parsing=False)
+        while isinstance(command, click.Group):
+            with warnings.catch_warnings():
+                # Click 8 warns that `protected_args` is going. It is read here
+                # *because* it is going: when it does, the attribute is absent,
+                # `getattr` yields nothing, and `args` carries the verb instead
+                # -- so this line is already the click 9 line. Silencing the
+                # notice is narrower than pinning a version or reimplementing
+                # the parser, and the suite turns warnings into errors.
+                warnings.simplefilter("ignore", DeprecationWarning)
+                leftover = list(getattr(context, "protected_args", []))
+            rest = [*leftover, *context.args]
+            if not rest:
+                break
+            name, found, rest = command.resolve_command(context, rest)
+            if found is None:  # pragma: no cover - click raises instead.
+                return False
+            context = found.make_context(name, rest, parent=context)
+            command = found
+    except click.ClickException:
+        return False
+    except click.exceptions.Exit:
+        # `--help` and `--version` are accepted invocations that stop early.
+        return True
+    return True
+
+
+def _configure_logging(args: SimpleNamespace) -> None:
     """Set the logger's level from the verbosity flags.
 
     Parameters
     ----------
-    args : argparse.Namespace
+    args : types.SimpleNamespace
         Parsed arguments, with ``verbose`` and ``quiet``.
 
     Examples
     --------
-    >>> _configure_logging(argparse.Namespace(verbose=0, quiet=True))
+    >>> _configure_logging(SimpleNamespace(verbose=0, quiet=True))
     >>> osh.verbosity()
     -1
-    >>> _configure_logging(argparse.Namespace(verbose=0, quiet=False))
+    >>> _configure_logging(SimpleNamespace(verbose=0, quiet=False))
     >>> osh.verbosity()
     0
     """
@@ -758,16 +835,11 @@ def _configure_logging(args: argparse.Namespace) -> None:
         osh.verbosity(0)
 
 
-#: Where a deployment states the language once, so a container does not repeat
-#: it on every verb.
-LANGUAGE_ENVIRONMENT_VARIABLE: Final[str] = "SAGGIO_LANGUAGE"
-
-
 def requested_language(argv: Sequence[str] | None = None) -> str | None:
-    """Find the language before a parser exists, because help is built with it.
+    """Find the language before the help text is built, because it is built with it.
 
-    ``--help`` is rendered from strings the parser already holds, and the parser
-    is built before anything is parsed. So the language has to be read off the
+    ``--help`` is rendered from strings the commands already hold, and those are
+    fixed when this module is imported. So the language has to be read off the
     arguments by hand, once, or every ``--help`` would come out in the authored
     language however the caller asked.
 
@@ -798,6 +870,15 @@ def requested_language(argv: Sequence[str] | None = None) -> str | None:
         if argument.startswith("--language="):
             return argument.split("=", 1)[1]
     return os.environ.get(LANGUAGE_ENVIRONMENT_VARIABLE, "").strip() or None
+
+
+#: Numpydoc-style section headings and the rest of what a docstring carries for
+#: somebody reading the source. Click shows a command's whole docstring in its
+#: help when no ``help=`` is given; every command here gives one, so this is a
+#: guard rather than a filter, and the gate below is what keeps it honest.
+_NOT_FOR_A_TERMINAL = re.compile(
+    r"\n\s*(?:Parameters|Returns|Examples|Raises)\s*\n\s*-{3,}.*", re.S
+)
 
 
 def _let_the_streams_degrade_rather_than_die() -> None:
@@ -844,6 +925,13 @@ def _let_the_streams_degrade_rather_than_die() -> None:
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the command line.
 
+    Click is driven with ``standalone_mode=False`` so that it returns the verb's
+    exit code instead of raising :class:`SystemExit` with it. That keeps this
+    function what it was under argparse -- something a test, a server or
+    :func:`run` can call and read an integer from -- and keeps the exit codes
+    the property of :mod:`saggio.cli.exit_codes` rather than of a library's
+    defaults.
+
     Parameters
     ----------
     argv : sequence of str or None, optional
@@ -863,67 +951,50 @@ def main(argv: Sequence[str] | None = None) -> int:
     >>> without_a_verb, with_a_verb
     (2, 0)
     """
-    # Before anything writes, including the parser's own usage text.
+    # Before anything writes, including the help text.
     _let_the_streams_degrade_rather_than_die()
-    # Before the parser, because the parser's help text is built from the
-    # catalogue and a `--help` in the wrong language would be the one piece of
-    # this surface nobody could ask to change.
-    with language(requested_language(argv)):
-        return _dispatch(build_parser(), argv)
-
-
-def _dispatch(parser: argparse.ArgumentParser, argv: Sequence[str] | None) -> int:
-    """Parse the arguments and run the verb they name.
-
-    Parameters
-    ----------
-    parser : argparse.ArgumentParser
-        The parser, already built in the caller's language.
-    argv : sequence of str or None
-        The arguments.
-
-    Returns
-    -------
-    int
-        The exit code.
-
-    Examples
-    --------
-    >>> import contextlib, io
-    >>> with contextlib.redirect_stdout(io.StringIO()):
-    ...     code = _dispatch(build_parser(), ["machine", "--json"])
-    >>> code
-    0
-    """
-    args = parser.parse_args(argv)
-    _configure_logging(args)
-
-    if args.verb is None:
-        parser.print_help()
-        return USAGE
-    if args.verb == "catalog":
-        if getattr(args, "catalog_verb", None) is None:
-            # Not parse_args([verb, "--help"]): argparse's help action raises
-            # SystemExit(0), which made a usage error read as success to any
-            # script checking the exit code.
-            osh.error(
-                "catalog needs an action: list, add, freshness, or refresh. "
-                "Try `saggio catalog -h`."
-            )
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    # Before the help is rendered, because the help is built from the catalogue
+    # and a `--help` in the wrong language would be the one piece of this
+    # surface nobody could ask to change.
+    with language(requested_language(arguments)):
+        if COMPLETION_VARIABLE in os.environ:
+            # The shell is asking what could come next, not asking for work.
+            # Click answers that inside its own `main`, before parsing, so this
+            # has to reach it -- and it must reach it even with no arguments at
+            # all, which is the common case: a bare `saggio <TAB>`. Completion
+            # is the one thing argparse never offered and the reason this
+            # branch exists.
+            try:
+                build_cli().main(args=arguments, prog_name=PROGRAM, standalone_mode=False)
+            except SystemExit as finished:
+                # Click exits from the completion path. `main` promises an
+                # integer, so the exit code is returned rather than thrown.
+                return int(finished.code or OK)
+            return OK
+        if not arguments:
+            # Being asked for nothing is being asked for something this cannot
+            # do, so the help goes out and the code says so.
+            group = build_cli()
+            click.echo(group.get_help(click.Context(group, info_name=PROGRAM)))
             return USAGE
-        key = f"catalog {args.catalog_verb}"
-    else:
-        key = args.verb
-
-    handler = _HANDLERS.get(key)
-    if handler is None:
-        parser.print_help()
-        return USAGE
-    # The whole verb runs inside the language it was given, so a sentence
-    # composed four modules deep comes out in the reader's language without that
-    # tag being threaded through every signature between here and there.
-    with language(getattr(args, "language", None)):
-        return handler(args)
+        try:
+            return int(
+                build_cli().main(args=arguments, prog_name=PROGRAM, standalone_mode=False) or OK
+            )
+        except click.exceptions.Exit as asked:
+            # `--help` and `--version` are not failures, and click signals them
+            # this way rather than by returning.
+            return int(asked.exit_code)
+        except click.UsageError as wrong:
+            wrong.show()
+            return int(wrong.exit_code)
+        except click.ClickException as refused:
+            refused.show()
+            return int(refused.exit_code)
+        except click.exceptions.Abort:
+            osh.error("Interrupted.")
+            return USAGE
 
 
 def run() -> None:
