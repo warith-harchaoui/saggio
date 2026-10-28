@@ -230,6 +230,12 @@ ignore = [
 # document uses would be a rule against reading the document.
 "saggio/catalog/pcf.py" = ["RUF001"]
 
+# The front pages' figures draw a derivation, and a derivation is written with a
+# multiplication sign. The package's own sentences already use it -- the scaling
+# fit prints `coefficient × size^exponent` in both languages -- so a figure
+# spelling it `x` would be the odd one out on the page it illustrates.
+"assets/make_readme_figures.py" = ["RUF001"]
+
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 

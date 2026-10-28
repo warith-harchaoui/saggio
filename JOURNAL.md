@@ -16,6 +16,52 @@ endroit-là.
 
 ## Non publié
 
+### Trois figures en page d'accueil, chacune tracée depuis le fichier qu'elle décrit
+
+Les deux pages d'accueil expliquent en prose trois choses que la prose porte
+mal : d'où vient un chiffre, pourquoi un chiffre dérivé ne peut pas dépasser les
+nombres dont il a été calculé, et pourquoi un seul moteur répond par cinq
+surfaces. Chacune a désormais son dessin, dans les deux langues, posé dans la
+section qui l'expliquait déjà.
+
+`assets/make_readme_figures.py` écrit les six fichiers, pour la raison qui fait
+que `make_gallery_figure.py` écrit les siens : deux traductions éditées à la
+main divergent dès la première ligne modifiée, et une figure en désaccord avec
+sa traduction ne laisse à personne le moyen de dire laquelle a raison. La
+hauteur des cartes se calcule depuis le texte une fois coupé plutôt que d'être
+fixée : les cartes françaises s'allongent là où le français est plus long, au
+lieu de rogner la phrase.
+
+**Deux choses sont lues plutôt que recopiées.** La palette vient de
+`reporting/report.css` : la couleur dans laquelle les figures dessinent
+`estimated` est celle que le lecteur retrouvera dans son propre rapport — le
+dessin et la pastille ne peuvent pas être en désaccord sur l'allure d'un statut.
+Les nombres de la figure de dérivation viennent du modèle qu'écrit
+`saggio init --template annotated`, en passant par le `saggio.i18n.number` du
+paquet : la chaîne ne peut pas cesser discrètement de correspondre au gabarit,
+et le `0,1 s` français relève de la règle de localisation que les rapports
+suivent déjà.
+
+**Ce que la figure de dérivation montre, et ce qu'elle ne montre pas.** Ses
+nombres sont ceux du gabarit ; ses deux cases `measured` sont ce qu'une
+exécution remplit quand les compteurs de la machine répondent, ce que la ligne
+de puissance du gabarit n'est pas — c'est une somme de plaques signalétiques, et
+elle le dit. Le pied de la figure et la légende sous elle disent l'un et
+l'autre lequel est lequel : un dessin qui laisserait confondre les deux
+enseignerait le contraire de ce pour quoi il existe.
+
+**Huit vérifications, dans `tests/contract/test_readme_figures.py`.** Régénérer
+doit reproduire les octets versionnés : une retouche à la main n'y survit pas.
+Le texte alternatif de chaque page doit *être* le `<desc>` de la figure, mot
+pour mot, pour qu'aucun des deux ne s'améliore pendant que l'autre vieillit. Les
+deux langues doivent dessiner le même nombre de cases et de flèches. Chaque
+flèche de la chaîne doit correspondre au `derived_from` de la quantité qu'elle
+vise — dans les deux sens, puisqu'une flèche que le gabarit n'énonce pas serait
+une dérivation inventée, et qu'une flèche manquante montrerait une valeur
+reposant sur moins que ce dont elle vient. Chaque fonction nommée sur la carte
+du moteur doit être dans `saggio.__all__`. Et les cinq surfaces dessinées
+doivent être les cinq que le tableau au-dessus énumère.
+
 ### argparse dehors, click dedans, et une cinquième dépendance dite franchement
 
 Une décision, pas une découverte. argparse est dans la bibliothèque standard et

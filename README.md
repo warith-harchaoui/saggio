@@ -52,6 +52,14 @@ derived value may never claim to be better founded than the worst of its inputs.
 Measure the runtime and the energy becomes measured on its own. Leave the
 country unstated and the carbon figure stays open, because nobody knows it yet.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/warith-harchaoui/saggio/master/assets/readme-weakest-link.svg" alt="A derivation chain for one inference: runtime and power draw, both measured, give the machine's energy; multiplied by an estimated power usage effectiveness it gives the building's energy, which is therefore only estimated; multiplied by an estimated grid carbon intensity it gives the carbon figure. The water branch ends in TODO because no water usage effectiveness is published for a self-run room." width="900">
+</p>
+
+The numbers are the ones `saggio init --template annotated` writes. The two
+`measured` boxes are what a run fills in when this machine's counters answer;
+without them the chain is the same chain, one status weaker throughout.
+
 And the derivation is **checked, not just declared**. The validator parses every
 unit down to its base dimensions — a watt *is* a joule per second — and
 recomputes the value from its named inputs, multiplying them and, where that
@@ -80,6 +88,13 @@ design:
   run that failed projects to nothing at all.
 
 ## What it does
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/warith-harchaoui/saggio/master/assets/readme-pipeline.svg" alt="Three sources of fact — reading the repository, running a capped slice once you have agreed, and sourced catalogues — write one committed YAML model. The validator checks it, and the Markdown report, the self-contained web page, the Word and PDF documents, the team dashboard and the drift gate are all rendered from that one file." width="900">
+</p>
+
+Read it from the middle out: everything on the left writes that one file, and
+everything on the right is rendered from it.
 
 **Reads your repository.** Languages, workload shape, frameworks, how much work a
 full run performs, which paid APIs you call and on which line. All of it
@@ -431,6 +446,14 @@ the person who has to file it; most readers will never install a Python package.
 | HTTP API | A browser, an internal service, a reporting pipeline | `pip install "saggio[api]"`, then `uvicorn saggio.api.app:app` |
 | Agent protocol | Asking in your own words, in your own language | `uvicorn saggio.api.mcp:app`, tools at `/mcp` |
 | Skill | Claude, and any agent that reads Agent Skills | [`skills/saggio/`](https://github.com/warith-harchaoui/saggio/blob/master/skills/saggio/SKILL.md) |
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/warith-harchaoui/saggio/master/assets/readme-surfaces.svg" alt="Five surfaces — a Python library, the command line, an HTTP API, an agent protocol and an Agent Skill — all call the same public functions, so each returns the same model, the same rules and the same report; no surface may do what the library cannot, and the HTTP surface runs nobody's code." width="900">
+</p>
+
+Everything in the left-hand column ends in the same call. That is the rule
+rather than a description of the current state: a surface that could do
+something the library cannot would fail a test.
 
 Every one of them is an adapter over the same public functions, which is a rule
 tests enforce rather than a habit: a surface that could do something the library

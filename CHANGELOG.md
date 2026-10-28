@@ -14,6 +14,48 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### Three figures on the front page, each drawn from the file it describes
+
+The two front pages explain in prose three things that are hard to carry in
+prose: where a figure comes from, why a derived figure may not outrank the
+numbers it was computed from, and why one engine answers through five surfaces.
+Each now has a drawing, in both languages, placed in the section that was
+already explaining it.
+
+`assets/make_readme_figures.py` writes all six files, for the reason
+`make_gallery_figure.py` writes its two: hand-edited translations drift the
+first time a row changes, and a figure that disagrees with its translation
+leaves nobody able to tell which one is right. Cards are sized from their
+wrapped text rather than fixed, so the French ones grow where French is longer
+instead of clipping.
+
+**Two things are read rather than restated.** The palette comes from
+`reporting/report.css`, so the colour the figures draw `estimated` in is the
+colour the reader meets again in their own report — the drawing and the badge
+cannot disagree about what a status looks like. The numbers in the derivation
+figure come from the model `saggio init --template annotated` writes, through
+the package's own `saggio.i18n.number`, so the chain cannot quietly stop
+matching the template, and `0,1 s` in French is the same localisation rule the
+reports already follow.
+
+**What the derivation figure shows, and what it does not.** Its numbers are the
+template's; its two `measured` boxes are what a run fills in when this machine's
+counters answer, which the template's own power row is not — it is a nameplate
+sum and says so. The figure's footer and the caption under it both say which is
+which, because a drawing that let the two be confused would be teaching the
+wrong lesson about the thing it exists to teach.
+
+**Eight checks, in `tests/contract/test_readme_figures.py`.** Regenerating must
+reproduce the committed bytes, so a hand-edit cannot survive. Each page's alt
+text must *be* the figure's own `<desc>`, word for word, so neither can be
+improved while the other goes stale. The two languages must draw the same number
+of boxes and arrows. Every arrow in the chain must match the `derived_from` list
+of the quantity it points at — in both directions, since an arrow the template
+does not state would be an invented derivation and a missing one would show a
+value resting on less than it does. Every function named on the engine card must
+be in `saggio.__all__`. And the five surfaces drawn must be the five the table
+above them lists.
+
 ### argparse out, click in, and a fifth runtime dependency said out loud
 
 A decision, not a discovery. argparse is in the standard library and therefore

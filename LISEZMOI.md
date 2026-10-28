@@ -53,6 +53,15 @@ entrées. Mesurez la durée et l'énergie devient mesurée toute seule. Laissez 
 pays non renseigné et le chiffre carbone reste ouvert, parce que personne ne le
 connaît encore.
 
+<p align="center">
+  <img src="assets/readme-weakest-link.fr.svg" alt="Une chaîne de dérivation pour une inférence : la durée et la puissance, toutes deux mesurées, donnent l'énergie de la machine ; multipliée par une efficacité énergétique du site estimée, elle donne l'énergie du bâtiment, qui n'est donc qu'estimée ; multipliée par une intensité carbone estimée, elle donne le chiffre du carbone. La branche de l'eau finit en TODO, faute d'efficacité d'usage de l'eau publiée pour une salle exploitée en propre." width="900">
+</p>
+
+Les chiffres sont ceux qu'écrit `saggio init --template annotated`. Les deux
+cases `measured` sont ce qu'une exécution remplit quand les compteurs de la
+machine répondent ; sans eux, la chaîne est la même, d'un statut plus faible
+partout.
+
 Et la dérivation est **vérifiée, pas seulement déclarée**. Le validateur
 décompose chaque unité en dimensions de base — un watt *est* un joule par
 seconde — et recalcule la valeur depuis les apports nommés, en les multipliant
@@ -83,6 +92,13 @@ Trois propriétés en découlent. Ce sont elles qui justifient le dessin :
   plausible. Une exécution qui a échoué ne se projette sur rien du tout.
 
 ## Ce que l'outil fait
+
+<p align="center">
+  <img src="assets/readme-pipeline.fr.svg" alt="Trois sources de faits — lire le dépôt, en exécuter une tranche plafonnée une fois l'accord donné, et les catalogues sourcés — écrivent un seul modèle YAML versionné. Le validateur le vérifie, et le rapport Markdown, la page web autonome, les documents Word et PDF, le tableau de bord d'équipe et le garde-fou de dérive en sont tous rendus." width="900">
+</p>
+
+Lisez-la depuis le milieu : tout ce qui est à gauche écrit ce seul fichier, et
+tout ce qui est à droite en est rendu.
 
 **Il lit votre dépôt.** Langages, forme de la charge de travail, frameworks,
 quantité de travail d'une exécution complète, quelles API (interface de programmation applicative) payantes vous appelez et
@@ -454,6 +470,14 @@ n'installeront jamais un paquet Python.
 | API HTTP | Un navigateur, un service interne, une chaîne de reporting | `pip install "saggio[api]"`, puis `uvicorn saggio.api.app:app` |
 | Protocole d'agent | Poser la question avec ses mots, dans sa langue | `uvicorn saggio.api.mcp:app`, outils sur `/mcp` |
 | Skill | Claude, et tout agent qui lit les Agent Skills | [`skills/saggio/`](https://github.com/warith-harchaoui/saggio/blob/master/skills/saggio/SKILL.md) |
+
+<p align="center">
+  <img src="assets/readme-surfaces.fr.svg" alt="Cinq surfaces — une bibliothèque Python, la ligne de commande, une API HTTP, un protocole d'agent et une Agent Skill — appellent toutes les mêmes fonctions publiques, si bien que chacune rend le même modèle, les mêmes règles et le même rapport ; aucune ne peut ce que la bibliothèque ne peut pas, et la surface HTTP n'exécute le code de personne." width="900">
+</p>
+
+Tout ce qui est dans la colonne de gauche finit sur le même appel. C'est la
+règle et pas un état des lieux : une surface capable de ce que la bibliothèque
+ne sait pas faire ferait échouer un test.
 
 Chacune est un adaptateur au-dessus des mêmes fonctions publiques — une règle
 que des tests imposent plutôt qu'une habitude : une surface capable de ce que la
