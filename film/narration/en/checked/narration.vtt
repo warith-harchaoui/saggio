@@ -1,0 +1,5 @@
+WEBVTT
+
+0
+00:00:00.000 --> 00:00:12.565
+The derivation is checked rather than declared. The validator reads every unit down to its base dimensions, recomputes the value from its named inputs, then calls anything more than a percent out an error.

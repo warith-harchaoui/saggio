@@ -36,3 +36,13 @@ settings.yaml
 
 # Local-only scratch space, never committed.
 /.private/
+
+# The film's intermediates. The frames are a gigabyte of PNGs that exist
+# only between the composition and ffmpeg, and the rendered films are
+# published to the site rather than carried here. Both are rebuilt by
+# `python film/render_film.py`; the narration beside them is committed,
+# because the cuts are derived from its measured length.
+film/frames/
+film/out/
+# What was handed to the voice, which script.yaml already says.
+film/narration/*/*/segments.json

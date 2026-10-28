@@ -207,6 +207,20 @@ ignore = [
 # "not at top of file" on purpose.
 "saggio/__init__.py" = ["E402"]
 
+# The film's build steps are a pipeline of command-line tools: the voice comes
+# from sprezzature-audio and the picture is assembled by ffmpeg, both found on
+# PATH the way a shell finds them. Pinning absolute paths would hard-code one
+# machine's layout, and the arguments are this repository's own files rather
+# than anybody's input.
+"film/*.py" = [
+    "S603",
+    "S607",
+    # The film draws a derivation chain, and the multiplication sign is the
+    # character that chain is made of. A rule against it has it backwards,
+    # the same way it does for the page typography reader below.
+    "RUF001",
+]
+
 # Tests say what they check in their names; a docstring rule on every assertion
 # helper adds noise rather than clarity. assert is what a test is made of.
 "tests/*" = [

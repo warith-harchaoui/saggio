@@ -1,0 +1,7 @@
+# Comment se disent les mots propres au film, en français.
+# ------------------------------------------------------------------
+# Posé par-dessus le lexique français livré avec speaker-helper. Ne
+# figurent ici que les mots que ce film prononce et que la voix rate.
+entries:
+  - { word: "saggio", respelling: "sadjo" }   # italien, sinon "sa-ji-o"
+  - { word: "TODO",   respelling: "toudou" }  # sinon épelé té-o-dé-o

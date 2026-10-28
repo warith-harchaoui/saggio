@@ -1,0 +1,24 @@
+{
+  "en": {
+    "question": 5.76,
+    "answer": 7.125,
+    "danger": 9.259,
+    "file": 5.44,
+    "statuses": 13.291,
+    "weakest": 9.259,
+    "checked": 12.565,
+    "refuses": 10.048,
+    "reach": 6.677
+  },
+  "fr": {
+    "question": 6.549,
+    "answer": 6.379,
+    "danger": 8.875,
+    "file": 6.037,
+    "statuses": 10.816,
+    "weakest": 8.96,
+    "checked": 12.053,
+    "refuses": 9.344,
+    "reach": 6.123
+  }
+}

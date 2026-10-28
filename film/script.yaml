@@ -1,0 +1,223 @@
+# What the film says, in both languages, scene by scene.
+# ------------------------------------------------------------------
+# This file is the content. `film.yaml` beside it is the checkable
+# contract -- the claims, the assets, the narration with its measured
+# audio -- and `build_film.py` turns the two of them into the two
+# compositions, the two tracks and the two caption files.
+#
+# A scene's `narration` is what the voice says. Its `headline`, `lines`
+# and `visual` are what the frame shows. They are written separately on
+# purpose: a film whose captions are its slides is a film nobody needs
+# to watch.
+
+film:
+  name: what-it-costs
+  fps: 24
+  width: 1920
+  height: 1080
+  # Seconds of silence held after a line finishes, so a scene does not
+  # cut on the last syllable.
+  tail: 0.55
+
+scenes:
+
+  - id: question
+    visual: question
+    en:
+      narration: >-
+        Somebody is going to ask what it costs to run your code.
+        Money, time, energy, carbon, water.
+      headline: What does it cost to run your code?
+      lines:
+        - money · time · energy · carbon · water
+        - per unit of work
+    fr:
+      narration: >-
+        Quelqu'un va vous demander ce que coûte votre code à l'exécution.
+        De l'argent, du temps, de l'énergie, du carbone, de l'eau.
+      headline: Qu'est-ce que ça coûte de faire tourner votre code ?
+      lines:
+        - argent · temps · énergie · carbone · eau
+        - par unité de travail
+
+  - id: answer
+    visual: loose-number
+    en:
+      narration: >-
+        You will answer with a number. It will come from a spreadsheet,
+        or from a coefficient that was true on a machine that is not yours.
+      headline: You will answer with a number.
+      lines:
+        - from a spreadsheet
+        - from somebody's blog post
+        - from a coefficient true on another machine
+      number: "0.0014"
+      unit: gCO2e
+    fr:
+      narration: >-
+        Vous répondrez par un chiffre. Il viendra d'un tableur,
+        ou d'un coefficient vrai sur une machine qui n'est pas la vôtre.
+      headline: Vous répondrez par un chiffre.
+      lines:
+        - d'un tableur
+        - du billet de blog de quelqu'un
+        - d'un coefficient vrai sur une autre machine
+      number: "0,0014"
+      unit: gCO2e
+
+  - id: danger
+    visual: confident-number
+    en:
+      narration: >-
+        The dangerous number is not the one you are missing.
+        It is the confident one, orders of magnitude out,
+        carrying a perfectly tidy list of its sources.
+      headline: The dangerous number is the confident one.
+      lines:
+        - orders of magnitude out
+        - with a perfectly tidy list of sources underneath
+    fr:
+      narration: >-
+        Le chiffre dangereux n'est pas celui qui vous manque.
+        C'est celui qui a l'air sûr de lui, faux d'un facteur mille,
+        avec une liste de sources impeccable en dessous.
+      headline: Le chiffre dangereux est celui qui a l'air sûr de lui.
+      lines:
+        - faux d'un facteur mille
+        - avec une liste de sources impeccable en dessous
+
+  - id: file
+    visual: yaml
+    en:
+      narration: >-
+        saggio writes the answer as a file, committed next to the code,
+        reviewable in a pull request.
+      headline: saggio writes the answer as a file.
+      lines:
+        - committed next to the code
+        - reviewable in a pull request
+    fr:
+      narration: >-
+        saggio écrit la réponse dans un fichier, versionné à côté du code,
+        relisible dans une pull request.
+      headline: saggio écrit la réponse dans un fichier.
+      lines:
+        - versionné à côté du code
+        - relisible dans une pull request
+
+  - id: statuses
+    visual: statuses
+    en:
+      narration: >-
+        Every number in it carries a status. Measured means a counter on
+        the machine said so. Estimated means a sourced formula said so.
+        Placeholder holds the field open. TODO means a human still has to answer.
+      headline: Every number carries a status.
+      statuses:
+        - [measured, A counter on the machine said so.]
+        - [estimated, A sourced formula or a published figure said so.]
+        - [placeholder, The field is being held open. It is not a number.]
+        - [TODO, A human has to supply this.]
+    fr:
+      narration: >-
+        Chaque chiffre y porte un statut. Mesuré, c'est un compteur de la
+        machine qui l'a dit. Estimé, c'est une formule sourcée. Réservé tient
+        la place. TODO, c'est qu'un humain doit encore répondre.
+      headline: Chaque chiffre porte un statut.
+      statuses:
+        - [mesuré, Un compteur de la machine l'a dit.]
+        - [estimé, Une formule sourcée ou un chiffre publié l'a dit.]
+        - [réservé, Le champ est tenu ouvert. Ce n'est pas un chiffre.]
+        - [TODO, Un humain doit fournir cette valeur.]
+
+  - id: weakest
+    visual: chain
+    en:
+      narration: >-
+        Every derived number names the numbers it came from, so one rule
+        follows. A derived value may never claim to be better founded
+        than the worst of its inputs.
+      headline: The weakest link rule.
+      lines:
+        - A derived value may never claim to be better founded than the worst of its inputs.
+    fr:
+      narration: >-
+        Chaque chiffre dérivé nomme ceux dont il vient. Une règle en découle :
+        une valeur dérivée ne peut jamais se prétendre mieux fondée que le plus
+        faible de ses apports.
+      headline: La règle du maillon faible.
+      lines:
+        - Une valeur dérivée ne peut jamais se prétendre mieux fondée que le plus faible de ses apports.
+
+  - id: checked
+    visual: checked
+    en:
+      narration: >-
+        The derivation is checked rather than declared. The validator reads
+        every unit down to its base dimensions, recomputes the value from its
+        named inputs, then calls anything more than a percent out an error.
+      headline: Checked, rather than declared.
+      lines:
+        - a watt is a joule per second
+        - the value is recomputed from its named inputs
+        - more than 1% out is an error
+    fr:
+      narration: >-
+        La dérivation est vérifiée plutôt que déclarée. Le validateur ramène
+        chaque unité à ses dimensions de base, recalcule la valeur à partir des
+        apports qu'elle nomme, puis refuse tout écart de plus d'un pour cent.
+      headline: Vérifiée, plutôt que déclarée.
+      lines:
+        - un watt est un joule par seconde
+        - la valeur est recalculée depuis les apports qu'elle nomme
+        - plus de 1% d'écart est une erreur
+
+  - id: refuses
+    visual: refusals
+    en:
+      narration: >-
+        It never invents. An unresolved country gives a TODO rather than a zero.
+        Eight hardware footprints ship out of thirty-seven parts.
+        The catalogue says so by name.
+      headline: It never invents a number.
+      refusals:
+        - [No country stated, "TODO, never a zero"]
+        - [No published water figure, "TODO, never a plausible one"]
+        - [8 footprints of 37 parts, "the rest say so by name"]
+    fr:
+      narration: >-
+        Il n'invente jamais. Un pays non résolu donne un TODO plutôt qu'un zéro.
+        Huit empreintes matérielles sont livrées sur trente-sept pièces.
+        Le catalogue le dit nommément.
+      headline: Il n'invente jamais un chiffre.
+      refusals:
+        - [Aucun pays indiqué, "TODO, jamais un zéro"]
+        - [Aucun chiffre d'eau publié, "TODO, jamais un chiffre plausible"]
+        - [8 empreintes sur 37 pièces, "le reste le dit nommément"]
+
+  - id: reach
+    visual: close
+    en:
+      narration: >-
+        Thirteen verbs, five runtime dependencies, five surfaces over one engine.
+        pip install saggio.
+      headline: One engine, five surfaces.
+      surfaces: [Library, Command line, HTTP API, Agent protocol, Agent Skill]
+      facts:
+        - [13, verbs]
+        - [5, runtime dependencies]
+        - [5, surfaces]
+      command: pip install saggio
+      url: deraison.ai/saggio
+    fr:
+      narration: >-
+        Treize verbes, cinq dépendances d'exécution, cinq surfaces sur un seul moteur.
+        pip install saggio.
+      headline: Un seul moteur, cinq surfaces.
+      surfaces: [Bibliothèque, Ligne de commande, API HTTP, Protocole d'agent, Agent Skill]
+      facts:
+        - [13, verbes]
+        - [5, dépendances d'exécution]
+        - [5, surfaces]
+      command: pip install saggio
+      url: deraison.ai/saggio

@@ -1,0 +1,115 @@
+# What the film asserts, and where each assertion is checked.
+# ------------------------------------------------------------------
+# These are the parts of `film.yaml` a person writes. The timings, the
+# narration and the scene list are derived from the measured audio by
+# `make_spec.py`, because a start time typed by hand is a start time
+# that drifts against the voice the moment a line is reworded.
+#
+# Re-check after any change to the package:
+#     make-film verify film/film.yaml --root .
+#     make-film scan film/composition/index.en.html --spec film/film.yaml
+#
+# A `regex_count` selector is matched without the multiline flag, so a
+# pattern anchored on `^` matches the start of the file and nothing else.
+# Line starts are written `\n` here for that reason.
+
+claims:
+  - text: "13 verbs"
+    value: 13
+    source:
+      path: saggio/cli/app.py
+      method: regex_count
+      selector: '@cli\.(?:command|group)\('
+
+  - text: "5 runtime dependencies"
+    value: 5
+    source:
+      path: pyproject.toml
+      method: regex_count
+      selector: '\n\s*"(?:os-helper|PyYAML|platformdirs|Babel|click)[>=<]'
+
+  - text: "5 surfaces"
+    value: 5
+    source:
+      path: README.md
+      method: regex_count
+      selector: '\n\| (?:Library|Command line|HTTP API|Agent protocol|Skill) \|'
+
+  - text: "8 footprints of 37 parts"
+    value: 8
+    source:
+      path: saggio/data/hardware.yaml
+      method: regex_count
+      selector: '\n\s*embodied_kgco2e:'
+
+  - text: "8 footprints of 37 parts"
+    value: 37
+    source:
+      path: saggio/data/hardware.yaml
+      method: regex_count
+      selector: '\n\s*(?:tdp_w|w_per_core):'
+
+  - text: "value: 0.0014"
+    value: "0.0014"
+    source:
+      path: README.md
+      method: literal
+      selector: "0.0014"
+
+  - text: 'unit: "gCO2e"'
+    value: "gCO2e"
+    source:
+      path: README.md
+      method: literal
+      selector: "gCO2e"
+
+  - text: "more than 1% out is an error"
+    value: "more than a percent from what its inputs give is an error"
+    source:
+      path: README.md
+      method: literal
+      selector: "more than a percent from what its inputs give is an error"
+
+  - text: "measured, estimated, placeholder, TODO"
+    value: "frozenset({MEASURED, ESTIMATED, PLACEHOLDER, TODO})"
+    source:
+      path: saggio/model/taxonomy.py
+      method: literal
+      selector: "frozenset({MEASURED, ESTIMATED, PLACEHOLDER, TODO})"
+
+# Which scenes carry which beat, by index into the generated scene list.
+# Problem first, then the solution, then the one non-obvious thing that
+# makes the solution possible.
+pitch:
+  problem: [0, 1, 2]
+  solution: [3]
+  magic: [5]
+
+assets:
+  - rel: film/script.yaml
+    provenance: tracked
+    source: film/script.yaml
+  - rel: film/claims.yaml
+    provenance: tracked
+    source: film/claims.yaml
+  - rel: film/composition/fonts/Roboto-Variable.woff2
+    provenance: tracked
+    source: film/composition/fonts/Roboto-Variable.woff2
+  - rel: film/composition/fonts/Roboto-Serif-Variable.woff2
+    provenance: tracked
+    source: film/composition/fonts/Roboto-Serif-Variable.woff2
+  - rel: film/composition/fonts/Roboto-Mono-Variable.woff2
+    provenance: tracked
+    source: film/composition/fonts/Roboto-Mono-Variable.woff2
+  - rel: film/composition/index.en.html
+    provenance: derived
+    recipe: python film/compose.py
+  - rel: film/composition/index.fr.html
+    provenance: derived
+    recipe: python film/compose.py
+  - rel: film/narration/en/question/narration.wav
+    provenance: derived
+    recipe: python film/narrate_film.py en
+  - rel: film/narration/fr/question/narration.wav
+    provenance: derived
+    recipe: python film/narrate_film.py fr

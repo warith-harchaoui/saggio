@@ -1,0 +1,8 @@
+# How the film's own words are said, in English.
+# ------------------------------------------------------------------
+# Layered on top of speaker-helper's built-in English lexicon, which
+# wins nothing it does not name. Only words this film says and the
+# voice gets wrong are here; a lexicon that restates the obvious is a
+# lexicon nobody re-reads.
+entries:
+  - { word: "saggio", respelling: "sahdjoh" }   # Italian, else "sag-ee-oh"
