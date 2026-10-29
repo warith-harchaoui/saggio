@@ -344,6 +344,17 @@ NOT_A_USE: dict[str, str] = {
         "and writing out somebody's company name for them would be wrong on "
         "the page before it was wrong about the acronym."
     ),
+    "Eco-CI": (
+        "the product's name, and the row name in the landscape table. Its CI "
+        "does mean continuous integration, but a reader meeting it meets a "
+        "name; the landscape pages use the initialism on its own later, and "
+        "write it out there."
+    ),
+    "ML.ENERGY": (
+        "a project's name -- the leaderboard, the initiative and the benchmark "
+        "all carry it. The pages write machine learning out where they use ML "
+        "as a word, which is the sentence immediately under this name."
+    ),
 }
 
 

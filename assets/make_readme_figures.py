@@ -158,6 +158,15 @@ def wrap(text: str, width: float, size: float, *, mono: bool = False) -> list[st
     repository those are command names and file paths, and a broken one is worse
     than a line that runs a little wide.
 
+    A line is broken at an ordinary space and nowhere else. ``str.split()``
+    treats every Unicode space alike, which would let a line break at the one
+    character written specifically to stop it -- the no-break space this
+    package's own :mod:`saggio.i18n` puts before a French per-cent sign, and the
+    narrow one it groups French digits with -- and would then rejoin the halves
+    with a plain space, quietly deleting the character. No committed figure
+    carries such a number today; the first French figure to quote a grouped
+    one would have carried the defect.
+
     Parameters
     ----------
     text : str
@@ -182,8 +191,10 @@ def wrap(text: str, width: float, size: float, *, mono: bool = False) -> list[st
     True
     >>> wrap("", 100, 14)
     ['']
+    >>> wrap("coûte\u202f? oui", 1, 14)          # the narrow space never breaks
+    ['coûte\u202f?', 'oui']
     """
-    words = text.split()
+    words = [word for word in text.split(" ") if word]
     if not words:
         return [""]
     lines: list[str] = []
@@ -458,6 +469,7 @@ def card(
     accent: str | None = None,
     surface: str = "surface",
     pad: float = 16.0,
+    floor: float = 0.0,
 ) -> tuple[str, float]:
     """Return a card, and the height it needed.
 
@@ -497,6 +509,12 @@ def card(
         Which surface class to fill the card with.
     pad : float, optional
         Inner padding.
+    floor : float, optional
+        A height the card may not come out shorter than. A row of cards whose
+        bottoms are ragged reads as unfinished, and the raggedness means nothing
+        -- it is the length of the sentence inside, which differs between two
+        languages saying the same thing. The content stays where it was, so
+        headings still line up across the row; only the box grows.
 
     Returns
     -------
@@ -508,6 +526,8 @@ def card(
     >>> body, height = card(0, 0, 200, heading="Title", lines=("a sentence",))
     >>> height > 0 and body.startswith("<g>")
     True
+    >>> card(0, 0, 200, heading="Title", floor=400)[1]
+    400
     """
     inner = width - 2 * pad - (6 if accent else 0)
     left = x + pad + (6 if accent else 0)
@@ -561,7 +581,7 @@ def card(
             offset += pill_width + 8
         cursor += 20
 
-    height = cursor - y + pad
+    height = max(cursor - y + pad, floor)
     # The accent is a second rounded rectangle peeking out from behind the card
     # rather than a clipped bar: the card's own border then draws uninterrupted,
     # which a bar sitting inside it would break at two corners.

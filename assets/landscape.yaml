@@ -1,0 +1,377 @@
+meta:
+  reference: saggio
+  rotation_deg: 11.526
+  explained_variance_ratio:
+  - 0.5034
+  - 0.2079
+  cumulative_variance: 0.7113
+  n_approaches: 18
+  attributes:
+  - Per-unit model
+  - Provenance on every number
+  - Multi-dimension
+  - Committed artefact
+  - Measures power
+  - Workload, not machine
+  - Estimates without running
+  - Drift gate
+  - Reports for people
+  - Offline
+  lower_is_better: []
+  imputed_cells: []
+axes:
+  axis_1:
+    name: Controlled ↔ Transparent
+    pole_left: Controlled
+    pole_right: Transparent
+    loadings:
+      Per-unit model: 0.2246
+      Provenance on every number: 0.3923
+      Multi-dimension: 0.2682
+      Committed artefact: 0.233
+      Measures power: -0.3588
+      Workload, not machine: -0.3004
+      Estimates without running: 0.3591
+      Drift gate: 0.2918
+      Reports for people: 0.3697
+      Offline: -0.3157
+  axis_2:
+    name: Adaptable ↔ Reliable
+    pole_bottom: Adaptable
+    pole_top: Reliable
+    loadings:
+      Per-unit model: 0.3878
+      Provenance on every number: 0.0584
+      Multi-dimension: 0.2459
+      Committed artefact: 0.4728
+      Measures power: 0.4307
+      Workload, not machine: 0.1833
+      Estimates without running: -0.0364
+      Drift gate: 0.2833
+      Reports for people: 0.0401
+      Offline: 0.5099
+approaches:
+- name: saggio
+  coordinates:
+    axis_1: 2.9854
+    axis_2: 1.9659
+  role: best
+  color: '#FF3B30'
+  attributes:
+    Per-unit model: 5.0
+    Provenance on every number: 5.0
+    Multi-dimension: 5.0
+    Committed artefact: 5.0
+    Measures power: 4.0
+    Workload, not machine: 2.0
+    Estimates without running: 4.0
+    Drift gate: 5.0
+    Reports for people: 5.0
+    Offline: 5.0
+  imputed_attributes: []
+- name: CodeCarbon
+  coordinates:
+    axis_1: -0.7603
+    axis_2: 0.3181
+  role: competitor
+  color: '#00AEBE'
+  attributes:
+    Per-unit model: 2.0
+    Provenance on every number: 2.0
+    Multi-dimension: 2.0
+    Committed artefact: 2.0
+    Measures power: 4.0
+    Workload, not machine: 3.0
+    Estimates without running: 1.0
+    Drift gate: 1.0
+    Reports for people: 3.0
+    Offline: 3.0
+  imputed_attributes: []
+- name: Green Algorithms calculator
+  coordinates:
+    axis_1: 2.699
+    axis_2: -1.0618
+  role: competitor
+  color: '#ACD47A'
+  attributes:
+    Per-unit model: 3.0
+    Provenance on every number: 4.0
+    Multi-dimension: 3.0
+    Committed artefact: 1.0
+    Measures power: 1.0
+    Workload, not machine: 2.0
+    Estimates without running: 5.0
+    Drift gate: 1.0
+    Reports for people: 3.0
+    Offline: 1.0
+  imputed_attributes: []
+- name: Scaphandre
+  coordinates:
+    axis_1: -2.9854
+    axis_2: 0.479
+  role: competitor
+  color: '#B487D9'
+  attributes:
+    Per-unit model: 1.0
+    Provenance on every number: 2.0
+    Multi-dimension: 1.0
+    Committed artefact: 1.0
+    Measures power: 5.0
+    Workload, not machine: 5.0
+    Estimates without running: 1.0
+    Drift gate: 1.0
+    Reports for people: 2.0
+    Offline: 5.0
+  imputed_attributes: []
+- name: PowerAPI / pyJoules
+  coordinates:
+    axis_1: -2.8206
+    axis_2: 0.6326
+  role: competitor
+  color: '#A1A1F8'
+  attributes:
+    Per-unit model: 2.0
+    Provenance on every number: 2.0
+    Multi-dimension: 1.0
+    Committed artefact: 1.0
+    Measures power: 5.0
+    Workload, not machine: 4.0
+    Estimates without running: 1.0
+    Drift gate: 1.0
+    Reports for people: 1.0
+    Offline: 5.0
+  imputed_attributes: []
+- name: JoularJX / PowerJoular
+  coordinates:
+    axis_1: -2.775
+    axis_2: 0.8423
+  role: competitor
+  color: '#81B7FF'
+  attributes:
+    Per-unit model: 2.0
+    Provenance on every number: 2.0
+    Multi-dimension: 1.0
+    Committed artefact: 1.0
+    Measures power: 5.0
+    Workload, not machine: 5.0
+    Estimates without running: 1.0
+    Drift gate: 1.0
+    Reports for people: 2.0
+    Offline: 5.0
+  imputed_attributes: []
+- name: Kepler
+  coordinates:
+    axis_1: -1.7683
+    axis_2: -0.0472
+  role: competitor
+  color: '#CC6C8C'
+  attributes:
+    Per-unit model: 1.0
+    Provenance on every number: 2.0
+    Multi-dimension: 2.0
+    Committed artefact: 1.0
+    Measures power: 4.0
+    Workload, not machine: 4.0
+    Estimates without running: 2.0
+    Drift gate: 1.0
+    Reports for people: 2.0
+    Offline: 4.0
+  imputed_attributes: []
+- name: CEEMS
+  coordinates:
+    axis_1: -1.9634
+    axis_2: 0.8016
+  role: competitor
+  color: '#0392C4'
+  attributes:
+    Per-unit model: 2.0
+    Provenance on every number: 2.0
+    Multi-dimension: 2.0
+    Committed artefact: 1.0
+    Measures power: 5.0
+    Workload, not machine: 5.0
+    Estimates without running: 1.0
+    Drift gate: 1.0
+    Reports for people: 3.0
+    Offline: 4.0
+  imputed_attributes: []
+- name: eco2AI
+  coordinates:
+    axis_1: -0.8818
+    axis_2: 0.0311
+  role: competitor
+  color: '#B86CAA'
+  attributes:
+    Per-unit model: 2.0
+    Provenance on every number: 2.0
+    Multi-dimension: 2.0
+    Committed artefact: 2.0
+    Measures power: 3.0
+    Workload, not machine: 3.0
+    Estimates without running: 1.0
+    Drift gate: 1.0
+    Reports for people: 2.0
+    Offline: 3.0
+  imputed_attributes: []
+- name: carbontracker
+  coordinates:
+    axis_1: -0.622
+    axis_2: -0.5424
+  role: competitor
+  color: '#EB867E'
+  attributes:
+    Per-unit model: 2.0
+    Provenance on every number: 2.0
+    Multi-dimension: 2.0
+    Committed artefact: 1.0
+    Measures power: 4.0
+    Workload, not machine: 3.0
+    Estimates without running: 3.0
+    Drift gate: 1.0
+    Reports for people: 2.0
+    Offline: 2.0
+  imputed_attributes: []
+- name: EcoLogits
+  coordinates:
+    axis_1: 0.1461
+    axis_2: 0.0266
+  role: competitor
+  color: '#00AC97'
+  attributes:
+    Per-unit model: 4.0
+    Provenance on every number: 3.0
+    Multi-dimension: 2.0
+    Committed artefact: 1.0
+    Measures power: 1.0
+    Workload, not machine: 4.0
+    Estimates without running: 2.0
+    Drift gate: 1.0
+    Reports for people: 2.0
+    Offline: 3.0
+  imputed_attributes: []
+- name: EnergiBridge
+  coordinates:
+    axis_1: -2.4611
+    axis_2: -0.0785
+  role: worst
+  color: '#A52A2A'
+  attributes:
+    Per-unit model: 1.0
+    Provenance on every number: 2.0
+    Multi-dimension: 1.0
+    Committed artefact: 1.0
+    Measures power: 5.0
+    Workload, not machine: 2.0
+    Estimates without running: 1.0
+    Drift gate: 1.0
+    Reports for people: 1.0
+    Offline: 5.0
+  imputed_attributes: []
+- name: Green Metrics Tool / Eco-CI
+  coordinates:
+    axis_1: 1.0128
+    axis_2: 1.9659
+  role: top
+  color: '#AF52DE'
+  attributes:
+    Per-unit model: 3.0
+    Provenance on every number: 3.0
+    Multi-dimension: 2.0
+    Committed artefact: 3.0
+    Measures power: 4.0
+    Workload, not machine: 4.0
+    Estimates without running: 2.0
+    Drift gate: 4.0
+    Reports for people: 4.0
+    Offline: 3.0
+  imputed_attributes: []
+- name: Cloud Carbon Footprint
+  coordinates:
+    axis_1: 1.6735
+    axis_2: -1.7707
+  role: competitor
+  color: '#C9BD57'
+  attributes:
+    Per-unit model: 1.0
+    Provenance on every number: 3.0
+    Multi-dimension: 3.0
+    Committed artefact: 1.0
+    Measures power: 1.0
+    Workload, not machine: 2.0
+    Estimates without running: 3.0
+    Drift gate: 1.0
+    Reports for people: 4.0
+    Offline: 1.0
+  imputed_attributes: []
+- name: Carbonifer
+  coordinates:
+    axis_1: 1.891
+    axis_2: 0.1204
+  role: competitor
+  color: '#5BB97E'
+  attributes:
+    Per-unit model: 2.0
+    Provenance on every number: 3.0
+    Multi-dimension: 2.0
+    Committed artefact: 2.0
+    Measures power: 1.0
+    Workload, not machine: 3.0
+    Estimates without running: 5.0
+    Drift gate: 4.0
+    Reports for people: 3.0
+    Offline: 3.0
+  imputed_attributes: []
+- name: Infracost
+  coordinates:
+    axis_1: 2.9854
+    axis_2: 0.247
+  role: right
+  color: '#007AFF'
+  attributes:
+    Per-unit model: 3.0
+    Provenance on every number: 3.0
+    Multi-dimension: 1.0
+    Committed artefact: 3.0
+    Measures power: 1.0
+    Workload, not machine: 3.0
+    Estimates without running: 5.0
+    Drift gate: 5.0
+    Reports for people: 4.0
+    Offline: 1.0
+  imputed_attributes: []
+- name: OpenCost / Kubecost
+  coordinates:
+    axis_1: 0.9968
+    axis_2: -1.093
+  role: competitor
+  color: '#DDA54B'
+  attributes:
+    Per-unit model: 2.0
+    Provenance on every number: 3.0
+    Multi-dimension: 2.0
+    Committed artefact: 1.0
+    Measures power: 1.0
+    Workload, not machine: 4.0
+    Estimates without running: 2.0
+    Drift gate: 2.0
+    Reports for people: 4.0
+    Offline: 1.0
+  imputed_attributes: []
+- name: Cloud billing consoles
+  coordinates:
+    axis_1: 1.289
+    axis_2: -1.9659
+  role: competitor
+  color: '#FFA772'
+  attributes:
+    Per-unit model: 1.0
+    Provenance on every number: 4.0
+    Multi-dimension: 1.0
+    Committed artefact: 1.0
+    Measures power: 1.0
+    Workload, not machine: 2.0
+    Estimates without running: 1.0
+    Drift gate: 2.0
+    Reports for people: 4.0
+    Offline: 1.0
+  imputed_attributes: []

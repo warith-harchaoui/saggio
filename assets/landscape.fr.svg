@@ -1,0 +1,361 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1224" height="946" viewBox="0 0 1224 946" role="img" aria-labelledby="sp-title sp-desc" font-family="Roboto, -apple-system, Helvetica, Arial, sans-serif"><title id="sp-title">Outils dans le quadrant</title><desc id="sp-desc">A 2D positioning map of 18 outils, Autonomie to Transparence on the horizontal axis, Flexibilité to Fiabilité on the vertical axis.</desc><style>.sp-dot{cursor:pointer}.sp-dot:hover circle,.sp-dot:focus circle{stroke-width:2.4}.sp-dot:hover,.sp-dot:focus{filter:brightness(1.08);outline:none}</style><line x1="195.3" y1="484.0" x2="987.0" y2="484.0" stroke="#C7C7CC" stroke-width="1.2" stroke-dasharray="2,4"/><line x1="612.0" y1="864.0" x2="612.0" y2="104.0" stroke="#C7C7CC" stroke-width="1.2" stroke-dasharray="2,4"/><text data-pole="right" x="1164.0" y="492.4" font-size="24" font-style="italic" fill="#6E6E73" text-anchor="end">Transparence</text><text data-pole="left" x="60.0" y="492.4" font-size="24" font-style="italic" fill="#6E6E73" text-anchor="start">Autonomie</text><text data-pole="top" x="612.0" y="65.0" font-size="24" font-style="italic" fill="#6E6E73" text-anchor="middle">Fiabilité</text><text data-pole="bottom" x="612.0" y="917.2" font-size="24" font-style="italic" fill="#6E6E73" text-anchor="middle">Flexibilité</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: saggio
+Modèle par unité: 5
+Provenance sur chaque chiffre: 5
+Multi-dimension: 5
+Artefact versionné: 5
+Mesure la puissance: 4
+La charge, pas la machine: 2
+Estime sans exécuter: 4
+Barrière de dérive: 5
+Rapports lisibles: 5
+Hors ligne: 5"><circle cx="912.0" cy="259.0" r="7.84" fill="#FF3B30" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: saggio
+Modèle par unité: 5
+Provenance sur chaque chiffre: 5
+Multi-dimension: 5
+Artefact versionné: 5
+Mesure la puissance: 4
+La charge, pas la machine: 2
+Estime sans exécuter: 4
+Barrière de dérive: 5
+Rapports lisibles: 5
+Hors ligne: 5</title></g><text x="924.5" y="264.2" font-size="15" fill="#1C1C1E" text-anchor="start">saggio</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: CodeCarbon
+Modèle par unité: 2
+Provenance sur chaque chiffre: 2
+Multi-dimension: 2
+Artefact versionné: 2
+Mesure la puissance: 4
+La charge, pas la machine: 3
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 3
+Hors ligne: 3"><circle cx="535.6" cy="447.6" r="7.84" fill="#00AEBE" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: CodeCarbon
+Modèle par unité: 2
+Provenance sur chaque chiffre: 2
+Multi-dimension: 2
+Artefact versionné: 2
+Mesure la puissance: 4
+La charge, pas la machine: 3
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 3
+Hors ligne: 3</title></g><text x="548.1" y="440.3" font-size="15" fill="#1C1C1E" text-anchor="start">CodeCarbon</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Calculateur Green Algorithms
+Modèle par unité: 3
+Provenance sur chaque chiffre: 4
+Multi-dimension: 3
+Artefact versionné: 1
+Mesure la puissance: 1
+La charge, pas la machine: 2
+Estime sans exécuter: 5
+Barrière de dérive: 1
+Rapports lisibles: 3
+Hors ligne: 1"><circle cx="883.2" cy="605.5" r="7.84" fill="#A7CF75" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Calculateur Green Algorithms
+Modèle par unité: 3
+Provenance sur chaque chiffre: 4
+Multi-dimension: 3
+Artefact versionné: 1
+Mesure la puissance: 1
+La charge, pas la machine: 2
+Estime sans exécuter: 5
+Barrière de dérive: 1
+Rapports lisibles: 3
+Hors ligne: 1</title></g><text x="870.7" y="642.8" font-size="15" fill="#1C1C1E" text-anchor="end">Calculateur Green Algorithms</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Scaphandre
+Modèle par unité: 1
+Provenance sur chaque chiffre: 2
+Multi-dimension: 1
+Artefact versionné: 1
+Mesure la puissance: 5
+La charge, pas la machine: 5
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 2
+Hors ligne: 5"><circle cx="312.0" cy="429.2" r="7.84" fill="#B487D9" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Scaphandre
+Modèle par unité: 1
+Provenance sur chaque chiffre: 2
+Multi-dimension: 1
+Artefact versionné: 1
+Mesure la puissance: 5
+La charge, pas la machine: 5
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 2
+Hors ligne: 5</title></g><text x="299.5" y="434.4" font-size="15" fill="#1C1C1E" text-anchor="end">Scaphandre</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: PowerAPI / pyJoules
+Modèle par unité: 2
+Provenance sur chaque chiffre: 2
+Multi-dimension: 1
+Artefact versionné: 1
+Mesure la puissance: 5
+La charge, pas la machine: 4
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 1
+Hors ligne: 5"><circle cx="328.6" cy="411.6" r="7.84" fill="#A1A1F8" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: PowerAPI / pyJoules
+Modèle par unité: 2
+Provenance sur chaque chiffre: 2
+Multi-dimension: 1
+Artefact versionné: 1
+Mesure la puissance: 5
+La charge, pas la machine: 4
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 1
+Hors ligne: 5</title></g><text x="341.1" y="448.8" font-size="15" fill="#1C1C1E" text-anchor="start">PowerAPI / pyJoules</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: JoularJX / PowerJoular
+Modèle par unité: 2
+Provenance sur chaque chiffre: 2
+Multi-dimension: 1
+Artefact versionné: 1
+Mesure la puissance: 5
+La charge, pas la machine: 5
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 2
+Hors ligne: 5"><circle cx="333.1" cy="387.6" r="7.84" fill="#81B7FF" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: JoularJX / PowerJoular
+Modèle par unité: 2
+Provenance sur chaque chiffre: 2
+Multi-dimension: 1
+Artefact versionné: 1
+Mesure la puissance: 5
+La charge, pas la machine: 5
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 2
+Hors ligne: 5</title></g><text x="345.6" y="424.8" font-size="15" fill="#1C1C1E" text-anchor="start">JoularJX / PowerJoular</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Kepler
+Modèle par unité: 1
+Provenance sur chaque chiffre: 2
+Multi-dimension: 2
+Artefact versionné: 1
+Mesure la puissance: 4
+La charge, pas la machine: 4
+Estime sans exécuter: 2
+Barrière de dérive: 1
+Rapports lisibles: 2
+Hors ligne: 4"><circle cx="434.3" cy="489.4" r="7.84" fill="#CC6C8C" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Kepler
+Modèle par unité: 1
+Provenance sur chaque chiffre: 2
+Multi-dimension: 2
+Artefact versionné: 1
+Mesure la puissance: 4
+La charge, pas la machine: 4
+Estime sans exécuter: 2
+Barrière de dérive: 1
+Rapports lisibles: 2
+Hors ligne: 4</title></g><text x="473.8" y="553.6" font-size="15" fill="#1C1C1E" text-anchor="start">Kepler</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: CEEMS
+Modèle par unité: 2
+Provenance sur chaque chiffre: 2
+Multi-dimension: 2
+Artefact versionné: 1
+Mesure la puissance: 5
+La charge, pas la machine: 5
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 3
+Hors ligne: 4"><circle cx="414.7" cy="392.3" r="7.84" fill="#0392C4" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: CEEMS
+Modèle par unité: 2
+Provenance sur chaque chiffre: 2
+Multi-dimension: 2
+Artefact versionné: 1
+Mesure la puissance: 5
+La charge, pas la machine: 5
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 3
+Hors ligne: 4</title></g><text x="427.2" y="397.5" font-size="15" fill="#1C1C1E" text-anchor="start">CEEMS</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: eco2AI
+Modèle par unité: 2
+Provenance sur chaque chiffre: 2
+Multi-dimension: 2
+Artefact versionné: 2
+Mesure la puissance: 3
+La charge, pas la machine: 3
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 2
+Hors ligne: 3"><circle cx="523.4" cy="480.4" r="7.84" fill="#B86CAA" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: eco2AI
+Modèle par unité: 2
+Provenance sur chaque chiffre: 2
+Multi-dimension: 2
+Artefact versionné: 2
+Mesure la puissance: 3
+La charge, pas la machine: 3
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 2
+Hors ligne: 3</title></g><text x="535.9" y="473.2" font-size="15" fill="#1C1C1E" text-anchor="start">eco2AI</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: carbontracker
+Modèle par unité: 2
+Provenance sur chaque chiffre: 2
+Multi-dimension: 2
+Artefact versionné: 1
+Mesure la puissance: 4
+La charge, pas la machine: 3
+Estime sans exécuter: 3
+Barrière de dérive: 1
+Rapports lisibles: 2
+Hors ligne: 2"><circle cx="549.5" cy="546.1" r="7.84" fill="#EB867E" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: carbontracker
+Modèle par unité: 2
+Provenance sur chaque chiffre: 2
+Multi-dimension: 2
+Artefact versionné: 1
+Mesure la puissance: 4
+La charge, pas la machine: 3
+Estime sans exécuter: 3
+Barrière de dérive: 1
+Rapports lisibles: 2
+Hors ligne: 2</title></g><text x="562.0" y="551.3" font-size="15" fill="#1C1C1E" text-anchor="start">carbontracker</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: EcoLogits
+Modèle par unité: 4
+Provenance sur chaque chiffre: 3
+Multi-dimension: 2
+Artefact versionné: 1
+Mesure la puissance: 1
+La charge, pas la machine: 4
+Estime sans exécuter: 2
+Barrière de dérive: 1
+Rapports lisibles: 2
+Hors ligne: 3"><circle cx="626.7" cy="481.0" r="7.84" fill="#00AC97" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: EcoLogits
+Modèle par unité: 4
+Provenance sur chaque chiffre: 3
+Multi-dimension: 2
+Artefact versionné: 1
+Mesure la puissance: 1
+La charge, pas la machine: 4
+Estime sans exécuter: 2
+Barrière de dérive: 1
+Rapports lisibles: 2
+Hors ligne: 3</title></g><text x="639.2" y="473.7" font-size="15" fill="#1C1C1E" text-anchor="start">EcoLogits</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: EnergiBridge
+Modèle par unité: 1
+Provenance sur chaque chiffre: 2
+Multi-dimension: 1
+Artefact versionné: 1
+Mesure la puissance: 5
+La charge, pas la machine: 2
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 1
+Hors ligne: 5"><circle cx="364.7" cy="493.0" r="7.84" fill="#A52A2A" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: EnergiBridge
+Modèle par unité: 1
+Provenance sur chaque chiffre: 2
+Multi-dimension: 1
+Artefact versionné: 1
+Mesure la puissance: 5
+La charge, pas la machine: 2
+Estime sans exécuter: 1
+Barrière de dérive: 1
+Rapports lisibles: 1
+Hors ligne: 5</title></g><text x="377.2" y="530.2" font-size="15" fill="#1C1C1E" text-anchor="start">EnergiBridge</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Green Metrics Tool / Eco-CI
+Modèle par unité: 3
+Provenance sur chaque chiffre: 3
+Multi-dimension: 2
+Artefact versionné: 3
+Mesure la puissance: 4
+La charge, pas la machine: 4
+Estime sans exécuter: 2
+Barrière de dérive: 4
+Rapports lisibles: 4
+Hors ligne: 3"><circle cx="713.8" cy="259.0" r="7.84" fill="#AF52DE" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Green Metrics Tool / Eco-CI
+Modèle par unité: 3
+Provenance sur chaque chiffre: 3
+Multi-dimension: 2
+Artefact versionné: 3
+Mesure la puissance: 4
+La charge, pas la machine: 4
+Estime sans exécuter: 2
+Barrière de dérive: 4
+Rapports lisibles: 4
+Hors ligne: 3</title></g><text x="701.3" y="264.2" font-size="15" fill="#1C1C1E" text-anchor="end">Green Metrics Tool / Eco-CI</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Cloud Carbon Footprint
+Modèle par unité: 1
+Provenance sur chaque chiffre: 3
+Multi-dimension: 3
+Artefact versionné: 1
+Mesure la puissance: 1
+La charge, pas la machine: 2
+Estime sans exécuter: 3
+Barrière de dérive: 1
+Rapports lisibles: 4
+Hors ligne: 1"><circle cx="780.2" cy="686.7" r="7.84" fill="#C9BD57" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Cloud Carbon Footprint
+Modèle par unité: 1
+Provenance sur chaque chiffre: 3
+Multi-dimension: 3
+Artefact versionné: 1
+Mesure la puissance: 1
+La charge, pas la machine: 2
+Estime sans exécuter: 3
+Barrière de dérive: 1
+Rapports lisibles: 4
+Hors ligne: 1</title></g><text x="792.7" y="691.9" font-size="15" fill="#1C1C1E" text-anchor="start">Cloud Carbon Footprint</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Carbonifer
+Modèle par unité: 2
+Provenance sur chaque chiffre: 3
+Multi-dimension: 2
+Artefact versionné: 2
+Mesure la puissance: 1
+La charge, pas la machine: 3
+Estime sans exécuter: 5
+Barrière de dérive: 4
+Rapports lisibles: 3
+Hors ligne: 3"><circle cx="802.0" cy="470.2" r="7.84" fill="#5BB97E" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Carbonifer
+Modèle par unité: 2
+Provenance sur chaque chiffre: 3
+Multi-dimension: 2
+Artefact versionné: 2
+Mesure la puissance: 1
+La charge, pas la machine: 3
+Estime sans exécuter: 5
+Barrière de dérive: 4
+Rapports lisibles: 3
+Hors ligne: 3</title></g><text x="814.5" y="475.5" font-size="15" fill="#1C1C1E" text-anchor="start">Carbonifer</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Infracost
+Modèle par unité: 3
+Provenance sur chaque chiffre: 3
+Multi-dimension: 1
+Artefact versionné: 3
+Mesure la puissance: 1
+La charge, pas la machine: 3
+Estime sans exécuter: 5
+Barrière de dérive: 5
+Rapports lisibles: 4
+Hors ligne: 1"><circle cx="912.0" cy="455.7" r="7.84" fill="#007AFF" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Infracost
+Modèle par unité: 3
+Provenance sur chaque chiffre: 3
+Multi-dimension: 1
+Artefact versionné: 3
+Mesure la puissance: 1
+La charge, pas la machine: 3
+Estime sans exécuter: 5
+Barrière de dérive: 5
+Rapports lisibles: 4
+Hors ligne: 1</title></g><text x="924.5" y="461.0" font-size="15" fill="#1C1C1E" text-anchor="start">Infracost</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: OpenCost / Kubecost
+Modèle par unité: 2
+Provenance sur chaque chiffre: 3
+Multi-dimension: 2
+Artefact versionné: 1
+Mesure la puissance: 1
+La charge, pas la machine: 4
+Estime sans exécuter: 2
+Barrière de dérive: 2
+Rapports lisibles: 4
+Hors ligne: 1"><circle cx="712.2" cy="609.1" r="7.84" fill="#DDA54B" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: OpenCost / Kubecost
+Modèle par unité: 2
+Provenance sur chaque chiffre: 3
+Multi-dimension: 2
+Artefact versionné: 1
+Mesure la puissance: 1
+La charge, pas la machine: 4
+Estime sans exécuter: 2
+Barrière de dérive: 2
+Rapports lisibles: 4
+Hors ligne: 1</title></g><text x="699.7" y="614.3" font-size="15" fill="#1C1C1E" text-anchor="end">OpenCost / Kubecost</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Consoles de facturation cloud
+Modèle par unité: 1
+Provenance sur chaque chiffre: 4
+Multi-dimension: 1
+Artefact versionné: 1
+Mesure la puissance: 1
+La charge, pas la machine: 2
+Estime sans exécuter: 1
+Barrière de dérive: 2
+Rapports lisibles: 4
+Hors ligne: 1"><circle cx="741.5" cy="709.0" r="7.84" fill="#FFAC76" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Consoles de facturation cloud
+Modèle par unité: 1
+Provenance sur chaque chiffre: 4
+Multi-dimension: 1
+Artefact versionné: 1
+Mesure la puissance: 1
+La charge, pas la machine: 2
+Estime sans exécuter: 1
+Barrière de dérive: 2
+Rapports lisibles: 4
+Hors ligne: 1</title></g><text x="729.0" y="714.2" font-size="15" fill="#1C1C1E" text-anchor="end">Consoles de facturation cloud</text><text x="612.0" y="26" font-size="18" font-weight="bold" fill="#000" text-anchor="middle">Outils dans le quadrant</text></svg>

@@ -14,6 +14,60 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### Eighteen tools, ten criteria, and a column this package comes last in
+
+`LANDSCAPE.md` and `PAYSAGE.md` were read against the field again. Four tools
+join the scored table — JoularJX and PowerJoular, CEEMS, Green Metrics Tool and
+Eco-CI, Carbonifer — and four more are described without being scored: the AI
+Energy Score, Electricity Maps and WattTime, Carbonlog, and the FinOps Open Cost
+and Usage Specification.
+
+**A tenth criterion, and it is the one this package is worst at.** Every other
+column asks what comes out of a tool. The new one asks what the number is *of*:
+a counter meters hardware, so whose work does the figure describe? Scaphandre,
+JoularJX, Kepler and CEEMS attribute power to a process, a method, a container,
+a scheduled job. This package does not, and now scores last for it, tied with
+three tools that do not measure at all. The gap was already written in prose at
+the bottom of the page and scored nowhere, which is the comfortable way to carry
+a weakness.
+
+**What the page took from the others, said out loud.** A new section records
+six ideas: the one that changed the page (a rating has to say which cohort and
+which date it is relative to — the AI Energy Score says so in its own first
+lines and this page did not), the one that changed what the table measures (the
+column above), two refusals with their reasons written down (EcoLogits'
+`RangeValue`, and the ecoinvent pedigree matrix, which is strictly richer than
+four statuses and would need a calibration this package does not have), one
+limit now named on a projection, and one vocabulary this package will have to
+learn when carbon lands in OpenTelemetry.
+
+**The French page now shows a French map.** Both halves had been showing the
+same English-labelled positioning map. There are two now, named in their own
+languages from the same numbers rather than translated from each other, and the
+site's two home pages show one each.
+
+**The map's numbers are derived, not transcribed.**
+`assets/make_landscape_map.py` reads the star rows off each page and writes the
+numeric table `standpoint` is run on, so the map cannot quietly describe a
+cohort the page no longer rates. A contract test holds the committed
+coordinates to the ratings themselves, not merely to the names.
+
+**One more figure, in both languages.** `assets/make_landscape_figure.py` draws
+the four links of the question — what ran, what it drew, what that costs, per
+what and how well founded — with the tools that answer each best underneath, and
+this package's own four statuses used on itself: `measured`, `TODO`,
+`estimated`, `measured`. The `TODO` is the second link, and it is the point of
+the drawing.
+
+**And a defect in the figure machinery, found while using it.** `wrap()` broke
+lines with `str.split()`, which treats every Unicode space alike — including the
+no-break space this package's own `saggio.i18n` writes before a French per-cent
+sign and the narrow one it groups French digits with. A line could have broken
+at the character written to stop it, and the halves would have been rejoined
+with an ordinary space, deleting it. No committed figure carried such a number;
+the first French figure to quote a grouped one would have carried the defect.
+
+
 ### Three figures on the front page, each drawn from the file it describes
 
 The two front pages explain in prose three things that are hard to carry in

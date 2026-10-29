@@ -1,0 +1,377 @@
+meta:
+  reference: saggio
+  rotation_deg: 11.526
+  explained_variance_ratio:
+  - 0.5034
+  - 0.2079
+  cumulative_variance: 0.7113
+  n_approaches: 18
+  attributes:
+  - Modèle par unité
+  - Provenance sur chaque chiffre
+  - Multi-dimension
+  - Artefact versionné
+  - Mesure la puissance
+  - La charge, pas la machine
+  - Estime sans exécuter
+  - Barrière de dérive
+  - Rapports lisibles
+  - Hors ligne
+  lower_is_better: []
+  imputed_cells: []
+axes:
+  axis_1:
+    name: Autonomie ↔ Transparence
+    pole_left: Autonomie
+    pole_right: Transparence
+    loadings:
+      Modèle par unité: 0.2246
+      Provenance sur chaque chiffre: 0.3923
+      Multi-dimension: 0.2682
+      Artefact versionné: 0.233
+      Mesure la puissance: -0.3588
+      La charge, pas la machine: -0.3004
+      Estime sans exécuter: 0.3591
+      Barrière de dérive: 0.2918
+      Rapports lisibles: 0.3697
+      Hors ligne: -0.3157
+  axis_2:
+    name: Flexibilité ↔ Fiabilité
+    pole_bottom: Flexibilité
+    pole_top: Fiabilité
+    loadings:
+      Modèle par unité: 0.3878
+      Provenance sur chaque chiffre: 0.0584
+      Multi-dimension: 0.2459
+      Artefact versionné: 0.4728
+      Mesure la puissance: 0.4307
+      La charge, pas la machine: 0.1833
+      Estime sans exécuter: -0.0364
+      Barrière de dérive: 0.2833
+      Rapports lisibles: 0.0401
+      Hors ligne: 0.5099
+approaches:
+- name: saggio
+  coordinates:
+    axis_1: 2.9854
+    axis_2: 1.9659
+  role: best
+  color: '#FF3B30'
+  attributes:
+    Modèle par unité: 5.0
+    Provenance sur chaque chiffre: 5.0
+    Multi-dimension: 5.0
+    Artefact versionné: 5.0
+    Mesure la puissance: 4.0
+    La charge, pas la machine: 2.0
+    Estime sans exécuter: 4.0
+    Barrière de dérive: 5.0
+    Rapports lisibles: 5.0
+    Hors ligne: 5.0
+  imputed_attributes: []
+- name: CodeCarbon
+  coordinates:
+    axis_1: -0.7603
+    axis_2: 0.3181
+  role: competitor
+  color: '#00AEBE'
+  attributes:
+    Modèle par unité: 2.0
+    Provenance sur chaque chiffre: 2.0
+    Multi-dimension: 2.0
+    Artefact versionné: 2.0
+    Mesure la puissance: 4.0
+    La charge, pas la machine: 3.0
+    Estime sans exécuter: 1.0
+    Barrière de dérive: 1.0
+    Rapports lisibles: 3.0
+    Hors ligne: 3.0
+  imputed_attributes: []
+- name: Calculateur Green Algorithms
+  coordinates:
+    axis_1: 2.699
+    axis_2: -1.0618
+  role: competitor
+  color: '#A7CF75'
+  attributes:
+    Modèle par unité: 3.0
+    Provenance sur chaque chiffre: 4.0
+    Multi-dimension: 3.0
+    Artefact versionné: 1.0
+    Mesure la puissance: 1.0
+    La charge, pas la machine: 2.0
+    Estime sans exécuter: 5.0
+    Barrière de dérive: 1.0
+    Rapports lisibles: 3.0
+    Hors ligne: 1.0
+  imputed_attributes: []
+- name: Scaphandre
+  coordinates:
+    axis_1: -2.9854
+    axis_2: 0.479
+  role: competitor
+  color: '#B487D9'
+  attributes:
+    Modèle par unité: 1.0
+    Provenance sur chaque chiffre: 2.0
+    Multi-dimension: 1.0
+    Artefact versionné: 1.0
+    Mesure la puissance: 5.0
+    La charge, pas la machine: 5.0
+    Estime sans exécuter: 1.0
+    Barrière de dérive: 1.0
+    Rapports lisibles: 2.0
+    Hors ligne: 5.0
+  imputed_attributes: []
+- name: PowerAPI / pyJoules
+  coordinates:
+    axis_1: -2.8206
+    axis_2: 0.6326
+  role: competitor
+  color: '#A1A1F8'
+  attributes:
+    Modèle par unité: 2.0
+    Provenance sur chaque chiffre: 2.0
+    Multi-dimension: 1.0
+    Artefact versionné: 1.0
+    Mesure la puissance: 5.0
+    La charge, pas la machine: 4.0
+    Estime sans exécuter: 1.0
+    Barrière de dérive: 1.0
+    Rapports lisibles: 1.0
+    Hors ligne: 5.0
+  imputed_attributes: []
+- name: JoularJX / PowerJoular
+  coordinates:
+    axis_1: -2.775
+    axis_2: 0.8423
+  role: competitor
+  color: '#81B7FF'
+  attributes:
+    Modèle par unité: 2.0
+    Provenance sur chaque chiffre: 2.0
+    Multi-dimension: 1.0
+    Artefact versionné: 1.0
+    Mesure la puissance: 5.0
+    La charge, pas la machine: 5.0
+    Estime sans exécuter: 1.0
+    Barrière de dérive: 1.0
+    Rapports lisibles: 2.0
+    Hors ligne: 5.0
+  imputed_attributes: []
+- name: Kepler
+  coordinates:
+    axis_1: -1.7683
+    axis_2: -0.0472
+  role: competitor
+  color: '#CC6C8C'
+  attributes:
+    Modèle par unité: 1.0
+    Provenance sur chaque chiffre: 2.0
+    Multi-dimension: 2.0
+    Artefact versionné: 1.0
+    Mesure la puissance: 4.0
+    La charge, pas la machine: 4.0
+    Estime sans exécuter: 2.0
+    Barrière de dérive: 1.0
+    Rapports lisibles: 2.0
+    Hors ligne: 4.0
+  imputed_attributes: []
+- name: CEEMS
+  coordinates:
+    axis_1: -1.9634
+    axis_2: 0.8016
+  role: competitor
+  color: '#0392C4'
+  attributes:
+    Modèle par unité: 2.0
+    Provenance sur chaque chiffre: 2.0
+    Multi-dimension: 2.0
+    Artefact versionné: 1.0
+    Mesure la puissance: 5.0
+    La charge, pas la machine: 5.0
+    Estime sans exécuter: 1.0
+    Barrière de dérive: 1.0
+    Rapports lisibles: 3.0
+    Hors ligne: 4.0
+  imputed_attributes: []
+- name: eco2AI
+  coordinates:
+    axis_1: -0.8818
+    axis_2: 0.0311
+  role: competitor
+  color: '#B86CAA'
+  attributes:
+    Modèle par unité: 2.0
+    Provenance sur chaque chiffre: 2.0
+    Multi-dimension: 2.0
+    Artefact versionné: 2.0
+    Mesure la puissance: 3.0
+    La charge, pas la machine: 3.0
+    Estime sans exécuter: 1.0
+    Barrière de dérive: 1.0
+    Rapports lisibles: 2.0
+    Hors ligne: 3.0
+  imputed_attributes: []
+- name: carbontracker
+  coordinates:
+    axis_1: -0.622
+    axis_2: -0.5424
+  role: competitor
+  color: '#EB867E'
+  attributes:
+    Modèle par unité: 2.0
+    Provenance sur chaque chiffre: 2.0
+    Multi-dimension: 2.0
+    Artefact versionné: 1.0
+    Mesure la puissance: 4.0
+    La charge, pas la machine: 3.0
+    Estime sans exécuter: 3.0
+    Barrière de dérive: 1.0
+    Rapports lisibles: 2.0
+    Hors ligne: 2.0
+  imputed_attributes: []
+- name: EcoLogits
+  coordinates:
+    axis_1: 0.1461
+    axis_2: 0.0266
+  role: competitor
+  color: '#00AC97'
+  attributes:
+    Modèle par unité: 4.0
+    Provenance sur chaque chiffre: 3.0
+    Multi-dimension: 2.0
+    Artefact versionné: 1.0
+    Mesure la puissance: 1.0
+    La charge, pas la machine: 4.0
+    Estime sans exécuter: 2.0
+    Barrière de dérive: 1.0
+    Rapports lisibles: 2.0
+    Hors ligne: 3.0
+  imputed_attributes: []
+- name: EnergiBridge
+  coordinates:
+    axis_1: -2.4611
+    axis_2: -0.0785
+  role: worst
+  color: '#A52A2A'
+  attributes:
+    Modèle par unité: 1.0
+    Provenance sur chaque chiffre: 2.0
+    Multi-dimension: 1.0
+    Artefact versionné: 1.0
+    Mesure la puissance: 5.0
+    La charge, pas la machine: 2.0
+    Estime sans exécuter: 1.0
+    Barrière de dérive: 1.0
+    Rapports lisibles: 1.0
+    Hors ligne: 5.0
+  imputed_attributes: []
+- name: Green Metrics Tool / Eco-CI
+  coordinates:
+    axis_1: 1.0128
+    axis_2: 1.9659
+  role: top
+  color: '#AF52DE'
+  attributes:
+    Modèle par unité: 3.0
+    Provenance sur chaque chiffre: 3.0
+    Multi-dimension: 2.0
+    Artefact versionné: 3.0
+    Mesure la puissance: 4.0
+    La charge, pas la machine: 4.0
+    Estime sans exécuter: 2.0
+    Barrière de dérive: 4.0
+    Rapports lisibles: 4.0
+    Hors ligne: 3.0
+  imputed_attributes: []
+- name: Cloud Carbon Footprint
+  coordinates:
+    axis_1: 1.6735
+    axis_2: -1.7707
+  role: competitor
+  color: '#C9BD57'
+  attributes:
+    Modèle par unité: 1.0
+    Provenance sur chaque chiffre: 3.0
+    Multi-dimension: 3.0
+    Artefact versionné: 1.0
+    Mesure la puissance: 1.0
+    La charge, pas la machine: 2.0
+    Estime sans exécuter: 3.0
+    Barrière de dérive: 1.0
+    Rapports lisibles: 4.0
+    Hors ligne: 1.0
+  imputed_attributes: []
+- name: Carbonifer
+  coordinates:
+    axis_1: 1.891
+    axis_2: 0.1204
+  role: competitor
+  color: '#5BB97E'
+  attributes:
+    Modèle par unité: 2.0
+    Provenance sur chaque chiffre: 3.0
+    Multi-dimension: 2.0
+    Artefact versionné: 2.0
+    Mesure la puissance: 1.0
+    La charge, pas la machine: 3.0
+    Estime sans exécuter: 5.0
+    Barrière de dérive: 4.0
+    Rapports lisibles: 3.0
+    Hors ligne: 3.0
+  imputed_attributes: []
+- name: Infracost
+  coordinates:
+    axis_1: 2.9854
+    axis_2: 0.247
+  role: right
+  color: '#007AFF'
+  attributes:
+    Modèle par unité: 3.0
+    Provenance sur chaque chiffre: 3.0
+    Multi-dimension: 1.0
+    Artefact versionné: 3.0
+    Mesure la puissance: 1.0
+    La charge, pas la machine: 3.0
+    Estime sans exécuter: 5.0
+    Barrière de dérive: 5.0
+    Rapports lisibles: 4.0
+    Hors ligne: 1.0
+  imputed_attributes: []
+- name: OpenCost / Kubecost
+  coordinates:
+    axis_1: 0.9968
+    axis_2: -1.093
+  role: competitor
+  color: '#DDA54B'
+  attributes:
+    Modèle par unité: 2.0
+    Provenance sur chaque chiffre: 3.0
+    Multi-dimension: 2.0
+    Artefact versionné: 1.0
+    Mesure la puissance: 1.0
+    La charge, pas la machine: 4.0
+    Estime sans exécuter: 2.0
+    Barrière de dérive: 2.0
+    Rapports lisibles: 4.0
+    Hors ligne: 1.0
+  imputed_attributes: []
+- name: Consoles de facturation cloud
+  coordinates:
+    axis_1: 1.289
+    axis_2: -1.9659
+  role: competitor
+  color: '#FFAC76'
+  attributes:
+    Modèle par unité: 1.0
+    Provenance sur chaque chiffre: 4.0
+    Multi-dimension: 1.0
+    Artefact versionné: 1.0
+    Mesure la puissance: 1.0
+    La charge, pas la machine: 2.0
+    Estime sans exécuter: 1.0
+    Barrière de dérive: 2.0
+    Rapports lisibles: 4.0
+    Hors ligne: 1.0
+  imputed_attributes: []

@@ -1,0 +1,361 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1224" height="946" viewBox="0 0 1224 946" role="img" aria-labelledby="sp-title sp-desc" font-family="Roboto, -apple-system, Helvetica, Arial, sans-serif"><rect width="1224" height="946" fill="#FFFFFF"/><title id="sp-title">Tools in the Quadrant</title><desc id="sp-desc">A 2D positioning map of 18 tools, Controlled to Transparent on the horizontal axis, Adaptable to Reliable on the vertical axis.</desc><style>.sp-dot{cursor:pointer}.sp-dot:hover circle,.sp-dot:focus circle{stroke-width:2.4}.sp-dot:hover,.sp-dot:focus{filter:brightness(1.08);outline:none}</style><line x1="209.2" y1="484.0" x2="1000.9" y2="484.0" stroke="#C7C7CC" stroke-width="1.2" stroke-dasharray="2,4"/><line x1="612.0" y1="864.0" x2="612.0" y2="104.0" stroke="#C7C7CC" stroke-width="1.2" stroke-dasharray="2,4"/><text data-pole="right" x="1164.0" y="492.4" font-size="24" font-style="italic" fill="#6E6E73" text-anchor="end">Transparent</text><text data-pole="left" x="60.0" y="492.4" font-size="24" font-style="italic" fill="#6E6E73" text-anchor="start">Controlled</text><text data-pole="top" x="612.0" y="65.0" font-size="24" font-style="italic" fill="#6E6E73" text-anchor="middle">Reliable</text><text data-pole="bottom" x="612.0" y="917.2" font-size="24" font-style="italic" fill="#6E6E73" text-anchor="middle">Adaptable</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: saggio
+Per-unit model: 5
+Provenance on every number: 5
+Multi-dimension: 5
+Committed artefact: 5
+Measures power: 4
+Workload, not machine: 2
+Estimates without running: 4
+Drift gate: 5
+Reports for people: 5
+Offline: 5"><circle cx="912.0" cy="259.0" r="7.84" fill="#FF3B30" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: saggio
+Per-unit model: 5
+Provenance on every number: 5
+Multi-dimension: 5
+Committed artefact: 5
+Measures power: 4
+Workload, not machine: 2
+Estimates without running: 4
+Drift gate: 5
+Reports for people: 5
+Offline: 5</title></g><text x="924.5" y="264.2" font-size="15" fill="#1C1C1E" text-anchor="start">saggio</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: CodeCarbon
+Per-unit model: 2
+Provenance on every number: 2
+Multi-dimension: 2
+Committed artefact: 2
+Measures power: 4
+Workload, not machine: 3
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 3
+Offline: 3"><circle cx="535.6" cy="447.6" r="7.84" fill="#00AEBE" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: CodeCarbon
+Per-unit model: 2
+Provenance on every number: 2
+Multi-dimension: 2
+Committed artefact: 2
+Measures power: 4
+Workload, not machine: 3
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 3
+Offline: 3</title></g><text x="548.1" y="440.3" font-size="15" fill="#1C1C1E" text-anchor="start">CodeCarbon</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Green Algorithms calculator
+Per-unit model: 3
+Provenance on every number: 4
+Multi-dimension: 3
+Committed artefact: 1
+Measures power: 1
+Workload, not machine: 2
+Estimates without running: 5
+Drift gate: 1
+Reports for people: 3
+Offline: 1"><circle cx="883.2" cy="605.5" r="7.84" fill="#ACD47A" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Green Algorithms calculator
+Per-unit model: 3
+Provenance on every number: 4
+Multi-dimension: 3
+Committed artefact: 1
+Measures power: 1
+Workload, not machine: 2
+Estimates without running: 5
+Drift gate: 1
+Reports for people: 3
+Offline: 1</title></g><text x="870.7" y="642.8" font-size="15" fill="#1C1C1E" text-anchor="end">Green Algorithms calculator</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Scaphandre
+Per-unit model: 1
+Provenance on every number: 2
+Multi-dimension: 1
+Committed artefact: 1
+Measures power: 5
+Workload, not machine: 5
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 2
+Offline: 5"><circle cx="312.0" cy="429.2" r="7.84" fill="#B487D9" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Scaphandre
+Per-unit model: 1
+Provenance on every number: 2
+Multi-dimension: 1
+Committed artefact: 1
+Measures power: 5
+Workload, not machine: 5
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 2
+Offline: 5</title></g><text x="299.5" y="434.4" font-size="15" fill="#1C1C1E" text-anchor="end">Scaphandre</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: PowerAPI / pyJoules
+Per-unit model: 2
+Provenance on every number: 2
+Multi-dimension: 1
+Committed artefact: 1
+Measures power: 5
+Workload, not machine: 4
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 1
+Offline: 5"><circle cx="328.6" cy="411.6" r="7.84" fill="#A1A1F8" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: PowerAPI / pyJoules
+Per-unit model: 2
+Provenance on every number: 2
+Multi-dimension: 1
+Committed artefact: 1
+Measures power: 5
+Workload, not machine: 4
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 1
+Offline: 5</title></g><text x="341.1" y="448.8" font-size="15" fill="#1C1C1E" text-anchor="start">PowerAPI / pyJoules</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: JoularJX / PowerJoular
+Per-unit model: 2
+Provenance on every number: 2
+Multi-dimension: 1
+Committed artefact: 1
+Measures power: 5
+Workload, not machine: 5
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 2
+Offline: 5"><circle cx="333.1" cy="387.6" r="7.84" fill="#81B7FF" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: JoularJX / PowerJoular
+Per-unit model: 2
+Provenance on every number: 2
+Multi-dimension: 1
+Committed artefact: 1
+Measures power: 5
+Workload, not machine: 5
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 2
+Offline: 5</title></g><text x="345.6" y="424.8" font-size="15" fill="#1C1C1E" text-anchor="start">JoularJX / PowerJoular</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Kepler
+Per-unit model: 1
+Provenance on every number: 2
+Multi-dimension: 2
+Committed artefact: 1
+Measures power: 4
+Workload, not machine: 4
+Estimates without running: 2
+Drift gate: 1
+Reports for people: 2
+Offline: 4"><circle cx="434.3" cy="489.4" r="7.84" fill="#CC6C8C" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Kepler
+Per-unit model: 1
+Provenance on every number: 2
+Multi-dimension: 2
+Committed artefact: 1
+Measures power: 4
+Workload, not machine: 4
+Estimates without running: 2
+Drift gate: 1
+Reports for people: 2
+Offline: 4</title></g><text x="473.8" y="553.6" font-size="15" fill="#1C1C1E" text-anchor="start">Kepler</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: CEEMS
+Per-unit model: 2
+Provenance on every number: 2
+Multi-dimension: 2
+Committed artefact: 1
+Measures power: 5
+Workload, not machine: 5
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 3
+Offline: 4"><circle cx="414.7" cy="392.3" r="7.84" fill="#0392C4" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: CEEMS
+Per-unit model: 2
+Provenance on every number: 2
+Multi-dimension: 2
+Committed artefact: 1
+Measures power: 5
+Workload, not machine: 5
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 3
+Offline: 4</title></g><text x="427.2" y="397.5" font-size="15" fill="#1C1C1E" text-anchor="start">CEEMS</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: eco2AI
+Per-unit model: 2
+Provenance on every number: 2
+Multi-dimension: 2
+Committed artefact: 2
+Measures power: 3
+Workload, not machine: 3
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 2
+Offline: 3"><circle cx="523.4" cy="480.4" r="7.84" fill="#B86CAA" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: eco2AI
+Per-unit model: 2
+Provenance on every number: 2
+Multi-dimension: 2
+Committed artefact: 2
+Measures power: 3
+Workload, not machine: 3
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 2
+Offline: 3</title></g><text x="535.9" y="473.2" font-size="15" fill="#1C1C1E" text-anchor="start">eco2AI</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: carbontracker
+Per-unit model: 2
+Provenance on every number: 2
+Multi-dimension: 2
+Committed artefact: 1
+Measures power: 4
+Workload, not machine: 3
+Estimates without running: 3
+Drift gate: 1
+Reports for people: 2
+Offline: 2"><circle cx="549.5" cy="546.1" r="7.84" fill="#EB867E" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: carbontracker
+Per-unit model: 2
+Provenance on every number: 2
+Multi-dimension: 2
+Committed artefact: 1
+Measures power: 4
+Workload, not machine: 3
+Estimates without running: 3
+Drift gate: 1
+Reports for people: 2
+Offline: 2</title></g><text x="562.0" y="551.3" font-size="15" fill="#1C1C1E" text-anchor="start">carbontracker</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: EcoLogits
+Per-unit model: 4
+Provenance on every number: 3
+Multi-dimension: 2
+Committed artefact: 1
+Measures power: 1
+Workload, not machine: 4
+Estimates without running: 2
+Drift gate: 1
+Reports for people: 2
+Offline: 3"><circle cx="626.7" cy="481.0" r="7.84" fill="#00AC97" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: EcoLogits
+Per-unit model: 4
+Provenance on every number: 3
+Multi-dimension: 2
+Committed artefact: 1
+Measures power: 1
+Workload, not machine: 4
+Estimates without running: 2
+Drift gate: 1
+Reports for people: 2
+Offline: 3</title></g><text x="639.2" y="473.7" font-size="15" fill="#1C1C1E" text-anchor="start">EcoLogits</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: EnergiBridge
+Per-unit model: 1
+Provenance on every number: 2
+Multi-dimension: 1
+Committed artefact: 1
+Measures power: 5
+Workload, not machine: 2
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 1
+Offline: 5"><circle cx="364.7" cy="493.0" r="7.84" fill="#A52A2A" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: EnergiBridge
+Per-unit model: 1
+Provenance on every number: 2
+Multi-dimension: 1
+Committed artefact: 1
+Measures power: 5
+Workload, not machine: 2
+Estimates without running: 1
+Drift gate: 1
+Reports for people: 1
+Offline: 5</title></g><text x="377.2" y="530.2" font-size="15" fill="#1C1C1E" text-anchor="start">EnergiBridge</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Green Metrics Tool / Eco-CI
+Per-unit model: 3
+Provenance on every number: 3
+Multi-dimension: 2
+Committed artefact: 3
+Measures power: 4
+Workload, not machine: 4
+Estimates without running: 2
+Drift gate: 4
+Reports for people: 4
+Offline: 3"><circle cx="713.8" cy="259.0" r="7.84" fill="#AF52DE" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Green Metrics Tool / Eco-CI
+Per-unit model: 3
+Provenance on every number: 3
+Multi-dimension: 2
+Committed artefact: 3
+Measures power: 4
+Workload, not machine: 4
+Estimates without running: 2
+Drift gate: 4
+Reports for people: 4
+Offline: 3</title></g><text x="701.3" y="264.2" font-size="15" fill="#1C1C1E" text-anchor="end">Green Metrics Tool / Eco-CI</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Cloud Carbon Footprint
+Per-unit model: 1
+Provenance on every number: 3
+Multi-dimension: 3
+Committed artefact: 1
+Measures power: 1
+Workload, not machine: 2
+Estimates without running: 3
+Drift gate: 1
+Reports for people: 4
+Offline: 1"><circle cx="780.2" cy="686.7" r="7.84" fill="#C9BD57" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Cloud Carbon Footprint
+Per-unit model: 1
+Provenance on every number: 3
+Multi-dimension: 3
+Committed artefact: 1
+Measures power: 1
+Workload, not machine: 2
+Estimates without running: 3
+Drift gate: 1
+Reports for people: 4
+Offline: 1</title></g><text x="792.7" y="691.9" font-size="15" fill="#1C1C1E" text-anchor="start">Cloud Carbon Footprint</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Carbonifer
+Per-unit model: 2
+Provenance on every number: 3
+Multi-dimension: 2
+Committed artefact: 2
+Measures power: 1
+Workload, not machine: 3
+Estimates without running: 5
+Drift gate: 4
+Reports for people: 3
+Offline: 3"><circle cx="802.0" cy="470.2" r="7.84" fill="#5BB97E" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Carbonifer
+Per-unit model: 2
+Provenance on every number: 3
+Multi-dimension: 2
+Committed artefact: 2
+Measures power: 1
+Workload, not machine: 3
+Estimates without running: 5
+Drift gate: 4
+Reports for people: 3
+Offline: 3</title></g><text x="814.5" y="475.5" font-size="15" fill="#1C1C1E" text-anchor="start">Carbonifer</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Infracost
+Per-unit model: 3
+Provenance on every number: 3
+Multi-dimension: 1
+Committed artefact: 3
+Measures power: 1
+Workload, not machine: 3
+Estimates without running: 5
+Drift gate: 5
+Reports for people: 4
+Offline: 1"><circle cx="912.0" cy="455.7" r="7.84" fill="#007AFF" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Infracost
+Per-unit model: 3
+Provenance on every number: 3
+Multi-dimension: 1
+Committed artefact: 3
+Measures power: 1
+Workload, not machine: 3
+Estimates without running: 5
+Drift gate: 5
+Reports for people: 4
+Offline: 1</title></g><text x="924.5" y="461.0" font-size="15" fill="#1C1C1E" text-anchor="start">Infracost</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: OpenCost / Kubecost
+Per-unit model: 2
+Provenance on every number: 3
+Multi-dimension: 2
+Committed artefact: 1
+Measures power: 1
+Workload, not machine: 4
+Estimates without running: 2
+Drift gate: 2
+Reports for people: 4
+Offline: 1"><circle cx="712.2" cy="609.1" r="7.84" fill="#DDA54B" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: OpenCost / Kubecost
+Per-unit model: 2
+Provenance on every number: 3
+Multi-dimension: 2
+Committed artefact: 1
+Measures power: 1
+Workload, not machine: 4
+Estimates without running: 2
+Drift gate: 2
+Reports for people: 4
+Offline: 1</title></g><text x="699.7" y="614.3" font-size="15" fill="#1C1C1E" text-anchor="end">OpenCost / Kubecost</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Cloud billing consoles
+Per-unit model: 1
+Provenance on every number: 4
+Multi-dimension: 1
+Committed artefact: 1
+Measures power: 1
+Workload, not machine: 2
+Estimates without running: 1
+Drift gate: 2
+Reports for people: 4
+Offline: 1"><circle cx="741.5" cy="709.0" r="7.84" fill="#FFA772" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Cloud billing consoles
+Per-unit model: 1
+Provenance on every number: 4
+Multi-dimension: 1
+Committed artefact: 1
+Measures power: 1
+Workload, not machine: 2
+Estimates without running: 1
+Drift gate: 2
+Reports for people: 4
+Offline: 1</title></g><text x="729.0" y="714.2" font-size="15" fill="#1C1C1E" text-anchor="end">Cloud billing consoles</text><text x="612.0" y="26" font-size="18" font-weight="bold" fill="#000" text-anchor="middle">Tools in the Quadrant</text></svg>

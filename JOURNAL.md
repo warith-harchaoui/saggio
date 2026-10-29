@@ -16,6 +16,63 @@ endroit-là.
 
 ## Non publié
 
+### Dix-huit outils, dix critères, et une colonne où ce paquet est dernier
+
+`LANDSCAPE.md` et `PAYSAGE.md` ont été relus face au domaine. Quatre outils
+entrent dans le tableau noté — JoularJX et PowerJoular, CEEMS, Green Metrics
+Tool et Eco-CI, Carbonifer — et quatre autres sont décrits sans être notés :
+l'AI Energy Score, Electricity Maps et WattTime, Carbonlog, et la FinOps Open
+Cost and Usage Specification.
+
+**Un dixième critère, et c'est celui où ce paquet est le plus mauvais.** Toutes
+les autres colonnes demandent ce qui sort d'un outil. La nouvelle demande de
+quoi le chiffre est le chiffre : un compteur mesure du matériel, alors de quel
+travail parle la valeur ? Scaphandre, JoularJX, Kepler et CEEMS attribuent la
+puissance à un processus, à une méthode, à un conteneur, à un travail soumis.
+Ce paquet ne le fait pas, et y est désormais dernier, à égalité avec trois
+outils qui ne mesurent rien du tout. Le manque était déjà écrit en prose au bas
+de la page et noté nulle part, ce qui est la façon confortable de porter une
+faiblesse.
+
+**Ce que la page a pris aux autres, dit à voix haute.** Une section neuve
+consigne six idées : celle qui a changé la page (une note doit dire à quelle
+cohorte et à quelle date elle se rapporte — l'AI Energy Score le dit dès ses
+premières lignes, et cette page ne le disait pas), celle qui a changé ce que le
+tableau mesure (la colonne ci-dessus), deux refus dont la raison est écrite (le
+`RangeValue` d'EcoLogits, et la matrice de pedigree d'ecoinvent, strictement
+plus riche que quatre statuts et qui demanderait un étalonnage que ce paquet
+n'a pas), une limite désormais nommée sur une projection, et un vocabulaire que
+ce paquet devra apprendre quand le carbone arrivera dans OpenTelemetry.
+
+**La page française montre enfin une carte française.** Les deux moitiés
+montraient la même carte de positionnement, étiquetée en anglais. Il y en a deux
+maintenant, nommées chacune dans sa langue à partir des mêmes nombres plutôt que
+traduites l'une de l'autre, et les deux pages d'accueil du site en montrent
+chacune une.
+
+**Les nombres de la carte sont dérivés, pas recopiés.**
+`assets/make_landscape_map.py` lit les lignes d'étoiles sur chaque page et écrit
+le tableau numérique sur lequel `standpoint` tourne : la carte ne peut plus
+décrire en silence une cohorte que la page ne note plus. Un test de contrat
+tient les coordonnées commitées aux notes elles-mêmes, et pas seulement aux noms.
+
+**Une figure de plus, dans les deux langues.**
+`assets/make_landscape_figure.py` dessine les quatre maillons de la question —
+ce qui a tourné, ce qu'il a tiré, ce que cela coûte, par quoi et sur quoi cela
+repose — avec dessous les outils qui y répondent le mieux, et les quatre statuts
+de ce paquet appliqués à lui-même : `measured`, `TODO`, `estimated`, `measured`.
+Le `TODO` est le deuxième maillon, et c'est tout le propos du dessin.
+
+**Et un défaut dans la machinerie des figures, trouvé en s'en servant.**
+`wrap()` coupait les lignes avec `str.split()`, qui traite toutes les espaces
+Unicode pareillement — y compris l'espace insécable que le `saggio.i18n` de ce
+paquet écrit devant un signe pour cent français, et la fine avec laquelle il
+groupe les chiffres français. Une ligne pouvait se couper au caractère écrit
+pour l'en empêcher, et les deux moitiés étaient recollées avec une espace
+ordinaire, qui le supprimait. Aucune figure commitée ne portait un tel nombre ;
+la première figure française à en citer un groupé aurait porté le défaut.
+
+
 ### Trois figures en page d'accueil, chacune tracée depuis le fichier qu'elle décrit
 
 Les deux pages d'accueil expliquent en prose trois choses que la prose porte
