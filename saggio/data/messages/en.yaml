@@ -504,6 +504,58 @@ validate.quantity.date_not_calendar: >-
 validate.quantity.stale: >-
   was sourced {age} days ago, past the {limit}-day mark; re-read the source and
   refresh the number
+validate.bracket.not_a_number: >-
+  has a {end} end of {value}, which is not a finite number; an interval end is a
+  number or it is nothing
+validate.bracket.negative: >-
+  has a {end} end of {value}; a cost of running code cannot be negative at
+  either end of its interval
+validate.bracket.half: >-
+  states a {given} end and no {missing} one; half an interval says nothing a
+  reader can use, because the side that is missing is the side they worry about
+validate.bracket.inverted: >-
+  runs from {low} up to {high}, which is backwards; the low end of an interval
+  cannot be above the high one
+validate.bracket.without_a_number: >-
+  is status {status} and still carries an interval; a placeholder or a TODO
+  holds a field open, and an interval is already an answer
+validate.bracket.value_outside: >-
+  states {value}, which is outside the interval {low} to {high} it carries; a
+  number cannot disagree with its own bracket
+validate.quality.unknown_indicator: >-
+  scores {key}, which the pedigree matrix does not define; the indicators are
+  reliability, completeness, temporal, geographical, technological, and
+  sample_size
+validate.quality.score_not_whole: >-
+  scores {key} as {score}; a pedigree indicator takes a whole number from one to
+  five, not a measurement
+validate.quality.score_out_of_range: >-
+  scores {key} as {score}; the pedigree matrix runs from one, the best, to five
+validate.quality.cell_is_blank: >-
+  scores {key} as {score}, and the published matrix leaves that cell blank; it
+  defines no such mode, and an empty cell is not a factor of one
+validate.quality.incomplete: >-
+  scores some indicators and not {missing}; the uncertainty is the five of them
+  combined, so a partial reading would understate it
+validate.quality.no_basic_uncertainty: >-
+  scores its quality and states no basic_uncertainty, so no interval follows;
+  the basic uncertainty depends on the kind of quantity and this package does
+  not supply one
+validate.quality.bad_basic_uncertainty: >-
+  has basic_uncertainty {value}; it is a factor, so it is a number at or above
+  one
+validate.quality.no_bracket: >-
+  scores its quality but states no interval; the scores give {low} to {high},
+  which is what the low and high fields should carry
+validate.quality.bracket_does_not_follow: >-
+  states the interval {stated}, and its own quality scores give {expected}; the
+  interval has to be the one the scores produce
+validate.derivation.bracket_narrows: >-
+  states no interval while {reference} states one; a derived value cannot be
+  known more precisely than the numbers it came from
+validate.derivation.bracket_does_not_follow: >-
+  states the interval {stated}, which does not follow from the intervals of the
+  inputs it names; those give {expected}
 validate.derivation.self: "lists itself in derived_from"
 validate.derivation.unknown_reference: >-
   derives from {reference}, which names nothing in this model

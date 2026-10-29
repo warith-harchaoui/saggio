@@ -244,6 +244,84 @@ them is here. Facility-level figures are not available at all, and will not be:
 Article 5(5) of Delegated Regulation (EU (European Union)) 2024/1364 requires
 the database to be anonymised.
 
+## How precisely, which is not how well founded
+
+The four statuses rank how well *founded* a number is. They say nothing about
+how precisely it is *known*, and the two come apart constantly: a grid intensity
+read from a published national dataset is impeccably sourced and still only
+locates the answer within a fifth, because it is an annual average standing in
+for the mix at the hour your code ran.
+
+So a quantity may carry an interval beside its value:
+
+```yaml
+grid_carbon_intensity:
+  value: 41.2
+  unit: "gCO2e/kWh"
+  status: "estimated"
+  low: 33.827318042561515
+  high: 50.179561911005834
+```
+
+**And the interval propagates, under the same rule as the status.** A derived
+value may not outrank the numbers it came from; it may not out-*resolve* them
+either. The carbon figure computed from that intensity and a measured energy
+cannot be a single number, because one of its inputs is not. The validator
+walks the corners of every input's interval through the same arrangements it
+already uses to recompute the value, and refuses an interval narrower than the
+one the inputs force. Wider is allowed — widening is judgement. Narrower is a
+claim nobody earned.
+
+[`examples/uncertainty.yaml`](examples/uncertainty.yaml) is that one model,
+end to end, and taking the interval off its carbon figure makes it fail.
+
+### Where the interval comes from, when it comes from a judgement
+
+Stating an interval by hand is legitimate and often right. For the commoner
+case — a figure whose uncertainty is a reading of *where it came from* — this
+package implements the **pedigree matrix**, which life-cycle assessment has used
+since Weidema and Wesnaes brought it into the field in 1996, and which ecoinvent
+has applied since 2005.
+
+Five indicators, each scored one to five, one being best: how reliable the
+source, how complete, how recent, how close in geography, how close in
+technology. Each score maps to a published factor, and the factors combine into
+the square of a geometric standard deviation:
+
+```yaml
+quality:
+  reliability: 2
+  completeness: 1
+  temporal: 2
+  geographical: 1
+  technological: 3
+  basic_uncertainty: 1.05
+```
+
+The validator recomputes the interval from those scores and refuses one that
+does not match, exactly as it already does for a derived value.
+
+**Three refusals are built into it, and they are the reason it is worth
+having.**
+
+The published table leaves **two cells blank** — geographical correlation at
+four, further technological correlation at two. A blank is not 1.00. The matrix
+defines no such mode, and a model that scores one is refused rather than given
+the benefit of a doubt the source never extended.
+
+**A partial reading is refused.** The spread is the five indicators combined,
+so scoring four of them would understate it.
+
+And **`basic_uncertainty` is yours to state.** In the source it comes from a
+table indexed by the kind of flow — thermal energy, transport services, carbon
+dioxide emitted to air — and those rows describe an inventory of industrial
+processes, not the dimensions carried here. Transposing them would be inventing
+a calibration. Leave it out and the scores produce no interval at all, and the
+report says so: the same answer this package gives to a country nobody named.
+
+The assumption the method rests on is the one its own sources state and this
+page repeats rather than buries: that the quantity is lognormally distributed.
+
 ## Doing it
 
 ```bash
@@ -289,6 +367,17 @@ design: a standard you half-satisfy, knowing exactly which half.
   processor rows cite.
 - [EU AI Act guidelines for general-purpose artificial intelligence (GPAI) providers](https://digital-strategy.ec.europa.eu/en/faqs/guidelines-obligations-general-purpose-ai-providers) · [SCI for AI and EU AI Act compliance](https://greensoftware.foundation/policy/research/sci-ai-eu-ai-act/)
 - [Green Algorithms](https://doi.org/10.1002/advs.202100707) — the operational arithmetic, extracted in [`skills/saggio/references/green-algorithms.md`](skills/saggio/references/green-algorithms.md).
+- [Refining the pedigree matrix approach in ecoinvent](https://lca-net.com/files/Pedigree_report_final_May2012.pdf)
+  — Ciroth 2012, which reproduces both the transformation table and the
+  combining formula this package implements, and records that ecoinvent 3
+  applies the same values with the sample-size factor removed. The table itself
+  is Frischknecht and Jungbluth 2004, ecoinvent report no. 1, p. 46; the formula
+  is p. 44.
+- [The application of the pedigree approach to the distributions foreseen in ecoinvent v3](https://doi.org/10.1007/s11367-014-0759-5)
+  — where the approach sits in the database it was built for.
+- [EcoLogits](https://github.com/genai-impact/ecologits) — the interval arriving
+  from the other direction, for a model behind a closed interface whose size
+  nobody publishes. [`LANDSCAPE.md`](LANDSCAPE.md) says what was taken from it.
 
 ---
 

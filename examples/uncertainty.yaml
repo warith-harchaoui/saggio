@@ -1,0 +1,128 @@
+schema_version: '2.1'
+date_updated: '2026-10-29'
+project:
+  name: saggio — one HTTP request, with the uncertainty carried through
+  audited_from: ~/saggio
+unit_of_work:
+  name: one /scopes request handled end to end
+  description: 'The same unit of work as `request.yaml`, and the same measured runtime and power. What differs
+    is the grid carbon intensity: there it is a point, here it is scored on the pedigree matrix and carries the
+    interval those scores give. The carbon figure then has to carry an interval too, because a value computed
+    from a number known within a factor cannot be known better than that factor.'
+  status: measured
+  out_of_scope:
+  - Network transit, since client and server are the same machine.
+  - Server start-up, which happens before the measurement window.
+deployment:
+  provider: on-prem
+  country: FR
+  country_provenance: Stated by the caller.
+  operating_system: darwin
+  logical_cores: 12
+  physical_cores: 12
+  cpu: Apple M2 Max
+dimensions:
+- key: machine_energy
+  label: Machine energy
+  unit: kWh
+  description: The energy the machine's own counters report while the run happens.
+- key: building_energy
+  label: Building energy
+  unit: kWh
+  description: The machine's energy after the building's overhead.
+assumptions:
+  power_draw:
+    value: 17.97703767288531
+    status: measured
+    unit: W
+    notes: 'Read from the machine while the command ran. The figure covers the chip''s processor cores, graphics
+      cores, and neural engine, from the system-on-chip''s own energy counters and the chip''s memory, from its
+      own energy counter, read from the CPU Energy, GPU Energy, ANE0, DRAM0 counters. Memory is measured rather
+      than estimated here: the machine publishes its own memory energy counter, so the figure is what the memory
+      drew rather than what its installed capacity suggests it would draw. These are the chip''s own energy counters,
+      which are a model inside the silicon rather than a meter on the power rail, and Apple says they are not
+      a basis for comparing one machine against another. Left out of them: the display, storage, networking, the
+      fans, and the power supply''s own losses. This is the whole machine''s draw, not this run''s alone: these
+      counters meter hardware and not processes, so whatever else the machine was doing while the command ran
+      is inside the figure. Nothing here established how much of it was, so treat the figure as an upper bound
+      on what the run cost and not as what it cost. Measured once, so nothing here bounds how far a second run
+      would move it. Pass `--repeat N` to find out.'
+  pue:
+    value: 1.5
+    status: estimated
+    unit: ratio
+    source_url: https://www.uptimeinstitute.com/resources/research-and-reports/uptime-institute-global-data-center-survey-results-2024
+    retrieved_date: '2026-09-12'
+    notes: Power usage effectiveness published by On-premises.
+  grid_carbon_intensity:
+    value: 41.2
+    status: estimated
+    unit: gCO2e/kWh
+    low: 33.827318042561515
+    high: 50.179561911005834
+    source_url: https://ember-energy.org/data/yearly-electricity-data/
+    retrieved_date: '2026-10-17'
+    quality:
+      reliability: 2
+      completeness: 1
+      temporal: 2
+      geographical: 1
+      technological: 3
+      basic_uncertainty: 1.05
+    notes: 'Annual average for France, data year 2025. The scores read: a published dataset whose method is documented
+      but which rests partly on reported rather than metered figures (reliability 2); the whole country rather
+      than a sample of it (completeness 1); one year older than the period modelled (temporal 2); the country
+      being modelled (geographical 1); an annual average standing in for the mix at the hour the request ran,
+      which is a different technology on a different day (technological 3). The basic uncertainty is stated here
+      and is not supplied by this package: it depends on the kind of quantity, and the published table that sets
+      it describes industrial flows rather than these dimensions.'
+scenarios:
+- name: one request
+  runtime:
+    value: 0.0038534010450166534
+    status: measured
+    unit: s
+    notes: "Timed with `saggio measure`: python3 -c \nimport json, urllib.request\nbody = json.dumps({\"cost_model\"\
+      : {\"deployment\": {\"provider\": \"on-prem\"},\n \"scenarios\": [{\"name\": \"one\", \"costs\": {\"carbon\"\
+      : {\"value\": 1.4, \"unit\": \"gCO2e\", \"status\": \"estimated\"}}}]}}).encode()\nfor _ in range(200):\n\
+      \    req = urllib.request.Request(\"http://127.0.0.1:8795/scopes\", data=body, headers={\"content-type\"\
+      : \"application/json\"})\n    urllib.request.urlopen(req, timeout=10).read()\n. The command performed 200\
+      \ units of work, so the figure is the wall-clock time divided by 200. Measured once, so nothing here bounds\
+      \ how far a second run would move it. Pass `--repeat N` to find out."
+  costs:
+    machine_energy:
+      value: 1.9242426598611112e-08
+      status: measured
+      unit: kWh
+      source_url: https://doi.org/10.1002/advs.202100707
+      derived_from:
+      - scenarios[0].runtime
+      - assumptions.power_draw
+      notes: runtime in hours x average power in watts / 1000.
+    building_energy:
+      value: 2.886363989791667e-08
+      status: estimated
+      unit: kWh
+      derived_from:
+      - scenarios[0].costs.machine_energy
+      - assumptions.pue
+      notes: The machine's energy multiplied by the building's overhead.
+    carbon:
+      value: 1.1891819637941667e-06
+      status: estimated
+      unit: gCO2e
+      low: 9.76379526692795e-07
+      high: 1.4483648052344876e-06
+      derived_from:
+      - scenarios[0].costs.building_energy
+      - assumptions.grid_carbon_intensity
+      notes: 'The building''s energy multiplied by the grid intensity. The interval is the intensity''s interval
+        carried through: the energy is measured and pins down to a point, the intensity does not, so the product
+        cannot be a point either. This is the whole demonstration — nothing here chose to be cautious, the arithmetic
+        left no other answer.'
+measurement: null
+exclusions:
+- Idle capacity is inside these figures, not outside them. The power was read from the machine's own counters,
+  which meter hardware and not processes.
+- Making the hardware. Only the electricity to run it is counted.
+- The people. Salaries, offices, and travel are out of scope.

@@ -104,8 +104,13 @@ argued with rather than taken on trust.
 
 A landscape page that only explains why everything else fits worse is an
 advertisement. This round went looking for the opposite. Six things came back:
-two changed this page, one changed what it measures, two are refusals with the
-reason written down, and one is a vocabulary this package will have to learn.
+two changed this page, one changed what it measures, two were listed as refusals
+and are now built, and one is a vocabulary this package will have to learn.
+
+The two that were built are the reason this section is worth re-reading. Both
+refusals were real, and both were wider than they needed to be: each was hiding
+a narrow thing that genuinely cannot be done inside a broad thing that can. The
+narrow things are still refused, and they are named below.
 
 ### Taken: a rating says which cohort and which date it is against
 
@@ -129,31 +134,64 @@ job on a supercomputer. That is the sixth column now, and this package is tied
 for last in it. Before, the gap was named in prose at the bottom of this page
 and scored nowhere, which is the comfortable way to carry a weakness.
 
-### Refused, with the reason: a bracket instead of a point
+### Taken, and built: a bracket instead of a point
 
 [EcoLogits](https://github.com/genai-impact/ecologits) does not pick a number
 when the model behind a closed interface has an unknown size. It returns a
 `RangeValue` with a `min` and a `max`, documented as a 95% approximation
 interval, with the two reasons for the spread named: unknown model size, and the
-regression standing in for it. That is this package's weakest-link rule reached
-from another direction, and it is the shape an `api_energy` dimension here would
-have to take. It stays unbuilt, and the reason is not technical: a published
-bracket is only honest while somebody keeps the regressions current, which is a
-maintenance commitment rather than a feature.
+regression standing in for it.
 
-### Refused, with the reason: data quality as a scored vector
+That was listed here as refused, with a reason that turned out to be the wrong
+reason. It conflated two things: *supporting* an interval, which costs nothing
+to maintain, and *shipping a catalogue* of provider-specific regressions, which
+is a standing commitment. Only the second one was ever the problem.
+
+So the first one is built. A quantity may carry `low` and `high` beside its
+value, and the rule that makes it worth carrying is the one the status already
+had: **a derived value may not out-resolve the numbers it came from.** A carbon
+figure computed from an intensity known within a fifth is not a single number,
+and the validator now refuses it as an error, having walked the corners of every
+input's interval through the same arrangements it already uses to recompute the
+value. Wider than the inputs force is a modelling judgement and allowed;
+narrower is a claim nobody earned.
+
+[`examples/uncertainty.yaml`](examples/uncertainty.yaml) is a shipped model
+doing exactly that, and taking the interval off its carbon figure makes it fail.
+
+What stays refused is the narrow thing: a bundled table of provider energy
+regressions. Those are only honest while somebody keeps them current, and that
+is a maintenance commitment rather than a feature. State the bracket, or score
+it — see the next section — and the machinery carries it the rest of the way.
+
+### Taken, and built: data quality as a scored vector
 
 Life-cycle assessment (LCA) solved the problem four statuses solve here, and
 solved it with more resolution. The [ecoinvent pedigree matrix](https://doi.org/10.1007/s11367-014-0759-5)
 scores every datum on named axes — how reliable the source, how complete, how
 recent, how close geographically and technologically — then converts those
 scores into an uncertainty factor, so a figure carries a distribution rather
-than a label. That is strictly richer than `measured` / `estimated` /
-`placeholder` / `TODO`, and it is the obvious next move for the `status` field.
-It is refused for now because the conversion from scores to a spread is
-empirically calibrated against a database this package does not have, and
-inventing the calibration would produce exactly the confident-looking number the
-rest of this page is about.
+than a label.
+
+This was refused on the grounds that the conversion is empirically calibrated
+against a database this package does not have. Reading the source properly took
+that apart. The **transformation table is published** — Frischknecht and
+Jungbluth 2004, page 46 — and so is the **formula**, on page 44. Both are now
+implemented here exactly as published, and a model may score a quantity on the
+five indicators and get the interval they give.
+
+The part that genuinely is not transposable is one number: the **basic
+uncertainty**, which in the source comes from a table indexed by the kind of
+industrial flow. Those rows do not describe these dimensions, so it has to be
+stated, and until it is, the scores produce no interval at all — which is the
+same answer this package gives to a country nobody named.
+
+**And the source handed over a refusal, which is the part worth having.** Two
+cells of the published table are blank: geographical correlation at four,
+further technological correlation at two. A blank is not 1.00. The matrix
+defines no such mode, and a model that scores one is now an error rather than a
+figure quietly given the benefit of a doubt the source never extended. That is
+this package's own doctrine, met in somebody else's paper.
 
 ### Taken: say which confounder you held still
 
@@ -291,7 +329,7 @@ unknown size, EcoLogits does not pick a number — it returns a `RangeValue` wit
 a `min` and a `max`, documented as a 95% approximation interval, with the
 uncertainty named: unknown model size, and the regression used to stand in for
 it. It is set out above, under
-[what this page took from the others](#refused-with-the-reason-a-bracket-instead-of-a-point),
+[what this page took from the others](#taken-and-built-a-bracket-instead-of-a-point),
 with the reason it is recorded rather than built.
 
 Where it differs: no unit of work beyond the call, no committed artefact, no

@@ -58,8 +58,9 @@ from datetime import date
 from typing import Any, Final
 
 from ..i18n import say
+from . import pedigree
 from .cost_model import CostModel, walk_bare_numbers
-from .derivation import candidates, disagrees, parse_unit
+from .derivation import TOLERANCE, candidates, disagrees, parse_unit
 from .dimensions import CANONICAL_DIMENSIONS, CARBON_MARKET_BASED
 from .quantity import (
     QUANTITY_KEYS,
@@ -405,8 +406,231 @@ def _check_quantity(path: str, raw: dict[str, Any], model: CostModel, report: Re
                 say("validate.quantity.stale", age=age, limit=FRESHNESS_WARN_DAYS),
             )
 
+    _check_bracket(path, quantity, report)
+    _check_quality(path, quantity, report)
     _check_derivation(path, quantity, model, report)
     _check_measured_is_attributable(path, quantity, model, report)
+
+
+def _is_number(value: object) -> bool:
+    """Return whether a parsed node is a real, finite number.
+
+    Examples
+    --------
+    >>> _is_number(1.5), _is_number(True), _is_number("1.5")
+    (True, False, False)
+    """
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+
+def _check_bracket(path: str, quantity: Quantity, report: Report) -> None:
+    """Check an interval: both ends, in order, around the value it brackets.
+
+    A bracket says how precisely a number is known, which no status can say.
+    The rules are the ones that make it mean something: one end alone is not an
+    interval, a high end below the low end is not an interval, and a value
+    outside its own interval contradicts the thing it is attached to.
+
+    Parameters
+    ----------
+    path : str
+        The dotted path of the quantity.
+    quantity : Quantity
+        The parsed quantity.
+    report : Report
+        Accumulator for the verdict.
+
+    Examples
+    --------
+    >>> report = Report()
+    >>> _check_bracket("e", Quantity(value=1.0, low=2.0, high=3.0,
+    ...                              status="estimated"), report)
+    >>> "outside the interval" in report.to_text()
+    True
+    """
+    ends = {"low": quantity.low, "high": quantity.high}
+    present = {name: end for name, end in ends.items() if end is not None}
+    if not present:
+        return
+
+    for name, end in present.items():
+        if not _is_number(end):
+            report.error(
+                path,
+                say("validate.bracket.not_a_number", end=name, value=repr(end)),
+            )
+            return
+        if end < 0:
+            report.error(
+                path,
+                say("validate.bracket.negative", end=name, value=repr(end)),
+            )
+            return
+
+    if len(present) == 1:
+        missing = "high" if "low" in present else "low"
+        report.error(
+            path,
+            say("validate.bracket.half", given=next(iter(present)), missing=missing),
+        )
+        return
+
+    low, high = float(quantity.low), float(quantity.high)
+    if high < low:
+        report.error(
+            path,
+            say("validate.bracket.inverted", low=repr(quantity.low), high=repr(quantity.high)),
+        )
+        return
+
+    if not quantity.expects_a_value():
+        report.error(
+            path,
+            say("validate.bracket.without_a_number", status=repr(quantity.status)),
+        )
+        return
+
+    if quantity.is_known():
+        value = float(quantity.value)
+        if not low <= value <= high:
+            report.error(
+                path,
+                say(
+                    "validate.bracket.value_outside",
+                    value=repr(quantity.value),
+                    low=repr(quantity.low),
+                    high=repr(quantity.high),
+                ),
+            )
+
+
+def _check_quality(path: str, quantity: Quantity, report: Report) -> None:
+    """Check a pedigree reading, and the interval it is supposed to produce.
+
+    The scoring is a judgement and this cannot check it. What it can check is
+    everything around the judgement: that the indicators are the published
+    ones, that no score names a cell the matrix leaves blank, that a basic
+    uncertainty nobody stated leaves the interval open rather than inventing
+    one, and that a stated interval is the one the scores actually give.
+
+    Parameters
+    ----------
+    path : str
+        The dotted path of the quantity.
+    quantity : Quantity
+        The parsed quantity.
+    report : Report
+        Accumulator for the verdict.
+
+    Examples
+    --------
+    >>> report = Report()
+    >>> _check_quality("e", Quantity(value=1.0, status="estimated",
+    ...                              quality={"geographical": 4}), report)
+    >>> "leaves that cell blank" in report.to_text()
+    True
+    """
+    if not quantity.states_quality():
+        return
+    block = dict(quantity.quality or {})
+
+    allowed = {*pedigree.SCORED, "basic_uncertainty"}
+    for key in sorted(set(block) - allowed):
+        report.error(
+            path,
+            say("validate.quality.unknown_indicator", key=repr(key)),
+        )
+
+    scored: dict[str, int] = {}
+    broken = False
+    for indicator in pedigree.SCORED:
+        if indicator not in block:
+            continue
+        score = block[indicator]
+        if not isinstance(score, int) or isinstance(score, bool):
+            report.error(
+                path,
+                say("validate.quality.score_not_whole", key=indicator, score=repr(score)),
+            )
+            broken = True
+            continue
+        if score not in pedigree.SCORE_RANGE:
+            report.error(
+                path,
+                say("validate.quality.score_out_of_range", key=indicator, score=repr(score)),
+            )
+            broken = True
+            continue
+        if not pedigree.is_defined(indicator, score):
+            # A blank cell is not 1.00. The matrix defines no such mode, and
+            # filling it in here would be inventing the one thing this block
+            # exists to stop somebody inventing.
+            report.error(
+                path,
+                say("validate.quality.cell_is_blank", key=indicator, score=score),
+            )
+            broken = True
+            continue
+        scored[indicator] = score
+
+    missing = [name for name in pedigree.INDICATORS if name not in block]
+    if missing:
+        report.error(
+            path,
+            say("validate.quality.incomplete", missing=", ".join(missing)),
+        )
+        broken = True
+
+    basic = block.get("basic_uncertainty")
+    if basic is None:
+        # The one piece this package will not supply: in the source it comes
+        # from a table of industrial flow types that does not describe the
+        # dimensions carried here. Without it there is no interval, and an open
+        # field is the right answer, so this is a warning rather than an error.
+        report.warning(path, say("validate.quality.no_basic_uncertainty"))
+        return
+    if not _is_number(basic) or basic < 1.0:
+        report.error(
+            path,
+            say("validate.quality.bad_basic_uncertainty", value=repr(basic)),
+        )
+        return
+
+    if broken or not quantity.is_known():
+        return
+
+    scores = pedigree.Scores(
+        reliability=scored["reliability"],
+        completeness=scored["completeness"],
+        temporal=scored["temporal"],
+        geographical=scored["geographical"],
+        technological=scored["technological"],
+        sample_size=scored.get(pedigree.SAMPLE_SIZE),
+    )
+    deviation = pedigree.spread(scores, basic_uncertainty=float(basic))
+    expected_low, expected_high = pedigree.interval(float(quantity.value), deviation)
+
+    if not quantity.is_bracketed():
+        report.error(
+            path,
+            say(
+                "validate.quality.no_bracket",
+                low=f"{expected_low:.6g}",
+                high=f"{expected_high:.6g}",
+            ),
+        )
+        return
+
+    low, high = quantity.bracket()
+    if disagrees(low, expected_low) or disagrees(high, expected_high):
+        report.error(
+            path,
+            say(
+                "validate.quality.bracket_does_not_follow",
+                stated=f"{low:.6g} to {high:.6g}",
+                expected=f"{expected_low:.6g} to {expected_high:.6g}",
+            ),
+        )
 
 
 def _check_derivation(path: str, quantity: Quantity, model: CostModel, report: Report) -> None:
@@ -473,6 +697,7 @@ def _check_derivation(path: str, quantity: Quantity, model: CostModel, report: R
         )
 
     _check_arithmetic(path, quantity, inputs, report)
+    _check_inherited_bracket(path, quantity, inputs, report)
 
 
 #: The base dimensions a timed run with power counters actually produces. A
@@ -654,6 +879,115 @@ def _check_arithmetic(
             expected=f"{gives} {quantity.unit}",
         ),
     )
+
+
+def _corners(node: dict[str, Any]) -> tuple[float, ...]:
+    """Return the ends an input can take: its interval, or its point twice.
+
+    Examples
+    --------
+    >>> _corners({"value": 2.0})
+    (2.0, 2.0)
+    >>> _corners({"value": 2.0, "low": 1.0, "high": 3.0})
+    (1.0, 3.0)
+    """
+    low, high, value = node.get("low"), node.get("high"), node.get("value")
+    if _is_number(low) and _is_number(high):
+        return float(low), float(high)
+    return float(value), float(value)
+
+
+def _check_inherited_bracket(
+    path: str, quantity: Quantity, inputs: list[dict[str, Any]], report: Report
+) -> None:
+    """Hold a derived interval to the intervals it was computed from.
+
+    This is the weakest-link rule applied to precision rather than to
+    provenance, and it closes the same hole. The status rule stops a derived
+    value claiming to be better *founded* than its inputs. Nothing stopped it
+    claiming to be better *pinned down*: a figure computed from a number known
+    only within a factor of two could be stated as a single confident value,
+    and every other check on this page would pass it.
+
+    The bound is computed by walking the corners of the inputs' intervals
+    through the same arrangements :func:`_check_arithmetic` uses. For a product
+    or a quotient of positive quantities the extremes sit at the corners, so
+    the widest and narrowest results found there are the interval.
+
+    Parameters
+    ----------
+    path : str
+        Dotted path of the derived quantity.
+    quantity : Quantity
+        The derived value.
+    inputs : list of dict
+        The quantities it named, already resolved.
+    report : Report
+        Accumulator for the verdict.
+
+    Examples
+    --------
+    >>> report = Report()
+    >>> point = Quantity(value=400.0, unit="W", status="estimated",
+    ...                  derived_from=("a",))
+    >>> _check_inherited_bracket("p", point,
+    ...                          [{"value": 400.0, "low": 200.0, "high": 800.0,
+    ...                            "unit": "W"}], report)
+    >>> "more precisely" in report.to_text()
+    True
+    """
+    if not quantity.is_known():
+        return
+    bracketed = [
+        node for node in inputs if _is_number(node.get("low")) and _is_number(node.get("high"))
+    ]
+    if not bracketed:
+        return
+    for node in inputs:
+        if not _is_number(node.get("value")):
+            return
+
+    if not quantity.is_bracketed():
+        position = inputs.index(bracketed[0])
+        named = (
+            quantity.derived_from[position] if position < len(quantity.derived_from) else "an input"
+        )
+        report.error(
+            path,
+            say("validate.derivation.bracket_narrows", reference=repr(named)),
+        )
+        return
+
+    corners = [_corners(node) for node in inputs]
+    units = [node.get("unit") for node in inputs]
+    reached: list[float] = []
+    for index in range(2 ** len(corners)):
+        pairs = [
+            (corners[position][(index >> position) & 1], units[position])
+            for position in range(len(corners))
+        ]
+        possible = candidates(pairs, quantity.unit)
+        if possible is None:
+            # A unit this does not know. Saying anything would be inventing a
+            # rule for somebody else's dimension, which the house refuses.
+            return
+        reached.extend(possible)
+    if not reached:
+        return
+
+    expected_low, expected_high = min(reached), max(reached)
+    low, high = quantity.bracket()
+    # A wider interval than the inputs force is a modelling choice and not a
+    # fault; a narrower one is the claim this check exists to refuse.
+    if low > expected_low * (1 + TOLERANCE) or high < expected_high * (1 - TOLERANCE):
+        report.error(
+            path,
+            say(
+                "validate.derivation.bracket_does_not_follow",
+                stated=f"{low:.6g} to {high:.6g}",
+                expected=f"{expected_low:.6g} to {expected_high:.6g}",
+            ),
+        )
 
 
 def _check_derivation_cycles(model: CostModel, report: Report) -> None:

@@ -54,6 +54,9 @@ QUANTITY_KEYS: Final[frozenset[str]] = frozenset(
         "retrieved_date",
         "derived_from",
         "notes",
+        "low",
+        "high",
+        "quality",
     }
 )
 
@@ -196,6 +199,9 @@ class Quantity:
     retrieved_date: str | None = None
     derived_from: tuple[str, ...] = field(default_factory=tuple)
     notes: str | None = None
+    low: float | int | None = None
+    high: float | int | None = None
+    quality: dict[str, Any] | None = None
 
     @classmethod
     def from_mapping(cls, mapping: dict[str, Any]) -> Quantity:
@@ -243,6 +249,9 @@ class Quantity:
             retrieved_date=mapping.get("retrieved_date"),
             derived_from=derived,
             notes=mapping.get("notes"),
+            low=mapping.get("low"),
+            high=mapping.get("high"),
+            quality=mapping.get("quality") if isinstance(mapping.get("quality"), dict) else None,
         )
 
     def to_mapping(self) -> dict[str, Any]:
@@ -275,6 +284,12 @@ class Quantity:
             mapping["derived_from"] = list(self.derived_from)
         if self.notes is not None:
             mapping["notes"] = self.notes
+        if self.low is not None:
+            mapping["low"] = self.low
+        if self.high is not None:
+            mapping["high"] = self.high
+        if self.quality is not None:
+            mapping["quality"] = dict(self.quality)
         return mapping
 
     def has_valid_status(self) -> bool:
@@ -387,6 +402,95 @@ class Quantity:
         """
         return self.status not in _VALUELESS_STATUSES
 
+    def is_bracketed(self) -> bool:
+        """Return whether this quantity carries both ends of an interval.
+
+        A bracket is how a quantity says *how precisely* it is known, which the
+        status cannot say: the status ranks how well founded the number is, and
+        two numbers equally well founded can be a factor of three apart in how
+        tightly they pin the answer down.
+
+        Returns
+        -------
+        bool
+            ``True`` when ``low`` and ``high`` are both finite numbers. One end
+            without the other is not a bracket, and the validator says so rather
+            than inventing the missing side.
+
+        Examples
+        --------
+        >>> Quantity(value=1.0, low=0.8, high=1.3, status="estimated").is_bracketed()
+        True
+        >>> Quantity(value=1.0, low=0.8, status="estimated").is_bracketed()
+        False
+        """
+        return all(
+            isinstance(end, (int, float)) and not isinstance(end, bool) and math.isfinite(end)
+            for end in (self.low, self.high)
+        )
+
+    def bracket(self) -> tuple[float, float] | None:
+        """Return the interval this quantity states, if it states one.
+
+        Returns
+        -------
+        tuple of float or None
+            The low and high ends, or ``None`` when the quantity is a point.
+
+        Examples
+        --------
+        >>> Quantity(value=1.0, low=0.8, high=1.3).bracket()
+        (0.8, 1.3)
+        >>> Quantity(value=1.0).bracket() is None
+        True
+        """
+        if not self.is_bracketed():
+            return None
+        return float(self.low), float(self.high)
+
+    def spans(self) -> float | None:
+        """Return the width of the bracket as a ratio, high over low.
+
+        A ratio rather than a difference because that is what a reader compares
+        across dimensions: a carbon figure and a money figure cannot be
+        subtracted, and a bracket twice as wide is twice as wide in both.
+
+        Returns
+        -------
+        float or None
+            ``high / low``, or ``None`` when there is no bracket or the low end
+            is zero, which no ratio describes.
+
+        Examples
+        --------
+        >>> Quantity(value=1.0, low=0.5, high=2.0).spans()
+        4.0
+        >>> Quantity(value=1.0, low=0.0, high=2.0).spans() is None
+        True
+        """
+        interval = self.bracket()
+        if interval is None or interval[0] == 0:
+            return None
+        return interval[1] / interval[0]
+
+    def states_quality(self) -> bool:
+        """Return whether this quantity scores where it came from.
+
+        Returns
+        -------
+        bool
+            ``True`` when a ``quality`` block is present, whatever it contains;
+            whether it contains a usable reading is the validator's business.
+
+        Examples
+        --------
+        >>> Quantity(value=1.0, quality={"reliability": 2}).states_quality()
+        True
+        >>> Quantity(value=1.0).states_quality()
+        False
+        """
+        return isinstance(self.quality, dict)
+
     def with_derivation(self, *paths: str) -> Quantity:
         """Return a copy of this quantity that names the inputs it came from.
 
@@ -420,6 +524,9 @@ class Quantity:
             retrieved_date=self.retrieved_date,
             derived_from=tuple(paths),
             notes=self.notes,
+            low=self.low,
+            high=self.high,
+            quality=self.quality,
         )
 
     def unknown(self, *, reason: str | None = None) -> Quantity:

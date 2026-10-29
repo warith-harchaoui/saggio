@@ -188,21 +188,31 @@ que ce moteur appelle réellement. Lire à l'intérieur d'un fichier pour y trou
 un module de test en ligne est un travail autre, et plus grand, que lire son
 nom.
 
-## Deux modèles terminés
+## Trois modèles terminés
 
 Tout ce qui précède est un audit sans rien exécuter : huit dépôts lus, huit
 modèles dont chaque coût est un `TODO`. C'est la sortie honnête d'une lecture de
-code qu'on n'a pas exécuté, et c'est aussi une moitié de démonstration. Ces deux
-modèles sont l'autre moitié — le même outil sur du travail réellement mesuré,
-sur une machine, avec le pays énoncé.
+code qu'on n'a pas exécuté, et c'est aussi une moitié de démonstration. Ces
+trois modèles sont l'autre moitié — le même outil sur du travail réellement
+mesuré, sur une machine, avec le pays énoncé.
 
 | Modèle | Unité de travail | Temps | Carbone | Ce qui reste ouvert |
 |---|---|---|---|---|
 | [`render`](examples/render.yaml) · [rapport](examples/render.md) | un rapport HyperText Markup Language (HTML) produit | 0,0272 s, mesuré | 8,34e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
 | [`request`](examples/request.yaml) · [rapport](examples/request.md) | une requête `/scopes` traitée de bout en bout | 0,00385 s, mesuré | 1,19e-06 gCO2e, estimé | eau, scope 2 market-based, incorporé |
+| [`uncertainty`](examples/uncertainty.yaml) · [rapport](examples/uncertainty.md) | la même requête, l'intensité du réseau notée | 0,00385 s, mesuré | 1,19e-06 gCO2e (9,76e-07 – 1,45e-06), estimé | eau, scope 2 market-based, incorporé |
 
-Les deux ont été mesurés sur un Apple M2 Max, douze cœurs, en France, en
-exécutant le travail de nombreuses fois dans un seul interpréteur — cinquante
+**La troisième ligne est la deuxième, avec son incertitude portée jusqu'au
+bout.** L'intensité du réseau y est notée sur la matrice de pedigree — fiabilité
+de la source, complétude, ancienneté, proximité géographique et technologique —
+et ces notes lui donnent un intervalle au lieu d'un point. Le chiffre carbone
+*doit* alors porter un intervalle lui aussi, et celui qu'il porte n'est pas un
+jugement : c'est ce que l'arithmétique laisse une fois qu'une entrée cesse
+d'être un nombre unique. Retirez l'intervalle et le modèle échoue, et c'est
+toute l'idée.
+
+Les deux premiers ont été mesurés sur un Apple M2 Max, douze cœurs, en France,
+en exécutant le travail de nombreuses fois dans un seul interpréteur — cinquante
 rendus, deux cents requêtes — pour que le démarrage de Python, qui n'est pas le
 travail, ne lui soit pas facturé. La puissance est une lecture de compteur et
 non une fiche technique : **17,9 W** pendant les rendus et **18,0 W** pendant

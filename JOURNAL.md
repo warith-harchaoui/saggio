@@ -16,6 +16,60 @@ endroit-là.
 
 ## Non publié
 
+### Deux refus, relus, et tous deux plus larges qu'il ne fallait
+
+`PAYSAGE.md` consignait deux idées prises à d'autres outils et déclinées. En
+poussant dessus, les deux se sont révélées être une chose étroite qui ne se fait
+effectivement pas, cachée dans une chose large qui se fait.
+
+**Une quantité peut porter un intervalle.** `low` et `high` à côté de la valeur,
+qui est la forme vers laquelle EcoLogits se tourne quand la taille du modèle
+derrière une interface fermée est inconnue. La règle qui rend la chose utile est
+celle que le statut avait déjà, appliquée à la précision : **une valeur dérivée
+ne peut pas sur-résoudre les nombres d'où elle vient.** Un chiffre carbone
+calculé depuis une intensité connue à un cinquième près n'est pas un nombre
+unique, et c'est désormais une erreur. La borne se trouve en faisant passer les
+coins de chaque intervalle d'entrée par les mêmes arrangements que le validateur
+emploie déjà pour recalculer la valeur : aucune arithmétique neuve, aucune règle
+d'unité neuve. Plus large que ce que les entrées imposent est un jugement de
+modélisation et passe ; plus étroit est une prétention que personne n'a gagnée.
+
+Ce qui reste refusé est la part étroite : une table embarquée de régressions
+d'énergie par fournisseur, qui n'est honnête que tant que quelqu'un la tient à
+jour.
+
+**La matrice de pedigree est implémentée.** Cinq indicateurs notés de un à
+cinq — fiabilité de la source, complétude, ancienneté, proximité géographique,
+proximité technologique — combinés en le carré d'un écart-type géométrique, qui
+donne l'intervalle. La table de transformation et la formule sont publiées
+(Frischknecht et Jungbluth 2004, pages 46 et 44) et sont implémentées telles que
+publiées ; `saggio/model/pedigree.py` cite les deux, et un test unitaire tient
+chaque case contre une seconde copie saisie depuis l'article, parce que deux
+copies qui doivent s'accorder est la façon d'attraper une coquille.
+
+Le refus qui était général est devenu un refus précis, et plus petit :
+`basic_uncertainty` doit être énoncée. Dans la source, elle vient d'une table
+indexée par genre de flux industriel, et ces lignes ne décrivent pas ces
+dimensions-ci. Sans elle, les notes ne produisent aucun intervalle, et le
+rapport le dit.
+
+**Et la source a livré un refus de son cru.** Deux cases de la table publiée
+sont vides — corrélation géographique à quatre, corrélation technologique à
+deux. Une case vide n'est pas 1,00 : la matrice ne définit aucun mode de ce
+genre. Un modèle qui en note un est une erreur, et non un chiffre discrètement
+gratifié d'un bénéfice du doute que personne n'a accordé. C'est la doctrine de
+ce paquet, rencontrée dans l'article de quelqu'un d'autre.
+
+**`examples/uncertainty.yaml`** est un modèle livré qui fait tout cela : une
+intensité de réseau notée sur la matrice, l'intervalle que ces notes donnent, et
+un chiffre carbone qui doit porter un intervalle parce que son entrée en porte
+un. Retirez l'intervalle et le modèle échoue, et c'est tout le propos.
+
+Chaque rapport affiche l'intervalle là où il y en a un, parce que les quatre
+passent par un seul formateur. Les bornes sont jointes par un tiret demi-cadratin
+et ne portent aucun mot : l'intervalle n'a donc pas besoin d'une phrase qui
+devrait exister deux fois et s'accorder avec elle-même pour toujours.
+
 ### Dix-huit outils, dix critères, et une colonne où ce paquet est dernier
 
 `LANDSCAPE.md` et `PAYSAGE.md` ont été relus face au domaine. Quatre outils

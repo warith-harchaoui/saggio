@@ -14,6 +14,57 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### Two refusals, re-read, and both were wider than they needed to be
+
+`LANDSCAPE.md` listed two ideas taken from other tools and declined. Pushed on
+them, and both turned out to be one narrow thing that genuinely cannot be done
+hiding inside a broad thing that can.
+
+**A quantity can carry an interval.** `low` and `high` beside the value, which
+is the shape EcoLogits reaches for when the model behind a closed interface has
+an unknown size. The rule that makes it worth carrying is the one the status
+already had, applied to precision: **a derived value may not out-resolve the
+numbers it came from.** A carbon figure computed from an intensity known within
+a fifth is not a single number, and that is now an error. The bound is found by
+walking the corners of every input's interval through the same arrangements the
+validator already uses to recompute the value, so it needs no new arithmetic and
+no new unit rules. Wider than the inputs force is a modelling judgement and
+passes; narrower is a claim nobody earned.
+
+What stays refused is the narrow part: a bundled table of provider energy
+regressions, which is only honest while somebody keeps it current.
+
+**The pedigree matrix is implemented.** Five indicators scored one to five —
+how reliable the source, how complete, how recent, how close in geography, how
+close in technology — combined into the square of a geometric standard
+deviation, which gives the interval. The transformation table and the formula
+are published (Frischknecht and Jungbluth 2004, pages 46 and 44) and are
+implemented exactly as published; `saggio/model/pedigree.py` cites both, and a
+unit test holds every cell against a second copy typed from the paper, because
+two copies that must agree is how a typo is caught.
+
+The refusal that was general has become a refusal that is specific, and smaller:
+`basic_uncertainty` must be stated. In the source it comes from a table indexed
+by kind of industrial flow, and those rows do not describe these dimensions.
+Without it the scores produce no interval at all, and the report says so.
+
+**And the source handed over a refusal of its own.** Two cells of the published
+table are blank — geographical correlation at four, further technological
+correlation at two. A blank is not 1.00: the matrix defines no such mode. A
+model that scores one is an error rather than a figure quietly given the benefit
+of a doubt nobody extended. That is this package's doctrine, met in somebody
+else's paper.
+
+**`examples/uncertainty.yaml`** is a shipped model doing all of it: a grid
+intensity scored on the matrix, the interval those scores give, and a carbon
+figure that has to carry an interval because its input does. Take the interval
+off and the model fails, which is the point.
+
+Every report shows an interval where one exists, because all four render through
+one formatter. The ends are joined by an en dash and carry no words, so the
+interval needs no sentence that would have to exist twice and agree with itself
+forever.
+
 ### Eighteen tools, ten criteria, and a column this package comes last in
 
 `LANDSCAPE.md` and `PAYSAGE.md` were read against the field again. Four tools

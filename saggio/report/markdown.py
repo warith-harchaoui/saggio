@@ -143,16 +143,37 @@ def format_quantity(quantity: Quantity) -> str:
     '2 EUR'
     >>> format_quantity(Quantity(status="TODO"))
     'not known'
+    >>> format_quantity(Quantity(value=1.5, unit="kWh", low=0.8, high=2.4,
+    ...                          status="estimated"))
+    '1.5 kWh (0.8 \u2013 2.4)'
+    >>> format_quantity(Quantity(value=3600.0, unit="s", low=1800.0, high=7200.0,
+    ...                          status="measured"))
+    '1 h (3,600 s) (30 min \u2013 2 h)'
     """
     if not quantity.is_known():
         return not_known()
     # A duration is the one unit a reader already thinks in, and the general
     # number format turns three hours into `1.087e+04 s`.
-    if (quantity.unit or "") == "s" and not quantity.currency:
-        return format_duration(quantity.value)
-    number = format_number(quantity.value)
-    unit = quantity.currency or quantity.unit
-    return f"{number} {unit}" if unit and unit != "currency" else number
+    duration = (quantity.unit or "") == "s" and not quantity.currency
+    if duration:
+        shown = format_duration(quantity.value)
+    else:
+        number = format_number(quantity.value)
+        unit = quantity.currency or quantity.unit
+        shown = f"{number} {unit}" if unit and unit != "currency" else number
+    interval = quantity.bracket()
+    if interval is None:
+        return shown
+    # An en dash between two numbers is how a range is set in both of this
+    # package's languages, which is why the interval needs no words: a sentence
+    # here would have to exist twice and agree with itself forever.
+    # On a duration each end is said the way a person says it -- "30 min", not
+    # "1,800" -- but without repeating the seconds in a second parenthesis
+    # inside the first, which is unreadable and says nothing new.
+    ends = [
+        format_duration(end).split(" (")[0] if duration else format_number(end) for end in interval
+    ]
+    return f"{shown} ({ends[0]} \u2013 {ends[1]})"
 
 
 #: How a duration is spelled, largest unit first, with the factor that reaches

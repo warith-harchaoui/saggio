@@ -224,12 +224,12 @@ French.
 visible text on a rendered report. The structure moves:
 headings, column names, the what-if labels, the equivalence sentences. The
 substance does not: the notes, the methods, the caveats and the refusals are
-written where the measurement happens, which is **212 prose literals of four
-words or more across 35 modules**, only 4% of them under `report/`. One
+written where the measurement happens, which is **215 prose literals of four
+words or more across 36 modules**, only 4% of them under `report/`. One
 definition, written out in `tests/contract/test_languages.py` and recomputed
 there, so the count cannot go stale on its own: run against the tree that first
 quoted 709, the same definition counts 801, which is the comparison a reader
-can check — 801 to 212, and 53 modules to 35. Saying "the
+can check — 801 to 215, and 53 modules to 36. Saying "the
 report is bilingual" would be a claim nobody established. The *documentation* is
 bilingual, page for page; a rendered report is a French frame around English
 evidence.

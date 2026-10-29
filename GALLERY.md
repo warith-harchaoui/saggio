@@ -176,11 +176,11 @@ File-level detection cannot see that, so fixtures like `trusted/model` and
 inside a file for an inline test module is a different and larger job than
 reading its name.
 
-## Two models that are finished
+## Three models that are finished
 
 Everything above is an audit with nothing run: eight repositories read, eight
 models whose every cost is a `TODO`. That is the honest output of reading code
-you have not executed, and it is also half a demonstration. These two are the
+you have not executed, and it is also half a demonstration. These three are the
 other half — the same tool on work that was actually measured, on one machine,
 with the country stated.
 
@@ -188,9 +188,19 @@ with the country stated.
 |---|---|---|---|---|
 | [`render`](examples/render.yaml) · [report](examples/render.md) | one HyperText Markup Language (HTML) report rendered | 0.0272 s, measured | 8.34e-06 gCO2e, estimated | water, market-based scope 2, embodied |
 | [`request`](examples/request.yaml) · [report](examples/request.md) | one `/scopes` request handled end to end | 0.00385 s, measured | 1.19e-06 gCO2e, estimated | water, market-based scope 2, embodied |
+| [`uncertainty`](examples/uncertainty.yaml) · [report](examples/uncertainty.md) | the same request, with the grid intensity scored | 0.00385 s, measured | 1.19e-06 gCO2e (9.76e-07 – 1.45e-06), estimated | water, market-based scope 2, embodied |
 
-Both were measured on an Apple M2 Max, twelve cores, in France, by running the
-work many times inside one interpreter — fifty renders, two hundred requests —
+**The third row is the second one again, with its uncertainty carried.** The
+grid intensity there is scored on the pedigree matrix — how reliable the
+source, how complete, how recent, how close in place and in technology — and
+those scores give it an interval instead of a point. The carbon figure then
+*has* to carry an interval, and the one it carries is not a judgement: it is
+what the arithmetic leaves once an input stops being a single number. Take the
+interval off and the model fails, which is the whole of the idea.
+
+The first two were measured on an Apple M2 Max, twelve cores, in France, by
+running the work many times inside one interpreter — fifty renders, two hundred
+requests —
 so that Python's start-up, which is not the work, is not charged to it. The
 power is a counter reading rather than a datasheet: **17.9 W** during the
 renders and **18.0 W** during the requests. The nameplate this package would

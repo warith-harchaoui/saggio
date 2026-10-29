@@ -110,8 +110,14 @@ coordonnée : un placement se discute, il ne se croit pas sur parole.
 Une page de paysage qui n'explique que pourquoi tout le reste convient moins
 bien est une publicité. Ce tour-ci est allé chercher l'inverse. Six choses en
 sont revenues : deux ont changé cette page, une a changé ce qu'elle mesure, deux
-sont des refus dont la raison est écrite, et la dernière est un vocabulaire que
-ce paquet devra apprendre.
+étaient consignées comme des refus et sont désormais construites, et la dernière
+est un vocabulaire que ce paquet devra apprendre.
+
+Les deux qui ont été construites sont la raison de relire cette section. Les
+deux refus étaient réels, et tous deux plus larges qu'il ne fallait : chacun
+cachait une chose étroite qui ne se fait effectivement pas, à l'intérieur d'une
+chose large qui se fait. Les choses étroites restent refusées, et elles sont
+nommées plus bas.
 
 ### Pris : une note dit à quelle cohorte et à quelle date elle se rapporte
 
@@ -138,20 +144,40 @@ dernier à égalité. Auparavant, le manque était énoncé en prose au bas de c
 page et n'était noté nulle part, ce qui est la façon confortable de porter une
 faiblesse.
 
-### Refusé, avec la raison : une fourchette au lieu d'un point
+### Pris, et construit : une fourchette au lieu d'un point
 
 [EcoLogits](https://github.com/genai-impact/ecologits) ne choisit pas un nombre
 quand la taille du modèle derrière une interface fermée est inconnue. Il renvoie
 un `RangeValue`, un `min` et un `max`, documentés comme un intervalle
 d'approximation à 95 %, avec les deux causes de l'écart nommées : la taille du
-modèle, et la régression qui en tient lieu. C'est la règle du maillon faible de
-ce paquet atteinte par un autre chemin, et c'est la forme qu'une dimension
-`api_energy` devrait prendre ici. Elle n'est pas construite, et la raison n'est
-pas technique : une fourchette publiée n'est honnête que tant que quelqu'un
-tient les régressions à jour, ce qui est un engagement de maintenance plutôt
-qu'une fonctionnalité.
+modèle, et la régression qui en tient lieu.
 
-### Refusé, avec la raison : la qualité des données comme vecteur noté
+C'était consigné ici comme refusé, pour une raison qui s'est révélée être la
+mauvaise. Elle confondait deux choses : *porter* un intervalle, qui ne coûte
+rien à maintenir, et *livrer un catalogue* de régressions propres à chaque
+fournisseur, qui est un engagement permanent. Seule la seconde posait problème.
+
+La première est donc construite. Une quantité peut porter `low` et `high` à côté
+de sa valeur, et la règle qui rend la chose utile est celle que le statut avait
+déjà : **une valeur dérivée ne peut pas sur-résoudre les nombres d'où elle
+vient.** Un chiffre carbone calculé depuis une intensité connue à un cinquième
+près n'est pas un nombre unique, et le validateur le refuse désormais comme une
+erreur, après avoir fait passer les coins de chaque intervalle d'entrée par les
+mêmes arrangements qu'il emploie déjà pour recalculer la valeur. Plus large que
+ce que les entrées imposent est un jugement de modélisation, et c'est permis ;
+plus étroit est une prétention que personne n'a gagnée.
+
+[`examples/uncertainty.yaml`](examples/uncertainty.yaml) est un modèle livré qui
+fait exactement cela, et retirer l'intervalle de son chiffre carbone le fait
+échouer.
+
+Ce qui reste refusé est la chose étroite : une table embarquée de régressions
+d'énergie par fournisseur. Elles ne sont honnêtes que tant que quelqu'un les
+tient à jour, ce qui est un engagement de maintenance plutôt qu'une
+fonctionnalité. Énoncez la fourchette, ou notez-la — voir la section suivante —
+et la machinerie la porte jusqu'au bout.
+
+### Pris, et construit : la qualité des données comme vecteur noté
 
 L'analyse du cycle de vie (ACV) a résolu le problème que quatre statuts
 résolvent ici, et l'a résolu plus finement. La
@@ -159,12 +185,29 @@ résolvent ici, et l'a résolu plus finement. La
 note chaque donnée sur des axes nommés — fiabilité de la source, complétude,
 ancienneté, proximité géographique et technologique — puis convertit ces notes
 en un facteur d'incertitude : le chiffre porte alors une distribution plutôt
-qu'une étiquette. C'est strictement plus riche que `measured` / `estimated` /
-`placeholder` / `TODO`, et c'est le prochain pas évident pour le champ `status`.
-C'est refusé pour l'instant parce que la conversion des notes vers un écart est
-étalonnée empiriquement sur une base de données que ce paquet n'a pas, et
-qu'inventer l'étalonnage produirait exactement le chiffre faussement assuré
-contre lequel tout le reste de cette page met en garde.
+qu'une étiquette.
+
+C'était refusé au motif que la conversion est étalonnée empiriquement sur une
+base de données que ce paquet n'a pas. Lire la source correctement a défait ce
+motif. La **table de transformation est publiée** — Frischknecht et Jungbluth
+2004, page 46 — et la **formule** aussi, page 44. Les deux sont désormais
+implémentées ici telles que publiées, et un modèle peut noter une quantité sur
+les cinq indicateurs et recevoir l'intervalle qu'ils donnent.
+
+Ce qui n'est effectivement pas transposable tient en un nombre :
+l'**incertitude de base**, qui vient dans la source d'une table indexée par
+genre de flux industriel. Ces lignes ne décrivent pas ces dimensions-ci ; elle
+doit donc être énoncée, et tant qu'elle ne l'est pas, les notes ne produisent
+aucun intervalle — ce qui est la réponse que ce paquet donne déjà à un pays que
+personne n'a nommé.
+
+**Et la source a livré un refus, qui est la part qui valait le voyage.** Deux
+cases de la table publiée sont vides : corrélation géographique à quatre,
+corrélation technologique à deux. Une case vide n'est pas 1,00. La matrice ne
+définit aucun mode de ce genre, et un modèle qui en note un est désormais une
+erreur, et non un chiffre discrètement gratifié d'un bénéfice du doute que la
+source n'a jamais accordé. C'est la doctrine de ce paquet, rencontrée dans
+l'article de quelqu'un d'autre.
 
 ### Pris : dire quel facteur de confusion on a tenu fixe
 
@@ -315,7 +358,7 @@ est inconnue, EcoLogits ne choisit pas un nombre : il renvoie un `RangeValue`,
 un `min` et un `max`, documentés comme un intervalle d'approximation à 95 %,
 avec l'inconnue nommée — la taille du modèle, et la régression qui en tient
 lieu. Elle est exposée plus haut, sous
-[ce que cette page a pris aux autres](#refusé-avec-la-raison-une-fourchette-au-lieu-dun-point),
+[ce que cette page a pris aux autres](#pris-et-construit-une-fourchette-au-lieu-dun-point),
 avec la raison pour laquelle elle est consignée plutôt que construite.
 
 Ce qui diffère : pas d'unité de travail au-delà de l'appel, pas d'artefact

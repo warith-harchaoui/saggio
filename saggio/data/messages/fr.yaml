@@ -551,6 +551,59 @@ validate.quantity.date_not_calendar: >-
 validate.quantity.stale: >-
   a été sourcé il y a {age} jours, au-delà du seuil de {limit} jours ; relisez la
   source et rafraîchissez le nombre
+validate.bracket.not_a_number: >-
+  a une borne {end} qui vaut {value}, et qui n'est pas un nombre fini ; une
+  borne d'intervalle est un nombre, ou elle n'est rien
+validate.bracket.negative: >-
+  a une borne {end} qui vaut {value} ; le coût d'exécution d'un code ne peut
+  être négatif à aucune des deux bornes de son intervalle
+validate.bracket.half: >-
+  énonce une borne {given} et aucune borne {missing} ; une moitié d'intervalle
+  ne dit rien d'utilisable, car le côté qui manque est celui qui inquiète
+validate.bracket.inverted: >-
+  va de {low} à {high}, soit à l'envers ; la borne basse d'un intervalle ne peut
+  pas dépasser la haute
+validate.bracket.without_a_number: >-
+  a le statut {status} et porte quand même un intervalle ; un placeholder ou un
+  TODO tient un champ ouvert, et un intervalle est déjà une réponse
+validate.bracket.value_outside: >-
+  énonce {value}, qui tombe hors de l'intervalle {low} à {high} qu'il porte ; un
+  nombre ne peut pas contredire sa propre fourchette
+validate.quality.unknown_indicator: >-
+  note {key}, que la matrice de pedigree ne définit pas ; les indicateurs sont
+  reliability, completeness, temporal, geographical, technological et
+  sample_size
+validate.quality.score_not_whole: >-
+  note {key} à {score} ; un indicateur de pedigree prend un entier de un à cinq,
+  pas une mesure
+validate.quality.score_out_of_range: >-
+  note {key} à {score} ; la matrice de pedigree va de un, le meilleur, à cinq
+validate.quality.cell_is_blank: >-
+  note {key} à {score}, et la matrice publiée laisse cette case vide ; elle ne
+  définit aucun mode de ce genre, et une case vide n'est pas un facteur de un
+validate.quality.incomplete: >-
+  note certains indicateurs et pas {missing} ; l'incertitude est la combinaison
+  des cinq, donc une lecture partielle la sous-estimerait
+validate.quality.no_basic_uncertainty: >-
+  note sa qualité sans énoncer de basic_uncertainty : aucun intervalle n'en
+  découle ; l'incertitude de base dépend du genre de quantité, et ce paquet n'en
+  fournit aucune
+validate.quality.bad_basic_uncertainty: >-
+  a un basic_uncertainty de {value} ; c'est un facteur, donc un nombre
+  supérieur ou égal à un
+validate.quality.no_bracket: >-
+  note sa qualité sans énoncer d'intervalle ; les notes donnent {low} à {high},
+  ce que les champs low et high devraient porter
+validate.quality.bracket_does_not_follow: >-
+  énonce l'intervalle {stated} alors que ses propres notes de qualité donnent
+  {expected} ; l'intervalle doit être celui que les notes produisent
+validate.derivation.bracket_narrows: >-
+  n'énonce aucun intervalle alors que {reference} en énonce un ; une valeur
+  dérivée ne peut pas être connue plus précisément que les nombres d'où elle
+  vient
+validate.derivation.bracket_does_not_follow: >-
+  énonce l'intervalle {stated}, qui ne découle pas des intervalles des entrées
+  qu'il nomme ; celles-ci donnent {expected}
 validate.derivation.self: "se cite lui-même dans derived_from"
 validate.derivation.unknown_reference: >-
   dérive de {reference}, qui ne nomme rien dans ce modèle

@@ -268,6 +268,88 @@ valeurs par installation ne sont pas disponibles du tout, et ne le seront pas :
 l'article 5(5) du règlement délégué (UE (Union européenne)) 2024/1364 impose
 l'anonymisation de la base.
 
+## Avec quelle précision, ce qui n'est pas sur quoi cela repose
+
+Les quatre statuts classent ce sur quoi un chiffre *repose*. Ils ne disent rien
+de la *précision* avec laquelle il est connu, et les deux se séparent sans
+cesse : une intensité carbone lue dans un jeu de données national publié est
+irréprochablement sourcée et ne situe la réponse qu'à un cinquième près, parce
+que c'est une moyenne annuelle qui tient lieu du mix à l'heure où votre code a
+tourné.
+
+Une quantité peut donc porter un intervalle à côté de sa valeur :
+
+```yaml
+grid_carbon_intensity:
+  value: 41.2
+  unit: "gCO2e/kWh"
+  status: "estimated"
+  low: 33.827318042561515
+  high: 50.179561911005834
+```
+
+**Et l'intervalle se propage, sous la même règle que le statut.** Une valeur
+dérivée ne peut pas surclasser les nombres d'où elle vient ; elle ne peut pas
+non plus les *sur-résoudre*. Le chiffre carbone calculé à partir de cette
+intensité et d'une énergie mesurée ne peut pas être un nombre unique, puisque
+l'une de ses entrées n'en est pas un. Le validateur fait passer les coins de
+chaque intervalle d'entrée par les mêmes arrangements qu'il emploie déjà pour
+recalculer la valeur, et refuse un intervalle plus étroit que celui que les
+entrées imposent. Plus large est permis : élargir est un jugement. Plus étroit
+est une prétention que personne n'a gagnée.
+
+[`examples/uncertainty.yaml`](examples/uncertainty.yaml) est ce modèle-là, de
+bout en bout, et retirer l'intervalle de son chiffre carbone le fait échouer.
+
+### D'où vient l'intervalle, quand il vient d'un jugement
+
+Énoncer un intervalle à la main est légitime et souvent juste. Pour le cas le
+plus courant — un chiffre dont l'incertitude est une lecture de *sa
+provenance* — ce paquet implémente la **matrice de pedigree**, que l'analyse du
+cycle de vie emploie depuis que Weidema et Wesnaes l'y ont introduite en 1996,
+et qu'ecoinvent applique depuis 2005.
+
+Cinq indicateurs, notés chacun de un à cinq, un étant le meilleur : fiabilité de
+la source, complétude, ancienneté, proximité géographique, proximité
+technologique. Chaque note renvoie à un facteur publié, et les facteurs se
+combinent en le carré d'un écart-type géométrique :
+
+```yaml
+quality:
+  reliability: 2
+  completeness: 1
+  temporal: 2
+  geographical: 1
+  technological: 3
+  basic_uncertainty: 1.05
+```
+
+Le validateur recalcule l'intervalle depuis ces notes et en refuse un qui ne
+correspond pas, exactement comme il le fait déjà pour une valeur dérivée.
+
+**Trois refus y sont inscrits, et c'est pour eux que la chose vaut la peine.**
+
+La table publiée laisse **deux cases vides** — corrélation géographique à
+quatre, corrélation technologique à deux. Une case vide n'est pas 1,00. La
+matrice ne définit aucun mode de ce genre, et un modèle qui en note un est
+refusé plutôt que de recevoir un bénéfice du doute que la source n'a jamais
+accordé.
+
+**Une lecture partielle est refusée.** L'écart est la combinaison des cinq
+indicateurs : en noter quatre le sous-estimerait.
+
+Et **`basic_uncertainty` est à vous de l'énoncer.** Dans la source, elle vient
+d'une table indexée par genre de flux — énergie thermique, services de
+transport, dioxyde de carbone émis à l'air — et ces lignes décrivent un
+inventaire de procédés industriels, pas les dimensions portées ici. Les
+transposer serait inventer un étalonnage. Omettez-la et les notes ne produisent
+aucun intervalle, et le rapport le dit : la même réponse que ce paquet donne à
+un pays que personne n'a nommé.
+
+L'hypothèse sur laquelle la méthode repose est celle que ses propres sources
+énoncent et que cette page répète au lieu de l'enfouir : que la quantité suit
+une loi lognormale.
+
 ## Le faire
 
 ```bash
@@ -317,6 +399,18 @@ moitié.
   quatre lignes processeur.
 - [Lignes directrices UE pour les fournisseurs de modèles à usage général](https://digital-strategy.ec.europa.eu/en/faqs/guidelines-obligations-general-purpose-ai-providers) · [SCI for AI et conformité au règlement IA](https://greensoftware.foundation/policy/research/sci-ai-eu-ai-act/)
 - [Green Algorithms](https://doi.org/10.1002/advs.202100707) — l'arithmétique opérationnelle, extraite dans [`skills/saggio/references/green-algorithms.md`](skills/saggio/references/green-algorithms.md).
+- [Refining the pedigree matrix approach in ecoinvent](https://lca-net.com/files/Pedigree_report_final_May2012.pdf)
+  — Ciroth 2012, qui reproduit la table de transformation et la formule de
+  combinaison que ce paquet implémente, et consigne qu'ecoinvent 3 applique les
+  mêmes valeurs en retirant le facteur de taille d'échantillon. La table
+  elle-même est Frischknecht et Jungbluth 2004, rapport ecoinvent n° 1, p. 46 ;
+  la formule est p. 44.
+- [L'application de l'approche pedigree aux distributions prévues dans ecoinvent v3](https://doi.org/10.1007/s11367-014-0759-5)
+  — la place de l'approche dans la base pour laquelle elle a été bâtie.
+- [EcoLogits](https://github.com/genai-impact/ecologits) — l'intervalle atteint
+  par l'autre chemin, pour un modèle derrière une interface fermée dont
+  personne ne publie la taille. [`PAYSAGE.md`](PAYSAGE.md) dit ce qui lui a été
+  pris.
 
 ---
 
