@@ -42,6 +42,36 @@ claims:
     path: saggio/data/hardware.yaml
     method: regex_count
     selector: '\n\s*(?:tdp_w|w_per_core):'
+- text: 41.2 gCO2e/kWh
+  value: '41.2'
+  source:
+    path: examples/uncertainty.yaml
+    method: literal
+    selector: '41.2'
+- text: 33.8 to 50.2
+  value: '33.827318042561515'
+  source:
+    path: examples/uncertainty.yaml
+    method: literal
+    selector: '33.827318042561515'
+- text: 1.19e-06 gCO2e
+  value: '1.1891819637941667e-06'
+  source:
+    path: examples/uncertainty.yaml
+    method: literal
+    selector: '1.1891819637941667e-06'
+- text: 9.76e-07 to 1.45e-06
+  value: '9.76379526692795e-07'
+  source:
+    path: examples/uncertainty.yaml
+    method: literal
+    selector: '9.76379526692795e-07'
+- text: Nor may it be known more precisely than they are.
+  value: known more precisely than the numbers it came from
+  source:
+    path: saggio/data/messages/en.yaml
+    method: literal
+    selector: known more precisely than the numbers it came from
 - text: 'value: 0.0014'
   value: '0.0014'
   source:
@@ -88,10 +118,10 @@ assets:
 - rel: film/composition/index.fr.html
   provenance: derived
   recipe: python film/compose.py
-- rel: film/narration/en/question/narration.wav
+- rel: film/narration/en/hook/narration.wav
   provenance: derived
   recipe: python film/narrate_film.py en
-- rel: film/narration/fr/question/narration.wav
+- rel: film/narration/fr/hook/narration.wav
   provenance: derived
   recipe: python film/narrate_film.py fr
 pitch:
@@ -102,149 +132,183 @@ pitch:
   solution:
   - 3
   magic:
-  - 5
+  - 4
 scenes:
 - start: 0.0
-  text: Somebody is going to ask what it costs to run your code. Money, time, energy, carbon, water.
-- start: 6.31
-  text: You will answer with a number. It will come from a spreadsheet, or from a coefficient that was true on a machine that is not yours.
-- start: 13.985
-  text: The dangerous number is not the one you are missing. It is the confident one, orders of magnitude out, carrying a perfectly tidy list of its sources.
-- start: 23.794
-  text: saggio writes the answer as a file, committed next to the code, reviewable in a pull request.
-- start: 29.784
-  text: Every number in it carries a status. Measured means a counter on the machine said so. Estimated means a sourced formula said so. Placeholder holds the field open. TODO means a human still has to answer.
-- start: 43.625
-  text: Every derived number names the numbers it came from, so one rule follows. A derived value may never claim to be better founded than the worst of its inputs.
-- start: 53.434
-  text: The derivation is checked rather than declared. The validator reads every unit down to its base dimensions, recomputes the value from its named inputs, then calls anything more than a percent out an error.
-- start: 66.549
-  text: It never invents. An unresolved country gives a TODO rather than a zero. Eight hardware footprints ship out of thirty-seven parts. The catalogue says so by name.
-- start: 77.147
-  text: Thirteen verbs, five runtime dependencies, five surfaces over one engine. pip install saggio.
+  text: Any tool will give you a number, confidently. This one, just as confidently, will tell you when it has no business giving you one.
+- start: 8.145
+  text: saggio reads your repository and writes what it costs to run as a file, committed next to the code, reviewable in a pull request. Money, time, energy, carbon, water, per unit of work you name.
+- start: 21.196
+  text: Because the dangerous number is not the one you are missing. It is the confident one, orders of magnitude out, carrying a perfectly tidy list of its sources.
+- start: 31.282
+  text: So every number carries a status. Measured means a counter on the machine said so. Estimated means a sourced formula said so. Placeholder holds the field open. TODO means a human still has to answer.
+- start: 44.995
+  text: And here is the part nobody else does. A derived number names what it came from. It may never outrank the worst of them. Nor may it pin the answer down more tightly than they do. The validator recomputes it. Every unit goes down to its base dimensions. More than a percent out is an error.
+- start: 63.017
+  text: Here it is on a real model. The French grid intensity is sourced. It is still only good to a fifth either way. So the carbon figure computed from it is not allowed to be a single number. Delete the interval. The model stops validating.
+- start: 78.095
+  text: Thirteen verbs, five runtime dependencies, five surfaces over one engine. Read it at deraison dot a i slash saggio. If it is useful, leave a star on GitHub.
+- start: 89.674
+  text: Because a figure that refuses to exist is worth more than one that was invented.
 narration:
   en:
   - start: 0.0
-    text: Somebody is going to ask what it costs to run your code.
-    duration: 3.545
-  - start: 3.545
-    text: Money, time, energy, carbon, water.
-    duration: 2.215
-  - start: 6.31
-    text: You will answer with a number.
-    duration: 1.644
-  - start: 7.954
-    text: It will come from a spreadsheet, or from a coefficient that was true on a machine that is not yours.
-    duration: 5.481
-  - start: 13.985
-    text: The dangerous number is not the one you are missing.
-    duration: 3.253
-  - start: 17.238
+    text: Any tool will give you a number, confidently.
+    duration: 2.649
+  - start: 2.649
+    text: This one, just as confidently, will tell you when it has no business giving you one.
+    duration: 4.946
+  - start: 8.145
+    text: saggio reads your repository and writes what it costs to run as a file, committed next to the code, reviewable in a pull request.
+    duration: 8.443
+  - start: 16.588
+    text: Money, time, energy, carbon, water, per unit of work you name.
+    duration: 4.058
+  - start: 21.196
+    text: Because the dangerous number is not the one you are missing.
+    duration: 3.668
+  - start: 24.864
     text: It is the confident one, orders of magnitude out, carrying a perfectly tidy list of its sources.
-    duration: 6.006
-  - start: 23.794
-    text: saggio writes the answer as a file, committed next to the code, reviewable in a pull request.
-    duration: 5.44
-  - start: 29.784
-    text: Every number in it carries a status.
-    duration: 2.417
-  - start: 32.201
+    duration: 5.868
+  - start: 31.282
+    text: So every number carries a status.
+    duration: 2.228
+  - start: 33.51
     text: Measured means a counter on the machine said so.
-    duration: 3.222
-  - start: 35.423
+    duration: 3.24
+  - start: 36.75
     text: Estimated means a sourced formula said so.
-    duration: 2.819
-  - start: 38.242
+    duration: 2.835
+  - start: 39.585
     text: Placeholder holds the field open.
-    duration: 2.215
-  - start: 40.457
+    duration: 2.228
+  - start: 41.813
     text: TODO means a human still has to answer.
-    duration: 2.618
-  - start: 43.625
-    text: Every derived number names the numbers it came from, so one rule follows.
-    duration: 4.361
-  - start: 47.986
-    text: A derived value may never claim to be better founded than the worst of its inputs.
-    duration: 4.898
-  - start: 53.434
-    text: The derivation is checked rather than declared.
-    duration: 2.895
-  - start: 56.329
-    text: The validator reads every unit down to its base dimensions, recomputes the value from its named inputs, then calls anything more than a percent out an error.
-    duration: 9.67
-  - start: 66.549
-    text: It never invents.
-    duration: 1.081
-  - start: 67.63
-    text: An unresolved country gives a TODO rather than a zero.
-    duration: 3.434
-  - start: 71.064
-    text: Eight hardware footprints ship out of thirty-seven parts.
-    duration: 3.625
-  - start: 74.689
-    text: The catalogue says so by name.
-    duration: 1.908
-  - start: 77.147
-    text: Thirteen verbs, five runtime dependencies, five surfaces over one engine. pip install saggio.
-    duration: 6.677
+    duration: 2.633
+  - start: 44.995
+    text: And here is the part nobody else does.
+    duration: 2.346
+  - start: 47.341
+    text: A derived number names what it came from.
+    duration: 2.531
+  - start: 49.872
+    text: It may never outrank the worst of them.
+    duration: 2.408
+  - start: 52.28
+    text: Nor may it pin the answer down more tightly than they do.
+    duration: 3.519
+  - start: 55.799
+    text: The validator recomputes it.
+    duration: 1.729
+  - start: 57.528
+    text: Every unit goes down to its base dimensions.
+    duration: 2.716
+  - start: 60.244
+    text: More than a percent out is an error.
+    duration: 2.223
+  - start: 63.017
+    text: Here it is on a real model.
+    duration: 1.698
+  - start: 64.715
+    text: The French grid intensity is sourced.
+    duration: 2.327
+  - start: 67.042
+    text: It is still only good to a fifth either way.
+    duration: 2.767
+  - start: 69.809
+    text: So the carbon figure computed from it is not allowed to be a single number. Delete the interval.
+    duration: 6.038
+  - start: 75.847
+    text: The model stops validating.
+    duration: 1.698
+  - start: 78.095
+    text: Thirteen verbs, five runtime dependencies, five surfaces over one engine.
+    duration: 5.228
+  - start: 83.323
+    text: Read it at deraison dot a i slash saggio.
+    duration: 2.936
+  - start: 86.259
+    text: If it is useful, leave a star on GitHub.
+    duration: 2.865
+  - start: 89.674
+    text: Because a figure that refuses to exist is worth more than one that was invented.
+    duration: 4.757
   fr:
   - start: 0.0
-    text: Quelqu'un va vous demander ce que coûte votre code à l'exécution.
-    duration: 3.461
-  - start: 3.461
-    text: De l'argent, du temps, de l'énergie, du carbone, de l'eau.
-    duration: 3.088
-  - start: 7.099
-    text: Vous répondrez par un chiffre.
-    duration: 1.608
-  - start: 8.707
-    text: Il viendra d'un tableur, ou d'un coefficient vrai sur une machine qui n'est pas la vôtre.
-    duration: 4.771
-  - start: 14.028
-    text: Le chiffre dangereux n'est pas celui qui vous manque.
-    duration: 2.904
-  - start: 16.932
-    text: C'est celui qui a l'air sûr de lui, faux d'un facteur mille, avec une liste de sources impeccable en dessous.
-    duration: 5.971
-  - start: 23.453
-    text: saggio écrit la réponse dans un fichier, versionné à côté du code, relisible dans une pull request.
-    duration: 6.037
-  - start: 30.04
-    text: Chaque chiffre y porte un statut.
-    duration: 1.889
-  - start: 31.929
+    text: Un chiffre, tous les outils vous en donnent un, du même ton assuré.
+    duration: 3.543
+  - start: 3.543
+    text: Celui-ci garde ce ton pour vous dire quand il n'a pas le droit de le faire.
+    duration: 3.966
+  - start: 8.059
+    text: 'saggio lit votre dépôt et met ce que coûte son exécution dans un fichier : versionné à côté du code, relu en pull request comme le reste.'
+    duration: 7.82
+  - start: 15.879
+    text: Argent, temps, énergie, carbone, eau, pour l'unité de travail que vous choisissez.
+    duration: 4.681
+  - start: 21.11
+    text: Parce que le chiffre qui vous manque, ce n'est pas lui le danger.
+    duration: 3.438
+  - start: 24.548
+    text: Le danger, c'est celui qui a l'air sûr de lui et qui est faux d'un facteur mille.
+    duration: 4.285
+  - start: 28.833
+    text: Avec, en dessous, une liste de sources impeccable.
+    duration: 2.645
+  - start: 32.028
+    text: Alors chaque chiffre porte un statut.
+    duration: 2.13
+  - start: 34.158
     text: Mesuré, c'est un compteur de la machine qui l'a dit.
-    duration: 2.976
-  - start: 34.905
+    duration: 2.994
+  - start: 37.152
     text: Estimé, c'est une formule sourcée. Réservé tient la place.
-    duration: 3.319
-  - start: 38.224
-    text: TODO, c'est qu'un humain doit encore répondre.
-    duration: 2.632
-  - start: 41.406
-    text: Chaque chiffre dérivé nomme ceux dont il vient.
-    duration: 2.568
-  - start: 43.974
-    text: 'Une règle en découle : une valeur dérivée ne peut jamais se prétendre mieux fondée que le plus faible de ses apports.'
-    duration: 6.392
-  - start: 50.916
-    text: La dérivation est vérifiée plutôt que déclarée.
-    duration: 2.71
-  - start: 53.626
-    text: Le validateur ramène chaque unité à ses dimensions de base, recalcule la valeur à partir des apports qu'elle nomme, puis refuse tout écart de plus d'un pour cent.
-    duration: 9.343
-  - start: 63.519
-    text: Il n'invente jamais.
-    duration: 1.133
-  - start: 64.652
-    text: Un pays non résolu donne un TODO plutôt qu'un zéro.
-    duration: 2.888
-  - start: 67.54
-    text: Huit empreintes matérielles sont livrées sur trente-sept pièces.
-    duration: 3.624
-  - start: 71.164
-    text: Le catalogue le dit nommément.
-    duration: 1.699
-  - start: 73.413
-    text: Treize verbes, cinq dépendances d'exécution, cinq surfaces sur un seul moteur. pip install saggio.
-    duration: 6.123
+    duration: 3.339
+  - start: 40.491
+    text: TODO veut dire qu'un humain doit encore répondre.
+    duration: 2.821
+  - start: 43.863
+    text: Et voilà ce que les autres ne font pas.
+    duration: 2.092
+  - start: 45.955
+    text: Un chiffre dérivé nomme ce dont il est tiré.
+    duration: 2.36
+  - start: 48.315
+    text: Il ne peut ni surclasser le plus faible de ces chiffres-là, ni cerner la réponse de plus près qu'eux.
+    duration: 5.418
+  - start: 53.733
+    text: Le validateur le recalcule, chaque unité redescendue à ses dimensions de base.
+    duration: 4.184
+  - start: 57.917
+    text: Au-delà d'un pour cent d'écart, c'est une erreur.
+    duration: 2.629
+  - start: 61.096
+    text: Voilà ce que ça donne sur un vrai modèle.
+    duration: 2.272
+  - start: 63.368
+    text: L'intensité du réseau français est sourcée, mais connue à un cinquième près seulement.
+    duration: 4.765
+  - start: 68.133
+    text: Le chiffre carbone qui en découle n'a donc pas le droit d'être un nombre unique.
+    duration: 4.432
+  - start: 72.565
+    text: 'Effacez l''intervalle : le modèle ne passe plus la validation.'
+    duration: 3.38
+  - start: 76.494
+    text: Treize verbes.
+    duration: 0.885
+  - start: 77.379
+    text: Cinq dépendances d'exécution.
+    duration: 1.834
+  - start: 79.213
+    text: Cinq surfaces sur un seul moteur.
+    duration: 2.087
+  - start: 81.3
+    text: À lire sur deraison point a i slash saggio.
+    duration: 2.719
+  - start: 84.019
+    text: Si ça vous sert, laissez une étoile sur GitHub.
+    duration: 2.972
+  - start: 87.54
+    text: Parce qu'un chiffre qui refuse d'exister vaut mieux qu'un chiffre inventé.
+    duration: 3.669

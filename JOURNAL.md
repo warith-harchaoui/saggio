@@ -16,6 +16,95 @@ endroit-là.
 
 ## Non publié
 
+### Le film, remonté en huit beats, et les deux phrases autour desquelles il tient
+
+Le film était neuf scènes décrivant un mécanisme. Il en a huit, et ce sont des
+beats plutôt que des sujets : la punchline d'ouverture, ce qu'est la chose, le
+problème, la solution, la règle que personne d'autre n'impose, le plus bel
+exemple de son fonctionnement, quoi faire ensuite, et la punchline de fin.
+
+Les deux punchlines sont tirées de la prose avec laquelle le paquet se défend
+déjà, plutôt qu'écrites pour la caméra. L'ouverture — *n'importe quel outil vous
+donnera un chiffre ; celui-ci vous dira quand il n'a pas le droit de vous en
+donner un* — c'est la machinerie du refus dite à voix haute. La fin — *un
+chiffre qui refuse d'exister vaut mieux qu'un chiffre inventé* — c'est la
+dernière section de `PAYSAGE.md`, resserrée.
+
+**Le plus bel exemple est un échec, et c'est la seule sorte de garantie qui
+mérite d'être filmée.** La sixième scène, neuve, montre
+`examples/uncertainty.yaml` à l'écran : une intensité du réseau français
+sourcée et connue à un cinquième près seulement, et le chiffre carbone qui n'a
+par conséquent pas le droit d'être un nombre unique. Effacer l'intervalle fait
+cesser la validation du modèle, et la scène le dit.
+
+L'appel à l'action demande enfin les deux choses qu'il veut vraiment : la page,
+et une étoile sur le dépôt. Les deux sont à l'écran et les deux sont dites.
+
+Quatre portes le tiennent, comme avant, et les quatre sont vertes : 14
+affirmations sur 14 vérifiées contre les fichiers qui les tranchent, aucun
+chiffre non déclaré à l'écran dans l'une ou l'autre langue, aucun constat dur de
+prose dans l'une ou l'autre langue, et l'ordre problème puis solution puis
+secret sauce reconnu. Les deux valeurs que montre la scène d'exemple sont
+vérifiées contre `examples/uncertainty.yaml` lui-même : le film ne peut donc pas
+continuer à citer un intervalle que le modèle ne porte plus.
+
+**Le montage français était une traduction, et la porte qui le dit ne peut pas
+le dire ici.** `make-film calque` mesure à quel point un montage correspond à
+l'autre et signale une suspicion au-dessus de 0,75. Elle a donné 0,86 à ce
+film — accablant, jusqu'à ce qu'on regarde ce qu'elle lit : la mesure compare,
+position par position, combien de phrases porte une ligne et quels chiffres
+elle contient, or la narration de ce film est déjà découpée à une phrase par
+ligne et ne contient aucun chiffre en toutes lettres. 26 lignes anglaises sur
+27 et 25 françaises sur 25 se réduisent au même `(1, ())`. La porte comparait
+deux suites quasi constantes, ce que sa propre documentation annonce comme son
+angle mort : *un film dont chaque ligne est une phrase sans chiffre obtiendra
+un score élevé et peut être parfaitement composé.* Le score a donc été écarté
+et le français relu — ce que la porte demande de toute façon.
+
+La relecture a trouvé trois choses que le score ne pouvait pas voir.
+`relisible` est une formation transparente plutôt qu'un mot de dictionnaire, et
+`relu en pull request` dit la même chose en français ordinaire. `le modèle ne
+valide plus` emploie un verbe transitif sans objet : passable à l'oral, fautif
+dans une narration que les sous-titres impriment aussi, où le modèle ne valide
+rien mais échoue à la validation. Et *Ni cerner la réponse plus étroitement
+qu'eux* est une ellipse anglaise habillée en français, là où le français veut
+la corrélation `ni … ni …`. Le montage est
+réécrit : `relu en pull request comme le reste`, `le modèle ne passe plus la
+validation`, et `il ne peut ni surclasser le plus faible de ces chiffres-là, ni
+cerner la réponse de plus près qu'eux`. Le film français dure 92 secondes
+désormais, et non plus 89.
+
+Le premier jet de cette réécriture a introduit quatre tournures `, et`, que la
+porte de prose nomme et refuse. Elles ont été retirées plutôt que discutées, et
+les deux pistes ressortent sans aucun constat dur.
+
+Les chiffres de l'audit des sous-titres sont remesurés plutôt que réaffirmés, et
+le plafond est maintenant déduit au lieu d'être choisi : le montage anglais
+tourne à 15,5 caractères par seconde et culmine à 16,6, sous les 17 que l'audit
+applique par défaut ; le français tourne à 17,7 et culmine à 19,9, ce à quoi
+sert `--cps 20`, et à 17 il rend quarante-sept constats sur cinquante-cinq
+sous-titres.
+
+### Un rendu qui collait deux films bout à bout sans en avoir l'air
+
+`render_film.py` sautait toute image déjà présente sur le disque : un rendu mort
+à l'image 900 repartait de l'image 900. Cela ne tient que si la page est restée
+la même, et cette seconde condition n'était jamais lue. En refabriquant le
+français remonté, le script a trouvé 2139 images du montage précédent, n'a pris
+que les 63 que le montage plus long ajoutait, et a assemblé les 2202 en un film
+qui se lisait, affichait une durée plausible et montrait le script précédent
+pendant ses quatre-vingt-neuf premières secondes. Il l'annonçait en toutes
+lettres — *63 frames taken, 2202 on disk* — et rien n'en faisait une erreur.
+
+Rien en aval n'aurait pu l'attraper. Toutes les portes d'ici lisent la
+composition ou le contrat ; aucune ne lit les pixels. Le défaut n'est apparu que
+parce qu'une image d'affiche tirée à un instant situé dans la scène d'exemple
+est revenue en montrant l'appel à l'action.
+
+Les images portent désormais l'empreinte de la composition dont elles sont
+tirées, et sont jetées quand celle-ci change. Reprendre un rendu interrompu
+fonctionne toujours : un rendu interrompu ne change pas la page.
+
 ### Deux refus, relus, et tous deux plus larges qu'il ne fallait
 
 `PAYSAGE.md` consignait deux idées prises à d'autres outils et déclinées. En

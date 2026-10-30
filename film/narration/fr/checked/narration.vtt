@@ -1,5 +1,0 @@
-WEBVTT
-
-0
-00:00:00.000 --> 00:00:12.053
-La dérivation est vérifiée plutôt que déclarée. Le validateur ramène chaque unité à ses dimensions de base, recalcule la valeur à partir des apports qu'elle nomme, puis refuse tout écart de plus d'un pour cent.

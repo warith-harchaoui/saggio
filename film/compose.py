@@ -175,6 +175,23 @@ h2{font-family:'Roboto Serif',serif;font-weight:700;font-size:66px;line-height:1
   border:1px solid var(--rule);border-radius:14px;padding:22px 34px;
   background:rgba(255,255,255,.04)}
 .url{font-size:34px;color:var(--accent)}
+.star{font-size:30px;color:var(--soft);font-family:'Roboto Mono',monospace}
+
+/* 6 -- the interval, on a real model */
+.intervals{margin-top:54px;border-top:1px solid var(--rule)}
+.interval{display:grid;grid-template-columns:1fr 1.1fr 1.2fr;gap:36px;align-items:baseline;
+  padding:30px 0;border-bottom:1px solid var(--rule)}
+.interval .point{font-family:'Roboto Mono',monospace;font-size:40px;color:var(--ink)}
+.interval .span{font-family:'Roboto Mono',monospace;font-size:40px;color:var(--accent)}
+.interval .why{font-size:29px;color:var(--soft)}
+.note{margin-top:44px;font-size:34px;color:var(--soft)}
+
+/* 8 -- the closing punchline */
+.punch{max-width:1500px}
+.punch .one{font-size:92px;font-weight:300;line-height:1.1;color:var(--soft);
+  letter-spacing:-.02em}
+.punch .two{font-size:92px;font-weight:600;line-height:1.1;color:var(--ink);
+  letter-spacing:-.02em;margin-top:14px}
 """
 
 SEEK = """
@@ -303,7 +320,12 @@ def scene_statuses(content: dict, dur: float) -> str:
 
 
 def scene_chain(content: dict, dur: float, strings: dict) -> str:
-    """Scene six: a derivation, with the status falling to its weakest input."""
+    """Draw the derivation, with the status falling to its weakest input.
+
+    Every line under the chain is drawn, not only the first: the headline
+    promises two rules, and a frame that shows one of them takes the promise
+    back while the voice is still making it.
+    """
     chain = strings["chain"]
     rows = []
     step = (dur * 0.5) / max(len(chain), 1)
@@ -321,8 +343,11 @@ def scene_chain(content: dict, dur: float, strings: dict) -> str:
     return (
         f"<h2 {reveal(0.1)}>{esc(content['headline'])}</h2>"
         f'<div class="chain">{"".join(rows)}</div>'
-        f'<p class="sub" style="margin-top:46px" {reveal(dur * 0.74)}>'
-        f"{esc(content['lines'][0])}</p>"
+        + "".join(
+            f'<p class="sub" style="margin-top:{46 if i == 0 else 14}px" '
+            f"{reveal(dur * (0.70 + i * 0.12))}>{esc(line)}</p>"
+            for i, line in enumerate(content["lines"])
+        )
     )
 
 
@@ -376,6 +401,48 @@ def scene_close(content: dict, dur: float) -> str:
         f'<span class="cmd" {reveal(dur * 0.66)}>{esc(content["command"])}</span>'
         f'<span class="url" {reveal(dur * 0.76)}>{esc(content["url"])}</span>'
         f"</div>"
+        f'<div class="close">'
+        f'<span class="star" {reveal(dur * 0.86)}>{esc(content["star"])}</span>'
+        f"</div>"
+    )
+
+
+def scene_interval(content: dict, dur: float) -> str:
+    """Scene six: one sourced figure, and the figure it forces to be a range.
+
+    Two rows and nothing else. The first is an input that is impeccably
+    sourced and still only good to a fifth; the second is what the model is
+    then obliged to say about the number computed from it. The line under them
+    is the whole demonstration: it is a thing that *fails*, which is the only
+    kind of guarantee worth filming.
+    """
+    rows = "".join(
+        f'<div class="interval" {reveal(dur * 0.22 + i * 0.30)}>'
+        f'<span class="point">{esc(point)}</span>'
+        f'<span class="span">{esc(span)}</span>'
+        f'<span class="why">{esc(why)}</span>'
+        f"</div>"
+        for i, (point, span, why) in enumerate(content["rows"])
+    )
+    return (
+        f"<h2 {reveal(0.1)}>{esc(content['headline'])}</h2>"
+        f'<div class="intervals">{rows}</div>'
+        f'<p class="note" {reveal(dur * 0.74)}>{esc(content["note"])}</p>'
+    )
+
+
+def scene_punchline(content: dict, dur: float) -> str:
+    """Scene eight: the line the film is for, in two halves.
+
+    No chips, no counts, no command. Everything before this earned the right
+    to say one sentence, and a frame with anything else on it would take the
+    sentence back.
+    """
+    return (
+        f'<div class="punch">'
+        f'<div class="one" {reveal(0.15)}>{esc(content["headline"])}</div>'
+        f'<div class="two" {reveal(dur * 0.42)}>{esc(content["emphasis"])}</div>'
+        f"</div>"
     )
 
 
@@ -389,6 +456,8 @@ BUILDERS = {
     "checked": scene_checked,
     "refusals": scene_refusals,
     "close": scene_close,
+    "interval": scene_interval,
+    "punchline": scene_punchline,
 }
 
 #: The few strings the frames need that the narration never says, so they

@@ -1,24 +1,22 @@
 {
   "en": {
-    "question": 5.76,
-    "answer": 7.125,
-    "danger": 9.259,
-    "file": 5.44,
-    "statuses": 13.291,
-    "weakest": 9.259,
-    "checked": 12.565,
-    "refuses": 10.048,
-    "reach": 6.677
+    "hook": 7.595,
+    "what": 12.501,
+    "problem": 9.536,
+    "solution": 13.163,
+    "sauce": 17.472,
+    "example": 14.528,
+    "cta": 11.029,
+    "punchline": 4.757
   },
   "fr": {
-    "question": 6.549,
-    "answer": 6.379,
-    "danger": 8.875,
-    "file": 6.037,
-    "statuses": 10.816,
-    "weakest": 8.96,
-    "checked": 12.053,
-    "refuses": 9.344,
-    "reach": 6.123
+    "hook": 7.509,
+    "what": 12.501,
+    "problem": 10.368,
+    "solution": 11.285,
+    "sauce": 16.683,
+    "example": 14.848,
+    "cta": 10.496,
+    "punchline": 3.669
   }
 }

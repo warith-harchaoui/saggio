@@ -7,6 +7,17 @@ Nothing here plays: ``seek(t)`` is a pure function of ``t``, so the
 hundredth frame is the same pixels whether it is taken first or last,
 and a render that dies at frame 900 resumes at frame 900.
 
+That resumption is only sound while the page is the same page. It is a
+pure function of ``t`` *and* of the composition, and the second argument
+used to go unread: a frame already on disk was kept whatever had been
+rewritten since. Re-rendering a changed cut then reshot only the frames
+the new cut had added and kept the rest, and the result was two films
+spliced at the seam -- one that played, carried a plausible duration,
+and showed the previous script for its first eighty seconds. Nothing
+downstream could catch it, because every gate here reads the composition
+or the spec and none of them reads the pixels. So the frames are stamped
+with the composition they came from and dropped when it changes.
+
 The track is assembled from the same per-scene files the timings came
 from, each followed by the tail its scene was given. Audio laid out from
 the same numbers as the picture cannot drift against it.
@@ -18,6 +29,7 @@ Author
 
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -53,6 +65,39 @@ def timeline(lang: str) -> tuple[list[dict], float, int]:
     return scenes, round(clock, 3), fps
 
 
+def stamp(page: Path) -> str:
+    """Identify the composition a directory of frames was taken from."""
+    return hashlib.sha256(page.read_bytes()).hexdigest()
+
+
+def keep_or_clear(target: Path, page: Path) -> bool:
+    """
+    Drop frames that were taken from a different composition.
+
+    Parameters
+    ----------
+    target : pathlib.Path
+        The directory frames are written to.
+    page : pathlib.Path
+        The composition they are taken from.
+
+    Returns
+    -------
+    bool
+        Whether frames already on disk were discarded.
+    """
+    mark = target / ".composition"
+    current = stamp(page)
+    if mark.is_file() and mark.read_text(encoding="utf-8").strip() == current:
+        return False
+    stale = list(target.glob("*.png"))
+    for frame in stale:
+        frame.unlink()
+    target.mkdir(parents=True, exist_ok=True)
+    mark.write_text(current + "\n", encoding="utf-8")
+    return bool(stale)
+
+
 def shoot(lang: str) -> tuple[int, int]:
     """Photograph every frame of one language. Returns (written, total)."""
     from playwright.sync_api import sync_playwright
@@ -61,7 +106,10 @@ def shoot(lang: str) -> tuple[int, int]:
     count = round(total_seconds * fps)
     target = FRAMES / lang
     target.mkdir(parents=True, exist_ok=True)
-    page_url = "file://" + str((HERE / "composition" / f"index.{lang}.html").resolve())
+    composition = HERE / "composition" / f"index.{lang}.html"
+    if keep_or_clear(target, composition):
+        print(f"{lang}: composition changed, previous frames dropped", flush=True)
+    page_url = "file://" + str(composition.resolve())
 
     written = 0
     with sync_playwright() as play:

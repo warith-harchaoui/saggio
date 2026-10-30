@@ -14,6 +14,91 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### The film, recut to eight beats, and the two lines it is now built around
+
+The film was nine scenes describing a mechanism. It is eight now, and the eight
+are beats rather than topics: the opening punchline, what the thing is, the
+problem, the solution, the one rule nobody else enforces, the best example of
+it working, what to do next, and the closing punchline.
+
+Both punchlines are lifted from prose the package already defends itself with
+rather than written for the camera. The opener — *any tool will give you a
+number; this one will tell you when it has no business giving you one* — is the
+refusal machinery said out loud. The closer — *a figure that refuses to exist is
+worth more than one that was invented* — is the last section of `LANDSCAPE.md`,
+tightened.
+
+**The best example is a failure, which is the only kind of guarantee worth
+filming.** The new sixth scene is `examples/uncertainty.yaml` on screen: a
+sourced French grid intensity that is still only good to a fifth either way, and
+the carbon figure that is consequently not allowed to be a single number.
+Deleting the interval makes the model stop validating, and the scene says so.
+
+The call to action now asks for the two things it actually wants: the page, and
+a star on the repository. Both are on screen and both are spoken.
+
+Four gates hold it, as before, and all four are green: 14 of 14 claims verified
+against the files that decide them, no number on screen in either language that
+nobody declared, no hard prose findings in either language, and the
+problem-then-solution-then-secret-sauce ordering recognised. The two figures the
+example scene shows are checked against `examples/uncertainty.yaml` itself, so
+the film cannot go on quoting an interval the model no longer carries.
+
+**The French cut was a translation, and the gate that says so cannot say so
+here.** `make-film calque` scores how far one language cut corresponds to the
+other and reports a suspicion above 0.75. It scored this film 0.86, which looks
+damning until the input is read: the measure compares, position by position, how
+many sentences a line holds and which numerals it carries, and this film's
+narration is already split one sentence to a line with no numerals anywhere —
+26 of 27 English lines and 25 of 25 French ones reduce to the same `(1, ())`.
+The gate was comparing two near-constant sequences, which is the escape its own
+documentation names: *a film whose lines are each one sentence with no numbers
+will score high and may be perfectly composed.* So the score was set aside and
+the French was read instead, which is what the gate asks for anyway.
+
+Reading it found three things the score could not have. `relisible` is a
+transparent coinage rather than a dictionary word, and `relu en pull request`
+says the same thing in ordinary French. `le modèle ne valide plus` puts a
+transitive verb to work with no object — tolerable in speech, wrong in a
+narration the captions also print, where the model does not validate anything
+but fails validation. And *Ni cerner la réponse plus étroitement qu'eux* is an
+English elliptical fragment wearing French words, where French wants the
+`ni … ni …` correlative. The cut is
+rewritten: `relu en pull request comme le reste`, `le modèle ne passe plus la
+validation`, and `il ne peut ni surclasser le plus faible de ces chiffres-là, ni
+cerner la réponse de plus près qu'eux`. The French film is 92 seconds now rather
+than 89.
+
+The rewrite's first draft introduced four `, et` constructions, which the prose
+gate names and refuses. They were removed rather than argued with, and both
+tracks come back with no hard findings.
+
+The caption audit's numbers are re-measured rather than re-asserted, and the
+ceiling is now derived instead of chosen: the English cut averages 15.5
+characters a second and peaks at 16.6, inside the audit's default 17; the French
+averages 17.7 and peaks at 19.9, which is what `--cps 20` is for, and at 17 it
+reports forty-seven findings over fifty-five cues.
+
+### A render that spliced two films together and looked like one
+
+`render_film.py` skipped any frame already on disk, so a render that died at
+frame 900 resumed at frame 900. That is sound only while the page is the same
+page, and the second condition went unread. Re-rendering the recut French found
+2139 frames from the previous cut, shot only the 63 the longer cut had added,
+and assembled all 2202 into a film that played, carried a plausible duration,
+and showed the previous script for its first eighty-nine seconds. It announced
+this in plain sight — *63 frames taken, 2202 on disk* — and nothing treated it
+as an error.
+
+Nothing downstream could have caught it. Every gate here reads the composition
+or the spec; none of them reads the pixels. It surfaced only because a poster
+frame pulled at a timecode inside the example scene came back showing the call
+to action.
+
+The frames are now stamped with a hash of the composition they were taken from,
+and dropped when it changes. Resuming an interrupted render still works, because
+an interrupted render does not change the page.
+
 ### Two refusals, re-read, and both were wider than they needed to be
 
 `LANDSCAPE.md` listed two ideas taken from other tools and declined. Pushed on

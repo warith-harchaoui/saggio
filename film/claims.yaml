@@ -49,6 +49,41 @@ claims:
       method: regex_count
       selector: '\n\s*(?:tdp_w|w_per_core):'
 
+  - text: "41.2 gCO2e/kWh"
+    value: "41.2"
+    source:
+      path: examples/uncertainty.yaml
+      method: literal
+      selector: "41.2"
+
+  - text: "33.8 to 50.2"
+    value: "33.827318042561515"
+    source:
+      path: examples/uncertainty.yaml
+      method: literal
+      selector: "33.827318042561515"
+
+  - text: "1.19e-06 gCO2e"
+    value: "1.1891819637941667e-06"
+    source:
+      path: examples/uncertainty.yaml
+      method: literal
+      selector: "1.1891819637941667e-06"
+
+  - text: "9.76e-07 to 1.45e-06"
+    value: "9.76379526692795e-07"
+    source:
+      path: examples/uncertainty.yaml
+      method: literal
+      selector: "9.76379526692795e-07"
+
+  - text: "Nor may it be known more precisely than they are."
+    value: "known more precisely than the numbers it came from"
+    source:
+      path: saggio/data/messages/en.yaml
+      method: literal
+      selector: "known more precisely than the numbers it came from"
+
   - text: "value: 0.0014"
     value: "0.0014"
     source:
@@ -83,7 +118,7 @@ claims:
 pitch:
   problem: [0, 1, 2]
   solution: [3]
-  magic: [5]
+  magic: [4]
 
 assets:
   - rel: film/script.yaml
@@ -107,9 +142,9 @@ assets:
   - rel: film/composition/index.fr.html
     provenance: derived
     recipe: python film/compose.py
-  - rel: film/narration/en/question/narration.wav
+  - rel: film/narration/en/hook/narration.wav
     provenance: derived
     recipe: python film/narrate_film.py en
-  - rel: film/narration/fr/question/narration.wav
+  - rel: film/narration/fr/hook/narration.wav
     provenance: derived
     recipe: python film/narrate_film.py fr
