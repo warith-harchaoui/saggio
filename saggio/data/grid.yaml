@@ -10,6 +10,19 @@
 # freshness policy) rather than as constants of nature. Refresh with
 # `saggio catalog freshness` and re-read the sources.
 #
+# in_european_union : present and true only on the twenty-seven Member States.
+# It is a membership fact rather than a measurement, so it carries no source of
+# its own and no retrieved date; the Union's own list is at
+# https://european-union.europa.eu/principles-countries-history/eu-countries_en.
+# It is here because one figure in the providers catalogue is scoped by it. The
+# recast Energy Efficiency Directive obliges Member States -- not Europe, not
+# the European Economic Area -- to make large data centres report their energy
+# and water, and the Union-wide averages the Commission publishes from that duty
+# are the `on-prem-eu` row. So the flag answers exactly one question: may this
+# country's self-run room use that row. The United Kingdom, Norway and
+# Switzerland sit in Europe and are not Member States, which is why a
+# continent-shaped guess would have been wrong rather than merely imprecise.
+#
 # carbon_gco2e_per_kwh : annual average operating emissions of the national grid.
 # price_usd_per_kwh    : indicative price, household or small-business tariff.
 # timezones            : IANA zones used to offer, never to assert, a country.
@@ -47,6 +60,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "AT"
     name: "Austria"
+    in_european_union: true
     carbon_gco2e_per_kwh: 116.6
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -61,6 +75,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "BE"
     name: "Belgium"
+    in_european_union: true
     carbon_gco2e_per_kwh: 151.3
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -145,6 +160,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "CZ"
     name: "Czechia"
+    in_european_union: true
     carbon_gco2e_per_kwh: 401.4
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -159,6 +175,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "DE"
     name: "Germany"
+    in_european_union: true
     carbon_gco2e_per_kwh: 334.1
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -173,6 +190,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "DK"
     name: "Denmark"
+    in_european_union: true
     carbon_gco2e_per_kwh: 99.9
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -201,6 +219,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "ES"
     name: "Spain"
+    in_european_union: true
     carbon_gco2e_per_kwh: 153.5
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -215,6 +234,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "FI"
     name: "Finland"
+    in_european_union: true
     carbon_gco2e_per_kwh: 57.2
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -229,6 +249,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "FR"
     name: "France"
+    in_european_union: true
     carbon_gco2e_per_kwh: 41.2
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -257,6 +278,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "IE"
     name: "Ireland"
+    in_european_union: true
     carbon_gco2e_per_kwh: 263.3
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -299,6 +321,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "IT"
     name: "Italy"
+    in_european_union: true
     carbon_gco2e_per_kwh: 284.4
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -355,6 +378,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "NL"
     name: "Netherlands"
+    in_european_union: true
     carbon_gco2e_per_kwh: 253.7
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -383,6 +407,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "PL"
     name: "Poland"
+    in_european_union: true
     carbon_gco2e_per_kwh: 590.8
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -397,6 +422,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "PT"
     name: "Portugal"
+    in_european_union: true
     carbon_gco2e_per_kwh: 127.8
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -411,6 +437,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "RO"
     name: "Romania"
+    in_european_union: true
     carbon_gco2e_per_kwh: 259.2
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -439,6 +466,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "SE"
     name: "Sweden"
+    in_european_union: true
     carbon_gco2e_per_kwh: 35.4
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"
@@ -467,6 +495,7 @@ countries:
     timezones_tzdb_version: "2026e"
   - key: "SK"
     name: "Slovakia"
+    in_european_union: true
     carbon_gco2e_per_kwh: 95.3
     carbon_source_url: "https://ember-energy.org/data/yearly-electricity-data/"
     carbon_retrieved_date: "2026-10-17"

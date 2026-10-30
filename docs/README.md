@@ -19,6 +19,7 @@ hand except [`api.md`](api.md), which is derived from the docstrings.
 | [`../ANALYSIS.md`](../ANALYSIS.md) | Can reading the code, or running it, tell me its complexity and its cost? |
 | [`../STANDARDS.md`](../STANDARDS.md) | Which standard is this, and which part of it does it not yet satisfy? |
 | [`../ANNEX-XI.md`](../ANNEX-XI.md) | I have to document my model's energy consumption for the European Union (EU) artificial intelligence (AI) Act. What does this give me, and what does it not? |
+| [`../WATER.md`](../WATER.md) | Why does a package about compute report litres, when cooling water is neither destroyed nor necessarily spoiled? |
 | [`../BOUNDARIES.md`](../BOUNDARIES.md) | Why two published figures for one inference differ by thirty-eight times, and what mine becomes under each boundary? |
 | [`../INVENTORY.md`](../INVENTORY.md) | Which line of a corporate Greenhouse Gas (GHG) inventory do these numbers go on, and what do they not cover? |
 

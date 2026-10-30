@@ -16,6 +16,62 @@ endroit-là.
 
 ## Non publié
 
+### L'eau, que la documentation avait déjà corrigée et le code non
+
+`NORMES.md` dit depuis la première évaluation de la Commission au titre de
+l'article 12 que, pour une salle auto-exploitée dans l'Union, la phrase
+*« On-premises ne publie aucune efficacité d'usage de l'eau »* n'est plus vraie :
+la moyenne européenne est au catalogue sous `on-prem-eu`. Le code l'ignorait.
+Rien dans le paquet ne lisait cette ligne, rien n'y renvoyait le lecteur, et une
+salle française recevait le même `TODO` nu qu'une salle dans un pays sans
+aucune obligation de déclaration. Une page qui annonce une correction et un
+moteur qui ne l'applique pas, c'est exactement la dérive que ce dépôt refuse —
+et il l'avait.
+
+Le catalogue des réseaux porte désormais `in_european_union` sur ses seize États
+membres, et le refus de l'eau nomme la ligne quand elle s'applique. **Il ne la
+prend toujours pas.** Une moyenne européenne sur les salles qui ont déclaré peut
+n'avoir aucun rapport avec la vôtre : le chiffre est proposé et le champ reste
+ouvert — nommer une issue n'est pas la franchir à la place de l'appelant. Le
+drapeau dit l'appartenance et non la géographie : le Royaume-Uni, la Norvège et
+la Suisse sont en Europe et n'obtiennent rien, parce que l'obligation lie les
+États membres et qu'une approximation à l'échelle du continent aurait été fausse
+plutôt que simplement imprécise.
+
+### `EAU.md` et `WATER.md` : pourquoi des litres, si l'eau n'est ni perdue ni souillée
+
+L'eau était la seule dimension que personne n'avait expliquée, et les deux
+objections qu'un lecteur attentif soulève sont justes toutes les deux. L'eau de
+refroidissement n'est pas détruite : elle s'évapore et retombe en pluie. Et elle
+ne revient pas imbuvable : la part évaporée s'en va en vapeur pure — c'est une
+distillation — et les sels restent derrière.
+
+La page concède donc les deux et dit ce que le chiffre mesure vraiment : un
+**déplacement, dans l'espace et dans le temps.** Le litre a quitté ce bassin-ci,
+cet été-là, pour la ferme en aval — et revient au-dessus d'un océan quatre jours
+plus tard, ce qui n'arrange personne dans la file d'attente d'ici. D'où le fait
+qu'un chiffre d'eau sans lieu ne veut presque rien dire, et que ce paquet rend
+le litre et le pays en se refusant à les pondérer par la rareté : un chiffre
+pondéré ne se dépondère pas chez le lecteur suivant, alors que le litre brut se
+recombine toujours après coup.
+
+Elle nomme aussi la part dont on parle le moins. La part dégradée, c'est la
+**déconcentration** — la purge de la boucle où les sels se sont concentrés — et
+elle est petite. La vraie question d'équité se joue à la prise d'eau, où une
+grande partie du refroidissement puise de l'eau potable traitée sur fonds
+publics. Lisez le rapport comme *la quantité d'eau que cette salle a déplacée*,
+jamais comme *la quantité qu'elle a gâchée*.
+
+Et l'arbitrage dont personne ne parle : une salle au chiffre d'eau très bas est
+peut-être simplement une salle en refroidissement sec qui paie la facture en
+électricité. Un chiffre d'eau lu seul récompense exactement la mauvaise
+conception, d'où le fait que ce paquet n'en montre jamais un sans l'énergie à
+côté.
+
+Quatre absences sont nommées plutôt que mises hors champ en silence : l'eau de
+production de l'électricité, la pondération par la rareté, la charge thermique
+rendue à une rivière, et l'eau contenue dans la fabrication du matériel.
+
 ### Le film, remonté en huit beats, et les deux phrases autour desquelles il tient
 
 Le film était neuf scènes décrivant un mécanisme. Il en a huit, et ce sont des

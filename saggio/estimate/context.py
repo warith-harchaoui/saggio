@@ -565,6 +565,32 @@ class DeploymentContext:
             notes=say("context.pue.published", provider=row.get("name")),
         )
 
+    def _european_union_room(self) -> bool:
+        """Whether a Member State's own self-run room is what is being described.
+
+        Returns
+        -------
+        bool
+            True only for the default self-run provider in a country the grid
+            catalogue flags as a Member State. Both halves matter: the Union's
+            reported average describes rooms the directive covers, so it says
+            nothing about a vendor's datacentre, and nothing about a room in a
+            European country outside the Union.
+
+        Examples
+        --------
+        >>> DeploymentContext.build(country="FR")._european_union_room()
+        True
+        >>> DeploymentContext.build(country="GB")._european_union_room()
+        False
+        >>> DeploymentContext.build(country="FR", provider="gcp")._european_union_room()
+        False
+        """
+        if self.provider != DEFAULT_PROVIDER:
+            return False
+        row = self._country_row()
+        return bool(row and row.get("in_european_union"))
+
     def water_effectiveness(self) -> Quantity:
         """Return litres of cooling water per kilowatt-hour of IT load.
 
@@ -575,20 +601,45 @@ class DeploymentContext:
             none. Most do not, and a water figure invented in its absence would
             be the worst kind of number in a sustainability report.
 
+        Notes
+        -----
+        The ``TODO`` names a way out when one exists rather than only stating
+        the absence. A self-run room in a Member State is covered by the
+        reporting duty behind the ``on-prem-eu`` row, so for that room the
+        sentence *"On-premises publishes no water usage effectiveness"* stopped
+        being true when the Commission published its first assessment. The row
+        is named and not taken: it is a Union-wide average over the rooms that
+        reported, the caller's room may be nothing like it, and swapping it in
+        unasked would be the package choosing an assumption on the caller's
+        behalf -- which is the one thing it refuses to do everywhere else.
+
         Examples
         --------
         >>> DeploymentContext.build(provider="gcp").water_effectiveness().value
         0.99
         >>> DeploymentContext.build(provider="lambda").water_effectiveness().status
         'TODO'
+
+        A room in a Member State is still a ``TODO``, and is told where to look:
+
+        >>> water = DeploymentContext.build(country="FR").water_effectiveness()
+        >>> water.status
+        'TODO'
+        >>> "on-prem-eu" in water.notes
+        True
+        >>> "on-prem-eu" in DeploymentContext.build(country="GB").water_effectiveness().notes
+        False
         """
         row = self._provider_row()
         if row is None or row.get("wue_l_per_kwh") is None:
             name = row.get("name") if row else self.provider
+            note = say("context.wue.missing", provider=name)
+            if self._european_union_room():
+                note += " " + say("context.wue.eu_available")
             return Quantity(
                 unit="L/kWh",
                 status=TODO,
-                notes=say("context.wue.missing", provider=name),
+                notes=note,
             )
         return Quantity(
             value=row["wue_l_per_kwh"],

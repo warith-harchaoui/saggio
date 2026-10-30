@@ -25,7 +25,10 @@ normalisation, ce qui est signalé plus bas où le sigle paraît.
 | **RSE** | responsabilité sociétale des entreprises | ce qu'on appelle en anglais *corporate social responsibility* |
 | **SCI** | Software Carbon Intensity | la spécification de la Green Software Foundation pour énoncer le carbone d'un logiciel par unité de travail |
 | **PUE** | power usage effectiveness | l'énergie totale d'un centre de données divisée par celle que tirent ses ordinateurs : 1,0 serait un bâtiment qui ne coûte rien à refroidir |
-| **WUE** | water usage effectiveness | litres d'eau par kilowattheure d'énergie informatique |
+| **WUE** | water usage effectiveness | efficacité d'usage de l'eau : litres d'eau par kilowattheure d'énergie informatique, comptés sur site — l'eau ayant servi à produire cette électricité en est exclue. [EAU.md](EAU.md) dit ce que le chiffre affirme et ce qu'il n'affirme pas |
+| **prélèvement** | — | l'eau sortie d'une rivière, d'une nappe ou d'un réseau. À ne pas confondre avec la consommation |
+| **consommation** | — | la part prélevée qui ne retourne pas au milieu dont elle venait — évaporée, pour l'essentiel. Déplacée plutôt que détruite, d'où l'importance du lieu et de la saison plus que du litre |
+| **déconcentration** | — | la fraction de boucle purgée parce que les sels laissés par l'évaporation s'y sont concentrés. La petite part réellement dégradée |
 | **PCF** | empreinte carbone produit | le chiffre publié par un fabricant pour le carbone de la fabrication d'une unité |
 | **ACV** | analyse du cycle de vie | la comptabilisation de l'impact d'un produit, de la matière première à la fin de vie |
 | **AIB** | Association of Issuing Bodies | l'organisme européen qui publie le mix résiduel d'électricité |

@@ -23,7 +23,10 @@ where it appears below.
 | **EFRAG** | European Financial Reporting Advisory Group | the body that drafts the ESRS |
 | **SCI** | Software Carbon Intensity | the Green Software Foundation's specification for stating a software system's carbon per unit of work |
 | **PUE** | power usage effectiveness | a data centre's total energy divided by the energy its computers draw: 1.0 would be a building that costs nothing to cool |
-| **WUE** | water usage effectiveness | litres of water per kilowatt-hour of computing energy |
+| **WUE** | water usage effectiveness | litres of water per kilowatt-hour of computing energy, counted on-site: it excludes the water used to generate that electricity. [WATER.md](WATER.md) explains what it does and does not say |
+| **withdrawal** | — | water taken out of a river, an aquifer or a main. Not the same as consumption |
+| **consumption** | — | the withdrawn water that does not return to the body it came from — mostly evaporated. It is relocated rather than destroyed, which is why the place and the season matter more than the litre |
+| **blowdown** | — | the fraction of a cooling loop bled off because the salts left behind by evaporation have concentrated. The small, genuinely degraded share |
 | **PCF** | product carbon footprint | a manufacturer's published figure for the carbon of making one unit of a product |
 | **LCA** | life-cycle assessment | accounting for a product's impact from raw material to disposal |
 | **AIB** | Association of Issuing Bodies | the European body that publishes the residual electricity mix |

@@ -407,6 +407,11 @@ context.pue.published: "Efficacité énergétique publiée par {provider}."
 context.wue.missing: >-
   {provider} ne publie aucune efficacité d'usage de l'eau. Laissez ce champ
   ouvert plutôt que d'inventer un chiffre.
+context.wue.eu_available: >-
+  Cette salle est dans un État membre de l'Union européenne, où les grands
+  centres de données doivent déclarer leur eau : le fournisseur `on-prem-eu`
+  porte la moyenne publiée à ce titre. Ne la retenez que si votre salle lui
+  ressemble.
 context.wue.published: >-
   Efficacité d'usage de l'eau sur site publiée par {provider} ; elle exclut l'eau
   utilisée pour produire l'électricité.

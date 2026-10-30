@@ -14,6 +14,58 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### Water, which the documentation had already fixed and the code had not
+
+`STANDARDS.md` has said since the Commission's first assessment under Article 12
+that for a self-run room inside the Union, *"On-premises publishes no water
+usage effectiveness"* is no longer true: the Union-wide average is in the
+catalogue as `on-prem-eu`. The code never knew. Nothing in the package read that
+row, nothing pointed a reader at it, and a French room got the same bare `TODO`
+as a room in a country with no reporting duty at all. A page claiming a fix and
+an engine not performing it is the drift this repository exists to refuse, and
+it had it.
+
+The grid catalogue now carries `in_european_union` on its sixteen Member States,
+and the water refusal names the row when it applies. **It still does not take
+it.** A Union-wide average over the rooms that reported may be nothing like
+yours, so the figure is offered and the field stays open — naming a way out is
+not the same as walking through it on the caller's behalf. The flag is
+membership, not geography: Britain, Norway and Switzerland are in Europe and get
+nothing, because the duty binds Member States and a continent-shaped guess would
+have been wrong rather than merely imprecise.
+
+### `WATER.md` and `EAU.md`: why litres, when the water is neither lost nor spoiled
+
+Water was the one dimension nobody had explained, and the two objections a
+careful reader raises are both correct. Cooling water is not destroyed — it
+evaporates and falls again as rain. And it does not come back undrinkable — the
+evaporated share leaves as pure vapour, which is distillation, and the salts
+stay behind.
+
+So the page concedes both and says what the number actually measures:
+**relocation, in place and in time.** The litre is gone from this basin, this
+summer, for the farm downstream — and returns over an ocean four days later,
+which helps nobody who was queuing for it here. That is why a water figure
+without a place is close to meaningless, and why this package reports the litre
+and the country and refuses to weight them by scarcity: a weighted figure cannot
+be un-weighted by whoever reads it next, and the unweighted one can always be
+combined afterwards.
+
+It also names the part that gets discussed least. The degraded share is the
+**blowdown** — the loop bled off because the salts concentrated — and it is
+small. The real equity question is at the intake, where a great deal of cooling
+water is drinkable municipal supply treated at public expense. Read the ratio as
+*how much water this room moved*, never as *how much water this room ruined*.
+
+And the trade nobody mentions: a room with a very low water figure may simply be
+a dry-cooled room paying the bill in electricity instead. A water number read
+alone rewards exactly the wrong design, which is why this package never shows
+one without the energy beside it.
+
+Four absences are named rather than quietly scoped out: the water used to
+generate the electricity, scarcity weighting, thermal load returned to a river,
+and the water embodied in making the hardware.
+
 ### The film, recut to eight beats, and the two lines it is now built around
 
 The film was nine scenes describing a mechanism. It is eight now, and the eight

@@ -369,6 +369,10 @@ context.pue.published: "Power usage effectiveness published by {provider}."
 context.wue.missing: >-
   {provider} publishes no water usage effectiveness. Leave this open rather than
   inventing a figure.
+context.wue.eu_available: >-
+  This room is in a European Union Member State, where large data centres
+  must report their water: the `on-prem-eu` provider carries the Union-wide
+  average published from that duty. Name it only if this room resembles it.
 context.wue.published: >-
   On-site water usage effectiveness published by {provider}; it excludes the
   water used to generate the electricity.

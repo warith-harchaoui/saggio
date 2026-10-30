@@ -220,6 +220,44 @@ def test_a_provider_that_publishes_one_gives_a_number() -> None:
     assert build(provider="gcp").water_effectiveness().value == 0.99
 
 
+def test_a_self_run_room_in_the_union_is_told_where_a_published_figure_is() -> None:
+    """The refusal names a way out when the reporting duty creates one.
+
+    `STANDARDS.md` has said since the Commission's first assessment that *"for a
+    room inside the Union, that sentence is no longer true"*. For a while the
+    code did not know it: the catalogue carried `on-prem-eu` and nothing ever
+    pointed a reader at it, so a French self-run room got the same bare `TODO`
+    as a room in a country with no reporting duty at all.
+    """
+    water = build(country="FR").water_effectiveness()
+    assert water.status == "TODO"
+    assert "on-prem-eu" in str(water.notes)
+
+
+def test_the_union_hint_is_scoped_to_membership_and_not_to_the_continent() -> None:
+    """Britain, Norway and Switzerland are in Europe and not in the Union.
+
+    The figure behind the hint is a Union-wide average published under a duty
+    that binds Member States. A continent-shaped test would pass on a guess.
+    """
+    for country in ("GB", "NO", "CH"):
+        assert "on-prem-eu" not in str(build(country=country).water_effectiveness().notes)
+
+
+def test_the_union_hint_does_not_follow_a_vendor_machine() -> None:
+    """A Member State's reported average says nothing about a vendor's hall."""
+    water = build(country="FR", provider="lambda").water_effectiveness()
+    assert water.status == "TODO"
+    assert "on-prem-eu" not in str(water.notes)
+
+
+def test_the_union_figure_is_named_and_never_taken() -> None:
+    """Naming a row is not choosing it: the quantity stays open."""
+    water = build(country="FR").water_effectiveness()
+    assert water.value is None
+    assert water.status == "TODO"
+
+
 def test_a_cloud_price_falls_back_to_the_local_tariff_and_says_so() -> None:
     price = build(country="DE", provider="aws").electricity_price()
     assert price.currency == "USD"
