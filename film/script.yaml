@@ -206,13 +206,13 @@ scenes:
     visual: punchline
     en:
       narration: >-
-        Because a figure that refuses to exist is worth more than one
-        that was invented.
-      headline: A figure that refuses to exist
-      emphasis: is worth more than one that was invented.
+        Dollars, kilowatt-hours, grams of CO2, litres of water. Every one of
+        them says how far it can be trusted, or refuses to exist.
+      headline: Dollars, kilowatt-hours, grams of CO2, litres of water.
+      emphasis: Each one says how far it can be trusted.
     fr:
       narration: >-
-        Parce qu'un chiffre qui refuse d'exister vaut mieux
-        qu'un chiffre inventé.
-      headline: Un chiffre qui refuse d'exister
-      emphasis: vaut mieux qu'un chiffre inventé.
+        Des euros, des kilowattheures, des grammes de CO2, des litres d'eau.
+        Chacun dit jusqu'où on peut lui faire confiance, ou refuse d'exister.
+      headline: Des euros, des kilowattheures, des grammes de CO2, des litres d'eau.
+      emphasis: Chacun dit jusqu'où on peut lui faire confiance.

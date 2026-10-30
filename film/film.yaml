@@ -149,7 +149,7 @@ scenes:
 - start: 78.095
   text: Thirteen verbs, five runtime dependencies, five surfaces over one engine. Read it at deraison dot a i slash saggio. If it is useful, leave a star on GitHub.
 - start: 89.674
-  text: Because a figure that refuses to exist is worth more than one that was invented.
+  text: Dollars, kilowatt-hours, grams of CO2, litres of water. Every one of them says how far it can be trusted, or refuses to exist.
 narration:
   en:
   - start: 0.0
@@ -231,8 +231,11 @@ narration:
     text: If it is useful, leave a star on GitHub.
     duration: 2.865
   - start: 89.674
-    text: Because a figure that refuses to exist is worth more than one that was invented.
-    duration: 4.757
+    text: Dollars, kilowatt-hours, grams of CO2, litres of water.
+    duration: 3.895
+  - start: 93.569
+    text: Every one of them says how far it can be trusted, or refuses to exist.
+    duration: 4.958
   fr:
   - start: 0.0
     text: Un chiffre, tous les outils vous en donnent un, du même ton assuré.
@@ -310,5 +313,8 @@ narration:
     text: Si ça vous sert, laissez une étoile sur GitHub.
     duration: 2.972
   - start: 87.54
-    text: Parce qu'un chiffre qui refuse d'exister vaut mieux qu'un chiffre inventé.
-    duration: 3.669
+    text: Des euros, des kilowattheures, des grammes de CO2, des litres d'eau.
+    duration: 3.759
+  - start: 91.299
+    text: Chacun dit jusqu'où on peut lui faire confiance, ou refuse d'exister.
+    duration: 3.814
