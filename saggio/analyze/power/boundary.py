@@ -473,7 +473,19 @@ def measurement_rows(
             label = (
                 say(f"boundary.field.{key}") if key in _FIELD_UNITS else str(key).replace("_", " ")
             )
-            row = (label, localised(f"{value}{unit}"))
+            # `localised` groups the whole part of a figure, which is right for
+            # a measurement and wrong for anything that merely holds digits.
+            # This branch is the catch-all for every scalar field, and one of
+            # them is a date: `measured_on` carries 2026-10-19 and came back
+            # from here as **2,026-10-19**, a year with a thousands separator.
+            # It is the precise failure `i18n.number` documents and believed
+            # had been audited away call site by call site -- this was the call
+            # site that audit did not reach, because the key it breaks on is
+            # not written here and arrives from the measurement block. So the
+            # separator is applied to numbers and to nothing else, and anything
+            # else is passed through exactly as it was written.
+            text = f"{value}{unit}"
+            row = (label, localised(text) if _number(value) is not None else text)
         if row is not None:
             rows.append(row)
     return rows

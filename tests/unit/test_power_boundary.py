@@ -10,6 +10,7 @@ from __future__ import annotations
 from saggio.analyze.power import (
     idle_exclusion,
     idle_is_excluded,
+    measurement_rows,
     states_idle_is_excluded,
     workload_scope,
 )
@@ -121,3 +122,25 @@ def test_a_second_measurement_refreshes_the_line_the_first_one_wrote() -> None:
     first = idle_exclusion({"idle_watts": 9.0}, measured=True, watts=17.7)
     assert not states_idle_is_excluded(first)
     assert is_idle_claim(first), "a second fold would leave stale watts in this line"
+
+
+def test_a_date_in_a_measurement_block_is_not_given_a_thousands_separator() -> None:
+    """A year is not a quantity, and the grouping must not reach it.
+
+    `i18n.number` documents this exact hazard and says the call sites were
+    audited before the separator was added, *"because a year grouped as 2 025
+    is the exact failure that docstring warns about, and no caller passes
+    one"*. One did. `measurement_rows` has a catch-all branch for every scalar
+    field it has no special handling for, and `measured_on` arrives through it,
+    so every rendered report carried **2,026-10-19**. The key is not written at
+    the call site, which is why reading the call sites could not find it.
+    """
+    rows = dict(measurement_rows({"measured_on": "2026-10-19"}))
+    assert "2026-10-19" in rows.values()
+    assert not any("2,026" in value for value in rows.values())
+
+
+def test_a_real_number_in_the_same_branch_still_gets_its_separator() -> None:
+    """The fix must not disarm the separator it was narrowing."""
+    rows = dict(measurement_rows({"samples": 12345}))
+    assert any("12,345" in value for value in rows.values())

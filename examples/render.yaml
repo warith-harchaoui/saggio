@@ -82,8 +82,11 @@ assumptions:
     value: null
     status: TODO
     unit: L/kWh
-    notes: On-premises publishes no water usage effectiveness. Leave this open rather than inventing a
-      figure.
+    notes: >-
+      On-premises publishes no water usage effectiveness. Leave this open rather than inventing a
+      figure. This room is in a European Union Member State, where large data centres must report
+      their water: the `on-prem-eu` provider carries the Union-wide average published from that
+      duty. Name it only if this room resembles it.
   hardware_embodied_carbon:
     value: null
     status: TODO

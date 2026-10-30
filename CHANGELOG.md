@@ -34,6 +34,43 @@ membership, not geography: Britain, Norway and Switzerland are in Europe and get
 nothing, because the duty binds Member States and a continent-shaped guess would
 have been wrong rather than merely imprecise.
 
+### A year with a thousands separator, in every report the package wrote
+
+`i18n.number` groups the whole part of a figure, and its docstring names the
+hazard precisely: *"A blanket substitution over a report would have rewritten
+dates, schema versions, dotted field paths and URLs; this is called on the
+digits and on nothing else — audited call site by call site before the grouping
+was added, because a year grouped as `2 025` is the exact failure that docstring
+warns about, and no caller passes one."*
+
+One did. `measurement_rows` ends in a catch-all for every scalar field it has no
+special handling for, and `measured_on` arrives through it, so every rendered
+report carried `2,026-10-19`. Reading the call sites could not have found it:
+the key that breaks is not written there, it comes out of the measurement block.
+The separator is now applied to numbers and to nothing else.
+
+### The eleven examples, and what regenerating them does not do
+
+Re-rendering a report does not refresh the sentences a model carries. `render`
+formats what is stored, and a note was written into the model when it was
+audited — so the water refusals in `examples/` still read as they did before the
+European row was reachable, and running `saggio render` over all eleven changed
+only a thousands separator and one column label.
+
+The note is therefore refreshed in the models themselves, taken from the engine
+rather than retyped, so there is one source for the sentence. Ten models carry
+the European hint now; `uncertainty.yaml` has no water field at all, being the
+interval demonstration.
+
+That lengthened an English sentence stored in every model, which moved three
+figures the documentation quotes about itself and the contract tests caught all
+three: a report's switchable share is 6.8% rather than 6.9%, the share coming
+from the model file is 51% rather than 50%, and the French share of a report
+asked for in French is 29.9% rather than 30.4%. The first and third moved the
+wrong way, and for a real reason — text recorded in a model stays as it was
+written, so adding English prose to a model makes a report slightly less
+translatable. Worth knowing before the next note is written.
+
 ### `WATER.md` and `EAU.md`: why litres, when the water is neither lost nor spoiled
 
 Water was the one dimension nobody had explained, and the two objections a

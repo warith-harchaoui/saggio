@@ -38,6 +38,46 @@ la Suisse sont en Europe et n'obtiennent rien, parce que l'obligation lie les
 États membres et qu'une approximation à l'échelle du continent aurait été fausse
 plutôt que simplement imprécise.
 
+### Une année au séparateur de milliers, dans tous les rapports produits
+
+`i18n.number` groupe la partie entière d'un chiffre, et son docstring nomme le
+risque exactement : *« Une substitution aveugle sur un rapport aurait réécrit
+les dates, les versions de schéma, les chemins de champ et les adresses ; cette
+fonction est appelée sur les chiffres et sur rien d'autre — auditée site d'appel
+par site d'appel avant l'ajout du groupement, parce qu'une année groupée en
+`2 025` est exactement la panne contre laquelle ce docstring met en garde, et
+qu'aucun appelant n'en passe une. »*
+
+Un appelant en passait une. `measurement_rows` se termine par un repli qui
+traite tout champ scalaire sans traitement propre, et `measured_on` y arrive :
+chaque rapport rendu portait donc `2,026-10-19`. Relire les sites d'appel ne
+pouvait pas le trouver — la clé fautive n'y est pas écrite, elle vient du bloc
+de mesure. Le séparateur ne s'applique plus qu'aux nombres.
+
+### Les onze exemples, et ce que les régénérer ne fait pas
+
+Re-rendre un rapport ne rafraîchit pas les phrases que porte un modèle. `render`
+met en forme ce qui est stocké, et une note est écrite dans le modèle au moment
+de son audit : les refus sur l'eau dans `examples/` disaient donc encore ce
+qu'ils disaient avant que la ligne européenne soit atteignable, et passer
+`saggio render` sur les onze n'a changé qu'un séparateur de milliers et un
+libellé de colonne.
+
+La note est donc rafraîchie dans les modèles eux-mêmes, prise au moteur plutôt
+que retapée, pour qu'il n'y ait qu'une source de la phrase. Dix modèles portent
+la piste européenne ; `uncertainty.yaml` n'a aucun champ eau, étant la
+démonstration d'intervalle.
+
+Cela a rallongé une phrase anglaise stockée dans chaque modèle, ce qui a déplacé
+trois chiffres que la documentation cite sur elle-même — les trois attrapés par
+les tests de contrat : la part commutable d'un rapport fait 6,8 % et non 6,9 %,
+la part venue du fichier de modèle 51 % et non 50 %, et la part française d'un
+rapport demandé en français 29,9 % et non 30,4 %. La première et la troisième
+ont bougé dans le mauvais sens, pour une raison réelle : un texte consigné dans
+un modèle reste tel qu'il a été écrit, donc ajouter de la prose anglaise à un
+modèle rend un rapport un peu moins traduisible. Bon à savoir avant d'écrire la
+note suivante.
+
 ### `EAU.md` et `WATER.md` : pourquoi des litres, si l'eau n'est ni perdue ni souillée
 
 L'eau était la seule dimension que personne n'avait expliquée, et les deux

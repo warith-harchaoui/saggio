@@ -82,7 +82,7 @@ How well founded these are: 2 `TODO`, 1 `estimated`. A sustainability disclosure
 | `electricity_price` | 0.276 USD | `estimated` | [source](https://www.globalpetrolprices.com/electricity_prices/), read 2026-10-17 | Indicative tariff for France. Collected Q3 2026. |
 | `grid_carbon_intensity` | 41.2 gCO2e/kWh | `estimated` | [source](https://ember-energy.org/data/yearly-electricity-data/), read 2026-10-17 | Annual average for France, data year 2025. |
 | `market_carbon_intensity` | not known | `TODO` | — | The emission factor of the electricity you contracted for, which no catalogue can hold: it is a property of your contract, not of your country. It is built from your supplier's own emission factor, from the contractual instruments you hold — guarantees of origin, RECs, a PPA — or, failing both, from your market's residual mix, which exists precisely so that unclaimed electricity is not counted as clean by default. Record it with the supplier document or certificate that states it and the date you read it — this is the one figure in the model nobody else can check and nothing here can refresh. Leaving it open is a complete answer; a zero because the electricity is 'green' is not one. |
-| `water_usage_effectiveness` | not known | `TODO` | — | On-premises publishes no water usage effectiveness. Leave this open rather than inventing a figure. |
+| `water_usage_effectiveness` | not known | `TODO` | — | On-premises publishes no water usage effectiveness. Leave this open rather than inventing a figure. This room is in a European Union Member State, where large data centres must report their water: the `on-prem-eu` provider carries the Union-wide average published from that duty. Name it only if this room resembles it. |
 | `hardware_embodied_carbon` | not known | `TODO` | — | No product carbon footprint is on file for apple-m2-max. Add `embodied_kgco2e` to its catalogue row with the footprint's own URL and the date it was read; `saggio catalog add cpu` does the rest. |
 | `hardware_lifetime` | not known | `TODO` | — | How long this hardware stays in service, which only you know. The published footprints are cradle-to-gate and exclude the use phase, so none of them states a lifespan. Reported figures cluster between three and six years; choosing within that range moves the embodied carbon by a factor of two, which is why this is asked rather than assumed. |
 | `machine_energy` | 1.349e-07 kWh | `measured` | [source](https://doi.org/10.1002/advs.202100707) | runtime in hours x average power in watts / 1000. |
@@ -170,9 +170,9 @@ A projection is not a measurement of the thing it projects to.
 
 What a whole run would cost, from the per-unit costs in scenarios[0]. A whole run performs 400000 num_samples, as examples/walkthrough/counter/config.py::num_samples states. This assumes one unit of work is one num_sample; if the model's unit of work means something else, restate this.
 
-|  | Value | Status | Method |
+|  | Value | Status | How it was obtained |
 |---|---|---|---|
-| time | 3 h 1 min (10870.6 s) | `estimated` | Whole run = measured slice / 2.5e-06. |
+| time | 3 h 1 min (10,870.6 s) | `estimated` | Whole run = measured slice / 2.5e-06. |
 | energy | 0.08094 kWh | `estimated` | Whole run = measured slice / 2.5e-06. |
 | money | 0.02234 USD | `estimated` | Whole run = measured slice / 2.5e-06. |
 | carbon | 3.335 gCO2e | `estimated` | Whole run = measured slice / 2.5e-06. |
@@ -188,7 +188,7 @@ What a whole run would cost, from the per-unit costs in scenarios[0]. A whole ru
 - One-off costs paid entirely inside the slice are counted as though they recurred throughout.
 - Nothing here checked that the work is uniform. Measuring a few slices of different sizes would turn that assumption into an exponent; see saggio.estimate.scaling.
 
-*A million runs emit about 3638 tree-months · 1.906e+04 km by car (EU average) · 5.851 New York–San Francisco flights — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
+*A million runs emit about 3,638 tree-months · 1.906e+04 km by car (EU average) · 5.851 New York–San Francisco flights — estimated restatements, [Green Algorithms](https://doi.org/10.1002/advs.202100707) coefficients.*
 
 ## Not counted
 
