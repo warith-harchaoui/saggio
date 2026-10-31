@@ -1,6 +1,6 @@
 # The film
 
-Ninety-five seconds of what this package is for, in English and in French,
+Ninety-nine seconds of what this package is for, in English and in French,
 served from the home page of [deraison.ai/saggio](https://deraison.ai/saggio).
 
 A film is the worst place to put a number. Prose in a README gets re-read;
@@ -39,7 +39,7 @@ make-film poster film/out/what-it-costs.en.mp4 --out film/out/what-it-costs.en.j
 
 make-film verify film/film.yaml --root .                 # do the numbers still hold
 make-film scan film/composition/index.en.html --spec film/film.yaml   # anything on screen nobody declared
-make-film pitch film/film.yaml --duration 94.98          # problem, then solution, then the one idea
+make-film pitch film/film.yaml --duration 99.08          # problem, then solution, then the one idea
 make-film prose film/film.yaml --lang en                 # the named machine tics
 sprezzature-audio-audit film/out/what-it-costs.en.vtt --line-chars 58
 sprezzature-audio-audit film/out/what-it-costs.fr.vtt --line-chars 58 --cps 20
@@ -53,15 +53,16 @@ that actually governs this file.
 
 `--cps 20` on the French track, and nothing on the English one. The English cut
 reads inside the 17-characters-a-second ceiling the audit defaults to, which is
-Netflix's figure for adult content: it averages 15.5 and peaks at 16.6. The
-French cut does not, and at 17 it reports forty-seven findings over fifty-five
-cues. That is not this script. The French cut averages 17.7 characters a second
-and never exceeds 19.9, because French spends more characters on the same
-sentence, so an English-calibrated ceiling flags a track a French reader
-follows perfectly well. The audit's own help says the defaults are conventions
-rather than laws and that each one is a flag, which is the licence being used
-here — so 20 is the ceiling that measured peak asks for, written down rather
-than the flag dropped, and the next person can disagree with it.
+Netflix's figure for adult content: it averages 15.2 and peaks at 16.6. The
+French cut does not, and at 17 it reports fifty findings over fifty-eight cues.
+That is not this script. The French cut averages 17.6 characters a second and
+never exceeds 18.7, because French spends more characters on the same sentence,
+so an English-calibrated ceiling flags a track a French reader follows
+perfectly well. The audit's own help says the defaults are conventions rather
+than laws and that each one is a flag, which is the licence being used here. 19
+would clear the measured peak today; 20 is kept so that a re-cut drifting by a
+tenth does not quietly change the command, and the margin is written down
+rather than the flag dropped.
 
 The one finding that was a real defect was fixed rather than reclassified: a
 cue that held **d'exécution,** alone for 0.755 seconds, because the line split

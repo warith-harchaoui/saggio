@@ -1,6 +1,6 @@
 # Le film
 
-Quatre-vingt-douze secondes sur ce à quoi sert ce paquet, en anglais et en
+Quatre-vingt-seize secondes sur ce à quoi sert ce paquet, en anglais et en
 français, servies depuis la page d'accueil de
 [deraison.ai/saggio](https://deraison.ai/saggio).
 
@@ -40,7 +40,7 @@ make-film poster film/out/what-it-costs.fr.mp4 --out film/out/what-it-costs.fr.j
 
 make-film verify film/film.yaml --root .                 # les chiffres tiennent-ils encore
 make-film scan film/composition/index.fr.html --spec film/film.yaml   # ce qui est à l'écran et que nul n'a déclaré
-make-film pitch film/film.yaml --duration 91.76          # le problème, puis la solution, puis l'idée
+make-film pitch film/film.yaml --duration 95.66          # le problème, puis la solution, puis l'idée
 make-film prose film/film.yaml --lang fr                 # les tics de machine nommés
 sprezzature-audio-audit film/out/what-it-costs.en.vtt --line-chars 58
 sprezzature-audio-audit film/out/what-it-costs.fr.vtt --line-chars 58 --cps 20
@@ -54,16 +54,17 @@ le nombre qui gouverne réellement ce fichier.
 
 `--cps 20` sur la piste française, et rien sur l'anglaise. Le montage anglais
 tient sous le plafond de 17 caractères par seconde que l'audit applique par
-défaut, le chiffre de Netflix pour un public adulte : il tourne à 15,5 en
+défaut, le chiffre de Netflix pour un public adulte : il tourne à 15,2 en
 moyenne et culmine à 16,6. Le montage français n'y tient pas, et à 17 l'audit
-rend quarante-sept constats sur cinquante-cinq sous-titres. Ce n'est pas ce
-script. Le montage français tourne à 17,7 caractères par seconde et ne dépasse
-jamais 19,9 ; le français dépense plus de caractères pour la même phrase, donc
-un plafond étalonné sur l'anglais signale une piste qu'un lecteur français suit
+rend cinquante constats sur cinquante-huit sous-titres. Ce n'est pas ce script.
+Le montage français tourne à 17,6 caractères par seconde et ne dépasse jamais
+18,7 ; le français dépense plus de caractères pour la même phrase, donc un
+plafond étalonné sur l'anglais signale une piste qu'un lecteur français suit
 très bien. L'aide de l'audit dit elle-même que ses valeurs par défaut sont des
 conventions et non des lois, et que chacune est un signal : c'est la licence
-employée ici — 20 est donc le plafond que ce maximum mesuré réclame, écrit
-plutôt que le signal supprimé, et la personne suivante peut le contester.
+employée ici. 19 suffirait au pic mesuré aujourd'hui ; on garde 20 pour qu'un
+remontage qui dérive d'un dixième ne change pas la commande en douce, et la
+marge est écrite plutôt que le signal supprimé.
 
 Le seul constat qui était un vrai défaut a été corrigé plutôt que reclassé :
 un sous-titre tenait **d'exécution,** seul pendant 0,755 seconde, parce que
