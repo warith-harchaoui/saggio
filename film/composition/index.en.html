@@ -14,21 +14,31 @@
   src:url(fonts/Roboto-Mono-Variable.woff2)format('woff2-variations');
   font-weight:100 700;font-display:block}
 
+/* The page this film is served from is a light page, and the film used to
+   be the one dark surface on it: a reader following the prose met a black
+   rectangle in the middle of it. These are that page's own light tokens --
+   the neutrals it sets text in, and the four status colours `:root` carries
+   for the measured / estimated / placeholder / TODO vocabulary -- rather
+   than a second palette invented here. The dark values each one replaced
+   are the ones the site still uses under `[data-color-scheme=dark]`. */
 :root{
-  --ground:#0B0B0C; --ink:#F5F5F5; --soft:#B4B2A4; --faint:#6E6C66;
-  --rule:rgba(255,255,255,.13);
-  --accent:#7FD1FF; --navy:#003C5D;
-  --measured:#6BC4A8; --estimated:#E0AC4E; --placeholder:#A2A6E0; --todo:#EF8A76;
+  --ground:#FFFFFF; --ink:#171717; --soft:#525252; --faint:#737373;
+  --rule:rgba(23,23,23,.14);
+  --accent:#0072B2; --navy:#003C5D;
+  --measured:#1F6F5C; --estimated:#9A6A12; --placeholder:#5B5F97; --todo:#A33A2C;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ground)}
-body{font-family:Roboto,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+/* No `-webkit-font-smoothing:antialiased` here. It was thinning light
+   type on a dark ground, which is what that property is for; dark type
+   on a light ground it only makes spindly. */
+body{font-family:Roboto,system-ui,sans-serif;color:var(--ink)}
 
 #stage{position:relative;width:1920px;height:1080px;background:
-  radial-gradient(1200px 700px at 78% -12%, rgba(0,60,93,.55), transparent 70%),
+  radial-gradient(1200px 700px at 78% -12%, rgba(127,209,255,.42), transparent 70%),
   var(--ground);}
 #stage::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(1400px 900px at 50% 50%, transparent 55%, rgba(0,0,0,.45) 100%)}
+  background:radial-gradient(1400px 900px at 50% 50%, transparent 58%, rgba(0,60,93,.07) 100%)}
 
 .scene{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
   padding:0 150px;opacity:calc(var(--in,1) * var(--out,1))}
@@ -64,7 +74,7 @@ h2{font-family:'Roboto Serif',serif;font-weight:700;font-size:66px;line-height:1
 /* 4 — the file */
 .code{font-family:'Roboto Mono',monospace;font-size:38px;line-height:1.62;
   white-space:pre;
-  background:rgba(255,255,255,.035);border:1px solid var(--rule);border-radius:18px;
+  background:rgba(23,23,23,.03);border:1px solid var(--rule);border-radius:18px;
   padding:44px 52px;max-width:1240px}
 .code .key{color:var(--accent)}
 .code .num{color:var(--ink)}
@@ -86,13 +96,13 @@ h2{font-family:'Roboto Serif',serif;font-weight:700;font-size:66px;line-height:1
 .chain{display:flex;flex-direction:column;gap:30px;margin-top:40px}
 .row{display:flex;align-items:center;gap:26px}
 .node{display:inline-block;border:1px solid var(--rule);border-radius:14px;padding:20px 28px;
-  min-width:290px;background:rgba(255,255,255,.03)}
+  min-width:290px;background:rgba(23,23,23,.025)}
 .node .label{display:block;font-size:27px;color:var(--soft);margin-bottom:9px}
 .node .tag{display:block;font-family:'Roboto Mono',monospace;font-size:24px;font-weight:600;
   letter-spacing:.04em}
-.node.measured{border-color:rgba(107,196,168,.5)} .node.measured .tag{color:var(--measured)}
-.node.estimated{border-color:rgba(224,172,78,.5)} .node.estimated .tag{color:var(--estimated)}
-.node.todo{border-color:rgba(239,138,118,.5)} .node.todo .tag{color:var(--todo)}
+.node.measured{border-color:rgba(31,111,92,.45)} .node.measured .tag{color:var(--measured)}
+.node.estimated{border-color:rgba(154,106,18,.45)} .node.estimated .tag{color:var(--estimated)}
+.node.todo{border-color:rgba(163,58,44,.45)} .node.todo .tag{color:var(--todo)}
 .op{font-family:'Roboto Mono',monospace;font-size:30px;color:var(--faint);white-space:nowrap}
 
 /* 7 — checked rather than declared */
@@ -112,7 +122,7 @@ h2{font-family:'Roboto Serif',serif;font-weight:700;font-size:66px;line-height:1
 /* 9 — the close */
 .surfaces{display:flex;gap:16px;margin-top:46px;flex-wrap:wrap}
 .surface{border:1px solid var(--rule);border-radius:12px;padding:22px 30px;font-size:28px;
-  color:var(--soft);background:rgba(255,255,255,.03)}
+  color:var(--soft);background:rgba(23,23,23,.025)}
 .facts{display:flex;gap:40px;margin-top:58px}
 .fact{min-width:300px}
 .fact .n{font-family:'Roboto Mono',monospace;font-size:82px;font-weight:600;color:var(--accent);
@@ -121,7 +131,7 @@ h2{font-family:'Roboto Serif',serif;font-weight:700;font-size:66px;line-height:1
 .close{display:flex;align-items:baseline;gap:40px;margin-top:62px}
 .cmd{font-family:'Roboto Mono',monospace;font-size:46px;color:var(--ink);
   border:1px solid var(--rule);border-radius:14px;padding:22px 34px;
-  background:rgba(255,255,255,.04)}
+  background:rgba(23,23,23,.03)}
 .url{font-size:34px;color:var(--accent)}
 .star{font-size:30px;color:var(--soft);font-family:'Roboto Mono',monospace}
 
