@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 """
-Turn the script and the measured narration into two compositions.
+Lay the film out on its measured voice, and emit it through the Sprezzature engine.
 
-The timings are not typed. Each scene lasts exactly as long as the voice
-takes to say it plus a held tail, which is why ``narrate_film.py`` runs
-first and writes ``narration/measured.json``. A composition whose cuts
-were guessed drifts against its own track the moment a line is reworded.
+The picture is not drawn here. Every Sprezzature film is drawn by one
+generator, ``brag-output/build_films.py`` in the suite's repository: the
+scene types this film uses, the music bed and the three canvases. This module hands it a spec and takes back a page,
+so the saggio film looks like the suite's films because it is made by the
+same code rather than by a copy of it.
 
-Nothing here animates by clock. ``seek(t)`` is a pure function of time:
-every element's reveal is computed from ``t`` and written to a custom
-property the stylesheet reads. A renderer can therefore ask for frame
-1 234 directly and get the same pixels every time, which is the whole
-requirement a deterministic render has of a page.
+What is decided here is time, and none of it is typed. ``narrate_film.py``
+wrote a cue per sentence on the audio it produced; a cut goes in the gap
+between the last sentence of one scene and the first of the next, moved to
+the nearest beat of the music when that beat falls inside the gap. Every
+reveal inside a scene is placed on the sentence that names it.
+
+Output: one HyperFrames project per language and canvas under ``film/hf/``,
+which ``render_film.py`` turns into films.
 
 Author
 ------
@@ -20,596 +24,212 @@ Author
 
 from __future__ import annotations
 
-import html
 import json
+import os
+import re
+import shutil
+import sys
 from pathlib import Path
 
 import yaml
 
 HERE = Path(__file__).resolve().parent
+REPO = HERE.parent
 SCRIPT = HERE / "script.yaml"
 MEASURED = HERE / "narration" / "measured.json"
-COMPOSITION = HERE / "composition"
+HF = HERE / "hf"
+ASSETS = HF / "_assets"
 
-#: The model fragment scene four shows. Code, so it is the same in both
-#: languages: a reader who meets `derived_from` on screen will meet the
-#: same key in their own file.
-YAML_LINES = [
-    ("key", "costs:"),
-    ("key", "  carbon:"),
-    ("key", "    value:", "num", " 0.0014"),
-    ("key", "    unit:", "str", ' "gCO2e"'),
-    ("key", "    status:", "est", ' "estimated"'),
-    ("key", "    derived_from:"),
-    ("ref", "      - scenarios[0].costs.energy"),
-    ("ref", "      - assumptions.grid_carbon_intensity"),
-]
+#: Where the suite keeps its film generator. Its assets (fonts, the music
+#: bed, the effects, the GSAP build) are linked rather than copied: they are
+#: the suite's, and a second copy is a second version.
+ENGINE = Path(os.environ.get("SPREZZATURE_FILMS", Path.home() / "sprezzature" / "brag-output"))
+SHARED = ("fonts", "music", "sfx", "vendor")
 
-STATUS_CLASS = {
-    "measured": "measured",
-    "mesuré": "measured",
-    "estimated": "estimated",
-    "estimé": "estimated",
-    "placeholder": "placeholder",
-    "réservé": "placeholder",
-    "TODO": "todo",
-}
+#: Where the voice enters on the film's clock. The suite's films start
+#: speaking at 1.10 s, over a first frame that is already complete.
+VO_AT = 1.10
 
-STYLE = """
-@font-face{font-family:Roboto;
-  src:url(fonts/Roboto-Variable.woff2)format('woff2-variations');
-  font-weight:100 900;font-display:block}
-@font-face{font-family:'Roboto Serif';
-  src:url(fonts/Roboto-Serif-Variable.woff2)format('woff2-variations');
-  font-weight:100 900;font-display:block}
-@font-face{font-family:'Roboto Mono';
-  src:url(fonts/Roboto-Mono-Variable.woff2)format('woff2-variations');
-  font-weight:100 700;font-display:block}
+#: Seconds the last frame is held after the voice stops, long enough to read
+#: the closing line twice. A script that runs long eats into the ninety
+#: seconds before it lengthens them.
+HOLD = 2.4
 
-/* The page this film is served from is a light page, and the film used to
-   be the one dark surface on it: a reader following the prose met a black
-   rectangle in the middle of it. These are that page's own light tokens --
-   the neutrals it sets text in, and the four status colours `:root` carries
-   for the measured / estimated / placeholder / TODO vocabulary -- rather
-   than a second palette invented here. The dark values each one replaced
-   are the ones the site still uses under `[data-color-scheme=dark]`. */
-:root{
-  --ground:#FFFFFF; --ink:#171717; --soft:#525252; --faint:#737373;
-  --rule:rgba(23,23,23,.14);
-  --accent:#0072B2; --navy:#003C5D;
-  --measured:#1F6F5C; --estimated:#9A6A12; --placeholder:#5B5F97; --todo:#A33A2C;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ground)}
-/* No `-webkit-font-smoothing:antialiased` here. It was thinning light
-   type on a dark ground, which is what that property is for; dark type
-   on a light ground it only makes spindly. */
-body{font-family:Roboto,system-ui,sans-serif;color:var(--ink)}
-
-#stage{position:relative;width:1920px;height:1080px;background:
-  radial-gradient(1200px 700px at 78% -12%, rgba(127,209,255,.42), transparent 70%),
-  var(--ground);}
-#stage::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(1400px 900px at 50% 50%, transparent 58%, rgba(0,60,93,.07) 100%)}
-
-.scene{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
-  padding:0 150px;opacity:calc(var(--in,1) * var(--out,1))}
-
-.kicker{font-size:21px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);
-  font-weight:600;margin-bottom:34px}
-h1{font-family:'Roboto Serif',serif;font-weight:700;font-size:92px;line-height:1.04;
-  letter-spacing:-.022em;max-width:1500px}
-h2{font-family:'Roboto Serif',serif;font-weight:700;font-size:66px;line-height:1.08;
-  letter-spacing:-.02em;max-width:1420px}
-.sub{font-size:34px;color:var(--soft);line-height:1.45;max-width:1280px}
-.reveal{opacity:var(--r,1);transform:translateY(calc((1 - var(--r,1)) * 16px))}
-.rule{height:1px;background:var(--rule);margin:46px 0}
-.mono{font-family:'Roboto Mono',ui-monospace,monospace}
-
-/* 1 — the question */
-.chips{display:flex;gap:18px;flex-wrap:wrap;margin-top:44px}
-.chip{font-size:28px;color:var(--soft);border:1px solid var(--rule);border-radius:999px;
-  padding:12px 26px}
-
-/* 2 and 3 — a number on its own */
-.bignum{font-family:'Roboto Mono',monospace;font-size:170px;font-weight:600;letter-spacing:-.03em;
-  line-height:1}
-.bignum .unit{font-size:62px;color:var(--soft);margin-left:22px;letter-spacing:0}
-.bignum.wrong{color:var(--todo)}
-.provenance{margin-top:44px;display:flex;flex-direction:column;gap:20px}
-.provenance li{list-style:none;font-size:31px;color:var(--faint);
-  padding-left:38px;position:relative}
-.provenance li::before{content:"·";position:absolute;left:12px;color:var(--faint)}
-.verdict{display:flex;align-items:center;gap:22px;margin-top:40px;font-size:36px;color:var(--todo)}
-.verdict .mark{font-size:52px;line-height:1}
-
-/* 4 — the file */
-.code{font-family:'Roboto Mono',monospace;font-size:38px;line-height:1.62;
-  white-space:pre;
-  background:rgba(23,23,23,.03);border:1px solid var(--rule);border-radius:18px;
-  padding:44px 52px;max-width:1240px}
-.code .key{color:var(--accent)}
-.code .num{color:var(--ink)}
-.code .str{color:var(--soft)}
-.code .est{color:var(--estimated)}
-.code .ref{color:var(--faint)}
-
-/* 5 — the four statuses */
-.statuses{display:flex;flex-direction:column;gap:30px;margin-top:52px}
-.status{display:grid;grid-template-columns:300px 1fr;align-items:baseline;gap:44px}
-.status .name{font-family:'Roboto Mono',monospace;font-size:40px;font-weight:600}
-.status .what{font-size:31px;color:var(--soft)}
-.status.measured .name{color:var(--measured)}
-.status.estimated .name{color:var(--estimated)}
-.status.placeholder .name{color:var(--placeholder)}
-.status.todo .name{color:var(--todo)}
-
-/* 6 — the derivation chain */
-.chain{display:flex;flex-direction:column;gap:30px;margin-top:40px}
-.row{display:flex;align-items:center;gap:26px}
-.node{display:inline-block;border:1px solid var(--rule);border-radius:14px;padding:20px 28px;
-  min-width:290px;background:rgba(23,23,23,.025)}
-.node .label{display:block;font-size:27px;color:var(--soft);margin-bottom:9px}
-.node .tag{display:block;font-family:'Roboto Mono',monospace;font-size:24px;font-weight:600;
-  letter-spacing:.04em}
-.node.measured{border-color:rgba(31,111,92,.45)} .node.measured .tag{color:var(--measured)}
-.node.estimated{border-color:rgba(154,106,18,.45)} .node.estimated .tag{color:var(--estimated)}
-.node.todo{border-color:rgba(163,58,44,.45)} .node.todo .tag{color:var(--todo)}
-.op{font-family:'Roboto Mono',monospace;font-size:30px;color:var(--faint);white-space:nowrap}
-
-/* 7 — checked rather than declared */
-.checks{display:flex;flex-direction:column;gap:34px;margin-top:50px}
-.check{display:flex;gap:26px;align-items:baseline;font-size:36px;color:var(--soft)}
-.check .mark{color:var(--accent);font-family:'Roboto Mono',monospace;font-size:30px}
-.check .mono{color:var(--ink)}
-
-/* 8 — refusals */
-.refusals{display:flex;flex-direction:column;gap:0;margin-top:48px;max-width:1500px}
-.refusal{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:baseline;
-  padding:34px 0;border-top:1px solid var(--rule)}
-.refusal:last-child{border-bottom:1px solid var(--rule)}
-.refusal .when{font-size:34px;color:var(--soft)}
-.refusal .then{font-size:34px;color:var(--ink);font-family:'Roboto Mono',monospace}
-
-/* 9 — the close */
-.surfaces{display:flex;gap:16px;margin-top:46px;flex-wrap:wrap}
-.surface{border:1px solid var(--rule);border-radius:12px;padding:22px 30px;font-size:28px;
-  color:var(--soft);background:rgba(23,23,23,.025)}
-.facts{display:flex;gap:40px;margin-top:58px}
-.fact{min-width:300px}
-.fact .n{font-family:'Roboto Mono',monospace;font-size:82px;font-weight:600;color:var(--accent);
-  line-height:1}
-.fact .what{font-size:27px;color:var(--soft);margin-top:12px}
-.close{display:flex;align-items:baseline;gap:40px;margin-top:62px}
-.cmd{font-family:'Roboto Mono',monospace;font-size:46px;color:var(--ink);
-  border:1px solid var(--rule);border-radius:14px;padding:22px 34px;
-  background:rgba(23,23,23,.03)}
-.url{font-size:34px;color:var(--accent)}
-.star{font-size:30px;color:var(--soft);font-family:'Roboto Mono',monospace}
-
-/* 6 -- the interval, on a real model */
-.intervals{margin-top:54px;border-top:1px solid var(--rule)}
-.interval{display:grid;grid-template-columns:1fr 1.1fr 1.2fr;gap:36px;align-items:baseline;
-  padding:30px 0;border-bottom:1px solid var(--rule)}
-.interval .point{font-family:'Roboto Mono',monospace;font-size:40px;color:var(--ink)}
-.interval .span{font-family:'Roboto Mono',monospace;font-size:40px;color:var(--accent)}
-.interval .why{font-size:29px;color:var(--soft)}
-.note{margin-top:44px;font-size:34px;color:var(--soft)}
-
-/* 8 -- the closing punchline */
-.punch{max-width:1500px}
-.punch .one{font-size:92px;font-weight:300;line-height:1.1;color:var(--soft);
-  letter-spacing:-.02em}
-.punch .two{font-size:92px;font-weight:600;line-height:1.1;color:var(--ink);
-  letter-spacing:-.02em;margin-top:14px}
-"""
-
-SEEK = """
-const scenes = Array.from(document.querySelectorAll('.scene'));
-const clamp = (x, lo, hi) => x < lo ? lo : (x > hi ? hi : x);
-
-/**
- * Put the page in the state it is in at `t` seconds. A pure function of
- * `t`: no clock is read and nothing accumulates, so frame 1234 looks the
- * same whether it is asked for first or last.
- */
-function seek(t){
-  for (const scene of scenes){
-    const start = parseFloat(scene.dataset.start);
-    const dur = parseFloat(scene.dataset.dur);
-    const local = t - start;
-    const showing = local >= 0 && local < dur;
-    scene.style.display = showing ? 'flex' : 'none';
-    if (!showing) continue;
-    scene.style.setProperty('--in', clamp(local / 0.55, 0, 1));
-    scene.style.setProperty('--out', clamp((dur - local) / 0.45, 0, 1));
-    for (const el of scene.querySelectorAll('[data-at]')){
-      const at = parseFloat(el.dataset.at);
-      const span = parseFloat(el.dataset.span || '0.55');
-      el.style.setProperty('--r', clamp((local - at) / span, 0, 1));
-    }
-  }
-  document.documentElement.dataset.seeked = t.toFixed(3);
-}
-window.seek = seek;
-seek(0);
-"""
+RAILS_SUITE = '<p id="rail-l">Sprezzature</p><p id="rail-r">sprezzature.ai</p>'
+RAILS_HERE = '<p id="rail-l">saggio</p><p id="rail-r">deraison.ai/saggio</p>'
 
 
-def esc(text: str) -> str:
-    """Escape for HTML, so a quote in the prose cannot end an attribute."""
-    return html.escape(str(text), quote=True)
-
-
-def reveal(at: float, span: float = 0.55) -> str:
-    """Give an element the attributes that reveal it `at` seconds into its scene."""
-    return f'class="reveal" data-at="{at:.2f}" data-span="{span:.2f}"'
-
-
-def scene_question(content: dict, dur: float) -> str:
-    """Scene one: the question somebody is going to ask."""
-    chips = "".join(
-        f'<span class="chip" {reveal(dur * 0.42 + i * 0.22)}>{esc(line)}</span>'
-        for i, line in enumerate(content["lines"])
-    )
-    return (
-        f'<p class="kicker" {reveal(0.1)}>saggio</p>'
-        f"<h1 {reveal(0.45)}>{esc(content['headline'])}</h1>"
-        f'<div class="chips">{chips}</div>'
-    )
-
-
-def scene_loose_number(content: dict, dur: float) -> str:
-    """Scene two: the number you would have given, and where it came from."""
-    items = "".join(
-        f"<li {reveal(dur * 0.42 + i * 0.5)}>{esc(line)}</li>"
-        for i, line in enumerate(content["lines"])
-    )
-    return (
-        f"<h2 {reveal(0.1)}>{esc(content['headline'])}</h2>"
-        f'<div class="rule"></div>'
-        f'<p class="bignum" {reveal(dur * 0.22)}>{esc(content["number"])}'
-        f'<span class="unit">{esc(content["unit"])}</span></p>'
-        f'<ul class="provenance">{items}</ul>'
-    )
-
-
-def scene_confident_number(content: dict, dur: float, strings: dict) -> str:
-    """Scene three: the same number, wrong, and sure of itself."""
-    items = "".join(
-        f"<li {reveal(dur * 0.5 + i * 0.5)}>{esc(line)}</li>"
-        for i, line in enumerate(content["lines"])
-    )
-    return (
-        f"<h2 {reveal(0.1)}>{esc(content['headline'])}</h2>"
-        f'<div class="rule"></div>'
-        f'<p class="bignum wrong" {reveal(dur * 0.26)}>{esc(strings["wrong_number"])}'
-        f'<span class="unit">{esc(strings["wrong_unit"])}</span></p>'
-        f'<ul class="provenance">{items}</ul>'
-        f'<p class="verdict" {reveal(dur * 0.78)}>'
-        f'<span class="mark">&#10007;</span>{esc(strings["and_nothing_said"])}</p>'
-    )
-
-
-def scene_yaml(content: dict, dur: float) -> str:
-    """Scene four: the model, as it is actually written."""
-    rows = []
-    step = (dur * 0.5) / max(len(YAML_LINES), 1)
-    for i, line in enumerate(YAML_LINES):
-        spans = "".join(
-            f'<span class="{line[j]}">{esc(line[j + 1])}</span>' for j in range(0, len(line), 2)
+def engine():
+    """The suite's film generator, imported from its own folder."""
+    if not (ENGINE / "build_films.py").is_file():
+        raise SystemExit(
+            f"No Sprezzature film generator at {ENGINE}. Clone the suite there, "
+            "or point SPREZZATURE_FILMS at its brag-output folder."
         )
-        rows.append(f"<div {reveal(dur * 0.26 + i * step, 0.3)}>{spans}</div>")
-    subs = "".join(
-        f'<p class="sub" {reveal(dur * 0.78 + i * 0.3)}>{esc(line)}</p>'
-        for i, line in enumerate(content["lines"])
-    )
-    return (
-        f"<h2 {reveal(0.1)}>{esc(content['headline'])}</h2>"
-        f'<div class="rule"></div>'
-        f'<div class="code">{"".join(rows)}</div>'
-        f'<div style="margin-top:38px;display:flex;flex-direction:column;gap:12px">{subs}</div>'
-    )
+    sys.path.insert(0, str(ENGINE))
+    import build_films
+
+    build_films.ASSETS = ASSETS
+    # The French of this film is written next to its English in the script.
+    # A film the generator does not list as rewritten has its bare strings
+    # run through the suite's lookup table instead, which would turn a status
+    # name such as `measured` into whatever the table holds for that word.
+    build_films.REWRITTEN = build_films.REWRITTEN | {"saggio"}
+    return build_films
 
 
-def scene_statuses(content: dict, dur: float) -> str:
-    """Scene five: the four statuses, each in its own colour."""
-    rows = []
-    step = (dur * 0.62) / max(len(content["statuses"]), 1)
-    for i, (name, what) in enumerate(content["statuses"]):
-        kind = STATUS_CLASS.get(name, "placeholder")
-        rows.append(
-            f'<div class="status {kind}" {reveal(dur * 0.2 + i * step)}>'
-            f'<span class="name">{esc(name)}</span>'
-            f'<span class="what">{esc(what)}</span></div>'
-        )
-    return (
-        f"<h2 {reveal(0.1)}>{esc(content['headline'])}</h2>"
-        f'<div class="statuses">{"".join(rows)}</div>'
-    )
+def link_assets() -> None:
+    """Build ``hf/_assets``: the suite's shared files, then this film's own."""
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    for name in SHARED:
+        target = ASSETS / name
+        if target.is_symlink() or target.exists():
+            target.unlink()
+        target.symlink_to(ENGINE / "_assets" / name)
+    shutil.copyfile(REPO / "assets" / "logo-512.png", ASSETS / "saggio-logo.png")
+    for lang in ("en", "fr"):
+        wav = ASSETS / f"vo-saggio.{lang}.wav"
+        if wav.is_symlink() or wav.exists():
+            wav.unlink()
+        wav.symlink_to(HERE / "narration" / lang / "narration.wav")
 
 
-def scene_chain(content: dict, dur: float, strings: dict) -> str:
-    """Draw the derivation, with the status falling to its weakest input.
+def scene_lines(lines: list[dict], scene_id: str) -> list[dict]:
+    """The sentences one scene says, on the film's clock."""
+    return [
+        {**line, "start": line["start"] + VO_AT, "end": line["end"] + VO_AT}
+        for line in lines
+        if line["scene"] == scene_id
+    ]
 
-    Every line under the chain is drawn, not only the first: the headline
-    promises two rules, and a frame that shows one of them takes the promise
-    back while the voice is still making it.
+
+def timeline(bf, script: dict, lines: list[dict]) -> tuple[list[tuple[float, float]], float]:
+    """Each scene's (start, end) on the film's clock, and the film's length."""
+    scenes = script["scenes"]
+    spoken = [scene_lines(lines, s["id"]) for s in scenes]
+    cuts = [0.0]
+    for before, after in zip(spoken, spoken[1:]):
+        gap_from, gap_to = before[-1]["end"], after[0]["start"]
+        cut = (gap_from + gap_to) / 2
+        beat = bf.on_beat(cut)[0]
+        cuts.append(beat if gap_from + 0.15 <= beat <= gap_to - 0.15 else cut)
+    duration = max(float(script["film"]["duration"]), spoken[-1][-1]["end"] + HOLD)
+    duration = round(duration, 2)
+    bounds = [(round(a, 3), round(b, 3)) for a, b in zip(cuts, cuts[1:] + [duration])]
+    return bounds, duration
+
+
+def on_grid(bf, t: float, lo: float, hi: float) -> float:
+    """``t`` moved to the nearest beat, unless that beat leaves the window."""
+    beat = bf.on_beat(t)[0]
+    return round(beat if lo <= beat <= hi else t, 3)
+
+
+def reveals(bf, scene: dict, said: list[dict], start: float, end: float) -> dict:
+    """The film-clock seconds at which a scene's parts appear, from its voice."""
+    lo, hi = start + 0.3, end - 0.8
+    kind = scene["type"]
+    if kind == "panel":
+        # Rows arrive as their status is said: two per sentence, after the first.
+        moments = []
+        for line in said[1:]:
+            moments += [line["start"], (line["start"] + line["end"]) / 2]
+        return {"at": [on_grid(bf, t, lo, hi) for t in moments[: len(scene["rows"])]]}
+    if kind == "flow":
+        first, last = said[0]["start"], said[min(1, len(said) - 1)]["end"]
+        n = len(scene["stages"])
+        step = (last - first) / max(1, n - 1)
+        return {"at": [on_grid(bf, first + k * step, lo, hi) for k in range(n)]}
+    if kind == "verify":
+        return {
+            "at": [
+                (on_grid(bf, line["start"], lo, hi), on_grid(bf, line["start"] + 1.6, lo, hi))
+                for line in said[: len(scene["claims"])]
+            ]
+        }
+    if kind == "cta":
+        return {"punch_at": on_grid(bf, said[-1]["end"] + 0.6, lo, end - 2.0)}
+    return {}
+
+
+def spec_for(bf, script: dict, measured: dict, lang: str) -> dict:
+    """One language's film, in the shape the suite's generator reads."""
+    lines = measured[lang]["lines"]
+    bounds, duration = timeline(bf, script, lines)
+    scenes = []
+    for k, (scene, (start, end)) in enumerate(zip(script["scenes"], bounds, strict=True)):
+        body = {key: value for key, value in scene.items() if key not in ("id", "narration")}
+        # Clip windows overlap by a tenth so the incoming scene fades up over
+        # the outgoing one, as in every Sprezzature film.
+        begin = 0.0 if k == 0 else round(start - 0.1, 3)
+        body.update(start=begin, end=end, dur=round(end - begin, 3))
+        body.update(reveals(bf, scene, scene_lines(lines, scene["id"]), start, end))
+        scenes.append(body)
+    sfx = [("tile", round(scenes[k]["start"] + 0.1, 3)) for k in range(1, len(scenes) - 1)]
+    sfx.append(("bell", scenes[-1]["punch_at"]))
+    return {"duration": duration, "vo": [(f"saggio.{lang}", VO_AT)], "sfx": sfx, "scenes": scenes}
+
+
+def without_beats(html: str) -> str:
+    """Drop the row of beat names the suite's films carry across the top.
+
+    The suite's films used to label their beats in a rail above the picture.
+    Warith asked for no navigation trail at the top of the video
+    (2026-11-06), so the row of six words and the tweens that light them go
+    if a generator still draws them.
     """
-    chain = strings["chain"]
-    rows = []
-    step = (dur * 0.5) / max(len(chain), 1)
-    for i, row in enumerate(chain):
-        cells = []
-        for cell in row:
-            if cell[0] == "op":
-                cells.append(f'<span class="op">{esc(cell[1])}</span>')
-            else:
-                cells.append(
-                    f'<span class="node {cell[0]}"><span class="label">{esc(cell[1])}</span>'
-                    f'<span class="tag">{esc(cell[2])}</span></span>'
-                )
-        rows.append(f'<div class="row" {reveal(dur * 0.16 + i * step)}>{"".join(cells)}</div>')
-    return (
-        f"<h2 {reveal(0.1)}>{esc(content['headline'])}</h2>"
-        f'<div class="chain">{"".join(rows)}</div>'
-        + "".join(
-            f'<p class="sub" style="margin-top:{46 if i == 0 else 14}px" '
-            f"{reveal(dur * (0.70 + i * 0.12))}>{esc(line)}</p>"
-            for i, line in enumerate(content["lines"])
-        )
-    )
+    out = re.sub(r'<div id="beats">.*?</div>', "", html, count=1, flags=re.S)
+    return re.sub(r'\n\s*tl\.set\("#beat-[a-z]+",[^\n]*;', "", out)
 
 
-def scene_checked(content: dict, dur: float) -> str:
-    """Scene seven: the validator recomputing rather than believing."""
-    rows = []
-    step = (dur * 0.55) / max(len(content["lines"]), 1)
-    for i, line in enumerate(content["lines"]):
-        rows.append(
-            f'<div class="check" {reveal(dur * 0.2 + i * step)}>'
-            f'<span class="mark">&#8594;</span><span>{esc(line)}</span></div>'
-        )
-    return (
-        f"<h2 {reveal(0.1)}>{esc(content['headline'])}</h2>"
-        f'<div class="checks">{"".join(rows)}</div>'
-    )
-
-
-def scene_refusals(content: dict, dur: float) -> str:
-    """Scene eight: what it answers when it does not know."""
-    rows = []
-    step = (dur * 0.55) / max(len(content["refusals"]), 1)
-    for i, (when, then) in enumerate(content["refusals"]):
-        rows.append(
-            f'<div class="refusal" {reveal(dur * 0.2 + i * step)}>'
-            f'<span class="when">{esc(when)}</span>'
-            f'<span class="then">{esc(then)}</span></div>'
-        )
-    return (
-        f"<h2 {reveal(0.1)}>{esc(content['headline'])}</h2>"
-        f'<div class="refusals">{"".join(rows)}</div>'
-    )
-
-
-def scene_close(content: dict, dur: float) -> str:
-    """Scene nine: the five surfaces, three counts, and the install line."""
-    surfaces = "".join(
-        f'<span class="surface" {reveal(dur * 0.16 + i * 0.16)}>{esc(name)}</span>'
-        for i, name in enumerate(content["surfaces"])
-    )
-    facts = "".join(
-        f'<div class="fact" {reveal(dur * 0.42 + i * 0.22)}>'
-        f'<div class="n">{esc(n)}</div><div class="what">{esc(what)}</div></div>'
-        for i, (n, what) in enumerate(content["facts"])
-    )
-    return (
-        f"<h2 {reveal(0.1)}>{esc(content['headline'])}</h2>"
-        f'<div class="surfaces">{surfaces}</div>'
-        f'<div class="facts">{facts}</div>'
-        f'<div class="close">'
-        f'<span class="cmd" {reveal(dur * 0.66)}>{esc(content["command"])}</span>'
-        f'<span class="url" {reveal(dur * 0.76)}>{esc(content["url"])}</span>'
-        f"</div>"
-        f'<div class="close">'
-        f'<span class="star" {reveal(dur * 0.86)}>{esc(content["star"])}</span>'
-        f"</div>"
-    )
-
-
-def scene_interval(content: dict, dur: float) -> str:
-    """Scene six: one sourced figure, and the figure it forces to be a range.
-
-    Two rows and nothing else. The first is an input that is impeccably
-    sourced and still only good to a fifth; the second is what the model is
-    then obliged to say about the number computed from it. The line under them
-    is the whole demonstration: it is a thing that *fails*, which is the only
-    kind of guarantee worth filming.
-    """
-    rows = "".join(
-        f'<div class="interval" {reveal(dur * 0.22 + i * 0.30)}>'
-        f'<span class="point">{esc(point)}</span>'
-        f'<span class="span">{esc(span)}</span>'
-        f'<span class="why">{esc(why)}</span>'
-        f"</div>"
-        for i, (point, span, why) in enumerate(content["rows"])
-    )
-    return (
-        f"<h2 {reveal(0.1)}>{esc(content['headline'])}</h2>"
-        f'<div class="intervals">{rows}</div>'
-        f'<p class="note" {reveal(dur * 0.74)}>{esc(content["note"])}</p>'
-    )
-
-
-def scene_punchline(content: dict, dur: float) -> str:
-    """Scene eight: the line the film is for, in two halves.
-
-    No chips, no counts, no command. Everything before this earned the right
-    to say one sentence, and a frame with anything else on it would take the
-    sentence back.
-    """
-    return (
-        f'<div class="punch">'
-        f'<div class="one" {reveal(0.15)}>{esc(content["headline"])}</div>'
-        f'<div class="two" {reveal(dur * 0.42)}>{esc(content["emphasis"])}</div>'
-        f"</div>"
-    )
-
-
-BUILDERS = {
-    "question": scene_question,
-    "loose-number": scene_loose_number,
-    "confident-number": scene_confident_number,
-    "yaml": scene_yaml,
-    "statuses": scene_statuses,
-    "chain": scene_chain,
-    "checked": scene_checked,
-    "refusals": scene_refusals,
-    "close": scene_close,
-    "interval": scene_interval,
-    "punchline": scene_punchline,
-}
-
-#: The few strings the frames need that the narration never says, so they
-#: live here rather than being back-formed from a spoken line.
-STRINGS = {
-    "en": {
-        "wrong_number": "1.4",
-        "wrong_unit": "gCO2e",
-        "and_nothing_said": "a thousand times out. Nothing on the page says so.",
-        "title": "What it costs to run your code",
-        "chain": [
-            [
-                ("measured", "runtime", "measured"),
-                ("op", "×"),
-                ("measured", "power draw", "measured"),
-                ("op", "="),
-                ("measured", "machine energy", "measured"),
-            ],
-            [
-                ("measured", "machine energy", "measured"),
-                ("op", "×"),
-                ("estimated", "power usage effectiveness", "estimated"),
-                ("op", "="),
-                ("estimated", "building energy", "estimated"),
-            ],
-            [
-                ("estimated", "building energy", "estimated"),
-                ("op", "×"),
-                ("estimated", "grid carbon intensity", "estimated"),
-                ("op", "="),
-                ("estimated", "carbon", "estimated"),
-            ],
-            [
-                ("measured", "machine energy", "measured"),
-                ("op", "×"),
-                ("todo", "water usage effectiveness", "TODO"),
-                ("op", "="),
-                ("todo", "water", "TODO"),
-            ],
-        ],
-    },
-    "fr": {
-        "wrong_number": "1,4",
-        "wrong_unit": "gCO2e",
-        "and_nothing_said": "faux d'un facteur mille. Rien sur la page ne le dit.",
-        "title": "Ce que coûte votre code à l'exécution",
-        "chain": [
-            [
-                ("measured", "durée", "mesuré"),
-                ("op", "×"),
-                ("measured", "puissance appelée", "mesuré"),
-                ("op", "="),
-                ("measured", "énergie de la machine", "mesuré"),
-            ],
-            [
-                ("measured", "énergie de la machine", "mesuré"),
-                ("op", "×"),
-                ("estimated", "efficacité énergétique du site", "estimé"),
-                ("op", "="),
-                ("estimated", "énergie du bâtiment", "estimé"),
-            ],
-            [
-                ("estimated", "énergie du bâtiment", "estimé"),
-                ("op", "×"),
-                ("estimated", "intensité carbone du réseau", "estimé"),
-                ("op", "="),
-                ("estimated", "carbone", "estimé"),
-            ],
-            [
-                ("measured", "énergie de la machine", "mesuré"),
-                ("op", "×"),
-                ("todo", "efficacité d'usage de l'eau", "TODO"),
-                ("op", "="),
-                ("todo", "eau", "TODO"),
-            ],
-        ],
-    },
-}
-
-
-def timeline(script: dict, measured: dict, lang: str) -> list[dict]:
-    """Each scene with the start and length the voice gave it."""
-    tail = float(script["film"]["tail"])
-    out, clock = [], 0.0
-    for scene in script["scenes"]:
-        spoken = float(measured[lang][scene["id"]])
-        dur = round(spoken + tail, 3)
-        out.append(
+def emit(bf, spec: dict, fmt: str, lang: str) -> Path:
+    """Write one HyperFrames project, and return its folder."""
+    html = bf.compose("saggio", spec, fmt, lang)
+    # The suite's generator dropped its rails on 2026-11-06, wordmark and all.
+    # Where a generator still draws them, they name this film rather than the
+    # suite; where it does not, there is nothing to rename.
+    html = html.replace(RAILS_SUITE, RAILS_HERE).replace('<html lang="en">', f'<html lang="{lang}">')
+    html = without_beats(html)
+    folder = HF / f"saggio-{lang}-{fmt}"
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "index.html").write_text(html, encoding="utf-8")
+    (folder / "hyperframes.json").write_text(
+        json.dumps(
             {
-                "id": scene["id"],
-                "visual": scene["visual"],
-                "start": round(clock, 3),
-                "dur": dur,
-                "spoken": spoken,
-                "content": scene[lang],
-            }
+                "$schema": "https://hyperframes.heygen.com/schema/hyperframes.json",
+                "paths": {"assets": "assets"},
+                "media": {"autoProxy": True},
+            },
+            indent=2,
         )
-        clock += dur
-    return out
-
-
-def compose(lang: str) -> dict:
-    """Write one language's composition, and return its timeline."""
-    script = yaml.safe_load(SCRIPT.read_text(encoding="utf-8"))
-    measured = json.loads(MEASURED.read_text(encoding="utf-8"))
-    strings = STRINGS[lang]
-    scenes = timeline(script, measured, lang)
-
-    blocks = []
-    for scene in scenes:
-        builder = BUILDERS[scene["visual"]]
-        if builder in (scene_confident_number, scene_chain):
-            body = builder(scene["content"], scene["dur"], strings)
-        else:
-            body = builder(scene["content"], scene["dur"])
-        blocks.append(
-            f'<section class="scene" id="{scene["id"]}" '
-            f'data-start="{scene["start"]}" data-dur="{scene["dur"]}">{body}</section>'
-        )
-
-    total = round(sum(s["dur"] for s in scenes), 3)
-    page = (
-        f'<!doctype html>\n<html lang="{lang}" data-film="{esc(script["film"]["name"])}" '
-        f'data-duration="{total}" data-fps="{script["film"]["fps"]}">\n<head>\n'
-        f'<meta charset="utf-8">\n<title>{esc(strings["title"])}</title>\n'
-        f"<style>{STYLE}</style>\n</head>\n<body>\n"
-        f'<div id="stage">\n{"".join(blocks)}\n</div>\n'
-        f"<script>{SEEK}</script>\n</body>\n</html>\n"
+        + "\n",
+        encoding="utf-8",
     )
-    COMPOSITION.mkdir(parents=True, exist_ok=True)
-    (COMPOSITION / f"index.{lang}.html").write_text(page, encoding="utf-8")
-    return {"lang": lang, "duration": total, "scenes": scenes}
+    link = folder / "assets"
+    if link.is_symlink() or link.exists():
+        link.unlink()
+    link.symlink_to("../_assets")
+    return folder
 
 
 def main() -> int:
-    """Write both compositions from the script and the measured voice."""
+    """Emit every language on every canvas, and record the timings used."""
+    bf = engine()
+    script = yaml.safe_load(SCRIPT.read_text(encoding="utf-8"))
+    measured = json.loads(MEASURED.read_text(encoding="utf-8"))
+    link_assets()
+    timings = {}
     for lang in ("en", "fr"):
-        result = compose(lang)
-        print(
-            f"{lang}: {result['duration']:.2f}s over {len(result['scenes'])} scenes "
-            f"-> composition/index.{lang}.html"
-        )
+        spec = spec_for(bf, script, measured, lang)
+        timings[lang] = {
+            "duration": spec["duration"],
+            "scenes": [{"start": s["start"], "end": s["end"]} for s in spec["scenes"]],
+        }
+        for fmt in bf.FORMATS:
+            print(emit(bf, spec, fmt, lang).relative_to(REPO), f"{spec['duration']:.2f}s")
+    (HERE / "narration" / "timeline.json").write_text(
+        json.dumps(timings, indent=2) + "\n", encoding="utf-8"
+    )
     return 0
 
 

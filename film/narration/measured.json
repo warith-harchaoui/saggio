@@ -1,22 +1,220 @@
 {
   "en": {
-    "hook": 7.595,
-    "what": 12.501,
-    "problem": 9.536,
-    "solution": 13.163,
-    "sauce": 17.472,
-    "example": 14.528,
-    "cta": 11.029,
-    "punchline": 8.853
+    "engine": "chatterbox",
+    "voice": "ref-fr-female.wav",
+    "seconds": 80.59,
+    "lines": [
+      {
+        "scene": "what",
+        "text": "saggio tells you what it costs to run your code.",
+        "start": 0.0,
+        "end": 2.84
+      },
+      {
+        "scene": "what",
+        "text": "Money, time, energy, carbon and water, per unit of work.",
+        "start": 3.12,
+        "end": 6.92
+      },
+      {
+        "scene": "any-tool",
+        "text": "Any tool will give you a number, confidently.",
+        "start": 7.57,
+        "end": 10.21
+      },
+      {
+        "scene": "confident",
+        "text": "The dangerous one is orders of magnitude out, with a perfectly tidy list of sources underneath.",
+        "start": 10.86,
+        "end": 16.66
+      },
+      {
+        "scene": "statuses",
+        "text": "saggio writes the answer as a file next to your code. Every number in it carries a status.",
+        "start": 17.31,
+        "end": 23.51
+      },
+      {
+        "scene": "statuses",
+        "text": "Measured, a counter said so. Estimated, a sourced formula did.",
+        "start": 23.79,
+        "end": 28.19
+      },
+      {
+        "scene": "statuses",
+        "text": "Placeholder holds the field open. TODO means a human still has to answer.",
+        "start": 28.47,
+        "end": 33.67
+      },
+      {
+        "scene": "weakest-link",
+        "text": "Here is the part nobody else does.",
+        "start": 34.32,
+        "end": 36.76
+      },
+      {
+        "scene": "weakest-link",
+        "text": "A derived number may never claim to be better founded than the worst of its inputs.",
+        "start": 37.04,
+        "end": 41.76
+      },
+      {
+        "scene": "chain",
+        "text": "Measure the power, the energy becomes measured.",
+        "start": 42.41,
+        "end": 45.25
+      },
+      {
+        "scene": "chain",
+        "text": "The carbon stays estimated, because nobody measured the grid.",
+        "start": 45.53,
+        "end": 49.25
+      },
+      {
+        "scene": "chain",
+        "text": "The validator recomputes every derivation, unit by unit. More than a percent out is an error.",
+        "start": 49.53,
+        "end": 55.89
+      },
+      {
+        "scene": "interval",
+        "text": "On a real model, the French grid intensity is sourced. It is still only known to a fifth either way.",
+        "start": 56.54,
+        "end": 63.22
+      },
+      {
+        "scene": "interval",
+        "text": "So the carbon computed from it is not allowed to be a single number.",
+        "start": 63.5,
+        "end": 67.34
+      },
+      {
+        "scene": "interval",
+        "text": "Delete the interval, the model stops validating.",
+        "start": 67.62,
+        "end": 70.58
+      },
+      {
+        "scene": "cta",
+        "text": "pip install saggio. Read it at deraison dot a i slash saggio.",
+        "start": 71.23,
+        "end": 77.19
+      },
+      {
+        "scene": "cta",
+        "text": "And if it earns it, leave a star on GitHub.",
+        "start": 77.47,
+        "end": 80.59
+      }
+    ]
   },
   "fr": {
-    "hook": 7.509,
-    "what": 12.501,
-    "problem": 10.368,
-    "solution": 11.285,
-    "sauce": 16.683,
-    "example": 14.848,
-    "cta": 10.496,
-    "punchline": 7.573
+    "engine": "chatterbox",
+    "voice": "ref-fr-female.wav",
+    "seconds": 86.572,
+    "lines": [
+      {
+        "scene": "what",
+        "text": "saggio vous dit ce que coûte l'exécution de votre code.",
+        "start": 0.0,
+        "end": 4.013
+      },
+      {
+        "scene": "what",
+        "text": "Argent, temps, énergie, carbone, eau, par unité de travail.",
+        "start": 4.293,
+        "end": 9.465
+      },
+      {
+        "scene": "any-tool",
+        "text": "Un chiffre, tous les outils vous en donnent un, avec assurance.",
+        "start": 10.115,
+        "end": 14.523
+      },
+      {
+        "scene": "confident",
+        "text": "Le plus dangereux se trompe de plusieurs ordres de grandeur, avec en dessous une liste de sources impeccable.",
+        "start": 15.173,
+        "end": 22.34
+      },
+      {
+        "scene": "statuses",
+        "text": "saggio écrit la réponse dans un fichier, à côté du code. Chaque nombre y a un statut.",
+        "start": 22.99,
+        "end": 28.399
+      },
+      {
+        "scene": "statuses",
+        "text": "Mesuré, un compteur l'a dit. Estimé, une formule sourcée.",
+        "start": 28.679,
+        "end": 33.419
+      },
+      {
+        "scene": "statuses",
+        "text": "Réservé tient la place. TODO veut dire qu'un humain doit encore répondre.",
+        "start": 33.699,
+        "end": 38.274
+      },
+      {
+        "scene": "weakest-link",
+        "text": "Voici ce que personne d'autre ne fait.",
+        "start": 38.924,
+        "end": 41.86
+      },
+      {
+        "scene": "weakest-link",
+        "text": "Un nombre dérivé ne se prétend jamais mieux fondé que le plus faible de ceux dont il découle.",
+        "start": 42.14,
+        "end": 47.348
+      },
+      {
+        "scene": "chain",
+        "text": "Mesurez la puissance, l'énergie devient mesurée.",
+        "start": 47.998,
+        "end": 51.336
+      },
+      {
+        "scene": "chain",
+        "text": "Le carbone reste estimé, faute de mesure sur le réseau électrique.",
+        "start": 51.616,
+        "end": 55.707
+      },
+      {
+        "scene": "chain",
+        "text": "Le validateur recalcule chaque dérivation, unité par unité. Au-delà d'un pour cent d'écart, c'est une erreur.",
+        "start": 55.987,
+        "end": 63.007
+      },
+      {
+        "scene": "interval",
+        "text": "Sur un vrai modèle, l'intensité du réseau français est sourcée, mais connue à un cinquième près.",
+        "start": 63.657,
+        "end": 70.184
+      },
+      {
+        "scene": "interval",
+        "text": "Le carbone qui en découle n'a donc pas le droit d'être un seul nombre.",
+        "start": 70.464,
+        "end": 74.093
+      },
+      {
+        "scene": "interval",
+        "text": "Effacez l'intervalle, le modèle ne passe plus la validation.",
+        "start": 74.373,
+        "end": 78.333
+      },
+      {
+        "scene": "cta",
+        "text": "pip install saggio. À lire sur deraison point a i slash saggio.",
+        "start": 78.983,
+        "end": 83.555
+      },
+      {
+        "scene": "cta",
+        "text": "Si ça le mérite, laissez une étoile sur GitHub.",
+        "start": 83.835,
+        "end": 86.572
+      }
+    ]
   }
 }

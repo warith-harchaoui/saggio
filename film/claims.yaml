@@ -7,68 +7,19 @@
 #
 # Re-check after any change to the package:
 #     make-film verify film/film.yaml --root .
-#     make-film scan film/composition/index.en.html --spec film/film.yaml
+#     make-film scan film/hf/saggio-en-landscape/index.html --spec film/film.yaml
 #
 # A `regex_count` selector is matched without the multiline flag, so a
 # pattern anchored on `^` matches the start of the file and nothing else.
 # Line starts are written `\n` here for that reason.
 
 claims:
-  - text: "13 verbs"
-    value: 13
-    source:
-      path: saggio/cli/app.py
-      method: regex_count
-      selector: '@cli\.(?:command|group)\('
-
-  - text: "5 runtime dependencies"
-    value: 5
-    source:
-      path: pyproject.toml
-      method: regex_count
-      selector: '\n\s*"(?:os-helper|PyYAML|platformdirs|Babel|click)[>=<]'
-
-  - text: "5 surfaces"
-    value: 5
-    source:
-      path: README.md
-      method: regex_count
-      selector: '\n\| (?:Library|Command line|HTTP API|Agent protocol|Skill) \|'
-
-  - text: "8 footprints of 37 parts"
-    value: 8
-    source:
-      path: saggio/data/hardware.yaml
-      method: regex_count
-      selector: '\n\s*embodied_kgco2e:'
-
-  - text: "8 footprints of 37 parts"
-    value: 37
-    source:
-      path: saggio/data/hardware.yaml
-      method: regex_count
-      selector: '\n\s*(?:tdp_w|w_per_core):'
-
-  - text: "41.2 gCO2e/kWh"
-    value: "41.2"
-    source:
-      path: examples/uncertainty.yaml
-      method: literal
-      selector: "41.2"
-
   - text: "33.8 to 50.2"
     value: "33.827318042561515"
     source:
       path: examples/uncertainty.yaml
       method: literal
       selector: "33.827318042561515"
-
-  - text: "1.19e-06 gCO2e"
-    value: "1.1891819637941667e-06"
-    source:
-      path: examples/uncertainty.yaml
-      method: literal
-      selector: "1.1891819637941667e-06"
 
   - text: "9.76e-07 to 1.45e-06"
     value: "9.76379526692795e-07"
@@ -77,19 +28,21 @@ claims:
       method: literal
       selector: "9.76379526692795e-07"
 
-  - text: "Nor may it be known more precisely than they are."
-    value: "known more precisely than the numbers it came from"
+  # The same two intervals as the French cut writes them, decimal comma and
+  # all. The scan reads the screen, and the screen is in French.
+  - text: "33,8 à 50,2"
+    value: "33.827318042561515"
     source:
-      path: saggio/data/messages/en.yaml
+      path: examples/uncertainty.yaml
       method: literal
-      selector: "known more precisely than the numbers it came from"
+      selector: "33.827318042561515"
 
-  - text: "value: 0.0014"
-    value: "0.0014"
+  - text: "9,76e-07 à 1,45e-06"
+    value: "9.76379526692795e-07"
     source:
-      path: README.md
+      path: examples/uncertainty.yaml
       method: literal
-      selector: "0.0014"
+      selector: "9.76379526692795e-07"
 
   - text: 'unit: "gCO2e"'
     value: "gCO2e"
@@ -112,13 +65,14 @@ claims:
       method: literal
       selector: "frozenset({MEASURED, ESTIMATED, PLACEHOLDER, TODO})"
 
-# Which scenes carry which beat, by index into the generated scene list.
-# Problem first, then the solution, then the one non-obvious thing that
-# makes the solution possible.
+
+# Which scenes carry which beat, by index into the generated scene list:
+# what it is (0), the problem (1, 2), the solution (3), then the one
+# non-obvious thing that makes the solution possible (4, 5).
 pitch:
-  problem: [0, 1, 2]
+  problem: [1, 2]
   solution: [3]
-  magic: [4]
+  magic: [4, 5]
 
 assets:
   - rel: film/script.yaml
@@ -127,24 +81,21 @@ assets:
   - rel: film/claims.yaml
     provenance: tracked
     source: film/claims.yaml
-  - rel: film/composition/fonts/Roboto-Variable.woff2
+  - rel: film/lexicon/en.yaml
     provenance: tracked
-    source: film/composition/fonts/Roboto-Variable.woff2
-  - rel: film/composition/fonts/Roboto-Serif-Variable.woff2
+    source: film/lexicon/en.yaml
+  - rel: film/lexicon/fr.yaml
     provenance: tracked
-    source: film/composition/fonts/Roboto-Serif-Variable.woff2
-  - rel: film/composition/fonts/Roboto-Mono-Variable.woff2
-    provenance: tracked
-    source: film/composition/fonts/Roboto-Mono-Variable.woff2
-  - rel: film/composition/index.en.html
-    provenance: derived
-    recipe: python film/compose.py
-  - rel: film/composition/index.fr.html
-    provenance: derived
-    recipe: python film/compose.py
-  - rel: film/narration/en/hook/narration.wav
+    source: film/lexicon/fr.yaml
+  - rel: film/narration/en/narration.wav
     provenance: derived
     recipe: python film/narrate_film.py en
-  - rel: film/narration/fr/hook/narration.wav
+  - rel: film/narration/fr/narration.wav
     provenance: derived
     recipe: python film/narrate_film.py fr
+  - rel: film/hf/saggio-en-landscape/index.html
+    provenance: derived
+    recipe: python film/compose.py
+  - rel: film/hf/saggio-fr-landscape/index.html
+    provenance: derived
+    recipe: python film/compose.py

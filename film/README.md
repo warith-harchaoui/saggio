@@ -1,13 +1,22 @@
 # The film
 
-Ninety-nine seconds of what this package is for, in English and in French,
-served from the home page of [deraison.ai/saggio](https://deraison.ai/saggio).
+Ninety seconds of what this package is for, in English and in French, cut
+wide, tall and square, and served from the home page of
+[deraison.ai/saggio](https://deraison.ai/saggio).
 
-A film is the worst place to put a number. Prose in a README gets re-read;
-a figure burned into a keyframe does not, and it stays wrong silently. So
-every count this film says out loud is declared in `claims.yaml` next to
-the place in the code that decides it, and `make-film verify` fails when
-the code and the film stop agreeing.
+It is a Sprezzature film. It follows the spine every film of that suite
+follows, in Guy KAWASAKI's order: what it is, the problem, the solution, the
+secret sauce, the finest example, then the ask. Unlike the suite's films, it
+does not label those beats across the top of the picture. And it is drawn by
+the suite's own generator,
+`brag-output/build_films.py`, so it looks like those films because the same
+code makes it.
+
+A film is the worst place to put a number. Prose in a README gets re-read; a
+figure burned into a frame does not, and it stays wrong silently. So every
+number this film states is declared in `claims.yaml` next to the place in the
+code that decides it, and `make-film verify` fails when the code and the film
+stop agreeing.
 
 ## The parts
 
@@ -16,92 +25,60 @@ the code and the film stop agreeing.
 | `script.yaml` | What the film says and shows, scene by scene, in both languages. The content. |
 | `claims.yaml` | Every number the film states, the file that decides it, and how to read that file. Written by hand; diffed by a reviewer. |
 | `lexicon/` | How the voice says the words it would otherwise get wrong. |
+| `narration/` | One track per language, its cues, and `measured.json`: when each sentence starts and stops. |
 | `film.yaml` | The checkable contract `make-film` reads. Generated: do not edit. |
-| `composition/` | One self-contained page per language. `seek(t)` is a pure function of time, so a renderer can ask for any frame and get the same pixels. |
-| `narration/` | One audio file per scene per language, and the lengths measured off them. The cuts are derived from these rather than typed. |
+| `hf/` | One HyperFrames project per language and canvas. Generated, not committed. |
 
 ## Rebuilding it
 
-Four steps, in this order. Each reads what the one before it wrote.
+It needs the Sprezzature repository beside this one (`~/sprezzature`, or set
+`SPREZZATURE_FILMS` to its `brag-output` folder), Node for HyperFrames, and
+ffmpeg.
 
 ```bash
 python film/narrate_film.py          # the voice, through sprezzature-audio
-python film/compose.py               # the two compositions, timed to that voice
-python film/make_spec.py             # film.yaml, claims plus derived timings
-python film/render_film.py           # frames, then two MPEG-4 (MP4) films in film/out/
+python film/compose.py               # six projects, cut on that voice
+python film/make_spec.py             # film.yaml, claims plus the measured timings
+python film/render_film.py           # six films, posters and captions in film/out/
 ```
 
-Then the parts a function owns, and the four gates:
+Each step reads what the one before it wrote, and nothing is timed by hand.
+
+- **The voice** is whatever `speaker-helper` routes to for each language,
+  the same question the suite's films ask, so the two sets of films speak
+  with one voice. Each language is read in one call with every sentence as a
+  segment, which returns a cue per sentence on the audio it wrote. Chatterbox
+  samples, and now and then a sentence runs on; a sentence read at under half
+  the language's median pace sends the whole language back to be read again.
+- **The cuts** go in the gap between the last sentence of one scene and the
+  first of the next, on the nearest beat of the music when that beat falls
+  inside the gap. Every reveal in a scene lands on the sentence that names it.
+  A script that outruns ninety seconds lengthens the film: the voice is never
+  cut.
+- **The captions** are written by `make-film captions` from the script and
+  those cues, so they say what the voice says, sentence for sentence, from the
+  moment it starts saying it, and stay up through the pause after. They ship as a separate WebVTT track and are never burned into the
+  picture: the player offers them, and the viewer turns them on.
+
+Then the four gates:
 
 ```bash
-make-film captions film/film.yaml --lang en --out film/out/what-it-costs.en.vtt
-make-film poster film/out/what-it-costs.en.mp4 --out film/out/what-it-costs.en.jpg --at 76.5
-
 make-film verify film/film.yaml --root .                 # do the numbers still hold
-make-film scan film/composition/index.en.html --spec film/film.yaml   # anything on screen nobody declared
-make-film pitch film/film.yaml --duration 99.08          # problem, then solution, then the one idea
+make-film scan film/hf/saggio-en-landscape/index.html --spec film/film.yaml
+make-film pitch film/film.yaml --duration 90             # problem, then solution, then the one idea
 make-film prose film/film.yaml --lang en                 # the named machine tics
 sprezzature-audio-audit film/out/what-it-costs.en.vtt --line-chars 58
 sprezzature-audio-audit film/out/what-it-costs.fr.vtt --line-chars 58 --cps 20
 ```
 
-Both tracks come back clean, and the two commands differ on purpose.
-
-`--line-chars 58` rather than the Netflix default of 42: 58 is the budget the
-caption writer in `sprezzature-video` splits a line at, so it is the number
-that actually governs this file.
-
-`--cps 20` on the French track, and nothing on the English one. The English cut
-reads inside the 17-characters-a-second ceiling the audit defaults to, which is
-Netflix's figure for adult content: it averages 15.2 and peaks at 16.6. The
-French cut does not, and at 17 it reports fifty findings over fifty-eight cues.
-That is not this script. The French cut averages 17.6 characters a second and
-never exceeds 18.7, because French spends more characters on the same sentence,
-so an English-calibrated ceiling flags a track a French reader follows
-perfectly well. The audit's own help says the defaults are conventions rather
-than laws and that each one is a flag, which is the licence being used here. 19
-would clear the measured peak today; 20 is kept so that a re-cut drifting by a
-tenth does not quietly change the command, and the margin is written down
-rather than the flag dropped.
-
-The one finding that was a real defect was fixed rather than reclassified: a
-cue that held **d'exécution,** alone for 0.755 seconds, because the line split
-mid-phrase. The French call to action is three short sentences now, and each
-gets its own breath.
-
-Two further gates are worth running and one of them cannot answer here:
-
-```bash
-make-film assets film/film.yaml --tree . --repo .   # can a clone rebuild this
-make-film calque film/film.yaml --from en --to fr   # is the second cut a translation
-```
-
-`assets` reports 9 of 9 in hand: nothing this film is built from exists only on
-the machine that built it.
-
-`calque` scores this film 0.89 and will go on doing so. It compares the two cuts
-position by position on how many sentences a line holds and which numerals it
-carries — and this film's narration is split one sentence to a line with no
-numerals anywhere, so 26 of 27 English lines and 25 of 25 French ones reduce to
-the same `(1, ())`. It is comparing two near-constant sequences, which is the
-case its own documentation excludes: *a film whose lines are each one sentence
-with no numbers will score high and may be perfectly composed.* The score is
-not evidence about this French. Read the two cuts side by side instead, which
-is what the gate asks for in any case.
+`--cps 20` on the French track: French spends more characters on the same
+sentence, so the 17-characters-a-second ceiling, which is Netflix's figure for
+English, flags a track a French reader follows perfectly well.
 
 ## Rendering
 
-The frames are grabbed with Playwright and assembled with ffmpeg rather than
-through Hyperframes. Both are named by `sprezzature-video` as renderers behind
-the same seam, and the page this film is published on is offline-first with no
-build step of its own, so the shorter dependency chain was the one to take.
-
-Frames already on disk are kept, so a render that dies at frame 900 resumes at
-frame 900. That holds only while the page is the same page, and it once did not:
-re-rendering a recut French cut reshot the 63 frames the longer cut had added,
-kept 2139 from the previous one, and assembled a film that played, carried a
-plausible duration, and showed the old script for its first eighty-nine seconds.
-No gate here reads pixels, so none of them could have caught it. The frames now
-carry a hash of the composition they came from in `frames/<lang>/.composition`
-and are dropped when it changes — if a render reports far fewer frames taken
-than are on disk, that is the number to look at.
+`render_film.py` renders each project with the flags the Sprezzature films are
+rendered with: 4K, the canvas's own layout at four times the pixels, streamed
+rather than staged so a cut does not need sixty gigabytes of scratch. Every
+film is then measured, length and frame size, because a killed render leaves a
+short film behind and a stale one leaves the previous cut.

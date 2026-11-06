@@ -1,0 +1,69 @@
+WEBVTT
+
+0
+00:00:00.000 --> 00:00:02.840
+saggio tells you what it costs to run your code.
+
+1
+00:00:03.120 --> 00:00:06.920
+Money, time, energy, carbon and water, per unit of work.
+
+2
+00:00:07.570 --> 00:00:10.210
+Any tool will give you a number, confidently.
+
+3
+00:00:10.860 --> 00:00:16.660
+The dangerous one is orders of magnitude out, with a perfectly tidy list of sources underneath.
+
+4
+00:00:17.310 --> 00:00:23.510
+saggio writes the answer as a file next to your code. Every number in it carries a status.
+
+5
+00:00:23.790 --> 00:00:28.190
+Measured, a counter said so. Estimated, a sourced formula did.
+
+6
+00:00:28.470 --> 00:00:33.670
+Placeholder holds the field open. TODO means a human still has to answer.
+
+7
+00:00:34.320 --> 00:00:36.760
+Here is the part nobody else does.
+
+8
+00:00:37.040 --> 00:00:41.760
+A derived number may never claim to be better founded than the worst of its inputs.
+
+9
+00:00:42.410 --> 00:00:45.250
+Measure the power, the energy becomes measured.
+
+10
+00:00:45.530 --> 00:00:49.250
+The carbon stays estimated, because nobody measured the grid.
+
+11
+00:00:49.530 --> 00:00:55.890
+The validator recomputes every derivation, unit by unit. More than a percent out is an error.
+
+12
+00:00:56.540 --> 00:01:03.220
+On a real model, the French grid intensity is sourced. It is still only known to a fifth either way.
+
+13
+00:01:03.500 --> 00:01:07.340
+So the carbon computed from it is not allowed to be a single number.
+
+14
+00:01:07.620 --> 00:01:10.580
+Delete the interval, the model stops validating.
+
+15
+00:01:11.230 --> 00:01:17.190
+pip install saggio. Read it at deraison dot a i slash saggio.
+
+16
+00:01:17.470 --> 00:01:20.590
+And if it earns it, leave a star on GitHub.

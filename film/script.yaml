@@ -1,218 +1,183 @@
-# What the film says, in both languages, scene by scene.
+# What the film says and shows, scene by scene, in both languages.
 # ------------------------------------------------------------------
-# This file is the content. `film.yaml` beside it is the checkable
-# contract -- the claims, the assets, the narration with its measured
-# audio -- and the four scripts in this folder turn the two of them into
-# the two compositions, the two tracks and the two caption files.
+# Ninety seconds on the spine every Sprezzature film follows, in Guy
+# KAWASAKI's order: what it is, the problem, the solution, the secret
+# sauce, the finest example, then the ask. The suite's films name the beat
+# in a rail above the picture; this one keeps the order and leaves the
+# labels off.
 #
-# A scene's `narration` is what the voice says. Its `headline`, `lines`
-# and `visual` are what the frame shows. They are written separately on
-# purpose: a film whose captions are its slides is a film nobody needs
-# to watch.
+# A scene's `narration` is what the voice says, one sentence per item.
+# Everything else is what the frame shows, drawn by the Sprezzature film
+# engine (`~/sprezzature/brag-output/build_films.py`) from the scene's
+# `type`: `what`, `held`, `claim`, `panel`, `flow`, `verify`, `cta`.
+# They are written separately on purpose: a film whose captions are its
+# slides is a film nobody needs to watch.
 #
-# The eight scenes are eight beats, in this order: the opening
-# punchline, what the thing is, the problem, the solution, the one idea
-# nobody else has, the best example of it working, what to do next, and
-# the closing punchline. The two punchlines are the only lines here that
-# are not describing a mechanism, and both are lifted from the prose the
-# package already defends itself with: the opener from the refusals the
-# validator actually performs, the closer from the last section of
-# LANDSCAPE.md.
+# No scene carries a time. The voice is read first, and every cut is
+# placed where the measured audio says the line before it stopped, then
+# moved to the next beat of the music.
 
 film:
   name: what-it-costs
-  fps: 24
-  width: 1920
-  height: 1080
-  # Seconds of silence held after a line finishes, so a scene does not
-  # cut on the last syllable.
-  tail: 0.55
+  # The length a cut is held to when the voice finishes early. A script
+  # that runs past it lengthens the film instead: the voice is never cut.
+  duration: 90.0
+  # Silence between two sentences of one scene, and between two scenes.
+  pause_ms: 280
+  scene_pause_ms: 650
 
 scenes:
 
-  - id: hook
-    visual: question
-    en:
-      narration: >-
-        Any tool will give you a number, confidently.
-        This one, just as confidently, will tell you when it has no business
-        giving you one.
-      headline: Any tool will give you a number.
-      lines:
-        - this one tells you when it shouldn't
-        - money · time · energy · carbon · water
-    fr:
-      narration: >-
-        Un chiffre, tous les outils vous en donnent un, du même ton assuré.
-        Celui-ci garde ce ton pour vous dire quand il n'a pas le droit de le
-        faire.
-      headline: Tous les outils vous donnent un chiffre.
-      lines:
-        - celui-ci vous dit quand il n'a pas le droit
-        - argent · temps · énergie · carbone · eau
-
+  # WHAT IT IS --------------------------------------------------------
   - id: what
-    visual: yaml
-    en:
-      narration: >-
-        saggio reads your repository and writes what it costs to run
-        as a file, committed next to the code, reviewable in a pull request.
-        Money, time, energy, carbon, water, per unit of work you name.
-      headline: It writes the answer as a file.
-      lines:
-        - committed next to the code
-        - reviewable in a pull request
-        - one unit of work, the one you named
-    fr:
-      narration: >-
-        saggio lit votre dépôt et met ce que coûte son exécution dans un
-        fichier : versionné à côté du code, relu en pull request comme le reste.
-        Argent, temps, énergie, carbone, eau, pour l'unité de travail que vous
-        choisissez.
-      headline: Il écrit la réponse dans un fichier.
-      lines:
-        - versionné à côté du code
-        - relu en pull request, comme le reste
-        - l'unité de travail que vous choisissez
+    beat: what
+    type: what
+    logo: saggio-logo.png
+    tagline:
+      en: saggio is a cost model for code
+      fr: saggio est un modèle de coût pour le code
+    mark: saggio
+    line:
+      en: What it costs to run your code and how far to trust it.
+      fr: Ce que coûte votre code à l'exécution et jusqu'où s'y fier.
+    url: deraison.ai/saggio
+    narration:
+      en:
+        - saggio tells you what it costs to run your code.
+        - Money, time, energy, carbon and water, per unit of work.
+      fr:
+        - saggio vous dit ce que coûte l'exécution de votre code.
+        - Argent, temps, énergie, carbone, eau, par unité de travail.
 
-  - id: problem
-    visual: confident-number
-    en:
-      narration: >-
-        Because the dangerous number is not the one you are missing.
-        It is the confident one, orders of magnitude out,
-        carrying a perfectly tidy list of its sources.
-      headline: The dangerous number is the confident one.
-      lines:
-        - orders of magnitude out
-        - with a perfectly tidy list of sources underneath
-    fr:
-      narration: >-
-        Parce que le chiffre qui vous manque, ce n'est pas lui le danger.
-        Le danger, c'est celui qui a l'air sûr de lui et qui est faux d'un
-        facteur mille. Avec, en dessous, une liste de sources impeccable.
-      headline: Le chiffre dangereux est celui qui a l'air sûr de lui.
-      lines:
-        - faux d'un facteur mille
-        - avec une liste de sources impeccable en dessous
+  # PROBLEM -----------------------------------------------------------
+  - id: any-tool
+    beat: problem
+    type: held
+    line:
+      en: Any tool will give you a number.
+      fr: Tous les outils vous donnent un chiffre.
+    narration:
+      en:
+        - Any tool will give you a number, confidently.
+      fr:
+        - Un chiffre, tous les outils vous en donnent un, avec assurance.
 
-  - id: solution
-    visual: statuses
-    en:
-      narration: >-
-        So every number carries a status. Measured means a counter on
-        the machine said so. Estimated means a sourced formula said so.
-        Placeholder holds the field open. TODO means a human still has to answer.
-      headline: Every number carries a status.
-      statuses:
-        - [measured, A counter on the machine said so.]
-        - [estimated, A sourced formula or a published figure said so.]
-        - [placeholder, The field is being held open. It is not a number.]
-        - [TODO, A human has to supply this.]
-    fr:
-      narration: >-
-        Alors chaque chiffre porte un statut. Mesuré, c'est un compteur de la
-        machine qui l'a dit. Estimé, c'est une formule sourcée. Réservé tient
-        la place. TODO veut dire qu'un humain doit encore répondre.
-      headline: Chaque chiffre porte un statut.
-      statuses:
-        - [mesuré, Un compteur de la machine l'a dit.]
-        - [estimé, Une formule sourcée ou un chiffre publié l'a dit.]
-        - [réservé, Le champ est tenu ouvert. Ce n'est pas un chiffre.]
-        - [TODO, Un humain doit fournir cette valeur.]
+  - id: confident
+    beat: problem
+    type: claim
+    line:
+      en: The dangerous number is the confident one.
+      fr: Le chiffre dangereux est celui qui a l'air sûr de lui.
+    narration:
+      en:
+        - The dangerous one is orders of magnitude out, with a perfectly tidy list of sources underneath.
+      fr:
+        - Le plus dangereux se trompe de plusieurs ordres de grandeur, avec en dessous une liste de sources impeccable.
 
-  - id: sauce
-    visual: chain
-    en:
-      narration: >-
-        And here is the part nobody else does. A derived number names what it
-        came from. It may never outrank the worst of them. Nor may it pin the
-        answer down more tightly than they do. The validator recomputes it.
-        Every unit goes down to its base dimensions. More than a percent out
-        is an error.
-      headline: Two rules, both enforced.
-      lines:
-        - A derived value may never claim to be better founded than its inputs.
-        - Nor may it be known more precisely than they are.
-    fr:
-      narration: >-
-        Et voilà ce que les autres ne font pas. Un chiffre dérivé nomme ce dont
-        il est tiré. Il ne peut ni surclasser le plus faible de ces chiffres-là,
-        ni cerner la réponse de plus près qu'eux. Le validateur le
-        recalcule, chaque unité redescendue à ses dimensions de base. Au-delà
-        d'un pour cent d'écart, c'est une erreur.
-      headline: Deux règles, toutes deux imposées.
-      lines:
-        - Une valeur dérivée ne peut pas être mieux fondée que ce dont elle est tirée.
-        - Ni cernée de plus près.
+  # SOLUTION ----------------------------------------------------------
+  - id: statuses
+    beat: solution
+    type: panel
+    eyebrow:
+      en: Every number carries a status
+      fr: Chaque nombre a un statut
+    rows:
+      - [measured, {en: "A counter on the machine said so.", fr: "Un compteur de la machine l'a dit."}]
+      - [estimated, {en: "A sourced formula said so.", fr: "Une formule sourcée l'a dit."}]
+      - [placeholder, {en: "The field is held open.", fr: "Le champ est tenu ouvert."}]
+      - [TODO, {en: "A human still has to answer.", fr: "Un humain doit encore répondre."}]
+    caption:
+      en: One YAML file, committed next to the code.
+      fr: Un fichier YAML, versionné à côté du code.
+    narration:
+      en:
+        - saggio writes the answer as a file next to your code. Every number in it carries a status.
+        - Measured, a counter said so. Estimated, a sourced formula did.
+        - Placeholder holds the field open. TODO means a human still has to answer.
+      fr:
+        - saggio écrit la réponse dans un fichier, à côté du code. Chaque nombre y a un statut.
+        - Mesuré, un compteur l'a dit. Estimé, une formule sourcée.
+        - Réservé tient la place. TODO veut dire qu'un humain doit encore répondre.
 
-  - id: example
-    visual: interval
-    en:
-      narration: >-
-        Here it is on a real model. The French grid intensity is sourced. It is
-        still only good to a fifth either way. So the carbon figure computed
-        from it is not allowed to be a single number. Delete the interval.
-        The model stops validating.
-      headline: The finest example is a failure.
-      rows:
-        - ["41.2 gCO2e/kWh", "33.8 to 50.2", "scored on the pedigree matrix"]
-        - ["1.19e-06 gCO2e", "9.76e-07 to 1.45e-06", "it had no choice"]
-      note: Delete the interval and the model fails to validate.
-    fr:
-      narration: >-
-        Voilà ce que ça donne sur un vrai modèle. L'intensité du réseau français
-        est sourcée, mais connue à un cinquième près seulement. Le chiffre
-        carbone qui en découle n'a donc pas le droit d'être un nombre unique.
-        Effacez l'intervalle : le modèle ne passe plus la validation.
-      headline: Le plus bel exemple est un échec.
-      rows:
-        - ["41,2 gCO2e/kWh", "33,8 à 50,2", "notée sur la matrice de pedigree"]
-        - ["1,19e-06 gCO2e", "9,76e-07 à 1,45e-06", "il n'avait pas le choix"]
-      note: "Effacez l'intervalle : la validation échoue."
+  # SECRET SAUCE ------------------------------------------------------
+  - id: weakest-link
+    beat: magic
+    type: claim
+    line:
+      en: A derived number never outranks its weakest input.
+      fr: Un nombre dérivé ne dépasse jamais sa plus faible source.
+    narration:
+      en:
+        - Here is the part nobody else does.
+        - A derived number may never claim to be better founded than the worst of its inputs.
+      fr:
+        - Voici ce que personne d'autre ne fait.
+        - Un nombre dérivé ne se prétend jamais mieux fondé que le plus faible de ceux dont il découle.
 
+  - id: chain
+    beat: magic
+    type: flow
+    eyebrow:
+      en: Power × time, then × the grid
+      fr: Puissance × durée, puis × le réseau
+    stages:
+      - [{en: runtime, fr: durée}, {en: measured, fr: mesurée}]
+      - [{en: power, fr: puissance}, {en: measured, fr: mesurée}]
+      - [{en: energy, fr: énergie}, {en: measured, fr: mesurée}]
+      - [{en: grid intensity, fr: intensité du réseau}, {en: estimated, fr: estimée}]
+      - [{en: carbon, fr: carbone}, {en: estimated, fr: estimé}]
+    caption:
+      en: Recomputed down to base units. More than 1% out is an error.
+      fr: Recalculé jusqu'aux unités de base. Plus de 1 % d'écart, c'est une erreur.
+    narration:
+      en:
+        - Measure the power, the energy becomes measured.
+        - The carbon stays estimated, because nobody measured the grid.
+        - The validator recomputes every derivation, unit by unit. More than a percent out is an error.
+      fr:
+        - Mesurez la puissance, l'énergie devient mesurée.
+        - Le carbone reste estimé, faute de mesure sur le réseau électrique.
+        - Le validateur recalcule chaque dérivation, unité par unité. Au-delà d'un pour cent d'écart, c'est une erreur.
+
+  # AT ITS BEST -------------------------------------------------------
+  - id: interval
+    beat: example
+    type: verify
+    eyebrow:
+      en: At its best, it refuses
+      fr: À son meilleur, il refuse
+    claims:
+      - [{en: "French grid, gCO2e/kWh", fr: "Réseau français, gCO2e/kWh"}, {en: "33.8 to 50.2", fr: "33,8 à 50,2"}]
+      - [{en: "One request, gCO2e", fr: "Une requête, gCO2e"}, {en: "9.76e-07 to 1.45e-06", fr: "9,76e-07 à 1,45e-06"}]
+    caption:
+      en: Delete the interval, the model fails to validate.
+      fr: Effacez l'intervalle, le modèle ne passe plus la validation.
+    narration:
+      en:
+        - On a real model, the French grid intensity is sourced. It is still only known to a fifth either way.
+        - So the carbon computed from it is not allowed to be a single number.
+        - Delete the interval, the model stops validating.
+      fr:
+        - Sur un vrai modèle, l'intensité du réseau français est sourcée, mais connue à un cinquième près.
+        - Le carbone qui en découle n'a donc pas le droit d'être un seul nombre.
+        - Effacez l'intervalle, le modèle ne passe plus la validation.
+
+  # YOUR TURN ---------------------------------------------------------
   - id: cta
-    visual: close
-    en:
-      narration: >-
-        Thirteen verbs, five runtime dependencies, five surfaces over one engine.
-        Read it at deraison dot a i slash saggio. If it is useful,
-        leave a star on GitHub.
-      headline: One engine, five surfaces.
-      surfaces: [Library, Command line, HTTP API, Agent protocol, Agent Skill]
-      facts:
-        - [13, verbs]
-        - [5, runtime dependencies]
-        - [5, surfaces]
-      command: pip install saggio
-      url: deraison.ai/saggio
-      star: ★ github.com/warith-harchaoui/saggio
-    fr:
-      narration: >-
-        Treize verbes. Cinq dépendances d'exécution. Cinq surfaces sur un seul
-        moteur. À lire sur deraison point a i slash saggio. Si ça vous sert,
-        laissez une étoile sur GitHub.
-      headline: Un seul moteur, cinq surfaces.
-      surfaces: [Bibliothèque, Ligne de commande, API HTTP, Protocole d'agent, Agent Skill]
-      facts:
-        - [13, verbes]
-        - [5, dépendances d'exécution]
-        - [5, surfaces]
-      command: pip install saggio
-      url: deraison.ai/saggio
-      star: ★ github.com/warith-harchaoui/saggio
-
-  - id: punchline
-    visual: punchline
-    en:
-      narration: >-
-        Dollars, kilowatt-hours, grams of CO2, litres of water. Every one of
-        them says how far it can be trusted, or refuses to exist.
-      headline: Dollars, kilowatt-hours, grams of CO2, litres of water.
-      emphasis: Each one says how far it can be trusted.
-    fr:
-      narration: >-
-        Des euros, des kilowattheures, des grammes de CO2, des litres d'eau.
-        Chacun dit jusqu'où on peut lui faire confiance, ou refuse d'exister.
-      headline: Des euros, des kilowattheures, des grammes de CO2, des litres d'eau.
-      emphasis: Chacun dit jusqu'où on peut lui faire confiance.
+    beat: cta
+    type: cta
+    logo: saggio-logo.png
+    mark: saggio
+    actions:
+      - ["★", {en: "A star, if it deserves it", fr: "Une étoile, si ça le mérite"}, github.com/warith-harchaoui/saggio]
+      - ["→", {en: "Go and read it", fr: "Allez le lire"}, deraison.ai/saggio]
+    punchline:
+      en: Every number says how far it can be trusted.
+      fr: Chaque nombre dit jusqu'où s'y fier.
+    narration:
+      en:
+        - pip install saggio. Read it at deraison dot a i slash saggio.
+        - And if it earns it, leave a star on GitHub.
+      fr:
+        - pip install saggio. À lire sur deraison point a i slash saggio.
+        - Si ça le mérite, laissez une étoile sur GitHub.

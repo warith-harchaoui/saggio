@@ -1,0 +1,69 @@
+WEBVTT
+
+0
+00:00:00.000 --> 00:00:04.013
+saggio vous dit ce que coûte l'exécution de votre code.
+
+1
+00:00:04.293 --> 00:00:09.465
+Argent, temps, énergie, carbone, eau, par unité de travail.
+
+2
+00:00:10.115 --> 00:00:14.523
+Un chiffre, tous les outils vous en donnent un, avec assurance.
+
+3
+00:00:15.173 --> 00:00:22.340
+Le plus dangereux se trompe de plusieurs ordres de grandeur, avec en dessous une liste de sources impeccable.
+
+4
+00:00:22.990 --> 00:00:28.399
+saggio écrit la réponse dans un fichier, à côté du code. Chaque nombre y a un statut.
+
+5
+00:00:28.679 --> 00:00:33.419
+Mesuré, un compteur l'a dit. Estimé, une formule sourcée.
+
+6
+00:00:33.699 --> 00:00:38.274
+Réservé tient la place. TODO veut dire qu'un humain doit encore répondre.
+
+7
+00:00:38.924 --> 00:00:41.860
+Voici ce que personne d'autre ne fait.
+
+8
+00:00:42.140 --> 00:00:47.348
+Un nombre dérivé ne se prétend jamais mieux fondé que le plus faible de ceux dont il découle.
+
+9
+00:00:47.998 --> 00:00:51.336
+Mesurez la puissance, l'énergie devient mesurée.
+
+10
+00:00:51.616 --> 00:00:55.707
+Le carbone reste estimé, faute de mesure sur le réseau électrique.
+
+11
+00:00:55.987 --> 00:01:03.007
+Le validateur recalcule chaque dérivation, unité par unité. Au-delà d'un pour cent d'écart, c'est une erreur.
+
+12
+00:01:03.657 --> 00:01:10.184
+Sur un vrai modèle, l'intensité du réseau français est sourcée, mais connue à un cinquième près.
+
+13
+00:01:10.464 --> 00:01:14.093
+Le carbone qui en découle n'a donc pas le droit d'être un seul nombre.
+
+14
+00:01:14.373 --> 00:01:18.333
+Effacez l'intervalle, le modèle ne passe plus la validation.
+
+15
+00:01:18.983 --> 00:01:23.555
+pip install saggio. À lire sur deraison point a i slash saggio.
+
+16
+00:01:23.835 --> 00:01:26.572
+Si ça le mérite, laissez une étoile sur GitHub.

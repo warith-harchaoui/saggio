@@ -3,9 +3,9 @@
 Merge the hand-written claims with the measured timings into one spec.
 
 ``claims.yaml`` is the half a person writes and a reviewer diffs.
-Everything else in ``film.yaml`` is derived: a narration line's start is
-the sum of the scenes before it, and those lengths were measured off the
-audio rather than typed. A timing written by hand is a timing that
+Everything else in ``film.yaml`` is derived: a narration line's start and
+length are the cue it received when it was read, and a scene's start is
+the cut ``compose.py`` placed between two of those cues. A timing written by hand is a timing that
 drifts against the voice the first time a sentence is reworded, and the
 drift is silent.
 
@@ -17,7 +17,6 @@ Author
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
 import yaml
@@ -34,41 +33,8 @@ SPEC = HERE / "film.yaml"
 REFERENCE = "en"
 
 
-def sentences(text: str) -> list[str]:
-    """Split a scene's narration into the sentences it is made of.
-
-    The caption writer splits a line in two when it runs past its own
-    budget, and it does that once rather than repeatedly. A whole scene
-    handed over as one line therefore comes back as two cues of half a
-    scene each, which is how a caption ends up 116 characters wide. Handed
-    its sentences instead, the writer has nothing left to split.
-    """
-    out, current = [], ""
-    for piece in re.split(r"(?<=[.!?])\s+", text.strip()):
-        if not piece:
-            continue
-        # A fragment on its own is a fragment on screen too, so anything
-        # too short to stand alone joins the sentence before it.
-        if current and len(piece) < 24:
-            current = f"{current} {piece}"
-        else:
-            if current:
-                out.append(current)
-            current = piece
-    if current:
-        out.append(current)
-    return out
-
-
-def timeline(script: dict, measured: dict, lang: str) -> list[dict]:
-    """Each scene's start and length, derived from the measured audio."""
-    tail = float(script["film"]["tail"])
-    rows, clock = [], 0.0
-    for scene in script["scenes"]:
-        spoken = float(measured[lang][scene["id"]])
-        rows.append({"id": scene["id"], "start": round(clock, 3), "dur": round(spoken + tail, 3)})
-        clock += spoken + tail
-    return rows
+#: Where the voice enters on the film's clock; `compose.py` places it there.
+VO_AT = 1.10
 
 
 def main() -> int:
@@ -77,25 +43,37 @@ def main() -> int:
     hand = yaml.safe_load(CLAIMS.read_text(encoding="utf-8"))
     measured = json.loads(MEASURED.read_text(encoding="utf-8"))
 
+    timings = json.loads((HERE / "narration" / "timeline.json").read_text(encoding="utf-8"))
+
+    # Every sentence was a segment of its own when it was read, so each one
+    # has its own cue on the audio: nothing here is apportioned or guessed.
+    #
+    # A caption stays up through the silence after its sentence, until the
+    # next one starts. The voice is quick, and a caption that leaves the
+    # screen the instant the voice stops asks to be read faster than the
+    # seventeen characters a second a reader keeps up with; nothing else is
+    # being said in that pause, so the words have nothing to make way for.
     narration: dict[str, list[dict]] = {}
     for lang in ("en", "fr"):
-        rows = timeline(script, measured, lang)
-        lines = []
-        for row, scene in zip(rows, script["scenes"], strict=True):
-            spoken = row["dur"] - float(script["film"]["tail"])
-            parts = sentences(" ".join(scene[lang]["narration"].split()))
-            letters = sum(len(part) for part in parts) or 1
-            clock = row["start"]
-            for part in parts:
-                share = round(spoken * len(part) / letters, 3)
-                lines.append({"start": round(clock, 3), "text": part, "duration": share})
-                clock += share
-        narration[lang] = lines
+        lines = measured[lang]["lines"]
+        last = timings[lang]["duration"] - VO_AT
+        narration[lang] = [
+            {
+                "start": round(line["start"] + VO_AT, 3),
+                "text": line["text"],
+                "duration": round(
+                    min(after["start"] - 0.04, line["end"] + 1.2) - line["start"]
+                    if after
+                    else min(last, line["end"] + 1.2) - line["start"],
+                    3,
+                ),
+            }
+            for line, after in zip(lines, lines[1:] + [None], strict=True)
+        ]
 
-    reference = timeline(script, measured, REFERENCE)
     scenes = [
-        {"start": row["start"], "text": " ".join(scene[REFERENCE]["narration"].split())}
-        for row, scene in zip(reference, script["scenes"], strict=True)
+        {"start": cut["start"], "text": " ".join(" ".join(scene["narration"][REFERENCE]).split())}
+        for cut, scene in zip(timings[REFERENCE]["scenes"], script["scenes"], strict=True)
     ]
 
     spec = {
@@ -111,12 +89,9 @@ def main() -> int:
         "# -------------------------------------------------------------\n"
         "# The claims, the pitch and the asset ledger are written by hand in\n"
         "# `claims.yaml`. The scene starts and the narration below are derived\n"
-        "# from the measured length of each narration file. A scene's own length\n"
-        "# is measured; the share each of its sentences takes of that length is\n"
-        "# apportioned by how long the sentence is, which is the same arithmetic\n"
-        "# the caption writer applies to the halves of a line it splits.\n"
-        "# from the measured length of each narration file, so they cannot\n"
-        "# drift against the voice. Regenerate rather than edit:\n"
+        "# from the cue each sentence received when it was read; the cuts are\n"
+        "# the ones compose.py placed between them. Neither can drift against\n"
+        "# the voice. Regenerate rather than edit:\n"
         "#     python film/make_spec.py\n\n"
     )
     # One sentence per line, never wrapped: `make-film prose` reads this
@@ -126,7 +101,7 @@ def main() -> int:
         header + yaml.safe_dump(spec, sort_keys=False, allow_unicode=True, width=10_000),
         encoding="utf-8",
     )
-    total = reference[-1]["start"] + reference[-1]["dur"]
+    total = timings[REFERENCE]["duration"]
     print(
         f"film.yaml: {len(spec['claims'])} claims, {len(scenes)} scenes, {total:.2f}s reference cut"
     )

@@ -6,3 +6,5 @@
 # lexicon nobody re-reads.
 entries:
   - { word: "saggio", respelling: "sahdjoh" }   # Italian, else "sag-ee-oh"
+  - { word: "TODO", respelling: "to-do" }       # else spelled T-O-D-O
+  - { word: "deraison", respelling: "day-ray-zon" }  # the French word, said the French way
