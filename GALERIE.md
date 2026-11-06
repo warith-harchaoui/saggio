@@ -31,7 +31,7 @@ saggio render examples/nanoGPT.yaml -f md -o examples/nanoGPT.md
 | [`whisper`](examples/whisper.yaml) · [rapport](examples/whisper.md) | `openai/whisper` | outil en ligne de commande | Rien d'inventé : ni modèle, ni service, ni durée d'exécution |
 | [`dinov2`](examples/dinov2.yaml) · [rapport](examples/dinov2.md) | `facebookresearch/dinov2` | entraînement | Sept fichiers se contredisent sur la longueur d'une exécution |
 | [`fastapi`](examples/fastapi.yaml) · [rapport](examples/fastapi.md) | `fastapi/fastapi` | outil en ligne de commande | Sa suite de tests est distinguée de son code |
-| [`airflow`](examples/airflow.yaml) · [rapport](examples/airflow.md) | `apache/airflow` | service | Neuf langages, huit services payants, trente-six modèles |
+| [`airflow`](examples/airflow.yaml) · [rapport](examples/airflow.md) | `apache/airflow` | service | Neuf langages, sept services payants, soixante-quatre modèles |
 | [`saggio`](examples/saggio.yaml) · [rapport](examples/saggio.md) | ce dépôt-ci | outil en ligne de commande | Tout ce qu'il semble appeler, il ne l'appelle que dans ses tests |
 | [`detectron2`](examples/detectron2.yaml) · [rapport](examples/detectron2.md) | `facebookresearch/detectron2` | inférence | Le premier exemple lu comme inférence, et rien d'inventé pour le remplir |
 | [`xberg`](examples/xberg.yaml) · [rapport](examples/xberg.md) | `xberg-io/xberg` | service | Quatorze langages, dont 3,6 % seulement de Python |
@@ -116,12 +116,12 @@ maintenant.
 
 ### airflow — le test de résistance
 
-Neuf langages. 7920 fichiers Python, 1112 TypeScript, derrière eux du Go, du
-Kotlin, du Java, du Shell, du JavaScript et du Scala. Huit services payants
+Neuf langages. 8163 fichiers Python, 1168 TypeScript, derrière eux du Shell, du
+Go, du JavaScript, du Kotlin, du Java, du SQL et du Scala. Sept services payants
 détectés avec la ligne qui prouve chacun, de
 `providers/anthropic/.../operators/agent.py:36` à
-`providers/sendgrid/.../emailer.py:28`. Trente-cinq identifiants de modèle, de
-`claude-opus-4-8` à `bedrock:us.anthropic.claude-opus-4-5`, chacun avec la ligne
+`providers/sendgrid/.../emailer.py:28`. Soixante-quatre identifiants de modèle, de
+`claude-sonnet-4-6` à `rerank-v3.5`, chacun avec la ligne
 qui le nomme.
 
 Aucune taille d'exécution : rien dans Airflow n'en énonce une, donc `total_work`

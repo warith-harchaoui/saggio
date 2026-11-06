@@ -30,7 +30,7 @@ saggio render examples/nanoGPT.yaml -f md -o examples/nanoGPT.md
 | [`whisper`](examples/whisper.yaml) · [report](examples/whisper.md) | `openai/whisper` | command-line tool | Nothing invented: no model, no service, no run length |
 | [`dinov2`](examples/dinov2.yaml) · [report](examples/dinov2.md) | `facebookresearch/dinov2` | training | Seven files disagree about how long a run is |
 | [`fastapi`](examples/fastapi.yaml) · [report](examples/fastapi.md) | `fastapi/fastapi` | command-line tool | Its test suite is told apart from its code |
-| [`airflow`](examples/airflow.yaml) · [report](examples/airflow.md) | `apache/airflow` | service | Nine languages, eight paid services, thirty-six models |
+| [`airflow`](examples/airflow.yaml) · [report](examples/airflow.md) | `apache/airflow` | service | Nine languages, seven paid services, sixty-four models |
 | [`saggio`](examples/saggio.yaml) · [report](examples/saggio.md) | this repository | command-line tool | Everything it appears to call, it calls only in tests |
 | [`detectron2`](examples/detectron2.yaml) · [report](examples/detectron2.md) | `facebookresearch/detectron2` | inference | The first example read as inference, and nothing invented to fill it |
 | [`xberg`](examples/xberg.yaml) · [report](examples/xberg.md) | `xberg-io/xberg` | service | Fourteen languages, only 3.6% of it Python |
@@ -108,11 +108,11 @@ being built, not a model being named, which the detector now says.
 
 ### airflow — the stress test
 
-Nine languages. 7920 Python files, 1112 TypeScript, with Go, Kotlin, Java,
-Shell, JavaScript and Scala behind them. Eight paid services detected with the
+Nine languages. 8163 Python files, 1168 TypeScript, with Shell, Go,
+JavaScript, Kotlin, Java, SQL and Scala behind them. Seven paid services detected with the
 line that proves each one, from `providers/anthropic/.../operators/agent.py:36`
-to `providers/sendgrid/.../emailer.py:28`. Thirty-five model identifiers, from
-`claude-opus-4-8` to `bedrock:us.anthropic.claude-opus-4-5`, each with the line
+to `providers/sendgrid/.../emailer.py:28`. Sixty-four model identifiers, from
+`claude-sonnet-4-6` to `rerank-v3.5`, each with the line
 that names it.
 
 No size of a run: nothing in Airflow states one, so `total_work` is absent rather
