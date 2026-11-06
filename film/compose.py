@@ -120,7 +120,12 @@ def timeline(bf, script: dict, lines: list[dict]) -> tuple[list[tuple[float, flo
 
 
 def on_grid(bf, t: float, lo: float, hi: float) -> float:
-    """``t`` moved to the nearest beat, unless that beat leaves the window."""
+    """``t`` moved to the nearest beat, unless that beat leaves the window.
+
+    ``t`` itself is held to the window too: a reveal placed after the scene
+    has started fading out is a reveal nobody gets to read.
+    """
+    t = min(max(t, lo), hi)
     beat = bf.on_beat(t)[0]
     return round(beat if lo <= beat <= hi else t, 3)
 
@@ -148,7 +153,9 @@ def reveals(bf, scene: dict, said: list[dict], start: float, end: float) -> dict
             ]
         }
     if kind == "cta":
-        return {"punch_at": on_grid(bf, said[-1]["end"] + 0.6, lo, end - 2.0)}
+        # The closing line is the last thing on screen, and it is held at
+        # least three seconds whatever the voice did before it.
+        return {"punch_at": on_grid(bf, said[-1]["end"] + 0.6, lo, end - 3.0)}
     return {}
 
 
