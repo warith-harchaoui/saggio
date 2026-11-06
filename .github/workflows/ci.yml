@@ -117,7 +117,7 @@ jobs:
       # before a test ran. uv fetches a standalone build instead and caches it
       # with the wheels, and the eleven development dependencies land in about
       # three seconds against pip's sixteen.
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           python-version: "3.10"
@@ -159,7 +159,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           python-version: "3.10"
