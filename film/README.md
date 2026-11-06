@@ -75,6 +75,19 @@ sprezzature-audio-audit film/out/what-it-costs.fr.vtt --line-chars 58 --cps 20
 sentence, so the 17-characters-a-second ceiling, which is Netflix's figure for
 English, flags a track a French reader follows perfectly well.
 
+Two more gates, and one of them cannot answer here:
+
+```bash
+make-film assets film/film.yaml --tree . --repo .   # 8 of 8 in hand: a clone can rebuild it
+make-film calque film/film.yaml --from en --to fr   # 0.94, and not evidence
+```
+
+`calque` compares the two cuts line by line on how many sentences each holds
+and which numerals it carries. This narration is one sentence to a line with
+almost no numerals, so it is comparing two near-constant sequences, the case
+its own documentation excludes. Read the two cuts side by side instead; the
+French was written next to the English, not from it.
+
 ## Rendering
 
 `render_film.py` renders each project with the flags the Sprezzature films are

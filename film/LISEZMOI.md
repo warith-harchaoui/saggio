@@ -78,6 +78,20 @@ pour la même phrase, si bien que le plafond de 17 caractères par seconde,
 chiffre de Netflix pour l'anglais, signale une piste qu'un lecteur français
 suit parfaitement.
 
+Deux contrôles de plus, dont un qui ne peut pas répondre ici :
+
+```bash
+make-film assets film/film.yaml --tree . --repo .   # 8 sur 8 en main : un clone le refait
+make-film calque film/film.yaml --from en --to fr   # 0,94, et ce n'est pas une preuve
+```
+
+`calque` compare les deux versions ligne à ligne sur le nombre de phrases et
+les chiffres qu'elles contiennent. Cette narration compte une phrase par
+ligne et presque aucun chiffre : l'outil compare deux suites presque
+constantes, le cas que sa propre documentation exclut. Mieux vaut lire les
+deux versions côte à côte ; le français a été écrit à côté de l'anglais, pas
+à partir de lui.
+
 ## Le rendu
 
 `render_film.py` rend chaque projet avec les options des films Sprezzature :
