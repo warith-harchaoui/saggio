@@ -44,6 +44,7 @@ from ..catalog.registry import Catalog, country_name
 from ..estimate.equivalences import GREEN_ALGORITHMS_SOURCE
 from ..estimate.ghg import GHG_EMISSIONS, market_based_figure_exists, placements
 from ..i18n import (
+    current_language,
     decimal_separator,
     group_separator,
     labels,
@@ -1532,7 +1533,11 @@ def render_html(model: CostModel | dict[str, Any], *, overlay: Any = None) -> st
 
     return _fill(
         _asset("report.html"),
-        LANG="en",
+        # The language the server wrote the page in. The script opens the page
+        # in it too: half the sentences are written here and cannot be
+        # switched, so a page that followed the browser instead would open
+        # with an English heading over a French paragraph.
+        LANG=current_language(),
         TITLE=_escape(title),
         LOGO=_logo_data_uri(),
         STYLE=_asset("report.css"),

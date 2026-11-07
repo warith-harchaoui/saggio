@@ -37,8 +37,8 @@ from __future__ import annotations
 import json
 from typing import Any, Final
 
+from ..i18n import current_language, plural, say
 from ..i18n import languages as language_codes
-from ..i18n import plural, say
 from ..model.cost_model import CostModel
 from ..model.quantity import Quantity, looks_like_quantity
 from ..model.validate import overall_status
@@ -273,7 +273,7 @@ def render_dashboard(models: list[CostModel | dict[str, Any]]) -> str:
     }
     return _fill(
         _asset("report.html"),
-        LANG="en",
+        LANG=current_language(),
         TITLE=_escape(title),
         LOGO=_logo_data_uri(),
         STYLE=_asset("report.css"),

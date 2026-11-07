@@ -16,7 +16,6 @@
 
   var DATA = JSON.parse(document.getElementById("report-data").textContent);
   var THEME_KEY = "saggio-theme";
-  var LANGUAGE_KEY = "saggio-language";
 
   /* --- Theme ----------------------------------------------------------- */
 
@@ -108,12 +107,17 @@
     applyTheme(currentTheme());
   }
 
+  /* The page opens in the language it was written in, which the server puts
+     on <html lang>. Following the browser, or a choice remembered from another
+     report, rewrote only the labels this script carries: the sentences the
+     server wrote stayed in theirs, and a French report opened with an English
+     heading over a French paragraph. The button still switches the labels for
+     whoever wants them; it no longer decides how the next report opens. */
+  var language = document.documentElement.lang;
+  if (!DATA.i18n[language]) { language = "en"; }
+
   function currentLanguage() {
-    var stored = null;
-    try { stored = localStorage.getItem(LANGUAGE_KEY); } catch (error) { stored = null; }
-    if (stored && DATA.i18n[stored]) { return stored; }
-    var preferred = (navigator.language || "en").slice(0, 2).toLowerCase();
-    return DATA.i18n[preferred] ? preferred : "en";
+    return language;
   }
 
   /* --- What-if --------------------------------------------------------- */
@@ -237,9 +241,8 @@
   var languageToggle = document.getElementById("language-toggle");
   if (languageToggle) {
     languageToggle.addEventListener("click", function () {
-      var code = nextLanguage(currentLanguage());
-      try { localStorage.setItem(LANGUAGE_KEY, code); } catch (error) { /* private mode */ }
-      applyLanguage(code);
+      language = nextLanguage(currentLanguage());
+      applyLanguage(language);
     });
   }
 
