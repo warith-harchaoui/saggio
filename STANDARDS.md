@@ -55,7 +55,7 @@ H100 over a four-year life, that is 164 kg × 1 h / 35 064 h × 1 ≈ **4.7 gCO2
 — small next to the ~400 W-hour the same run draws, and not nothing, and
 emphatically not zero.
 
-Eight footprints ship in the catalogue — **four accelerators out of 25 rows,
+Nine footprints ship in the catalogue — **five accelerators out of 25 rows,
 four processors out of 12** — each read from its own primary source and carrying
 the boundary in words beside the number:
 
@@ -63,6 +63,7 @@ the boundary in words beside the number:
 |---|---|---|---|
 | A100 (SXM 40GB) | 127.6 | Cradle-to-gate, teardown life-cycle assessment (LCA) with primary elemental analysis | [arXiv:2509.00093](https://arxiv.org/abs/2509.00093) |
 | H100 | 164.0 | One of eight on an HGX H100 baseboard: 1,312 kg ÷ 8, ISO 14067, third-party reviewed | [NVIDIA product carbon footprint (PCF) summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) |
+| H100 SXM | 164.0 | The same summary and the same division: its specification table reads "8x NVIDIA H100 SXM", 80 GB each, which is this row's part by name | [NVIDIA PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) |
 | B200 | 284.25 | One of eight on an HGX B200 baseboard: 2,274 kg ÷ 8, same method | [NVIDIA PCF summary](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) |
 | TPU v4 | 366.0 | One chip with its high-bandwidth memory (HBM), cradle-to-gate, ISO 14040/14044, modelled by the designer from its own node, die and yield | [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) |
 | EPYC 7742 | 40.66 | Cradle-to-gate, from a 1,600 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
@@ -86,6 +87,31 @@ number for estimating energy, and a different quantity. Putting one under the
 other's name would make the column mean two things, which is the substitution
 this package spends its time refusing. Those four need a published rating, or a
 column of their own.
+
+**What was looked for on 2026-11-07, and why only one row came of it.** NVIDIA's
+own archive of environmental reports still lists exactly two product carbon
+footprints, HGX H100 and HGX B200, and both were already here. The second
+reading of the first one is what added a row: the summary names its part as
+"8x NVIDIA H100 SXM", 80 GB each, which is the `H100-SXM` row exactly — the
+same chip as `H100`, under the name that states its form factor. The rest was
+refused, each for a reason that would otherwise be a substitution:
+
+- **`A100-40GB`** stays open although the A100 teardown is of a 40 GB card. The
+  teardown is of the SXM module, and detection sends a PCIe (Peripheral
+  Component Interconnect Express) A100 40 GB to that row too — a different
+  board, at a different power, under the same key.
+- **`A100-80GB`, `H200`, `B100`, `MI325X`** are each the nearest neighbour of a
+  part that has a footprint, never the part itself: more memory, or another
+  package around a related die.
+- **AMD publishes no footprint for any Instinct accelerator**, and nothing
+  published covers the consumer and workstation cards.
+- **Intel's per-processor footprints exist and cannot be cited.** They are sent
+  as customer letters marked confidential, behind a login; a reader cannot
+  check them, which is what a `source_url` is for.
+- **Apple's environmental reports are for a whole Mac**, screen and battery
+  included. The catalogue has no row for a machine, and putting a laptop's
+  figure under the chip's key would be the error of a baseboard filed under a
+  card, made the other way round.
 
 **What a `source_url` is, and what it is not.** It exists so a reader can check
 the figure beside it, which means it has to be something a person can open. Two

@@ -14,6 +14,25 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### Nine footprints, not eight, and the six that looked close enough to be the tenth
+
+The embodied catalogue was searched again for every accelerator and processor
+it lacks a footprint for. One row came of it: `H100-SXM` now carries 164.0
+kgCO2e, NVIDIA's 1,312 for the HGX H100 baseboard divided by its eight GPUs —
+the same document and the same division as the `H100` row, because the
+summary's own specification table names its part as "8x NVIDIA H100 SXM", 80 GB
+each, which is that row exactly. The contract test that checks the division
+now checks it on both keys.
+
+Everything else stays `TODO`, and `STANDARDS.md` says why, part by part:
+NVIDIA still publishes exactly two product carbon footprints; AMD publishes
+none for an Instinct accelerator; `A100-40GB` is not the torn-down SXM card,
+because detection files a PCIe A100 40 GB under it too; `A100-80GB`, `H200`,
+`B100` and `MI325X` are each a neighbour of a part with a footprint rather
+than that part; Intel's per-processor figures are confidential letters a
+reader cannot open; Apple's reports are for a whole Mac. Boavizta, asked again
+for the eight processors it was refused on, gave the same eight answers.
+
 ### Water, which the documentation had already fixed and the code had not
 
 `STANDARDS.md` has said since the Commission's first assessment under Article 12

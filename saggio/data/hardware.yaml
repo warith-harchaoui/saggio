@@ -129,8 +129,13 @@ gpus:
     memory_bandwidth_gbps: 3350
     memory_gb: 80
     peak_bf16_tflops: 989
+    embodied_kgco2e: 164.0
+    embodied_scope: "One of the eight GPUs on an HGX H100 baseboard: 1312 kgCO2e cradle-to-gate for the baseboard, divided by eight. The summary's own specification table reads \"Form Factor: 8x NVIDIA H100 SXM\", each with 80GB of HBM3, which is this row's part exactly and not merely its family. ISO 14067, third-party reviewed; excludes use phase and end of life."
+    embodied_source_url: "https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf"
+    embodied_retrieved_date: "2026-11-07"
     source_url: "https://www.nvidia.com/en-us/data-center/h100/"
     retrieved_date: "2026-07-27"
+    notes: "The same part as the H100 row, under the name that says its form factor."
   - key: H200
     tdp_w: 700
     memory_bandwidth_gbps: 4800

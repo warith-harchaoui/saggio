@@ -186,7 +186,7 @@ La moitié utile de toute revendication de conformité est celle qui échoue.
   votre fournisseur publie un chiffre par client, c'est ce chiffre qui fait foi
   et celui-ci qui est un recoupement. La plupart ne publient rien à cette
   finesse, ce qui est la raison de le calculer.
-- **Le catalogue matériel est petit**, délibérément. Huit empreintes sont
+- **Le catalogue matériel est petit**, délibérément. Neuf empreintes sont
   livrées et tout le reste rapporte `TODO` avec une phrase disant que personne
   n'en a lu une — ce qui n'est pas la même chose que sa fabrication aurait été
   gratuite. [`NORMES.md`](NORMES.md)

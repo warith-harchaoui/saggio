@@ -56,7 +56,7 @@ heure d'une H100 pour une vie de quatre ans, cela fait 164 kg × 1 h / 35 064 h
 × 1 ≈ **4,7 gCO2e** — peu face aux ~400 Wh que la même exécution tire, pas rien,
 et surtout pas zéro.
 
-Huit empreintes sont livrées dans le catalogue — **quatre accélérateurs sur 25
+Neuf empreintes sont livrées dans le catalogue — **cinq accélérateurs sur 25
 lignes, quatre processeurs sur 12** — chacune lue à sa source primaire et portant
 sa frontière en toutes lettres à côté du nombre :
 
@@ -64,6 +64,7 @@ sa frontière en toutes lettres à côté du nombre :
 |---|---|---|---|
 | A100 (SXM 40 Go) | 127,6 | Du berceau à la sortie d'usine, analyse du cycle de vie (ACV) par démontage avec analyse élémentaire primaire | [arXiv:2509.00093](https://arxiv.org/abs/2509.00093) |
 | H100 | 164,0 | Une des huit d'une carte mère HGX H100 : 1 312 kg ÷ 8, ISO 14067, revue par un tiers | [Résumé d'empreinte carbone produit (PCF) NVIDIA](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) |
+| H100 SXM | 164,0 | Même résumé, même division : son tableau de caractéristiques indique « 8x NVIDIA H100 SXM », 80 Go chacune — la pièce que cette ligne nomme | [Résumé PCF NVIDIA](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-H100-PCF-Summary.pdf) |
 | B200 | 284,25 | Une des huit d'une carte mère HGX B200 : 2 274 kg ÷ 8, même méthode | [Résumé PCF NVIDIA](https://images.nvidia.com/aem-dam/Solutions/documents/HGX-B200-PCF-Summary.pdf) |
 | TPU v4 | 366,0 | Une puce et sa mémoire à haute bande passante (HBM), du berceau à la sortie d'usine, ISO 14040/14044, modélisée par son concepteur depuis son nœud, son die et son rendement | [arXiv:2502.01671](https://arxiv.org/abs/2502.01671) |
 | EPYC 7742 | 40,66 | Du berceau à la sortie d'usine, depuis un die de 1 600 mm² | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
@@ -89,6 +90,33 @@ mesurée sur une flotte de production* — meilleur nombre pour estimer une
 deux choses à la colonne, ce qui est précisément la substitution que ce paquet
 passe son temps à refuser. Ces quatre-là attendent une valeur publiée, ou une
 colonne à elles.
+
+**Ce qui a été cherché le 2026-11-07, et pourquoi il n'en est sorti qu'une
+ligne.** Les archives environnementales de NVIDIA ne recensent toujours que deux
+empreintes carbone produit, HGX H100 et HGX B200, et les deux étaient déjà là.
+C'est en relisant la première qu'une ligne s'est ajoutée : le résumé désigne sa
+pièce comme « 8x NVIDIA H100 SXM », 80 Go chacune, soit exactement la ligne
+`H100-SXM` — la même puce que `H100`, sous le nom qui dit son format. Le reste a
+été refusé, chaque fois parce que l'accepter aurait été une substitution :
+
+- **`A100-40GB`** reste ouverte, bien que le démontage de l'A100 porte sur une
+  carte de 40 Go. Ce démontage est celui du module SXM, et la détection envoie
+  aussi vers cette ligne une A100 40 Go au format PCIe (Peripheral Component
+  Interconnect Express) — une autre carte, à une autre puissance, sous la même
+  clé.
+- **`A100-80GB`, `H200`, `B100`, `MI325X`** sont chacune la plus proche voisine
+  d'une pièce qui a une empreinte, jamais cette pièce : plus de mémoire, ou un
+  autre boîtier autour d'une puce apparentée.
+- **AMD ne publie d'empreinte pour aucun accélérateur Instinct**, et rien de
+  publié ne couvre les cartes grand public ni les cartes de station de travail.
+- **Les empreintes processeur d'Intel existent, mais on ne peut pas les citer.**
+  Elles partent sous forme de lettres aux clients marquées confidentielles,
+  derrière un identifiant ; un lecteur ne peut pas les vérifier, alors que c'est
+  précisément à cela que sert un `source_url`.
+- **Les rapports environnementaux d'Apple portent sur un Mac entier**, écran et
+  batterie compris. Le catalogue n'a pas de ligne pour une machine, et ranger
+  l'empreinte d'un portable sous la clé d'une puce reviendrait à commettre
+  l'erreur de la carte mère rangée sous le nom d'une carte, à l'envers.
 
 **Ce qu'est un `source_url`, et ce qu'il n'est pas.** Il existe pour qu'un
 lecteur vérifie le chiffre d'à côté, donc il doit être ouvrable par un humain.

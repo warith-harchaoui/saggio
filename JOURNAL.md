@@ -16,6 +16,28 @@ endroit-là.
 
 ## Non publié
 
+### Neuf empreintes et non plus huit, et les six qui semblaient assez proches pour faire la dixième
+
+Le catalogue du carbone incorporé a été repassé au crible pour chaque
+accélérateur et chaque processeur qui n'avait pas d'empreinte. Une seule ligne
+en est sortie : `H100-SXM` porte désormais 164,0 kgCO2e, soit les 1 312 de NVIDIA
+pour la carte mère HGX H100 divisés par ses huit GPU — même document, même
+division que pour la ligne `H100`, parce que le tableau de caractéristiques du
+résumé désigne lui-même sa pièce comme « 8x NVIDIA H100 SXM », 80 Go chacune,
+c'est-à-dire exactement cette ligne. Le test de contrat qui vérifie la division
+la vérifie maintenant sur les deux clés.
+
+Pour tout le reste, c'est toujours `TODO`, et `NORMES.md` dit pourquoi, pièce
+par pièce :
+NVIDIA ne publie toujours que deux empreintes carbone produit ; AMD n'en publie
+aucune pour un accélérateur Instinct ; `A100-40GB` n'est pas la carte SXM
+démontée, puisque la détection y range aussi une A100 40 Go au format PCIe ;
+`A100-80GB`, `H200`, `B100` et `MI325X` sont chacune la voisine d'une pièce qui
+a une empreinte, pas cette pièce ; les chiffres d'Intel par processeur sont des
+lettres confidentielles qu'aucun lecteur ne peut ouvrir ; les rapports d'Apple
+portent sur un Mac entier. Boavizta, interrogé à nouveau sur les huit
+processeurs qu'on lui avait refusés, a rendu les huit mêmes réponses.
+
 ### L'eau, que la documentation avait déjà corrigée et le code non
 
 `NORMES.md` dit depuis la première évaluation de la Commission au titre de

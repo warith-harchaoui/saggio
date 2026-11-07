@@ -147,7 +147,7 @@ internationale sous la référence [ISO/IEC
 avait déjà la forme.
 
 L'arithmétique est complète ; **le catalogue ne l'est pas, et ne fera pas
-semblant.** Huit empreintes sont livrées : quatre accélérateurs sur 25 lignes et
+semblant.** Neuf empreintes sont livrées : cinq accélérateurs sur 25 lignes et
 quatre processeurs sur 12. Tout le reste rapporte `TODO` avec une phrase disant
 que personne n'a lu d'empreinte pour cette pièce — ce qui n'est pas la même
 chose que sa fabrication aurait été gratuite. Si l'écart est si large, c'est que

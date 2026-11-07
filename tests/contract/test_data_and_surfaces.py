@@ -788,7 +788,9 @@ def test_a_footprint_divided_from_a_board_says_so_and_by_how_much() -> None:
     # which is 1312/8; the HGX B200 summary states 2,274 and the B200 row
     # carries 284.25, which is 2274/8. Both rows say so in their own scope.
     rows = {key: row for _, key, row in catalog_rows() if row.get("embodied_kgco2e")}
-    for key, board, count in (("H100", 1312.0, 8), ("B200", 2274.0, 8)):
+    # H100-SXM was added on 2026-11-07 from the same summary: its specification
+    # table reads "8x NVIDIA H100 SXM", which is that row's part by name.
+    for key, board, count in (("H100", 1312.0, 8), ("H100-SXM", 1312.0, 8), ("B200", 2274.0, 8)):
         row = rows[key]
         scope = str(row["embodied_scope"])
         assert str(int(board)) in scope, f"{key}: the scope does not quote the board figure"

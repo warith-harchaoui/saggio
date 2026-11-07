@@ -140,7 +140,7 @@ for Standardization and the International Electrotechnical Commission as
 shape this package already had.
 
 The arithmetic is complete; **the catalogue is not, nor does it pretend to be.**
-Eight footprints ship: four accelerators out of 25 rows and four processors out
+Nine footprints ship: five accelerators out of 25 rows and four processors out
 of 12. Everything else reports `TODO` with a sentence saying nobody has read a
 footprint for it, which is not the same as it having been free to build. The
 reason the gap is that wide is that most vendors publish a footprint for a whole

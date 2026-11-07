@@ -172,7 +172,7 @@ The useful half of any conformance claim is the part that fails.
   provider publishes a per-customer figure, that figure is the primary source
   and this one is a cross-check. Most publish nothing at that granularity, which
   is the reason to compute it at all.
-- **The hardware catalogue is small**, deliberately. Eight footprints ship and
+- **The hardware catalogue is small**, deliberately. Nine footprints ship and
   everything else reports `TODO` with a sentence saying nobody has read one —
   which is not the same as the hardware having been free to build.
   [`STANDARDS.md`](STANDARDS.md)
