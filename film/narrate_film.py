@@ -44,7 +44,7 @@ VOICES: dict[str, dict[str, str]] = {
 
 
 def voice_of(lang: str) -> tuple[str, str]:
-    """The engine and voice for one language, as ``speaker-helper`` routes it."""
+    """Return the engine and voice for one language, as ``speaker-helper`` routes it."""
     from speaker_helper import RouteRequest, route
 
     engine = route(RouteRequest(condition="offline", language=lang)).engine
@@ -67,7 +67,7 @@ def segments_of(script: dict, lang: str) -> tuple[list[dict], list[str]]:
 
 
 def read_cues(vtt: Path) -> list[tuple[float, float]]:
-    """The (start, end) of every cue in a WebVTT file, in order."""
+    """Return the (start, end) of every cue in a WebVTT file, in order."""
 
     def seconds(stamp: str) -> float:
         h, m, s = stamp.split(":")
@@ -141,7 +141,12 @@ def read_once(script: dict, lang: str) -> dict:
         {"scene": owner, "text": seg["text"], "start": round(a, 3), "end": round(b, 3)}
         for owner, seg, (a, b) in zip(owners, segments, cues, strict=True)
     ]
-    return {"engine": engine, "voice": report.get("voice", voice), "seconds": round(seconds, 3), "lines": lines}
+    return {
+        "engine": engine,
+        "voice": report.get("voice", voice),
+        "seconds": round(seconds, 3),
+        "lines": lines,
+    }
 
 
 def main() -> int:

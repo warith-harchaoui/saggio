@@ -4,9 +4,9 @@ Lay the film out on its measured voice, and emit it through the Sprezzature engi
 
 The picture is not drawn here. Every Sprezzature film is drawn by one
 generator, ``brag-output/build_films.py`` in the suite's repository: the
-scene types this film uses, the music bed and the three canvases. This module hands it a spec and takes back a page,
-so the saggio film looks like the suite's films because it is made by the
-same code rather than by a copy of it.
+scene types this film uses, the music bed and the three canvases. This module
+hands it a spec and takes back a page, so the saggio film looks like the
+suite's films because it is made by the same code rather than by a copy of it.
 
 What is decided here is time, and none of it is typed. ``narrate_film.py``
 wrote a cue per sentence on the audio it produced; a cut goes in the gap
@@ -29,6 +29,7 @@ import os
 import re
 import shutil
 import sys
+from itertools import pairwise
 from pathlib import Path
 
 import yaml
@@ -60,7 +61,7 @@ RAILS_HERE = '<p id="rail-l">saggio</p><p id="rail-r">deraison.ai/saggio</p>'
 
 
 def engine():
-    """The suite's film generator, imported from its own folder."""
+    """Import the suite's film generator from its own folder."""
     if not (ENGINE / "build_films.py").is_file():
         raise SystemExit(
             f"No Sprezzature film generator at {ENGINE}. Clone the suite there, "
@@ -95,7 +96,7 @@ def link_assets() -> None:
 
 
 def scene_lines(lines: list[dict], scene_id: str) -> list[dict]:
-    """The sentences one scene says, on the film's clock."""
+    """Return the sentences one scene says, on the film's clock."""
     return [
         {**line, "start": line["start"] + VO_AT, "end": line["end"] + VO_AT}
         for line in lines
@@ -108,14 +109,14 @@ def timeline(bf, script: dict, lines: list[dict]) -> tuple[list[tuple[float, flo
     scenes = script["scenes"]
     spoken = [scene_lines(lines, s["id"]) for s in scenes]
     cuts = [0.0]
-    for before, after in zip(spoken, spoken[1:]):
+    for before, after in pairwise(spoken):
         gap_from, gap_to = before[-1]["end"], after[0]["start"]
         cut = (gap_from + gap_to) / 2
         beat = bf.on_beat(cut)[0]
         cuts.append(beat if gap_from + 0.15 <= beat <= gap_to - 0.15 else cut)
     duration = max(float(script["film"]["duration"]), spoken[-1][-1]["end"] + HOLD)
     duration = round(duration, 2)
-    bounds = [(round(a, 3), round(b, 3)) for a, b in zip(cuts, cuts[1:] + [duration])]
+    bounds = [(round(a, 3), round(b, 3)) for a, b in pairwise([*cuts, duration])]
     return bounds, duration
 
 
@@ -131,7 +132,7 @@ def on_grid(bf, t: float, lo: float, hi: float) -> float:
 
 
 def reveals(bf, scene: dict, said: list[dict], start: float, end: float) -> dict:
-    """The film-clock seconds at which a scene's parts appear, from its voice."""
+    """Return the film-clock seconds at which a scene's parts appear, from its voice."""
     lo, hi = start + 0.3, end - 0.8
     kind = scene["type"]
     if kind == "panel":
@@ -195,7 +196,9 @@ def emit(bf, spec: dict, fmt: str, lang: str) -> Path:
     # The suite's generator dropped its rails on 2026-11-06, wordmark and all.
     # Where a generator still draws them, they name this film rather than the
     # suite; where it does not, there is nothing to rename.
-    html = html.replace(RAILS_SUITE, RAILS_HERE).replace('<html lang="en">', f'<html lang="{lang}">')
+    html = html.replace(RAILS_SUITE, RAILS_HERE).replace(
+        '<html lang="en">', f'<html lang="{lang}">'
+    )
     html = without_beats(html)
     folder = HF / f"saggio-{lang}-{fmt}"
     folder.mkdir(parents=True, exist_ok=True)

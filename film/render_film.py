@@ -49,11 +49,23 @@ POSTER_AT = 1.5
 
 
 def probe(path: Path) -> tuple[float, str]:
-    """A film's length in seconds and its frame size, read off the file."""
+    """Read a film's length in seconds and its frame size off the file."""
     out = subprocess.run(
-        ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
-         "stream=width,height:format=duration", "-of", "json", str(path)],
-        capture_output=True, text=True, check=True,
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=width,height:format=duration",
+            "-of",
+            "json",
+            str(path),
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
     )
     data = json.loads(out.stdout)
     stream = data["streams"][0]
@@ -65,9 +77,20 @@ def render(folder: Path, fmt: str) -> Path:
     log = folder.with_suffix(".render.log")
     with log.open("w") as handle:
         done = subprocess.run(
-            ["npx", "--yes", HYPERFRAMES, "render", "--quality", "looks",
-             "--resolution", f"{fmt}-4k", "--low-memory-mode"],
-            cwd=folder, stdout=handle, stderr=subprocess.STDOUT,
+            [
+                "npx",
+                "--yes",
+                HYPERFRAMES,
+                "render",
+                "--quality",
+                "looks",
+                "--resolution",
+                f"{fmt}-4k",
+                "--low-memory-mode",
+            ],
+            cwd=folder,
+            stdout=handle,
+            stderr=subprocess.STDOUT,
         )
     if done.returncode != 0:
         raise RuntimeError(f"{folder.name} failed to render; see {log}")
@@ -90,21 +113,38 @@ def main() -> int:
             film = render(folder, fmt)
             seconds, got = probe(film)
             if abs(seconds - want) > 1.0 or got != size:
-                print(f"BAD  {folder.name}: {seconds:.2f}s at {got}, expected {want:.2f}s at {size}")
+                print(
+                    f"BAD  {folder.name}: {seconds:.2f}s at {got}, expected {want:.2f}s at {size}"
+                )
                 bad += 1
                 continue
             suffix = "" if fmt == "landscape" else f".{fmt}"
             target = OUT / f"{NAME}.{lang}{suffix}.mp4"
             shutil.copyfile(film, target)
             subprocess.run(
-                ["make-film", "poster", str(target), "--out", str(target.with_suffix(".jpg")),
-                 "--at", str(POSTER_AT)],
-                check=True, capture_output=True,
+                [
+                    "make-film",
+                    "poster",
+                    str(target),
+                    "--out",
+                    str(target.with_suffix(".jpg")),
+                    "--at",
+                    str(POSTER_AT),
+                ],
+                check=True,
+                capture_output=True,
             )
             print(f"ok   {target.relative_to(HERE.parent)}  {seconds:.2f}s  {got}")
         subprocess.run(
-            ["make-film", "captions", str(HERE / "film.yaml"), "--lang", lang,
-             "--out", str(OUT / f"{NAME}.{lang}.vtt")],
+            [
+                "make-film",
+                "captions",
+                str(HERE / "film.yaml"),
+                "--lang",
+                lang,
+                "--out",
+                str(OUT / f"{NAME}.{lang}.vtt"),
+            ],
             check=True,
         )
     return 1 if bad else 0

@@ -68,7 +68,7 @@ def main() -> int:
                     3,
                 ),
             }
-            for line, after in zip(lines, lines[1:] + [None], strict=True)
+            for line, after in zip(lines, [*lines[1:], None], strict=True)
         ]
 
     scenes = [
