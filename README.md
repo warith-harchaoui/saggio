@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/warith-harchaoui/saggio/master/assets/logo.png" alt="saggio" width="120">
+</p>
+
 # saggio
 
 [🇫🇷 LISEZMOI.md](https://github.com/warith-harchaoui/saggio/blob/master/LISEZMOI.md) · 🇬🇧 English
@@ -6,17 +10,32 @@
 any other dimension you decide to watch, per unit of work, with every number
 saying how far it can be trusted.
 
-<p>
-  <img src="https://raw.githubusercontent.com/warith-harchaoui/saggio/master/assets/logo.png" alt="saggio logo">
-</p>
+## What you get
 
-The answer is a model written in YAML (YAML Ain't Markup Language), committed
-next to the code, plus two reports rendered from it: a Portable Document Format
-(PDF) file for the reader who wants a document, a web page that recomputes in
-the browser when you change the country, the provider or the machine. The file
-is reviewable in a pull request. The reports are readable by people who will
-never open a terminal. None of the three may state a number without saying where
-it came from.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/warith-harchaoui/saggio/master/assets/readme-report.dark.png">
+  <img src="https://raw.githubusercontent.com/warith-harchaoui/saggio/master/assets/readme-report.png" alt="The web report saggio writes for one of its own examples. A banner says the model is only as good as its weakest number, which is TODO. A bar counts the numbers: 4 measured, 10 estimated, 15 still open. Below it, the derivation graph: runtime and power draw, measured, feed the machine's energy; energy, carbon and money are estimated; water and embodied carbon stay TODO." width="900">
+</picture>
+
+That is the web report for one of the bundled examples. Every number says
+whether a counter **measured** it, a sourced figure **estimated** it, or it is
+still open (`TODO`), and the graph shows which numbers each one was computed
+from. Change the country, the provider or the machine, and the page recomputes
+in your browser.
+
+From one run you get:
+
+- **a model in YAML** (YAML Ain't Markup Language), committed next to your
+  code and reviewed in a pull request like any other file;
+- **reports rendered from it**: this HTML (HyperText Markup Language) page,
+  Markdown for a pull request, and Word or PDF (Portable Document Format) for
+  people who will never open a terminal;
+- **a build gate**: `saggio diff` fails when a cost drifts or a number loses
+  its footing.
+
+None of them may state a number without saying where it came from.
+
+## Try it
 
 ```bash
 pip install saggio
@@ -24,6 +43,15 @@ pip install saggio
 saggio audit . --country FR --run -o cost_of_running.yaml
 saggio render cost_of_running.yaml -f html -o cost_of_running.html
 ```
+
+`audit` reads your repository; `--run` also times a capped slice of it, once
+you have agreed. `render` writes the page above.
+
+**On this page:** [the one idea](#the-one-idea) ·
+[what it does](#what-it-does) · [install](#install) · [use it](#use-it) ·
+[what it never does](#what-it-never-does) ·
+[where the numbers come from](#where-the-numbers-come-from) ·
+[five ways to reach it](#five-ways-to-reach-it)
 
 ## The one idea
 

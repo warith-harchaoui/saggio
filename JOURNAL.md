@@ -16,6 +16,34 @@ endroit-là.
 
 ## Non publié
 
+### Un rapport s'ouvre dans la langue où il a été écrit
+
+Un rapport produit avec `--language fr` s'ouvrait à moitié en anglais chez
+quiconque avait un navigateur réglé en anglais : le script de la page suivait
+le navigateur, ou un choix retenu d'un autre rapport, et ne réécrivait que les
+libellés qu'il porte, pendant que les phrases écrites par le moteur de rendu
+restaient en français. L'inverse arrivait aussi. La page s'ouvre désormais
+dans sa propre langue, que `<html lang>` déclare enfin au lieu de dire toujours
+`en` ; le bouton bascule toujours les libellés. Le tableau de bord d'équipe
+avait le même `lang="en"`, corrigé du même coup.
+
+### La page d'accueil montre le rapport avant de le décrire
+
+`README.md` et `LISEZMOI.md` s'ouvrent sur une image du rapport web de l'un
+des exemples livrés, dans la langue et le thème du lecteur, puis disent en
+quatre lignes ce qu'une exécution vous donne et comment l'essayer, avec la
+liste des sections qui suivent. `assets/make_readme_report.py` prend les
+quatre images en produisant le rapport de l'exemple avec le paquet et en le
+photographiant dans un navigateur : on les refait, on ne les retouche pas.
+
+### Les outils du film sont une dépendance de développement, pas du paquet
+
+`film/requirements.txt` liste ce que la reconstruction du film demande au
+Python Package Index, et `requirements-dev.txt` l'inclut. `requirements.txt`
+et l'extra `dev` qu'installe l'intégration continue restent sans Sprezzature.
+Le README du film dit ce que pip ne peut pas apporter : le générateur de la
+suite, et sa musique sous licence.
+
 ### Neuf empreintes et non plus huit, et les six qui semblaient assez proches pour faire la dixième
 
 Le catalogue du carbone incorporé a été repassé au crible pour chaque

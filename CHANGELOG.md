@@ -14,6 +14,33 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### A report opens in the language it was written in
+
+A report rendered with `--language fr` opened half in English for anyone whose
+browser was set to English: the page's script followed the browser, or a choice
+remembered from another report, and rewrote only the labels it carries, while
+the sentences the renderer wrote stayed French. The same happened the other way
+round. The page now opens in its own language, which `<html lang>` finally
+states instead of always saying `en`; the button still switches the labels.
+The team dashboard had the same `lang="en"` and is fixed with it.
+
+### The front page shows the report before it describes it
+
+`README.md` and `LISEZMOI.md` open on a picture of the web report for one of
+the bundled examples, in the reader's language and theme, then say in four
+lines what a run gives you and how to try it, with a list of the sections
+below. `assets/make_readme_report.py` takes the four pictures by rendering the
+example with the package and photographing it in a browser, so they are
+regenerated rather than retouched.
+
+### The film's tools are a development requirement, not a dependency
+
+`film/requirements.txt` lists what rebuilding the film needs from the Python
+Package Index, and `requirements-dev.txt` pulls it in. `requirements.txt` and
+the `dev` extra continuous integration installs stay free of Sprezzature. The
+film's README says what pip cannot bring: the suite's generator, and its
+licensed music.
+
 ### Nine footprints, not eight, and the six that looked close enough to be the tenth
 
 The embodied catalogue was searched again for every accelerator and processor

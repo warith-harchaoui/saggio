@@ -10,13 +10,32 @@
 carbone, l'eau et toute autre dimension que vous décidez de suivre, par unité de
 travail, chaque chiffre disant jusqu'où on peut lui faire confiance.
 
-La réponse est un modèle écrit en YAML (YAML Ain't Markup Language), versionné à
-côté du code, plus deux rapports qui en sortent : un fichier PDF (Portable
-Document Format) pour qui veut un document, une page web qui recalcule dans le
-navigateur dès que vous changez le pays, le fournisseur ou la machine. Le
-fichier se relit dans une pull request. Les rapports se lisent par des gens qui
-n'ouvriront jamais un terminal. Aucun des trois n'a le droit d'avancer un
-chiffre sans dire d'où il vient.
+## Ce que vous obtenez
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme-report.fr.dark.png">
+  <img src="assets/readme-report.fr.png" alt="Le rapport web que saggio écrit pour l'un de ses propres exemples. Un bandeau dit que le modèle ne vaut que son chiffre le plus faible, qui est TODO. Une barre compte les chiffres : 4 mesurés, 10 estimés, 15 encore ouverts. Dessous, le graphe des dérivations : le temps d'exécution et la puissance appelée, mesurés, donnent l'énergie de la machine ; l'énergie, le carbone et l'argent sont estimés ; l'eau et le carbone de fabrication restent à TODO." width="900">
+</picture>
+
+Voici le rapport web de l'un des exemples livrés avec le paquet. Chaque
+chiffre dit s'il a été **mesuré** par un compteur, **estimé** à partir d'une
+source, ou s'il reste ouvert (`TODO`), et le graphe montre de quels chiffres
+chacun est tiré. Changez le pays, le fournisseur ou la machine : la page
+recalcule dans votre navigateur.
+
+Une exécution vous donne :
+
+- **un modèle en YAML** (YAML Ain't Markup Language), versionné à côté du code
+  et relu dans une pull request comme n'importe quel fichier ;
+- **des rapports qui en sortent** : cette page HTML (HyperText Markup
+  Language), du Markdown pour une pull request, et un document Word ou PDF
+  (Portable Document Format) pour qui n'ouvrira jamais un terminal ;
+- **un garde-fou pour le build** : `saggio diff` échoue quand un coût dérive
+  ou qu'un chiffre perd son fondement.
+
+Aucun d'eux n'a le droit d'avancer un chiffre sans dire d'où il vient.
+
+## L'essayer
 
 ```bash
 pip install saggio
@@ -24,6 +43,17 @@ pip install saggio
 saggio audit . --country FR --run -o cost_of_running.yaml
 saggio render cost_of_running.yaml -f html -o cost_of_running.html
 ```
+
+`audit` lit votre dépôt ; avec `--run`, il chronomètre aussi une tranche
+plafonnée de votre code, une fois que vous avez donné votre accord. `render`
+écrit la page ci-dessus.
+
+**Sur cette page :** [l'idée](#lidée) ·
+[ce que l'outil fait](#ce-que-loutil-fait) · [installation](#installation) ·
+[s'en servir](#sen-servir) ·
+[ce que l'outil ne fait jamais](#ce-que-loutil-ne-fait-jamais) ·
+[d'où viennent les chiffres](#doù-viennent-les-chiffres) ·
+[cinq façons de l'atteindre](#cinq-façons-de-latteindre)
 
 ## L'idée
 
