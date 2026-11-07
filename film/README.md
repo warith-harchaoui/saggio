@@ -31,11 +31,23 @@ stop agreeing.
 
 ## Rebuilding it
 
-It needs the Sprezzature repository beside this one (`~/sprezzature`, or set
-`SPREZZATURE_FILMS` to its `brag-output` folder), Node for HyperFrames, and
-ffmpeg.
+The package needs none of this. `requirements.txt` and the `dev` extra that
+continuous integration installs carry no Sprezzature; the film's Python tools
+are listed in `film/requirements.txt`, which `requirements-dev.txt` pulls in
+for whoever works on the film.
+
+Three things stay outside pip:
+
+- **The generator**, `brag-output/build_films.py`, which no package ships.
+  It is read from the Sprezzature repository beside this one
+  (`~/sprezzature`, or set `SPREZZATURE_FILMS` to its `brag-output` folder).
+- **Its assets**, `brag-output/_assets/`, which git does not track. The music
+  bed is licensed and exists in one place only, so the film cannot be rebuilt
+  from a clone alone; `restore_assets.py` in that folder says what is missing.
+- **Node** for HyperFrames, and **ffmpeg**.
 
 ```bash
+pip install -r requirements-dev.txt  # the package's tools, and the film's
 python film/narrate_film.py          # the voice, through sprezzature-audio
 python film/compose.py               # six projects, cut on that voice
 python film/make_spec.py             # film.yaml, claims plus the measured timings

@@ -1,0 +1,12 @@
+# What rebuilding the film needs from PyPI, and nothing the package needs.
+# The voice comes from sprezzature-audio, through speaker-helper's router;
+# make-film (sprezzature-video) writes the captions and checks every number
+# the film states. sprezzature-audio brings NeMo with it, which is why none of
+# this is in the package's own dependencies or in the `dev` extra continuous
+# integration installs: requirements-dev.txt pulls it in for whoever works on
+# the film, and nobody else carries it.
+#
+# The film generator itself is not on PyPI: see film/README.md.
+sprezzature-audio>=1.10.3
+sprezzature-video>=0.4.3
+speaker-helper>=0.13.0

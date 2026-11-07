@@ -31,11 +31,25 @@ silence. Chaque chiffre que ce film énonce est donc déclaré dans
 
 ## Le refabriquer
 
-Il faut le dépôt Sprezzature à côté de celui-ci (`~/sprezzature`, ou
-`SPREZZATURE_FILMS` pointé sur son dossier `brag-output`), Node pour
-HyperFrames, et ffmpeg.
+Le paquet n'a besoin de rien de tout ça. Ni `requirements.txt` ni l'extra
+`dev`, celui qu'installe l'intégration continue, ne contiennent Sprezzature ;
+les outils Python du film sont dans `film/requirements.txt`, que
+`requirements-dev.txt` inclut pour qui travaille sur le film.
+
+Trois choses restent hors de pip :
+
+- **Le générateur**, `brag-output/build_films.py`, qu'aucun paquet ne
+  publie. Il est lu dans le dépôt Sprezzature, à côté de celui-ci
+  (`~/sprezzature`, ou `SPREZZATURE_FILMS` pointé sur son dossier
+  `brag-output`).
+- **Ses ressources**, `brag-output/_assets/`, que git ne suit pas. La musique
+  est sous licence et n'existe qu'à un seul endroit : un clone seul ne suffit
+  donc pas à refaire le film. `restore_assets.py`, dans ce dossier, dit ce qui
+  manque.
+- **Node** pour HyperFrames, et **ffmpeg**.
 
 ```bash
+pip install -r requirements-dev.txt  # les outils du paquet, et ceux du film
 python film/narrate_film.py          # la voix, via sprezzature-audio
 python film/compose.py               # six projets, coupés sur cette voix
 python film/make_spec.py             # film.yaml : les affirmations et les durées mesurées

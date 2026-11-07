@@ -64,8 +64,10 @@ def engine():
     """Import the suite's film generator from its own folder."""
     if not (ENGINE / "build_films.py").is_file():
         raise SystemExit(
-            f"No Sprezzature film generator at {ENGINE}. Clone the suite there, "
-            "or point SPREZZATURE_FILMS at its brag-output folder."
+            f"No Sprezzature film generator at {ENGINE}. `pip install -r "
+            "requirements-dev.txt` brings the voice and the checks, but the "
+            "generator is not on PyPI: clone the suite there, or point "
+            "SPREZZATURE_FILMS at its brag-output folder."
         )
     sys.path.insert(0, str(ENGINE))
     import build_films
