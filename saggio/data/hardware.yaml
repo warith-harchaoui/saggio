@@ -42,6 +42,18 @@
 # and withheld the denominator, and how long a card stays in service is a fact
 # about a fleet rather than about a part.
 #
+# `machines` holds whole products rather than parts: a laptop, a desktop, a
+# rack server. They are here for one column, embodied_kgco2e, because that is
+# the level manufacturers publish footprints at. Apple writes a product
+# environmental report for each Mac and none for the chip inside it; Dell, HPE
+# and Lenovo publish one per server model. A machine row is matched on
+# `model_identifiers`, exactly as the firmware names the product (`sysctl
+# hw.model` on a Mac, /sys/class/dmi/id/product_name on Linux), never by a
+# resemblance: the 16-inch laptop is not the 14-inch one. Its figure is the
+# manufacturing phase of the vendor's own lifecycle figure, and when the vendor
+# gives only a total and a share, embodied_scope writes the multiplication out
+# and names the configuration it was published for.
+#
 # memory_bandwidth_gbps is what makes a projection onto another accelerator
 # honest rather than optimistic. A workload that waits on memory gains the ratio
 # of bandwidths, not the ratio of peak FLOP/s, and the two differ by more than a
@@ -345,3 +357,5 @@ cpus:
     source_url: "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7950x.html"
     retrieved_date: "2026-09-12"
     notes: "170 W TDP over 16 cores."
+
+machines: []

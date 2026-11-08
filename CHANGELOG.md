@@ -14,6 +14,29 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### An open footprint says how to close it, and a machine can carry one
+
+The embodied `TODO` used to say a footprint was missing and stop. It now gives
+the two places one can go, with the command written out and this machine's
+names filled in: the model in front of you
+(`assumptions.hardware_embodied_carbon`), or the catalogue every later audit
+reads (`saggio catalog add cpu apple-m2-max ...`). Where the firmware names the
+product, it also offers the whole-machine route, because Apple, Dell, HPE and
+Lenovo publish footprints for the products they sell far more often than for
+the chips inside them.
+
+That route is new. The hardware catalogue has a `machines` section, matched on
+the identifier the firmware gives (`sysctl hw.model` on a Mac,
+`/sys/class/dmi/id/product_name` on Linux), exactly and never by resemblance.
+The embodied assumption reads it after the accelerator and before the
+processor. `saggio machine` prints the identifier and the row it matched.
+
+`saggio catalog add` with only `embodied_*` fields now files the link and the
+date as the footprint's own, `embodied_source_url` and
+`embodied_retrieved_date`, and leaves a known row's datasheet source alone:
+the overlay merges column by column, so the footprint's link used to replace
+the source of the wattage beside it.
+
 ### No Mermaid left: the analysis page shows a drawn figure
 
 `ANALYSIS.md` and `ANALYSE.md` described their two families of analysis in a

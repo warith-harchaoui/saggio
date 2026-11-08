@@ -16,6 +16,30 @@ endroit-là.
 
 ## Non publié
 
+### Une empreinte ouverte dit comment la combler, et une machine peut en porter une
+
+Le `TODO` du carbone de fabrication disait qu'il manquait une empreinte, et
+s'arrêtait là. Il donne maintenant les deux endroits où elle peut aller, avec
+la commande écrite en entier et les noms de cette machine déjà remplis : le
+modèle que vous avez sous les yeux (`assumptions.hardware_embodied_carbon`),
+ou le catalogue que lit chaque audit suivant (`saggio catalog add cpu
+apple-m2-max ...`). Quand le firmware nomme le produit, il propose aussi la
+voie de la machine entière : Apple, Dell, HPE et Lenovo publient bien plus
+souvent l'empreinte des produits qu'ils vendent que celle des puces qu'ils y
+mettent.
+
+Cette voie est nouvelle. Le catalogue du matériel a une section `machines`,
+reconnue par l'identifiant que donne le firmware (`sysctl hw.model` sur un
+Mac, `/sys/class/dmi/id/product_name` sous Linux), à l'identique et jamais par
+ressemblance. L'hypothèse de fabrication la lit après l'accélérateur et avant
+le processeur. `saggio machine` affiche l'identifiant et la ligne reconnue.
+
+`saggio catalog add` avec seulement des champs `embodied_*` range désormais le
+lien et la date comme ceux de l'empreinte, `embodied_source_url` et
+`embodied_retrieved_date`, et laisse intacte la source de la fiche technique
+d'une ligne connue : la surcouche fusionne colonne par colonne, si bien que le
+lien de l'empreinte remplaçait la source de la puissance juste à côté.
+
 ### Plus de Mermaid : la page d'analyse montre une figure dessinée
 
 `ANALYSIS.md` et `ANALYSE.md` décrivaient leurs deux familles d'analyse dans un

@@ -1060,6 +1060,7 @@ def catalog_add(args: argparse.Namespace) -> int:
                 row[name] = float(raw)
             except ValueError:
                 row[name] = raw
+    row = _footprint_keeps_its_own_source(args.kind, row)
     try:
         written = add_row(args.kind, row)
     except ValueError as exc:
@@ -1067,6 +1068,54 @@ def catalog_add(args: argparse.Namespace) -> int:
         return USAGE
     osh.info(say("cli.catalog.added", key=args.key, path=written))
     return OK
+
+
+def _footprint_keeps_its_own_source(kind: str, row: dict[str, Any]) -> dict[str, Any]:
+    """Give a footprint added to a known row its own provenance, not the row's.
+
+    An embodied figure comes from a product carbon footprint, and the row it
+    lands on already cites a datasheet for its wattage. The overlay merges
+    column by column, so writing the footprint's link into ``source_url`` would
+    quietly re-attribute the wattage to a document that never stated it. When
+    every field given is an ``embodied_*`` column, the link and the date go to
+    ``embodied_source_url`` and ``embodied_retrieved_date``, and the row keeps
+    the source it had. A row the catalogue does not have yet takes both: there
+    is no other source to keep.
+
+    Parameters
+    ----------
+    kind : str
+        The row kind being added to.
+    row : dict
+        The row as the command line built it.
+
+    Returns
+    -------
+    dict
+        The row to write.
+
+    Examples
+    --------
+    >>> row = {"key": "H100", "source_url": "https://pcf.invalid",
+    ...        "retrieved_date": "2026-11-08", "embodied_kgco2e": 164.0}
+    >>> kept = _footprint_keeps_its_own_source("gpu", row)
+    >>> kept["embodied_source_url"], kept["source_url"] != "https://pcf.invalid"
+    ('https://pcf.invalid', True)
+    """
+    fields = [name for name in row if name not in {"key", "source_url", "retrieved_date"}]
+    if not fields or not all(name.startswith("embodied_") for name in fields):
+        return row
+    row = dict(row)
+    row.setdefault("embodied_source_url", row["source_url"])
+    row.setdefault("embodied_retrieved_date", row["retrieved_date"])
+    if kind not in SECTION_OF_KIND:
+        return row
+    catalog_name, section = SECTION_OF_KIND[kind]
+    existing = Catalog.load(catalog_name).rows(section).get(str(row["key"]))
+    if existing and existing.get("source_url") and existing.get("retrieved_date"):
+        row["source_url"] = existing["source_url"]
+        row["retrieved_date"] = existing["retrieved_date"]
+    return row
 
 
 def catalog_freshness(args: argparse.Namespace) -> int:
@@ -1513,6 +1562,8 @@ def machine(args: argparse.Namespace) -> int:
                 "memory_gb": profile.memory_gb,
                 "gpus": list(profile.gpu_names),
                 "gpu_catalogue_key": profile.gpu_key,
+                "machine_model": profile.machine_model,
+                "machine_catalogue_key": profile.machine_key,
                 "catalog_misses": list(profile.catalog_misses),
             },
             as_json=True,
@@ -1526,6 +1577,13 @@ def machine(args: argparse.Namespace) -> int:
         )
         print(say("cli.machine.generic_fallback") if profile.cpu_is_fallback else "")
         print(say("cli.machine.gpu_key", key=profile.gpu_key or say("cli.machine.none")))
+        print(
+            say(
+                "cli.machine.machine_key",
+                model=profile.machine_model or say("cli.machine.none"),
+                key=profile.machine_key or say("cli.machine.none"),
+            )
+        )
         for miss in profile.catalog_misses:
             osh.warning(miss)
     return OK

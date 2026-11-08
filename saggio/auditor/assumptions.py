@@ -41,17 +41,65 @@ from .naming import describe_command
 from .options import AuditOptions
 
 
+def _how_to_close(machine: MachineProfile, *, part: str | None, section: str | None) -> str:
+    """Return the sentences that tell a reader how to close an open footprint.
+
+    A ``TODO`` that only says something is missing hands the reader a search.
+    This hands them the two places a figure can go -- the model in front of
+    them, or the catalogue every later audit reads -- and the command for each,
+    with what is already known about this machine filled in.
+
+    Parameters
+    ----------
+    machine : MachineProfile
+        What this machine is; its product identifier, when the firmware gave
+        one, goes into the machine-level command.
+    part : str or None
+        The catalogue key the footprint belongs to, when one was identified.
+    section : str or None
+        Its row kind, ``gpu`` or ``cpu``.
+
+    Returns
+    -------
+    str
+        Two to four sentences, in the language in force.
+
+    Examples
+    --------
+    >>> text = _how_to_close(MachineProfile("darwin", machine_model="Mac14,5"),
+    ...                      part="apple-m2-max", section="cpu")
+    >>> "saggio catalog add cpu apple-m2-max" in text, "Mac14,5" in text
+    (True, True)
+    """
+    sentences = [say("assumption.embodied.in_model")]
+    if part and section:
+        sentences.append(say("assumption.embodied.in_catalog", section=section, key=part))
+    if machine.machine_model and machine.machine_key is None:
+        sentences.append(say("assumption.embodied.as_machine", model=machine.machine_model))
+    sentences.append(say("assumption.embodied.where"))
+    return " ".join(sentences)
+
+
 def _embodied_assumption(machine: MachineProfile, options: AuditOptions) -> Quantity:
-    """Return what building this machine's accelerator emitted, or a ``TODO``.
+    """Return what building the hardware this work reserved emitted, or a ``TODO``.
 
     Read from the catalogue the same way a wattage is, and open the same way
     when the row has no figure: nobody having read a product carbon footprint
     for a part is not the same as the part having been free to build.
 
+    Three rows can answer, tried in this order. An accelerator's, because work
+    on an accelerator reserves that card and the card is what its footprint
+    covers. Then the whole machine's, because work with no accelerator reserves
+    the machine, and a manufacturer that publishes a footprint at all usually
+    publishes it for the product it sells rather than for the chip inside. Then
+    the processor's, which covers the chip alone and so understates a machine;
+    its scope says so.
+
     Parameters
     ----------
     machine : MachineProfile
-        What this machine is, including the accelerator key when it has one.
+        What this machine is, including the accelerator key and the machine's
+        own catalogue key when it has them.
     options : AuditOptions
         Carried for the catalogue overlay.
 
@@ -59,7 +107,8 @@ def _embodied_assumption(machine: MachineProfile, options: AuditOptions) -> Quan
     -------
     Quantity
         Kilograms of CO2 equivalent per device, with the footprint's own URL and
-        read date — never the row's, because a footprint is not a datasheet.
+        read date -- never the row's, because a footprint is not a datasheet.
+        When open, the note says how to close it, command included.
 
     Examples
     --------
@@ -67,8 +116,13 @@ def _embodied_assumption(machine: MachineProfile, options: AuditOptions) -> Quan
     'TODO'
     """
     catalog = Catalog.load("hardware", overlay=options.overlay)
+    machine_row = (
+        catalog.rows("machines").get(machine.machine_key, {}) if machine.machine_key else {}
+    )
     if machine.gpu_key is not None:
         part, section, row = machine.gpu_key, "gpu", catalog.rows("gpus").get(machine.gpu_key, {})
+    elif isinstance(machine_row.get("embodied_kgco2e"), (int, float)):
+        part, section, row = machine.machine_key, "machine", machine_row
     elif machine.cpu_key is not None and not machine.cpu_is_fallback:
         # No accelerator, so the processor is the hardware this work reserved. Its
         # footprint used to be refused on the grounds that none was catalogued,
@@ -77,21 +131,26 @@ def _embodied_assumption(machine: MachineProfile, options: AuditOptions) -> Quan
         # the file beside it.
         part, section, row = machine.cpu_key, "cpu", catalog.rows("cpus").get(machine.cpu_key, {})
     else:
+        reason = say(
+            "assumption.embodied.generic_cpu"
+            if machine.cpu_key is not None
+            else "assumption.embodied.nothing_identified"
+        )
         return Quantity(
             unit="kgCO2e",
             status=TODO,
-            notes=say(
-                "assumption.embodied.generic_cpu"
-                if machine.cpu_key is not None
-                else "assumption.embodied.nothing_identified"
-            ),
+            notes=f"{reason} {_how_to_close(machine, part=None, section=None)}",
         )
     figure = row.get("embodied_kgco2e")
     if not isinstance(figure, (int, float)):
         return Quantity(
             unit="kgCO2e",
             status=TODO,
-            notes=say("assumption.embodied.no_footprint", part=part, section=section),
+            notes=(
+                say("assumption.embodied.no_footprint", part=part)
+                + " "
+                + _how_to_close(machine, part=part, section=section)
+            ),
         )
     return Quantity(
         value=float(figure),

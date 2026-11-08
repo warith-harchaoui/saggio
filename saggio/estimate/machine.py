@@ -31,6 +31,7 @@ Warith Harchaoui
 from __future__ import annotations
 
 import re
+import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Final
@@ -149,6 +150,14 @@ class MachineProfile:
         How many discrete GPUs are installed.
     apple_chip : str or None
         The Apple Silicon chip name, when this is one.
+    machine_model : str or None
+        What the machine as a whole is, as its firmware names it: ``Mac14,5`` on
+        a Mac, ``PowerEdge R760`` on a Linux server. ``None`` when the system
+        does not say.
+    machine_key : str or None
+        The catalogue row for that whole machine, when one carries its
+        identifier. A manufacturer that publishes a footprint at all usually
+        publishes it for the product it sells, not for the chip inside it.
     catalog_misses : tuple of str
         Devices the operating system reported that the catalogue does not know,
         each as a sentence naming what to add.
@@ -171,6 +180,8 @@ class MachineProfile:
     gpu_key: str | None = None
     accelerator_count: int = 0
     apple_chip: str | None = None
+    machine_model: str | None = None
+    machine_key: str | None = None
     catalog_misses: tuple[str, ...] = field(default_factory=tuple)
 
     def has_accelerator(self) -> bool:
@@ -232,12 +243,111 @@ class MachineProfile:
             "logical_cores": self.logical_cores,
             "physical_cores": self.physical_cores,
         }
+        if self.machine_model:
+            mapping["machine"] = self.machine_model
         if self.cpu_model:
             mapping["cpu"] = self.cpu_model
         if self.gpu_names:
             mapping["gpu"] = self.gpu_names[0]
             mapping["accelerator_count"] = self.accelerator_count
         return mapping
+
+
+#: Where Linux publishes the product name the vendor burned into the firmware.
+#: World-readable, unlike the serial number beside it.
+_DMI_PRODUCT_NAME: Final[Path] = Path("/sys/class/dmi/id/product_name")
+
+#: Firmware product names that say nothing about the product. A board that
+#: answers "To Be Filled By O.E.M." has been named by nobody, and matching a
+#: catalogue row on it would match every unnamed board in the world.
+_PLACEHOLDER_PRODUCT_NAMES: Final[frozenset[str]] = frozenset(
+    {"", "to be filled by o.e.m.", "system product name", "default string", "none"}
+)
+
+
+def machine_model(platform: str) -> str | None:
+    """Return what this machine is as a product, or ``None``.
+
+    ``os-helper`` names the chips; nothing in it names the product they sit in,
+    which is the level manufacturers publish carbon footprints at. So this asks
+    the two places that do say: ``sysctl hw.model`` on a Mac, the firmware's
+    product name on Linux. Neither needs a privilege.
+
+    Parameters
+    ----------
+    platform : str
+        ``darwin`` or ``linux``, as :func:`os_helper.platform_name` says.
+
+    Returns
+    -------
+    str or None
+        The identifier, such as ``Mac14,5`` or ``PowerEdge R760``, or ``None``
+        when the system does not answer or answers with a placeholder.
+
+    Examples
+    --------
+    >>> machine_model("windows") is None
+    True
+    """
+    answer = ""
+    try:
+        if platform == "darwin":
+            done = subprocess.run(
+                ["/usr/sbin/sysctl", "-n", "hw.model"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                check=False,
+            )
+            answer = done.stdout if done.returncode == 0 else ""
+        elif platform == "linux":
+            answer = _DMI_PRODUCT_NAME.read_text(encoding="utf-8", errors="replace")
+    except (OSError, subprocess.SubprocessError):
+        return None
+    answer = answer.strip()
+    return None if answer.lower() in _PLACEHOLDER_PRODUCT_NAMES else answer
+
+
+def match_machine(model: str | None, machines: dict[str, dict[str, Any]]) -> str | None:
+    """Return the key of the catalogue row naming this machine, or ``None``.
+
+    Exact match on the identifier, ignoring case and surrounding space. A Mac's
+    identifier names one model, and a fuzzy match would hand a 14-inch laptop the
+    footprint of the 16-inch one, which is the substitution this package refuses
+    from every other source.
+
+    Parameters
+    ----------
+    model : str or None
+        What :func:`machine_model` returned.
+    machines : dict
+        The catalogue's ``machines`` rows by key. ``model_identifiers`` is a list
+        of identifiers, or a single one: a Mac's identifier contains a comma, so
+        a string is never split.
+
+    Returns
+    -------
+    str or None
+        The row's key.
+
+    Examples
+    --------
+    >>> rows = {"mbp": {"model_identifiers": ["Mac14,5"]},
+    ...         "r760": {"model_identifiers": "PowerEdge R760"}}
+    >>> match_machine("Mac14,5", rows), match_machine("poweredge r760 ", rows)
+    ('mbp', 'r760')
+    >>> match_machine("Mac14,6", rows) is None
+    True
+    """
+    if not model:
+        return None
+    wanted = model.strip().lower()
+    for key, row in machines.items():
+        names = row.get("model_identifiers")
+        names = [names] if isinstance(names, str) else names if isinstance(names, list) else []
+        if any(str(name).strip().lower() == wanted for name in names):
+            return key
+    return None
 
 
 def detect_machine(*, overlay: Path | None = None) -> MachineProfile:
@@ -271,6 +381,7 @@ def detect_machine(*, overlay: Path | None = None) -> MachineProfile:
         return MachineProfile(platform=osh.platform_name())
 
     catalog = Catalog.load("hardware", overlay=overlay)
+    model = machine_model(str(info.get("platform") or osh.platform_name()))
     known_cpus = catalog.rows("cpus")
     known_gpus = catalog.rows("gpus")
     misses: list[str] = []
@@ -355,5 +466,7 @@ def detect_machine(*, overlay: Path | None = None) -> MachineProfile:
         gpu_key=gpu_key,
         accelerator_count=accelerator_count,
         apple_chip=str(info["apple_chip"]) if info.get("apple_chip") else None,
+        machine_model=model,
+        machine_key=match_machine(model, catalog.rows("machines")),
         catalog_misses=tuple(misses),
     )

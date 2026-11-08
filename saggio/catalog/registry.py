@@ -59,6 +59,7 @@ BUNDLED_CATALOGS: Final[tuple[str, ...]] = (
 SECTION_OF_KIND: Final[dict[str, tuple[str, str]]] = {
     "gpu": ("hardware", "gpus"),
     "cpu": ("hardware", "cpus"),
+    "machine": ("hardware", "machines"),
     "country": ("grid", "countries"),
     "provider": ("providers", "providers"),
     "instance": ("instances", "instances"),
@@ -71,6 +72,7 @@ SECTION_OF_KIND: Final[dict[str, tuple[str, str]]] = {
 STALE_AFTER_DAYS: Final[dict[str, int]] = {
     "gpu": 365,
     "cpu": 365,
+    "machine": 365,
     "instance": 365,
     "country": 31,
     "provider": 365,
@@ -557,7 +559,7 @@ class Catalog:
         Examples
         --------
         >>> Catalog.bundled("hardware").sections()
-        ('cpus', 'gpus')
+        ('cpus', 'gpus', 'machines')
         """
         return tuple(sorted(key for key, value in self.data.items() if isinstance(value, list)))
 

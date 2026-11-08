@@ -319,9 +319,29 @@ assumption.embodied.nothing_identified: >-
   building this machine is not something this model can state. Excluded rather
   than assumed to be zero.
 assumption.embodied.no_footprint: >-
-  No product carbon footprint is on file for {part}. Add `embodied_kgco2e` to
-  its catalogue row with the footprint's own URL and the date it was read;
-  `saggio catalog add {section}` does the rest.
+  No product carbon footprint is on file for {part}. Nobody having read one is
+  not the same as it having been free to build.
+assumption.embodied.in_model: >-
+  To close it in this model, give `assumptions.hardware_embodied_carbon` a
+  `value` in kgCO2e with the status `estimated`, the footprint's link as
+  `source_url` and the day you read it as `retrieved_date`.
+assumption.embodied.in_catalog: >-
+  To close it for every audit on this machine, record it once:
+  `saggio catalog add {section} {key} --source-url <footprint link>
+  --retrieved-date <YYYY-MM-DD> --field embodied_kgco2e=<kg>
+  --field embodied_scope="<what the figure covers>"`.
+assumption.embodied.as_machine: >-
+  If the manufacturer publishes a footprint for the whole machine rather than
+  for its chip, as Apple, Dell, HPE and Lenovo do for many products, record it
+  against this machine's identifier: `saggio catalog add machine <name>
+  --source-url <footprint link> --retrieved-date <YYYY-MM-DD>
+  --field model_identifiers="{model}" --field embodied_kgco2e=<kg>
+  --field embodied_scope="<what the figure covers>"`.
+assumption.embodied.where: >-
+  A footprint is the manufacturer's product carbon footprint or product
+  environmental report, for this exact product; `saggio catalog read-pcf <link>`
+  reads one and shows its working. Take the manufacturing phase only: the use
+  phase is what the rest of this model measures.
 assumption.embodied.published: "Published product carbon footprint."
 assumption.lifetime: >-
   How long this hardware stays in service, which only you know. The published
@@ -391,8 +411,8 @@ embodied.calendar_note: >-
 embodied.no_footprint: >-
   No product carbon footprint is on file for this hardware, so the carbon of
   building it is open. Nobody has read one for this part; that is not the same
-  as it having been free to build. Add an `embodied_kgco2e` to the catalogue row
-  with the footprint's own URL and the date it was read.
+  as it having been free to build. The note on
+  `assumptions.hardware_embodied_carbon` says how to close it.
 embodied.no_lifetime: >-
   The hardware's expected lifespan is not stated, so there is nothing to
   amortise over. Every vendor footprint here is cradle-to-gate and excludes the
@@ -1344,6 +1364,7 @@ cli.freshness.and_more: " and {count} more"
 cli.machine.memory: "Memory: {amount}"
 cli.machine.cpu_key: "CPU catalogue key: {key}"
 cli.machine.gpu_key: "GPU catalogue key: {key}"
+cli.machine.machine_key: "Machine: {model}, catalogue key: {key}"
 cli.machine.generic_fallback: " (generic fallback)"
 cli.machine.none: "none"
 cli.power.reads: "reads: {path}"

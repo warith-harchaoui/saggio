@@ -352,9 +352,30 @@ assumption.embodied.nothing_identified: >-
   fabrication de cette machine n'est donc pas quelque chose que ce modèle puisse
   énoncer. Exclu plutôt que supposé nul.
 assumption.embodied.no_footprint: >-
-  Aucune empreinte carbone produit n'est au dossier pour {part}. Ajoutez
-  `embodied_kgco2e` à sa ligne de catalogue avec l'URL de l'empreinte elle-même
-  et la date de lecture ; `saggio catalog add {section}` fait le reste.
+  Aucune empreinte carbone produit n'est au dossier pour {part}. Que personne
+  n'en ait lu ne veut pas dire que sa fabrication n'a rien coûté.
+assumption.embodied.in_model: >-
+  Pour combler ce manque dans ce modèle, donnez à `assumptions.hardware_embodied_carbon`
+  une `value` en kgCO2e avec le statut `estimated`, le lien de l'empreinte en
+  `source_url` et le jour où vous l'avez lue en `retrieved_date`.
+assumption.embodied.in_catalog: >-
+  Pour le combler dans tous les audits de cette machine, notez l'empreinte une
+  fois pour toutes : `saggio catalog add {section} {key} --source-url <lien de l'empreinte>
+  --retrieved-date <AAAA-MM-JJ> --field embodied_kgco2e=<kg>
+  --field embodied_scope="<ce que couvre le chiffre>"`.
+assumption.embodied.as_machine: >-
+  Si le fabricant publie une empreinte pour la machine entière plutôt que pour
+  sa puce, comme Apple, Dell, HPE et Lenovo le font pour beaucoup de produits,
+  notez-la sous l'identifiant de cette machine : `saggio catalog add machine
+  <nom> --source-url <lien de l'empreinte> --retrieved-date <AAAA-MM-JJ>
+  --field model_identifiers="{model}" --field embodied_kgco2e=<kg>
+  --field embodied_scope="<ce que couvre le chiffre>"`.
+assumption.embodied.where: >-
+  Une empreinte, c'est l'empreinte carbone produit ou le rapport
+  environnemental que publie le fabricant, pour ce produit précis ;
+  `saggio catalog read-pcf <lien>` en lit une et montre son raisonnement. Ne
+  retenez que la phase de fabrication : la phase d'usage, c'est ce que mesure
+  le reste de ce modèle.
 assumption.embodied.published: "Empreinte carbone produit publiée."
 assumption.lifetime: >-
   Combien de temps ce matériel reste en service, ce que vous seul savez. Les
@@ -432,9 +453,8 @@ embodied.calendar_note: >-
 embodied.no_footprint: >-
   Aucune empreinte carbone produit n'est au dossier pour ce matériel : le carbone
   de sa fabrication reste donc ouvert. Personne n'en a lu pour cette pièce, ce
-  qui n'est pas la même chose que l'avoir fabriquée gratuitement. Ajoutez un
-  `embodied_kgco2e` à la ligne de catalogue avec l'URL de l'empreinte elle-même
-  et la date de lecture.
+  qui n'est pas la même chose que l'avoir fabriquée gratuitement. La note de
+  `assumptions.hardware_embodied_carbon` dit comment le fermer.
 embodied.no_lifetime: >-
   La durée de vie attendue du matériel n'est pas indiquée : il n'y a donc rien
   sur quoi amortir. Toutes les empreintes fournisseur ici vont du berceau à la
@@ -1460,6 +1480,7 @@ cli.freshness.and_more: " et {count} de plus"
 cli.machine.memory: "Mémoire : {amount}"
 cli.machine.cpu_key: "Clé de catalogue du processeur : {key}"
 cli.machine.gpu_key: "Clé de catalogue du GPU : {key}"
+cli.machine.machine_key: "Machine : {model}, clé de catalogue : {key}"
 cli.machine.generic_fallback: " (repli générique)"
 cli.machine.none: "aucune"
 cli.power.reads: "lit : {path}"
