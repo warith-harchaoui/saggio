@@ -358,4 +358,484 @@ cpus:
     retrieved_date: "2026-09-12"
     notes: "170 W TDP over 16 cores."
 
-machines: []
+machines:
+  - key: "macbook-air-13-m1-2020"
+    vendor: "Apple"
+    name: "MacBook Air (M1, 2020)"
+    model_identifiers: ["MacBookAir10,1"]
+    embodied_kgco2e: 122.4
+    embodied_scope: "One Apple MacBook Air (M1, 2020), the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M1, 256GB storage): 76% of 161 kgCO2e = 122.4. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/13-inch_MacBookAir_PER_Nov2020.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/13-inch_MacBookAir_PER_Nov2020.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-pro-13-m1-2020"
+    vendor: "Apple"
+    name: "MacBook Pro (13-inch, M1, 2020)"
+    model_identifiers: ["MacBookPro17,1"]
+    embodied_kgco2e: 135.1
+    embodied_scope: "One Apple MacBook Pro (13-inch, M1, 2020), the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M1, 256GB storage): 73% of 185 kgCO2e = 135.1. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/13-inch_MacBookPro_PER_Nov2020.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/13-inch_MacBookPro_PER_Nov2020.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "mac-mini-m1-2020"
+    vendor: "Apple"
+    name: "Mac mini (M1, 2020)"
+    model_identifiers: ["Macmini9,1"]
+    embodied_kgco2e: 92.9
+    embodied_scope: "One Apple Mac mini (M1, 2020), the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M1, 256GB storage): 54% of 172 kgCO2e = 92.9. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/Macmini_PER_Nov2020.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/Macmini_PER_Nov2020.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "imac-24-m1-2021-two-ports"
+    vendor: "Apple"
+    name: "iMac (24-inch, M1, 2021), two ports"
+    model_identifiers: ["iMac21,2"]
+    embodied_kgco2e: 216.5
+    embodied_scope: "One Apple iMac (24-inch, M1, 2021), two ports, the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M1 with 7-core GPU, 256GB storage, the two-port model): 45% of 481 kgCO2e = 216.5. Excludes transport, use and end of life. The four-port model (iMac21,1) has only a total (486 kgCO2e) and is not covered."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/24-inch_iMac_PER_Apr2021.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/24-inch_iMac_PER_Apr2021.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-pro-14-m1-pro-2021"
+    vendor: "Apple"
+    name: "MacBook Pro (14-inch, 2021), M1 Pro"
+    model_identifiers: ["MacBookPro18,3"]
+    embodied_kgco2e: 195.1
+    embodied_scope: "One Apple MacBook Pro (14-inch, 2021), M1 Pro, the whole machine. Production phase of Apple's lifecycle footprint for the standard configuration the report is based on (M1 Pro 8-core CPU, 14-core GPU, 512GB storage): 72% of 271 kgCO2e = 195.1. Excludes transport, use and end of life. Other M1 Pro configurations of this identifier differ."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/14-inch_MacBook_Pro_PER_Oct2021.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/14-inch_MacBook_Pro_PER_Oct2021.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-pro-16-m1-pro-2021"
+    vendor: "Apple"
+    name: "MacBook Pro (16-inch, 2021), M1 Pro"
+    model_identifiers: ["MacBookPro18,1"]
+    embodied_kgco2e: 230.3
+    embodied_scope: "One Apple MacBook Pro (16-inch, 2021), M1 Pro, the whole machine. Production phase of Apple's lifecycle footprint for the standard configuration the report is based on (M1 Pro 10-core CPU, 16-core GPU, 512GB storage): 66% of 349 kgCO2e = 230.3. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/16-inch_MacBook_Pro_PER_Oct2021.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/16-inch_MacBook_Pro_PER_Oct2021.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "mac-studio-m1-max-2022"
+    vendor: "Apple"
+    name: "Mac Studio (2022), M1 Max"
+    model_identifiers: ["Mac13,1"]
+    embodied_kgco2e: 165.1
+    embodied_scope: "One Apple Mac Studio (2022), M1 Max, the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M1 Max, 32GB memory, 512GB storage): 63% of 262 kgCO2e = 165.1. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_Studio_PER_March2022.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_Studio_PER_March2022.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-air-m2-2022"
+    vendor: "Apple"
+    name: "MacBook Air (M2, 2022)"
+    model_identifiers: ["Mac14,2"]
+    embodied_kgco2e: 101.4
+    embodied_scope: "One Apple MacBook Air (M2, 2022), the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M2, 256GB storage): 69% of 147 kgCO2e = 101.4. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/M2_MacBook_Air_PER_June2022.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/M2_MacBook_Air_PER_June2022.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-pro-13-m2-2022"
+    vendor: "Apple"
+    name: "MacBook Pro (13-inch, M2, 2022)"
+    model_identifiers: ["Mac14,7"]
+    embodied_kgco2e: 118.6
+    embodied_scope: "One Apple MacBook Pro (13-inch, M2, 2022), the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M2, 256GB storage): 71% of 167 kgCO2e = 118.6. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/13-inch_MacBook_Pro_PER_June2022.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/13-inch_MacBook_Pro_PER_June2022.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-pro-14-m2-pro-2023"
+    vendor: "Apple"
+    name: "MacBook Pro (14-inch, 2023), M2 Pro"
+    model_identifiers: ["Mac14,9"]
+    embodied_kgco2e: 192.0
+    embodied_scope: "One Apple MacBook Pro (14-inch, 2023), M2 Pro, the whole machine. Production phase of Apple's lifecycle footprint for the standard configuration in the report's table (M2 Pro 10-core CPU, 16-core GPU, 512GB storage): 79% of 243 kgCO2e = 192.0. Excludes transport, use and end of life. The report's endnote says '64GB storage', an evident typo for the 512GB configuration its table lists at 243 kgCO2e."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/14-inch_MacBook_Pro_PER_Jan2023.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/14-inch_MacBook_Pro_PER_Jan2023.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-pro-16-m2-pro-2023"
+    vendor: "Apple"
+    name: "MacBook Pro (16-inch, 2023), M2 Pro"
+    model_identifiers: ["Mac14,10"]
+    embodied_kgco2e: 222.0
+    embodied_scope: "One Apple MacBook Pro (16-inch, 2023), M2 Pro, the whole machine. Production phase of Apple's lifecycle footprint for the standard configuration in the report's table (M2 Pro 12-core CPU, 19-core GPU, 512GB storage): 74% of 300 kgCO2e = 222.0. Excludes transport, use and end of life. The report's endnote says '64GB storage', an evident typo for the 512GB configuration its table lists at 300 kgCO2e."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/16-inch_MacBook_Pro_PER_Jan2023.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/16-inch_MacBook_Pro_PER_Jan2023.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "mac-mini-m2-2023"
+    vendor: "Apple"
+    name: "Mac mini (2023), M2"
+    model_identifiers: ["Mac14,3"]
+    embodied_kgco2e: 70.6
+    embodied_scope: "One Apple Mac mini (2023), M2, the whole machine. Production phase of Apple's lifecycle footprint for the standard configuration the report is based on (M2, 256GB storage): 63% of 112 kgCO2e = 70.6. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_mini_PER_Jan2023.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_mini_PER_Jan2023.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-air-15-m2-2023"
+    vendor: "Apple"
+    name: "MacBook Air (15-inch, M2, 2023)"
+    model_identifiers: ["Mac14,15"]
+    embodied_kgco2e: 101.5
+    embodied_scope: "One Apple MacBook Air (15-inch, M2, 2023), the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M2, 256GB storage): 73% of 139 kgCO2e = 101.5. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/MacBook_Air_15-inch_PER_June2023.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/MacBook_Air_15-inch_PER_June2023.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "mac-studio-m2-max-2023"
+    vendor: "Apple"
+    name: "Mac Studio (2023), M2 Max"
+    model_identifiers: ["Mac14,13"]
+    embodied_kgco2e: 145.0
+    embodied_scope: "One Apple Mac Studio (2023), M2 Max, the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M2 Max, 512GB storage): 50% of 290 kgCO2e = 145.0. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_Studio_PER_June2023.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_Studio_PER_June2023.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "mac-pro-m2-ultra-2023"
+    vendor: "Apple"
+    name: "Mac Pro (2023)"
+    model_identifiers: ["Mac14,8"]
+    embodied_kgco2e: 597.4
+    embodied_scope: "One Apple Mac Pro (2023), the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (Mac Pro, 1TB storage): 38% of 1572 kgCO2e = 597.4. Excludes transport, use and end of life. Mac14,8 also identifies Mac Pro (Rack, 2023), which the report does not mention."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_Pro_PER_June2023.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_Pro_PER_June2023.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-pro-14-m3-2023"
+    vendor: "Apple"
+    name: "MacBook Pro (14-inch, Nov 2023), M3"
+    model_identifiers: ["Mac15,3"]
+    embodied_kgco2e: 165.6
+    embodied_scope: "One Apple MacBook Pro (14-inch, Nov 2023), M3, the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M3, 512GB storage): 82% of 202 kgCO2e = 165.6. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/14-inch_MacBook_Pro_PER_Oct2023.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/14-inch_MacBook_Pro_PER_Oct2023.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-pro-14-m3-pro-2023"
+    vendor: "Apple"
+    name: "MacBook Pro (14-inch, Nov 2023), M3 Pro"
+    model_identifiers: ["Mac15,6"]
+    embodied_kgco2e: 171.6
+    embodied_scope: "One Apple MacBook Pro (14-inch, Nov 2023), M3 Pro, the whole machine. Production phase of Apple's lifecycle footprint for the configuration in the report's second column (M3 Pro, 512GB storage): 73% of 235 kgCO2e = 171.6. Excludes transport, use and end of life. Mac15,6 covers both M3 Pro chip variants; the report does not name the core count."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/14-inch_MacBook_Pro_PER_Oct2023.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/14-inch_MacBook_Pro_PER_Oct2023.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-pro-16-m3-pro-2023"
+    vendor: "Apple"
+    name: "MacBook Pro (16-inch, Nov 2023), M3 Pro"
+    model_identifiers: ["Mac15,7"]
+    embodied_kgco2e: 194.3
+    embodied_scope: "One Apple MacBook Pro (16-inch, Nov 2023), M3 Pro, the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M3 Pro, 512GB storage): 67% of 290 kgCO2e = 194.3. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/16-inch_MacBook_Pro_PER_Oct2023.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/16-inch_MacBook_Pro_PER_Oct2023.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "imac-24-m3-2023-two-ports"
+    vendor: "Apple"
+    name: "iMac (24-inch, 2023, Two ports)"
+    model_identifiers: ["Mac15,4"]
+    embodied_kgco2e: 186.7
+    embodied_scope: "One Apple iMac (24-inch, 2023, Two ports), the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (two ports, 256GB storage): 52% of 359 kgCO2e = 186.7. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/iMac_PER_Oct2023.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/iMac_PER_Oct2023.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "imac-24-m3-2023-four-ports"
+    vendor: "Apple"
+    name: "iMac (24-inch, 2023, Four ports)"
+    model_identifiers: ["Mac15,5"]
+    embodied_kgco2e: 202.3
+    embodied_scope: "One Apple iMac (24-inch, 2023, Four ports), the whole machine. Production phase of Apple's lifecycle footprint for the configuration in the report's second column (four ports, 512GB storage): 52% of 389 kgCO2e = 202.3. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/iMac_PER_Oct2023.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/iMac_PER_Oct2023.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-air-13-m3-2024"
+    vendor: "Apple"
+    name: "MacBook Air (13-inch, M3, 2024)"
+    model_identifiers: ["Mac15,12"]
+    embodied_kgco2e: 101.3
+    embodied_scope: "One Apple MacBook Air (13-inch, M3, 2024), the whole machine. Production phase of Apple's lifecycle footprint for the configuration in the report's first column (13-inch, M3, 256GB storage): 75% of 135 kgCO2e = 101.3. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/M3_MacBook_Air_PER_March2024.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/M3_MacBook_Air_PER_March2024.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-air-15-m3-2024"
+    vendor: "Apple"
+    name: "MacBook Air (15-inch, M3, 2024)"
+    model_identifiers: ["Mac15,13"]
+    embodied_kgco2e: 109.0
+    embodied_scope: "One Apple MacBook Air (15-inch, M3, 2024), the whole machine. Production phase of Apple's lifecycle footprint for the configuration in the report's second column (15-inch, M3, 256GB storage): 69% of 158 kgCO2e = 109.0. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/M3_MacBook_Air_PER_March2024.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/M3_MacBook_Air_PER_March2024.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-pro-14-m4-pro-2024"
+    vendor: "Apple"
+    name: "MacBook Pro (14-inch, 2024), M4 Pro"
+    model_identifiers: ["Mac16,8"]
+    embodied_kgco2e: 161.3
+    embodied_scope: "One Apple MacBook Pro (14-inch, 2024), M4 Pro, the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M4 Pro, 512GB storage): 74% of 218 kgCO2e = 161.3. Excludes transport, use and end of life. Mac16,8 covers both M4 Pro chip variants; the report does not name the core count."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/MacBook_Pro_14-inch_PER_Oct2024.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/MacBook_Pro_14-inch_PER_Oct2024.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-pro-16-m4-pro-2024"
+    vendor: "Apple"
+    name: "MacBook Pro (16-inch, 2024), M4 Pro"
+    model_identifiers: ["Mac16,7"]
+    embodied_kgco2e: 192.5
+    embodied_scope: "One Apple MacBook Pro (16-inch, 2024), M4 Pro, the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (16-inch, 512GB storage; the 512GB 16-inch model is the M4 Pro one, the report's M4 Max configuration being 1TB): 69% of 279 kgCO2e = 192.5. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/MacBook_Pro_16-inch_PER_Oct2024.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/MacBook_Pro_16-inch_PER_Oct2024.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "imac-24-m4-2024-two-ports"
+    vendor: "Apple"
+    name: "iMac (24-inch, 2024, Two ports)"
+    model_identifiers: ["Mac16,2"]
+    embodied_kgco2e: 173.0
+    embodied_scope: "One Apple iMac (24-inch, 2024, Two ports), the whole machine. Production phase of Apple's lifecycle footprint for the configuration in the report's carbon table (two ports, 256GB storage): 50% of 346 kgCO2e = 173.0. Excludes transport, use and end of life. The report's endnote says the two-port model with 512GB storage; the table heading says 256GB."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/iMac_PER_Oct2024.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/iMac_PER_Oct2024.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "mac-mini-m4-2024"
+    vendor: "Apple"
+    name: "Mac mini (2024), M4"
+    model_identifiers: ["Mac16,10"]
+    embodied_kgco2e: 23.7
+    embodied_scope: "One Apple Mac mini (2024), M4, the whole machine. Production phase of Apple's lifecycle footprint for the configuration Mac mini with M4 (16GB memory, 256GB SSD): 74% of 32 kgCO2e = 23.7. Excludes transport, use and end of life. Apple's 74% production share includes a 7% sub-line for emissions from renewable energy production; 32 kgCO2e is the life cycle figure before carbon credits."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_mini_PER_Oct2024.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_mini_PER_Oct2024.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "mac-mini-m4-pro-2024"
+    vendor: "Apple"
+    name: "Mac mini (2024), M4 Pro"
+    model_identifiers: ["Mac16,11"]
+    embodied_kgco2e: 34.5
+    embodied_scope: "One Apple Mac mini (2024), M4 Pro, the whole machine. Production phase of Apple's lifecycle footprint for the configuration Mac mini with M4 Pro (24GB memory, 512GB SSD): 69% of 50 kgCO2e = 34.5. Excludes transport, use and end of life. Apple's 69% production share includes a 7% sub-line for emissions from renewable energy production; 50 kgCO2e is the life cycle figure before carbon credits. The report also gives M4 Pro 64GB/8TB: 87% of 121 kgCO2e."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_mini_PER_Oct2024.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_mini_PER_Oct2024.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-air-15-m4-2025"
+    vendor: "Apple"
+    name: "MacBook Air (15-inch, M4, 2025)"
+    model_identifiers: ["Mac16,13"]
+    embodied_kgco2e: 110.1
+    embodied_scope: "One Apple MacBook Air (15-inch, M4, 2025), the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (15-inch, M4, 512GB SSD): 71% of 155 kgCO2e = 110.1. Excludes transport, use and end of life. The 256GB 15-inch configuration (147 kgCO2e) has no phase split."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/M4_MacBook_Air_PER_March2025.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/M4_MacBook_Air_PER_March2025.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "mac-studio-m4-max-2025"
+    vendor: "Apple"
+    name: "Mac Studio (2025), M4 Max"
+    model_identifiers: ["Mac16,9"]
+    embodied_kgco2e: 143.5
+    embodied_scope: "One Apple Mac Studio (2025), M4 Max, the whole machine. Production phase of Apple's lifecycle footprint for the configuration the report is based on (M4 Max, 512GB SSD): 52% of 276 kgCO2e = 143.5. Excludes transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_Studio_PER_March2025.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_Studio_PER_March2025.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "macbook-pro-14-m6-2026"
+    vendor: "Apple"
+    name: "MacBook Pro (14-inch, M6)"
+    model_identifiers: ["Mac18,1"]
+    embodied_kgco2e: 137.0
+    embodied_scope: "One Apple MacBook Pro (14-inch, M6), the whole machine. Production as stated directly by Apple for the configuration the report shows (M6, 1TB storage, 16GB memory): 137 kgCO2e (non-electricity 62 + electricity 75) out of 197 kgCO2e gross. Excludes infrastructure for renewable energy generation (3), transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/notebooks/MacBook_Pro_14-inch_M6_PER_Oct2026.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/notebooks/MacBook_Pro_14-inch_M6_PER_Oct2026.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "imac-24-m6-2026"
+    vendor: "Apple"
+    name: "iMac (24-inch, M6)"
+    model_identifiers: ["Mac18,2"]
+    embodied_kgco2e: 152.0
+    embodied_scope: "One Apple iMac (24-inch, M6), the whole machine. Production as stated directly by Apple for iMac (M6, Two ports) 256GB: 152 kgCO2e (non-electricity 72 + electricity 80) out of 326 kgCO2e gross. Excludes infrastructure for renewable energy generation (2), transport, use and end of life. Mac18,2 also identifies the four-port model (351 kgCO2e gross, no phase split)."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/iMac_PER_Oct2026.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/iMac_PER_Oct2026.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "mac-mini-m6-2026"
+    vendor: "Apple"
+    name: "Mac mini (M6)"
+    model_identifiers: ["Mac18,5"]
+    embodied_kgco2e: 16.0
+    embodied_scope: "One Apple Mac mini (M6), the whole machine. Production as stated directly by Apple for Mac mini (M6) with 16GB memory, 256GB storage: 16 kgCO2e (non-electricity 16 + electricity 0, Apple counting manufacturing electricity as 100% renewable) out of 30 kgCO2e gross. Excludes infrastructure for renewable energy generation (6), transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_mini_PER_Aug2026.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_mini_PER_Aug2026.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "mac-studio-m5-max-2026"
+    vendor: "Apple"
+    name: "Mac Studio (M5 Max)"
+    model_identifiers: ["Mac17,14"]
+    embodied_kgco2e: 125.0
+    embodied_scope: "One Apple Mac Studio (M5 Max), the whole machine. Production as stated directly by Apple for Mac Studio (M5 Max, 32-core GPU, 36GB memory, 512GB storage): 125 kgCO2e (non-electricity 48 + electricity 77) out of 314 kgCO2e gross. Excludes infrastructure for renewable energy generation (2), transport, use and end of life."
+    embodied_source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_Studio_PER_Aug2026.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.apple.com/environment/pdf/products/desktops/Mac_Studio_PER_Aug2026.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-poweredge-r650"
+    vendor: "Dell"
+    name: "PowerEdge R650"
+    model_identifiers: ["PowerEdge R650"]
+    embodied_kgco2e: 1084.6
+    embodied_scope: "One Dell PowerEdge R650, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes (rack, 2 CPUs x 28 cores, 256GB DRAM, 2 drives, 2 PSUs, 21.25 kg, 4 years in Europe): 11% of 9860 kgCO2e = 1084.6. Excludes transport, use and end of life. Dell PAIA estimate (report produced August 2022); the total is the mean of a wide distribution and the share is rounded to a whole percent."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-r650.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-r650.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-poweredge-r750xs"
+    vendor: "Dell"
+    name: "PowerEdge R750xs"
+    model_identifiers: ["PowerEdge R750xs"]
+    embodied_kgco2e: 1071.6
+    embodied_scope: "One Dell PowerEdge R750xs, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes (rack, 2 CPUs x 28 cores, 256GB DRAM, 2 drives, 2 PSUs, 24.35 kg, 4 years in Europe): 12% of 8930 kgCO2e = 1071.6. Excludes transport, use and end of life. Dell PAIA estimate (report produced August 2022); the total is the mean of a wide distribution and the share is rounded to a whole percent."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-r750xs.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-r750xs.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-poweredge-r450"
+    vendor: "Dell"
+    name: "PowerEdge R450"
+    model_identifiers: ["PowerEdge R450"]
+    embodied_kgco2e: 991.2
+    embodied_scope: "One Dell PowerEdge R450, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes (rack, 2 CPUs x 28 cores, 256GB DRAM, 2 drives, 2 PSUs, 19.16 kg, 4 years in Europe): 12% of 8260 kgCO2e = 991.2. Excludes transport, use and end of life. Dell PAIA estimate (report produced August 2022); the total is the mean of a wide distribution and the share is rounded to a whole percent."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-r450.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-r450.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-poweredge-r550"
+    vendor: "Dell"
+    name: "PowerEdge R550"
+    model_identifiers: ["PowerEdge R550"]
+    embodied_kgco2e: 1054.8
+    embodied_scope: "One Dell PowerEdge R550, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes (rack, 2 CPUs x 28 cores, 256GB DRAM, 2 drives, 2 PSUs, 24.34 kg, 4 years in Europe): 12% of 8790 kgCO2e = 1054.8. Excludes transport, use and end of life. Dell PAIA estimate (report produced August 2022); the total is the mean of a wide distribution and the share is rounded to a whole percent."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-r550.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-r550.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-poweredge-r350"
+    vendor: "Dell"
+    name: "PowerEdge R350"
+    model_identifiers: ["PowerEdge R350"]
+    embodied_kgco2e: 457.9
+    embodied_scope: "One Dell PowerEdge R350, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes (rack, 1 CPU x 6 cores, 32GB DRAM, 2 drives, 2 PSUs, 12.8 kg, 4 years in Europe): 19% of 2410 kgCO2e = 457.9. Excludes transport, use and end of life. Dell PAIA estimate (report produced August 2022); the total is the mean of a wide distribution and the share is rounded to a whole percent."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-r350.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-r350.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-poweredge-c6520"
+    vendor: "Dell"
+    name: "PowerEdge C6520"
+    model_identifiers: ["PowerEdge C6520"]
+    embodied_kgco2e: 1442.0
+    embodied_scope: "One Dell PowerEdge C6520, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes (rack, 2 CPUs x 32 cores, 512GB DRAM, 2 drives, 2 PSUs, 41.5 kg, 4 years in Europe): 14% of 10300 kgCO2e = 1442.0. Excludes transport, use and end of life. Dell PAIA estimate (report produced August 2022); the total is the mean of a wide distribution and the share is rounded to a whole percent."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-c6520.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-c6520.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-poweredge-t550"
+    vendor: "Dell"
+    name: "PowerEdge T550"
+    model_identifiers: ["PowerEdge T550"]
+    embodied_kgco2e: 1090.8
+    embodied_scope: "One Dell PowerEdge T550, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes (tower, 2 CPUs x 18 cores, 256GB DRAM, 2 drives, 2 PSUs, 44.5 kg, 4 years in Europe): 12% of 9090 kgCO2e = 1090.8. Excludes transport, use and end of life. Dell PAIA estimate (report produced August 2022); the total is the mean of a wide distribution and the share is rounded to a whole percent."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-t550.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-t550.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-poweredge-t350"
+    vendor: "Dell"
+    name: "PowerEdge T350"
+    model_identifiers: ["PowerEdge T350"]
+    embodied_kgco2e: 462.0
+    embodied_scope: "One Dell PowerEdge T350, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes (tower, 1 CPU x 6 cores, 32GB DRAM, 2 drives, 2 PSUs, 25.34 kg, 4 years in Europe): 20% of 2310 kgCO2e = 462.0. Excludes transport, use and end of life. Dell PAIA estimate (report produced August 2022); the total is the mean of a wide distribution and the share is rounded to a whole percent."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-t350.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-t350.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-poweredge-t150"
+    vendor: "Dell"
+    name: "PowerEdge T150"
+    model_identifiers: ["PowerEdge T150"]
+    embodied_kgco2e: 468.3
+    embodied_scope: "One Dell PowerEdge T150, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes (tower, 1 CPU x 6 cores, 32GB DRAM, 2 drives, 1 PSU, 11.68 kg, 4 years in Europe): 21% of 2230 kgCO2e = 468.3. Excludes transport, use and end of life. Dell PAIA estimate (report produced August 2022); the total is the mean of a wide distribution and the share is rounded to a whole percent."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-t150.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-t150.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-poweredge-r740"
+    vendor: "Dell"
+    name: "PowerEdge R740"
+    model_identifiers: ["PowerEdge R740"]
+    embodied_kgco2e: 4288.0
+    embodied_scope: "One Dell PowerEdge R740, the whole machine. Manufacture stage stated directly in Dell's full ISO 14040/14044 life cycle assessment by thinkstep (June 2019) for the typical market configuration (2x Intel Xeon Gold 6152 140W, 12x 32GB DIMMs, 1x 400GB SSD + 8x 3.84TB SSDs, 2x 1100W PSUs), EU scenario: 4,288 kgCO2e (US scenario: 4,320). Excludes transport, use and end of life."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/Full_LCA_Dell_R740.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/Full_LCA_Dell_R740.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-precision-3660"
+    vendor: "Dell"
+    name: "Precision 3660"
+    model_identifiers: ["Precision 3660"]
+    embodied_kgco2e: 280.3
+    embodied_scope: "One Dell Precision 3660, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes in the sheet (Precision 3660 Tower, 7.678 kg, 4 years in the EU): 46.1% of 608 kgCO2e = 280.3. Excludes transport, use and end of life. Dell PAIA estimate (report produced March 2022); the total is the mean of the estimate."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/desktops-and-all-in-ones/technical-support/dell-precision-3660-tower-pcf-datasheet.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/desktops-and-all-in-ones/technical-support/dell-precision-3660-tower-pcf-datasheet.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-precision-5860-tower"
+    vendor: "Dell"
+    name: "Precision 5860 Tower"
+    model_identifiers: ["Precision 5860 Tower"]
+    embodied_kgco2e: 482.8
+    embodied_scope: "One Dell Precision 5860 Tower, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes in the sheet (14.403 kg, 4 years in the EU): 27.2% of 1775 kgCO2e = 482.8. Excludes transport, use and end of life. Dell PAIA estimate (report produced March 2023); the total is the mean of the estimate."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/desktops-and-all-in-ones/technical-support/dell-precision-5860-tower-pcf-datasheet.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/desktops-and-all-in-ones/technical-support/dell-precision-5860-tower-pcf-datasheet.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-precision-7865-tower"
+    vendor: "Dell"
+    name: "Precision 7865 Tower"
+    model_identifiers: ["Precision 7865 Tower"]
+    embodied_kgco2e: 594.1
+    embodied_scope: "One Dell Precision 7865 Tower, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes in the sheet (15.346 kg, 4 years in the EU): 31.6% of 1880 kgCO2e = 594.1. Excludes transport, use and end of life. Dell PAIA estimate (report produced July 2022); the total is the mean of the estimate."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/desktops-and-all-in-ones/technical-support/dell-precision-7865-tower-pcf-datasheet.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/desktops-and-all-in-ones/technical-support/dell-precision-7865-tower-pcf-datasheet.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-precision-7875-tower"
+    vendor: "Dell"
+    name: "Precision 7875 Tower"
+    model_identifiers: ["Precision 7875 Tower"]
+    embodied_kgco2e: 581.7
+    embodied_scope: "One Dell Precision 7875 Tower, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes in the sheet (18.34 kg, 4 years in the EU): 30.0% of 1939 kgCO2e = 581.7. Excludes transport, use and end of life. Dell PAIA estimate (report produced November 2023); the total is the mean of the estimate."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/workstations/technical-support/dell-precision-7875-tower-pcf-datasheet.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/workstations/technical-support/dell-precision-7875-tower-pcf-datasheet.pdf"
+    retrieved_date: "2026-11-08"
+  - key: "dell-precision-7960-tower"
+    vendor: "Dell"
+    name: "Precision 7960 Tower"
+    model_identifiers: ["Precision 7960 Tower"]
+    embodied_kgco2e: 680.4
+    embodied_scope: "One Dell Precision 7960 Tower, the whole machine. Production phase of Dell's product carbon footprint (Manufacturing stage) for the configuration Dell assumes in the sheet (21.035 kg, 4 years in the EU): 22.9% of 2971 kgCO2e = 680.4. Excludes transport, use and end of life. Dell PAIA estimate (report produced March 2023); the total is the mean of the estimate."
+    embodied_source_url: "https://www.delltechnologies.com/asset/en-us/products/desktops-and-all-in-ones/technical-support/dell-precision-7960-tower-pcf-datasheet.pdf"
+    embodied_retrieved_date: "2026-11-08"
+    source_url: "https://www.delltechnologies.com/asset/en-us/products/desktops-and-all-in-ones/technical-support/dell-precision-7960-tower-pcf-datasheet.pdf"
+    retrieved_date: "2026-11-08"

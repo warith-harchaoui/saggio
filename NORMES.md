@@ -72,6 +72,20 @@ sa frontière en toutes lettres à côté du nombre :
 | Core i9-13900K | 14,2 | Du berceau à la sortie d'usine, depuis un die de 257 mm² | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 | Ryzen 9 7950X | 14,34 | Du berceau à la sortie d'usine, depuis un die de 264 mm² | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 
+À côté des pièces, **48 machines entières** portent la phase de fabrication du
+chiffre de cycle de vie publié par leur fabricant : 33 Mac à puce Apple, tirés
+des rapports environnementaux produit d'Apple, et 15 serveurs PowerEdge et
+stations Precision de Dell, tirés de ses empreintes carbone produit. Chaque
+ligne de la section `machines` de `saggio/data/hardware.yaml` nomme sa
+configuration et écrit son calcul, le plus souvent le total du fabricant
+multiplié par sa part de production, et n'est reconnue qu'à l'identifiant exact
+que donne le firmware. Quatre ont été lues puis écartées : trois Mac dont le
+rapport ne rattache la part de production à sa phase que par la couleur d'un
+graphique, et le PowerEdge R750, pour lequel deux fiches Dell donnent des
+totaux qui diffèrent du simple au double. Les Mac Max et Ultra, les plus gros
+d'Apple, restent à `TODO` : leurs rapports donnent un total, sans répartition
+par phase.
+
 Les deux sortes de ligne ne sont pas de la même force, si bien que le tableau
 les tient séparées plutôt que de les moyenner sous un même mot. Les
 accélérateurs sont publiés par le fabricant, démontés et pesés, ou modélisés par

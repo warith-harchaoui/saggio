@@ -186,9 +186,9 @@ La moitié utile de toute revendication de conformité est celle qui échoue.
   votre fournisseur publie un chiffre par client, c'est ce chiffre qui fait foi
   et celui-ci qui est un recoupement. La plupart ne publient rien à cette
   finesse, ce qui est la raison de le calculer.
-- **Le catalogue matériel est petit**, délibérément. Neuf empreintes sont
-  livrées et tout le reste rapporte `TODO` avec une phrase disant que personne
-  n'en a lu une — ce qui n'est pas la même chose que sa fabrication aurait été
+- **Le catalogue matériel est petit**, délibérément. Neuf empreintes de pièces et 48 machines entières
+  sont livrées, et tout le reste rapporte `TODO` avec la commande qui le comble,
+  écrite en entier — ce qui n'est pas la même chose que sa fabrication aurait été
   gratuite. [`NORMES.md`](NORMES.md)
   en donne le tableau et les refus.
 - **Ce n'est pas une opinion d'assurance**, et aucun outil ne l'est.

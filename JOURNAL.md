@@ -16,6 +16,19 @@ endroit-là.
 
 ## Non publié
 
+### Quarante-huit machines portent une empreinte, et quatre qui ont été lues n'en portent pas
+
+La section `machines` reçoit ses premières lignes : 33 Mac à puce Apple, tirés
+des rapports environnementaux produit d'Apple, et 15 serveurs PowerEdge et
+stations Precision de Dell, tirés de ses empreintes carbone produit. Chacune
+est la phase de fabrication du chiffre du fabricant, le plus souvent son total
+multiplié par sa part de production, avec la configuration et le calcul écrits
+dans `embodied_scope`. Écartés après lecture : trois Mac dont le rapport ne
+rattache la part de production à sa phase que par la couleur d'un graphique,
+et le PowerEdge R750, dont les deux fiches Dell donnent des totaux qui
+diffèrent du simple au double. Les Mac Max et Ultra restent à `TODO` : Apple
+leur donne un total, sans répartition par phase.
+
 ### Une empreinte ouverte dit comment la combler, et une machine peut en porter une
 
 Le `TODO` du carbone de fabrication disait qu'il manquait une empreinte, et

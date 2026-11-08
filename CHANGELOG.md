@@ -14,6 +14,18 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### Forty-eight machines carry a footprint, and four that were read do not
+
+The `machines` section ships its first rows: 33 Apple Silicon Macs, from
+Apple's product environmental reports, and 15 Dell PowerEdge servers and
+Precision workstations, from Dell's product carbon footprints. Each is the
+manufacturing phase of the maker's own figure, usually its total times its
+production share, with the configuration and the arithmetic written in
+`embodied_scope`. Left out after reading: three Macs whose report ties the
+production share to its phase only by a chart's colour, and the PowerEdge
+R750, whose two Dell sheets disagree on the total by a factor of two. The Max
+and Ultra Macs stay `TODO`; Apple gives them a total and no phase split.
+
 ### An open footprint says how to close it, and a machine can carry one
 
 The embodied `TODO` used to say a footprint was missing and stop. It now gives

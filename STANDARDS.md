@@ -71,6 +71,18 @@ the boundary in words beside the number:
 | Core i9-13900K | 14.2 | Cradle-to-gate, from a 257 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 | Ryzen 9 7950X | 14.34 | Cradle-to-gate, from a 264 mm² die | [Boavizta](https://doc.api.boavizta.org/Explanations/components/cpu/) |
 
+Beside the parts, **48 whole machines** carry the manufacturing phase of their
+maker's own lifecycle figure: 33 Apple Silicon Macs from Apple's product
+environmental reports, and 15 Dell PowerEdge servers and Precision workstations
+from Dell's product carbon footprints. Each row in the `machines` section of
+`saggio/data/hardware.yaml` names its configuration and writes out its
+arithmetic, usually the vendor's total times the vendor's production share, and
+is matched only on the exact identifier the firmware gives. Four were read and
+left out: three Macs whose report ties the production share to its phase only
+by the colour of a chart, and the PowerEdge R750, for which two Dell sheets
+disagree on the total by a factor of two. The Max and Ultra Macs, Apple's
+largest, stay `TODO`: their reports give a total and no phase split.
+
 The two kinds of row are not the same strength of claim, so the table keeps them
 apart rather than averaging them into one word. The accelerators are
 vendor-published, torn down and weighed, or modelled by the part's own designer

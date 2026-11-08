@@ -644,8 +644,8 @@ Being honest about the gaps, since that is the whole premise of the tool.
   there — the four terms of the International Organization for Standardization
   and International Electrotechnical Commission's joint standard, ISO/IEC 21031,
   amortised over calendar time — and so
-  are nine footprints: five accelerators out of 25 rows and four processors out
-  of 12. Everything else reports `TODO`. The lifetime is still yours to state,
+  are nine part footprints, five accelerators out of 25 rows and four processors
+  out of 12, and 48 whole machines. Everything else reports `TODO`. The lifetime is still yours to state,
   because how long a card stays in service is a fact about a fleet rather than
   about a part. See [`STANDARDS.md`](STANDARDS.md) for the table and the eight
   refusals.

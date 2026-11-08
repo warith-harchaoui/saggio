@@ -168,11 +168,13 @@ for Standardization and the International Electrotechnical Commission as
 shape this package already had.
 
 The arithmetic is complete; **the catalogue is not, nor does it pretend to be.**
-Nine footprints ship: five accelerators out of 25 rows and four processors out
-of 12. Everything else reports `TODO` with a sentence saying nobody has read a
-footprint for it, which is not the same as it having been free to build. The
-reason the gap is that wide is that most vendors publish a footprint for a whole
-server rather than for the part inside it. The one open database that covers
+Nine part footprints ship, five accelerators out of 25 rows and four processors
+out of 12, and so do 48 whole machines: 33 Apple Silicon Macs and 15 Dell
+servers and workstations, each matched on the exact identifier its firmware
+gives. The machines outnumber the parts because most vendors publish a
+footprint for the product they sell rather than for the chip inside it.
+Everything else reports `TODO`, which is not the same as it having been free to
+build, and the note beside it writes out the command that closes it. The one open database that covers
 processors answers for a chip it does not have by substituting the nearest one
 it does — asked for an Apple M4 Max it returns an Apple M1 Max, four generations
 earlier, with no warning. Those answers are refused by name rather than

@@ -177,14 +177,16 @@ internationale sous la référence [ISO/IEC
 avait déjà la forme.
 
 L'arithmétique est complète ; **le catalogue ne l'est pas, et ne fera pas
-semblant.** Neuf empreintes sont livrées : cinq accélérateurs sur 25 lignes et
-quatre processeurs sur 12. Tout le reste rapporte `TODO` avec une phrase disant
-que personne n'a lu d'empreinte pour cette pièce — ce qui n'est pas la même
-chose que sa fabrication aurait été gratuite. Si l'écart est si large, c'est que
-la plupart des fabricants publient une empreinte pour un serveur entier et non
-pour la pièce qu'il contient, et que la seule base ouverte couvrant les
-processeurs répond à propos d'une puce qu'elle n'a pas en lui substituant la
-plus proche qu'elle a — interrogée sur une Apple M4 Max, elle renvoie une Apple
+semblant.** Neuf empreintes de pièces sont livrées, cinq accélérateurs sur 25 lignes et
+quatre processeurs sur 12, et 48 machines entières avec elles : 33 Mac à puce
+Apple et 15 serveurs et stations de travail Dell, chacun reconnu à l'identifiant
+exact que donne son firmware. Les machines sont plus nombreuses que les pièces
+parce que la plupart des fabricants publient l'empreinte du produit qu'ils
+vendent, pas celle de la puce qu'il contient. Tout le reste rapporte `TODO` — ce
+qui ne veut pas dire que sa fabrication a été gratuite — et la note qui
+l'accompagne écrit en entier la commande qui le comble. La seule base ouverte
+qui couvre les processeurs, elle, répond à propos d'une puce qu'elle n'a pas en
+lui substituant la plus proche qu'elle a : interrogée sur une Apple M4 Max, elle renvoie une Apple
 M1 Max, quatre générations plus tôt, sans avertissement. Ces réponses-là sont
 refusées nommément plutôt qu'importées. [`NORMES.md`](NORMES.md) dit quelle part
 est satisfaite et quelle part reste la vôtre à fournir.
