@@ -14,6 +14,15 @@ is why the vocabulary is one click away instead.
 
 ## Unreleased
 
+### No Mermaid left: the analysis page shows a drawn figure
+
+`ANALYSIS.md` and `ANALYSE.md` described their two families of analysis in a
+Mermaid block, which the website then had to swap for an SVG because its
+renderer needs a headless browser that had stopped closing on the build
+machine. The SVG is now the figure itself, in `assets/`, in both languages,
+checked by `sprezzature-figures check` in light and dark: one drawing instead of
+a diagram source and a copy of it.
+
 ### A report opens in the language it was written in
 
 A report rendered with `--language fr` opened half in English for anyone whose

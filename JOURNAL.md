@@ -16,6 +16,16 @@ endroit-là.
 
 ## Non publié
 
+### Plus de Mermaid : la page d'analyse montre une figure dessinée
+
+`ANALYSIS.md` et `ANALYSE.md` décrivaient leurs deux familles d'analyse dans un
+bloc Mermaid, que le site devait ensuite remplacer par un SVG : son moteur de
+rendu demande un navigateur sans interface, qui ne se fermait plus sur la
+machine de construction. Le SVG est maintenant la figure elle-même, dans
+`assets/`, dans les deux langues, vérifié par `sprezzature-figures check` en
+clair comme en sombre : un seul dessin, au lieu d'une source de diagramme et
+de sa copie.
+
 ### Un rapport s'ouvre dans la langue où il a été écrit
 
 Un rapport produit avec `--language fr` s'ouvrait à moitié en anglais chez

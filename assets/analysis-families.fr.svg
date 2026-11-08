@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 692"
+  width="1000" height="692" role="img" aria-labelledby="fig-title fig-desc">
+  <title id="fig-title">Deux familles d&#x27;analyse, et ce que chacune a le droit de produire</title>
+  <desc id="fig-desc">À gauche, l&#x27;analyse statique lit le code : comptage, bornes symboliques, modèles d&#x27;énergie par instruction, métriques de complexité, catalogues de règles. À droite, l&#x27;analyse dynamique l&#x27;exécute : compteurs d&#x27;énergie, profils, complexité empirique, recherche du pire cas. Les deux alimentent un seul résultat, un nombre qui dit jusqu&#x27;où lui faire confiance. Les métriques de complexité seules sont refusées comme prédicteur d&#x27;énergie.</desc>
+  <style>
+  text { font-family: Roboto, system-ui, -apple-system, Helvetica, Arial, sans-serif; }
+  .panel { fill: #F6FAFD; stroke: #A9CFE4; }
+  .panel-run { fill: #F3FAF8; stroke: #9ED3C6; }
+  .panel-title { fill: #1C1C1E; font-size: 21px; font-weight: 700; }
+  .read { fill: #E7F1F8; stroke: #0072B2; }
+  .run { fill: #E3F3EF; stroke: #006E5C; }
+  .item-name { fill: #1C1C1E; font-size: 17px; font-weight: 600; }
+  .item-note { fill: #55565A; font-size: 14px; }
+  .edge { stroke: #86868B; fill: none; }
+  .edge-label { fill: #55565A; font-size: 14px; font-style: italic; }
+  .outcome { fill: #0072B2; stroke: #003C5D; }
+  .outcome-text { fill: #FFFFFF; font-size: 21px; font-weight: 700; }
+  .outcome-note { fill: #FFFFFF; font-size: 15px; font-weight: 400; opacity: 0.92; }
+  .refusal { fill: none; stroke: #B43C0F; stroke-dasharray: 7 5; }
+  .refusal-text { fill: #9A330D; font-size: 15px; }
+
+  .box { fill: #FFFFFF; stroke: #C9CBD0; }
+  .box-title { fill: #1C1C1E; font-size: 17px; font-weight: 600; }
+  .box-value { fill: #55565A; font-size: 14px; }
+  .pill-measured { fill: #E3F3EF; stroke: #006E5C; }
+  .pill-estimated { fill: #E7F1F8; stroke: #0072B2; }
+  .pill-todo { fill: #FBEBE4; stroke: #B43C0F; }
+  .pill-measured-text { fill: #005243; font-size: 13px; font-weight: 600; }
+  .pill-estimated-text { fill: #005A8D; font-size: 13px; font-weight: 600; }
+  .pill-todo-text { fill: #8E2F0C; font-size: 13px; font-weight: 600; }
+  .row-title { fill: #1C1C1E; font-size: 16px; font-weight: 600; }
+  .row-note { fill: #55565A; font-size: 14px; }
+  .operator { fill: #55565A; font-size: 20px; }
+  .caption { fill: #1C1C1E; font-size: 15px; }
+
+  .axis { stroke: #C9CBD0; fill: none; }
+  .grid { stroke: #E7E8EB; fill: none; }
+  .tick { fill: #55565A; font-size: 13px; }
+  .axis-title { fill: #1C1C1E; font-size: 14px; font-weight: 600; }
+  .fit { stroke: #0072B2; fill: none; }
+  .assumed { stroke: #B43C0F; fill: none; stroke-dasharray: 7 5; }
+  .point { fill: #0072B2; stroke: #FFFFFF; }
+  .band { fill: #E7F1F8; }
+  .note-fit { fill: #005A8D; font-size: 14px; font-weight: 600; }
+  .note-assumed { fill: #8E2F0C; font-size: 14px; font-weight: 600; }
+  .note { fill: #55565A; font-size: 13px; }
+
+  @media (prefers-color-scheme: dark) {
+    .panel { fill: #12212B; stroke: #27485C; }
+    .panel-run { fill: #10231F; stroke: #235146; }
+    .panel-title, .item-name, .box-title, .row-title, .caption, .axis-title { fill: #F5F5F7; }
+    .read { fill: #16303F; stroke: #4FA3D1; }
+    .run { fill: #12332C; stroke: #3EBAA0; }
+    .item-note, .edge-label, .box-value, .row-note, .operator, .tick, .note { fill: #A1A1A6; }
+    .edge { stroke: #8E8E93; }
+    .outcome { fill: #1F81C2; stroke: #1F81C2; }
+    .refusal { stroke: #F08C64; }
+    .refusal-text { fill: #F3A183; }
+    .box { fill: #1C1C1E; stroke: #48484A; }
+    .pill-measured { fill: #12332C; stroke: #3EBAA0; }
+    .pill-estimated { fill: #16303F; stroke: #4FA3D1; }
+    .pill-todo { fill: #33180E; stroke: #F08C64; }
+    .pill-measured-text { fill: #6FD3BC; }
+    .pill-estimated-text { fill: #7FC4E8; }
+    .pill-todo-text { fill: #F3A183; }
+    .axis { stroke: #48484A; }
+    .grid { stroke: #2C2C2E; }
+    .fit { stroke: #4FA3D1; }
+    .assumed { stroke: #F08C64; }
+    .point { fill: #4FA3D1; stroke: #0B0B0C; }
+    .band { fill: #16303F; }
+    .note-fit { fill: #7FC4E8; }
+    .note-assumed { fill: #F3A183; }
+  }
+</style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+      orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#86868B"/>
+    </marker>
+  </defs>
+
+  <rect class="panel" x="30" y="60" width="430" height="360" rx="16" stroke-width="1.4"/>
+  <text class="panel-title" x="54" y="96">Statique — le code est lu</text>
+  <rect class="read" x="48" y="118" width="394" height="46" rx="10" stroke-width="1.2"/>
+  <text class="item-name" x="64" y="138">Compter</text>
+  <text class="item-note" x="64" y="156">langages, tailles, imports, appels</text>
+  <rect class="read" x="48" y="176" width="394" height="46" rx="10" stroke-width="1.2"/>
+  <text class="item-name" x="64" y="196">Bornes</text>
+  <text class="item-note" x="64" y="214">COSTA · CoFloCo · KoAT · RaML</text>
+  <rect class="read" x="48" y="234" width="394" height="46" rx="10" stroke-width="1.2"/>
+  <text class="item-name" x="64" y="254">Modèles d&#x27;énergie</text>
+  <text class="item-note" x="64" y="272">pire cas sur un jeu d&#x27;instructions</text>
+  <rect class="read" x="48" y="292" width="394" height="46" rx="10" stroke-width="1.2"/>
+  <text class="item-name" x="64" y="312">Métriques</text>
+  <text class="item-note" x="64" y="330">cyclomatique · Halstead · cognitive</text>
+  <rect class="read" x="48" y="350" width="394" height="46" rx="10" stroke-width="1.2"/>
+  <text class="item-name" x="64" y="370">Catalogues de règles</text>
+  <text class="item-note" x="64" y="388">creedengo · EcoSonar</text>
+
+  <rect class="panel-run" x="540" y="60" width="430" height="302" rx="16" stroke-width="1.4"/>
+  <text class="panel-title" x="564" y="96">Dynamique — le code est exécuté</text>
+  <rect class="run" x="558" y="118" width="394" height="46" rx="10" stroke-width="1.2"/>
+  <text class="item-name" x="574" y="138">Compteurs</text>
+  <text class="item-note" x="574" y="156">RAPL · NVML · IOReport</text>
+  <rect class="run" x="558" y="176" width="394" height="46" rx="10" stroke-width="1.2"/>
+  <text class="item-name" x="574" y="196">Profils</text>
+  <text class="item-note" x="574" y="214">cProfile · Scalene · callgrind</text>
+  <rect class="run" x="558" y="234" width="394" height="46" rx="10" stroke-width="1.2"/>
+  <text class="item-name" x="574" y="254">Complexité empirique</text>
+  <text class="item-note" x="574" y="272">trend-prof · aprof · un exposant ajusté</text>
+  <rect class="run" x="558" y="292" width="394" height="46" rx="10" stroke-width="1.2"/>
+  <text class="item-name" x="574" y="312">Pire cas par recherche</text>
+  <text class="item-note" x="574" y="330">SlowFuzz · PerfFuzz · Singularity</text>
+
+  <!-- Both families converge on the same outcome, and the arrows end on it. -->
+  <path class="edge" d="M245 420 L245 460 Q245 476 262 476 L400 476 L400 488"
+    stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path class="edge" d="M755 362 L755 460 Q755 476 738 476 L600 476 L600 488"
+    stroke-width="1.6" marker-end="url(#arrow)"/>
+  <text class="edge-label" x="252" y="446">formes, tailles, preuves</text>
+  <text class="edge-label" x="748" y="388" text-anchor="end">durées, joules, exposants</text>
+
+  <rect class="outcome" x="170" y="494" width="660" height="74" rx="14"
+    stroke-width="1.4"/>
+  <text class="outcome-text" x="500" y="528" text-anchor="middle">Un nombre qui dit jusqu&#x27;où lui faire confiance</text>
+
+  <rect class="refusal" x="110" y="598" width="780" height="74" rx="12"
+    stroke-width="1.6"/>
+  <text class="refusal-text" x="500" y="624" text-anchor="middle">Métriques de complexité seules : R² ≈ 0,005 face à l&#x27;énergie mesurée.</text>
+  <text class="refusal-text" x="500" y="646" text-anchor="middle">Refusées comme prédicteur — elles ressembleraient à un chiffre vérifié.</text>
+</svg>
